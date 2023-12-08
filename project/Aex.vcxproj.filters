@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\Aex.cpp" />
+    <ClCompile Include="..\src\pp\pp_tokens.c">
+      <Filter>pp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\pp\pp_macro_table.c">
+      <Filter>pp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\pp\pp.c">
+      <Filter>pp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\pp\situs.c">
+      <Filter>pp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\pp\scan_helpers.c">
+      <Filter>pp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\pp\pp_input_file.c">
+      <Filter>pp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gl_es2_impl.c" />
+    <ClCompile Include="..\src\glsl_es1_compiler.c" />
+    <ClCompile Include="..\src\glsl_es1_tokens.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="pp">
+      <UniqueIdentifier>{06e896e1-d1e6-46fc-a092-2227b078c09c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\pp\pp_tokens.h">
+      <Filter>pp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pp\pp.h">
+      <Filter>pp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pp\pp_macro_table.h">
+      <Filter>pp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pp\situs.h">
+      <Filter>pp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pp\scan_helpers.h">
+      <Filter>pp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pp\pp_input_file.h">
+      <Filter>pp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gl_es2_impl.h" />
+    <ClInclude Include="..\src\glsl_es1_compiler.h" />
+    <ClInclude Include="..\src\glsl_es1_tokens.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
+      <Filter>pp</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src\pp\pp_const_expr.cbrt">
+      <Filter>pp</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src\pp\pp_line_continuations.cbrt">
+      <Filter>pp</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src\pp\pp_line_directives.cbrt">
+      <Filter>pp</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src\pp\pp_macro_expander.cbrt">
+      <Filter>pp</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src\pp\pp_trigraphs.cbrt">
+      <Filter>pp</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src\glsl_es_1.cbrt" />
+  </ItemGroup>
+</Project>
