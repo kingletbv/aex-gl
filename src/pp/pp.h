@@ -137,7 +137,9 @@ int pp_warn(struct preprocessor *pp, const char *fmt, ...);
 void pp_no_memory(struct preprocessor *pp);
 
 struct pp_if_section *pp_if_push(struct preprocessor *pp);
+struct pp_input_file *pp_push_input_file(struct preprocessor *pp, const char *filename, size_t aux_data);
 void pp_if_pop(struct preprocessor *pp);
+
 
 int pp_concat_sub_output(struct preprocessor *pp, struct situs *output_situs, char **output_buf, size_t *output_pos, size_t *output_buf_size, struct situs *span_situs, const char *span_text);
 int pp_concat_sub_output_b(struct preprocessor *pp, struct situs *output_situs, char **output_buf, size_t *output_pos, size_t *output_buf_size, struct situs *span_situs, const char *span_text, size_t span_text_len);

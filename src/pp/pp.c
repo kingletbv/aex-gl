@@ -90,7 +90,7 @@
 
 static int pp_stderr_vprintf_handler(void *baton, const char *file, int line_num, const char *fmt, va_list args);
 
-static struct pp_input_file *pp_push_input_file(struct preprocessor *pp, const char *filename, size_t aux_data) {
+struct pp_input_file *pp_push_input_file(struct preprocessor *pp, const char *filename, size_t aux_data) {
   char *sf = pp_preserve_filename(pp, filename);
   if (!sf) return NULL;
   struct pp_input_file *ifile = (struct pp_input_file *)malloc(sizeof(struct pp_input_file) + aux_data);
