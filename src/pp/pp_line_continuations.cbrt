@@ -1,0 +1,79 @@
+
+#ifndef STDLIB_H_INCLUDED
+#define STDLIB_H_INCLUDED
+#include <stdlib.h>
+#endif
+
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
+#ifndef PP_H_INCLUDED
+#define PP_H_INCLUDED
+#include "pp.h"
+#endif
+
+#ifndef SITUS_H_INCLUDED
+#define SITUS_H_INCLUDED
+#include "situs.h"
+#endif
+
+%scanner%
+
+%prefix pplc_
+
+%common_type struct situs
+%constructor situs_init(&$$);
+%destructor situs_cleanup(&$$);
+
+%params struct preprocessor *pp, char **output_buf, size_t *output_end, size_t *output_buf_alloc_size, struct situs *output_situs, struct situs *input_situs
+
+$: {
+  situs_move_range(&$, input_situs, $endoffset - $offset, $text);
+}
+
+: \n|[^\n]*[^\\\n]\n {
+  /* Any line that does not end in a continuation (no \ at the end) */
+  if (pp_concat_output_b(pp, output_situs, output_buf, output_end, output_buf_alloc_size, &$, $text, $len)) {
+    return _PPLC_NO_MEMORY;
+  }
+}
+
+: [^\n]*[^\\\n]\Z {
+  /* Any line that ends at the end of input. */
+  if (pp_concat_output_b(pp, output_situs, output_buf, output_end, output_buf_alloc_size, &$, $text, $len)) {
+    return _PPLC_NO_MEMORY;
+  }
+}
+
+: \Z {
+  /* An empty line at the end of input */
+}
+
+: \n {
+  /* A regular newline */
+  if (pp_concat_output_b(pp, output_situs, output_buf, output_end, output_buf_alloc_size, &$, $text, $len)) {
+    return _PPLC_NO_MEMORY;
+  }
+}
+
+: \\\n {
+  /* A line continuation - we eat these */
+}
+
+: [^\n]*\\\Z {
+  /* Line at the end of input ending with a line continuation */
+  if (pp_concat_output_b(pp, output_situs, output_buf, output_end, output_buf_alloc_size, &$, $text, $len)) {
+    return _PPLC_NO_MEMORY;
+  }
+}
+
+: [^\n]* [^\\\n] {
+  /* Any line that does not end on a backslash or a newline. Given that other patterns will include the newline
+   * or the end of file (and are therefore longer), this can only match lines that are part of linecontinuations. */
+  /* A line that ends in a line continuation */
+  if (pp_concat_output_b(pp, output_situs, output_buf, output_end, output_buf_alloc_size, &$, $text, $len)) {
+    return _PPLC_NO_MEMORY;
+  }
+}
