@@ -36,3 +36,9 @@ build/
 
 # Drop VS user-specific files
 *.user
+
+# Specifications directory
+docs/specs/
+
+# Visual studio dir.
+.vs/
