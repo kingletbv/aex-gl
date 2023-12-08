@@ -1,0 +1,342 @@
+
+#ifndef GLSL_ES_1_H_INCLUDED
+#define GLSL_ES_1_H_INCLUDED
+#include "glsl_es_1.h"
+#endif
+
+#ifndef SITUS_H_INCLUDED
+#define SITUS_H_INCLUDED
+#include "situs.h"
+#endif
+
+%grammar%
+
+%prefix glsl_es1_
+
+%params struct glsl_es1_compiler *cc, struct pptk *input_chain
+
+%token ATTRIBUTE CONST BOOL FLOAT INT BREAK CONTINUE DO ELSE FOR IF DISCARD RETURN
+%token BVEC2 BVEC3 BVEC4 IVEC2 IVEC3 IVEC4 VEC2 VEC3 VEC4 MAT2 MAT3 MAT4 IN OUT INOUT
+%token UNIFORM VARYING SAMPLER2D SAMPLERCUBE STRUCT VOID WHILE
+%token IDENTIFIER TYPE_NAME FLOATCONSTANT INTCONSTANT BOOLCONSTANT
+%token LEFT_OP RIGHT_OP INC_OP DEC_OP LE_OP GE_OP EQ_OP NE_OP AND_OP OR_OP XOR_OP 
+%token MUL_ASSIGN DIV_ASSIGN ADD_ASSIGN MOD_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
+%token XOR_ASSIGN OR_ASSIGN SUB_ASSIGN 
+
+%token LEFT_PAREN RIGHT_PAREN LEFT_BRACKET RIGHT_BRACKET LEFT_BRACE RIGHT_BRACE DOT 
+%token COMMA COLON SEMICOLON EQUAL BANG DASH TILDE PLUS STAR SLASH PERCENT 
+%token LEFT_ANGLE RIGHT_ANGLE VERTICAL_BAR CARET AMPERSAND QUESTION
+
+%token INVARIANT
+%token HIGH_PRECISION MEDIUM_PRECISION LOW_PRECISION PRECISION
+
+%token OTHER /* used for tokens we don't recognize for GLSL; will always create a syntax error. */
+%token WHITESPACE /* used for whitespace; will always be ignored (not used inside grammar itself.) */
+
+%nt variable-identifier primary-expression postfix-expression integer-expression function-call
+%nt function-call-generic function-call-header-no-parameters function-call-header-with-parameters
+%nt function-call-header function-identifier constructor-identifier
+%nt unary-expression unary-operator multiplicative-expression additive-expression shift-expression
+%nt relational-expression equality-expression and-expression exclusive-or-expression inclusive-or-expression
+%nt logical-and-expression logical-xor-expression logical-or-expression conditional-expression
+%nt assignment-expression assignment-operator expression constant-expression declaration
+%nt function-prototype function-declarator function-header-with-parameters function-header
+%nt parameter-declarator parameter-declaration parameter-qualifier parameter-type-specifier
+%nt init-declarator-list single-declaration fully-specified-type type-qualifier type-specifier
+%nt type-specifier-no-prec precision-qualifier struct-specifier struct-declaration-list
+%nt struct-declaration struct-declarator-list struct-declarator initializer declaration-statement 
+%nt statement-no-new-scope simple-statement compound-statement-with-scope statement-with-scope 
+%nt compound-statement-no-new-scope statement-list expression-statement selection-statement
+%nt selection-rest-statement condition iteration-statement for-init-statement condition-opt
+%nt for-rest-statement jump-statement translation-unit external-declaration function-definition
+
+%nt grammar
+
+grammar: translation-unit;
+
+%common_type struct situs
+%constructor situs_init(&$$);
+%destructor situs_cleanup(&$$);
+
+variable-identifier: IDENTIFIER;
+
+primary-expression: variable-identifier;
+primary-expression: INTCONSTANT;
+primary-expression: FLOATCONSTANT;
+primary-expression: BOOLCONSTANT;
+primary-expression: LEFT_PAREN expression RIGHT_PAREN;
+
+postfix-expression: primary-expression;
+postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRACKET;
+postfix-expression: function-call;
+postfix-expression: postfix-expression DOT IDENTIFIER;
+postfix-expression: postfix-expression INC_OP;
+postfix-expression: postfix-expression DEC_OP;
+
+integer-expression: expression;
+
+function-call: function-call-generic;
+
+function-call-generic: function-call-header-with-parameters RIGHT_PAREN;
+function-call-generic: function-call-header-no-parameters RIGHT_PAREN;
+
+function-call-header-no-parameters: function-call-header VOID;
+function-call-header-no-parameters: function-call-header;
+
+function-call-header-with-parameters: function-call-header assignment-expression;
+function-call-header-with-parameters: function-call-header-with-parameters COMMA assignment-expression;
+
+function-call-header: function-identifier LEFT_PAREN;
+
+function-identifier: constructor-identifier;
+function-identifier: IDENTIFIER;
+
+constructor-identifier: FLOAT;
+constructor-identifier: INT;
+constructor-identifier: BOOL;
+constructor-identifier: VEC2;
+constructor-identifier: VEC3;
+constructor-identifier: VEC4;
+constructor-identifier: BVEC2;
+constructor-identifier: BVEC3;
+constructor-identifier: BVEC4;
+constructor-identifier: IVEC2;
+constructor-identifier: IVEC3;
+constructor-identifier: IVEC4;
+constructor-identifier: MAT2;
+constructor-identifier: MAT3;
+constructor-identifier: MAT4;
+constructor-identifier: TYPE_NAME;
+
+unary-expression: postfix-expression;
+unary-expression: INC_OP unary-expression;
+unary-expression: DEC_OP unary-expression;
+unary-expression: unary-operator unary-expression;
+
+unary-operator: PLUS;
+unary-operator: DASH;
+unary-operator: BANG;
+unary-operator: TILDE;
+
+multiplicative-expression: unary-expression;
+multiplicative-expression: multiplicative-expression STAR unary-expression;
+multiplicative-expression: multiplicative-expression SLASH unary-expression;
+multiplicative-expression: multiplicative-expression PERCENT unary-expression;
+
+additive-expression: multiplicative-expression;
+additive-expression: additive-expression PLUS multiplicative-expression;
+additive-expression: additive-expression DASH multiplicative-expression;
+
+shift-expression: additive-expression;
+shift-expression: shift-expression LEFT_OP additive-expression;
+shift-expression: shift-expression RIGHT_OP additive-expression;
+
+relational-expression: shift-expression;
+relational-expression: relational-expression LEFT_ANGLE shift-expression;
+relational-expression: relational-expression RIGHT_ANGLE shift-expression;
+relational-expression: relational-expression LE_OP shift-expression;
+relational-expression: relational-expression GE_OP shift-expression;
+
+equality-expression: relational-expression;
+equality-expression: equality-expression EQ_OP relational-expression;
+equality-expression: equality-expression NE_OP relational-expression;
+
+and-expression: equality-expression;
+and-expression: and-expression AMPERSAND equality-expression;
+
+exclusive-or-expression: and-expression;
+exclusive-or-expression: exclusive-or-expression CARET and-expression;
+
+inclusive-or-expression: exclusive-or-expression;
+inclusive-or-expression: inclusive-or-expression VERTICAL_BAR exclusive-or-expression;
+
+logical-and-expression: inclusive-or-expression;
+logical-and-expression: logical-and-expression AND_OP inclusive-or-expression;
+
+logical-xor-expression: logical-and-expression;
+logical-xor-expression: logical-xor-expression XOR_OP logical-and-expression;
+
+logical-or-expression: logical-xor-expression;
+logical-or-expression: logical-or-expression OR_OP logical-xor-expression;
+
+conditional-expression: logical-or-expression;
+conditional-expression: logical-or-expression QUESTION expression COLON assignment-expression;
+
+assignment-expression: conditional-expression;
+assignment-expression: unary-expression assignment-operator assignment-expression;
+
+assignment-operator: EQUAL;
+assignment-operator: MUL_ASSIGN;
+assignment-operator: DIV_ASSIGN;
+assignment-operator: MOD_ASSIGN;
+assignment-operator: ADD_ASSIGN;
+assignment-operator: SUB_ASSIGN;
+assignment-operator: LEFT_ASSIGN;
+assignment-operator: RIGHT_ASSIGN;
+assignment-operator: AND_ASSIGN;
+assignment-operator: XOR_ASSIGN;
+assignment-operator: OR_ASSIGN;
+
+expression: assignment-expression;
+expression: expression COMMA assignment-expression;
+
+constant-expression: conditional-expression;
+
+declaration: function-prototype SEMICOLON;
+declaration: init-declarator-list SEMICOLON;
+declaration: PRECISION precision-qualifier type-specifier-no-prec SEMICOLON;
+
+function-prototype: function-declarator RIGHT_PAREN;
+
+function-declarator: function-header;
+function-declarator: function-header-with-parameters;
+
+function-header-with-parameters: function-header parameter-declaration;
+function-header-with-parameters: function-header-with-parameters COMMA parameter-declaration;
+
+function-header: fully-specified-type function-identifier LEFT_PAREN;
+
+parameter-declarator: type-specifier IDENTIFIER;
+parameter-declarator: type-specifier IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET;
+
+parameter-declaration: type-qualifier parameter-qualifier parameter-declarator;
+parameter-declaration: parameter-qualifier parameter-declarator;
+parameter-declaration: type-qualifier parameter-qualifier parameter-type-specifier;
+parameter-declaration: parameter-qualifier parameter-type-specifier;
+
+parameter-qualifier: ;
+parameter-qualifier: IN;
+parameter-qualifier: OUT;
+parameter-qualifier: INOUT;
+
+parameter-type-specifier: type-specifier;
+parameter-type-specifier: type-specifier LEFT_BRACKET constant-expression RIGHT_BRACKET;
+
+init-declarator-list: single-declaration;
+init-declarator-list: init-declarator-list COMMA IDENTIFIER;
+init-declarator-list: init-declarator-list COMMA IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET;
+init-declarator-list: init-declarator-list COMMA IDENTIFIER EQUAL initializer;
+
+single-declaration: fully-specified-type;
+single-declaration: fully-specified-type IDENTIFIER;
+single-declaration: fully-specified-type IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET;
+single-declaration: fully-specified-type IDENTIFIER EQUAL initializer;
+single-declaration: INVARIANT IDENTIFIER; 
+
+fully-specified-type: type-specifier;
+fully-specified-type: type-qualifier type-specifier;
+
+type-qualifier: CONST;
+type-qualifier: ATTRIBUTE;
+type-qualifier: VARYING;
+type-qualifier: INVARIANT VARYING;
+type-qualifier: UNIFORM;
+
+type-specifier: type-specifier-no-prec;
+type-specifier: precision-qualifier type-specifier-no-prec;
+
+type-specifier-no-prec: VOID;
+type-specifier-no-prec: FLOAT;
+type-specifier-no-prec: INT;
+type-specifier-no-prec: BOOL;
+type-specifier-no-prec: VEC2;
+type-specifier-no-prec: VEC3;
+type-specifier-no-prec: VEC4;
+type-specifier-no-prec: BVEC2;
+type-specifier-no-prec: BVEC3;
+type-specifier-no-prec: BVEC4;
+type-specifier-no-prec: IVEC2;
+type-specifier-no-prec: IVEC3;
+type-specifier-no-prec: IVEC4;
+type-specifier-no-prec: MAT2;
+type-specifier-no-prec: MAT3;
+type-specifier-no-prec: MAT4;
+type-specifier-no-prec: SAMPLER2D;
+type-specifier-no-prec: SAMPLERCUBE;
+type-specifier-no-prec: struct-specifier;
+type-specifier-no-prec: TYPE_NAME;
+
+precision-qualifier: HIGH_PRECISION;
+precision-qualifier: MEDIUM_PRECISION;
+precision-qualifier: LOW_PRECISION;
+
+struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRACE;
+struct-specifier: STRUCT LEFT_BRACE struct-declaration-list RIGHT_BRACE;
+
+struct-declaration-list: struct-declaration;
+struct-declaration-list: struct-declaration-list struct-declaration;
+
+struct-declaration: type-specifier struct-declarator-list SEMICOLON;
+
+struct-declarator-list: struct-declarator;
+struct-declarator-list: struct-declarator-list COMMA struct-declarator;
+
+struct-declarator: IDENTIFIER;
+struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET;
+
+initializer: assignment-expression;
+
+declaration-statement: declaration;
+
+statement-no-new-scope: compound-statement-with-scope;
+statement-no-new-scope: simple-statement;
+
+simple-statement: declaration-statement;
+simple-statement: expression-statement;
+simple-statement: selection-statement;
+simple-statement: iteration-statement;
+simple-statement: jump-statement;
+
+compound-statement-with-scope: LEFT_BRACE RIGHT_BRACE;
+compound-statement-with-scope: LEFT_BRACE statement-list RIGHT_BRACE;
+
+statement-with-scope: compound-statement-no-new-scope;
+statement-with-scope: simple-statement;
+
+compound-statement-no-new-scope: LEFT_BRACE RIGHT_BRACE;
+compound-statement-no-new-scope: LEFT_BRACE statement-list RIGHT_BRACE;
+
+statement-list: statement-no-new-scope;
+statement-list: statement-list statement-no-new-scope;
+
+expression-statement: SEMICOLON;
+expression-statement: expression SEMICOLON;
+
+selection-statement: IF LEFT_PAREN expression RIGHT_PAREN selection-rest-statement;
+
+selection-rest-statement: statement-with-scope ELSE statement-with-scope;
+selection-rest-statement: statement-with-scope;
+
+%prefer selection-rest-statement: statement-with-scope * ELSE statement-with-scope
+%over   selection-rest-statement: statement-with-scope *
+
+condition: expression;
+condition: fully-specified-type IDENTIFIER EQUAL initializer;
+
+iteration-statement: WHILE LEFT_PAREN condition RIGHT_PAREN statement-no-new-scope;
+iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON;
+iteration-statement: FOR LEFT_PAREN for-init-statement for-rest-statement RIGHT_PAREN statement-no-new-scope;
+
+for-init-statement: expression-statement;
+for-init-statement: declaration-statement;
+
+condition-opt: condition;
+condition-opt: ;
+
+for-rest-statement: condition-opt SEMICOLON;
+for-rest-statement: condition-opt SEMICOLON expression;
+
+jump-statement: CONTINUE SEMICOLON;
+jump-statement: BREAK SEMICOLON;
+jump-statement: RETURN SEMICOLON;
+jump-statement: RETURN expression SEMICOLON;
+jump-statement: DISCARD SEMICOLON;
+
+translation-unit: external-declaration;
+translation-unit: translation-unit external-declaration;
+
+external-declaration: function-definition;
+external-declaration: declaration;
+
+function-definition: function-prototype compound-statement-no-new-scope;
+
