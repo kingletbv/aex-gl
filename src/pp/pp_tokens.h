@@ -220,6 +220,7 @@ enum pp_value_type {
   PPVT_DOUBLE,
   PPVT_LONG_DOUBLE,
   PPVT_STRING,
+  PPVT_TYPE_NAME,
   PPVT_NO_VALUE
 };
 
@@ -243,6 +244,7 @@ struct pptk {
     int64_t i64_;     /* PPVT_SHORT, PPVT_INT, PPVT_LONG_INT, PPVT_LONG_LONG_INT */
     double d_;        /* PPVT_DOUBLE, PPVT_LONG_DOUBLE */
     float f_;         /* PPVT_FLOAT */ 
+    void *type_;      /* PPVT_TYPE_NAME */
   } v_;
 };
 

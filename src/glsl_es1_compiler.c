@@ -13,6 +13,26 @@
  * limitations under the License.
  */
 
+#ifndef STDLIB_H_INCLUDED
+#define STDLIB_H_INCLUDED
+#include <stdlib.h>
+#endif
+
+#ifndef STDIO_H_INCLUDED
+#define STDIO_H_INCLUDED
+#include <stdio.h>
+#endif
+
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
+#ifndef STDARG_H_INCLUDED
+#define STDARG_H_INCLUDED
+#include <stdarg.h>
+#endif
+
 #ifndef GLSL_ES1_COMPILER_H_INCLUDED
 #define GLSL_ES1_COMPILER_H_INCLUDED
 #include "glsl_es1_compiler.h"
@@ -23,12 +43,17 @@
 #include "glsl_es1_tokens.h"
 #endif
 
+static int glsl_es1_compiler_stderr_vprintf_handler(void *baton, const char *file, int line_num, const char *fmt, va_list args);
+
+
 void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   pp_init(&cc->pp_);
   glsl_es1_stack_init(&cc->parser_);
   cc->all_done_ = cc->fatal_error_ = 0;
+  cc->is_typename_permitted_ = 1;
   cc->glsl_input_file_ = "";
   cc->glsl_input_line_ = 0;
+  cc->vprintf_handler = glsl_es1_compiler_stderr_vprintf_handler;
 }
 
 void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *compiler) {
@@ -36,7 +61,115 @@ void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *compiler) {
   glsl_es1_stack_cleanup(&compiler->parser_);
 }
 
-enum c_compiler_result glsl_es1_compiler_stage(struct glsl_es1_compiler *cc) {
+int glsl_es1_compiler_printf(struct glsl_es1_compiler *cc, const char *fmt, ...) {
+  int r;
+  va_list args;
+  va_start(args, fmt);
+  r = cc->vprintf_handler(cc->vprintf_baton_, NULL, 0, fmt, args);
+  va_end(args);
+  return r;
+}
+
+int glsl_es1_compiler_error_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...) {
+  int r;
+  va_list args;
+  // Duplicate fmt to append newline.
+  size_t fmt_len = strlen(fmt);
+  char *dup_fmt = malloc(fmt_len + 2);
+  if (!dup_fmt) {
+    glsl_es1_compiler_no_memory(cc);
+    return -1;
+  }
+  memcpy(dup_fmt, fmt, fmt_len);
+  dup_fmt[fmt_len] = '\n';
+  dup_fmt[fmt_len + 1] = '\0';
+  cc->have_error_ = 1;
+  va_start(args, fmt);
+  r = cc->vprintf_handler(cc->vprintf_baton_, situs_filename(sit), situs_line(sit), dup_fmt, args);
+  va_end(args);
+  free(dup_fmt);
+  return r;
+}
+
+int glsl_es1_compiler_error(struct glsl_es1_compiler *cc, const char *fmt, ...) {
+  int r;
+  va_list args;
+  cc->have_error_ = 1;
+  va_start(args, fmt);
+  r = cc->vprintf_handler(cc->vprintf_baton_, cc->glsl_input_file_, cc->glsl_input_line_, fmt, args);
+  va_end(args);
+  return r;
+}
+
+int glsl_es1_compiler_fatal_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...) {
+  int r;
+  va_list args;
+  cc->have_error_ = cc->fatal_error_ = 1;
+  va_start(args, fmt);
+  r = cc->vprintf_handler(cc->vprintf_baton_, situs_filename(sit), situs_line(sit), fmt, args);
+  va_end(args);
+  return r;
+}
+
+int glsl_es1_compiler_fatal(struct glsl_es1_compiler *cc, const char *fmt, ...) {
+  int r;
+  va_list args;
+  cc->have_error_ = cc->fatal_error_ = 1;
+  va_start(args, fmt);
+  r = cc->vprintf_handler(cc->vprintf_baton_, cc->glsl_input_file_, cc->glsl_input_line_, fmt, args);
+  va_end(args);
+  return r;
+}
+
+int glsl_es1_compiler_warn_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...) {
+  int r;
+  va_list args;
+  // Duplicate fmt to append newline.
+  size_t fmt_len = strlen(fmt);
+  char *dup_fmt = malloc(fmt_len + 2);
+  if (!dup_fmt) {
+    glsl_es1_compiler_no_memory(cc);
+    return -1;
+  }
+  memcpy(dup_fmt, fmt, fmt_len);
+  dup_fmt[fmt_len] = '\n';
+  dup_fmt[fmt_len + 1] = '\0';
+  va_start(args, fmt);
+  r = cc->vprintf_handler(cc->vprintf_baton_, situs_filename(sit), situs_line(sit), dup_fmt, args);
+  va_end(args);
+  free(dup_fmt);
+  return r;
+}
+
+int glsl_es1_compiler_warn(struct glsl_es1_compiler *cc, const char *fmt, ...) {
+  int r;
+  va_list args;
+  va_start(args, fmt);
+  r = cc->vprintf_handler(cc->vprintf_baton_, cc->glsl_input_file_, cc->glsl_input_line_, fmt, args);
+  va_end(args);
+  return r;
+}
+
+void glsl_es1_compiler_no_memory(struct glsl_es1_compiler *cc) {
+  glsl_es1_compiler_fatal(cc, "No memory\n");
+}
+
+
+static void glsl_es1_compiler_skip_template_cruft(struct glsl_es1_compiler *cc) {
+  while ((cc->pp_.pp_output_) &&
+          ((cc->pp_.pp_output_->tok_ == PPTK_TEMPLATE_DOUBLE_CURLY_OPEN) ||
+          (cc->pp_.pp_output_->tok_ == PPTK_TEMPLATE_DOUBLE_CURLY_CLOSE) ||
+          ((cc->pp_.pp_output_->tok_ == PPTK_TEMPLATE_LIT) && !cc->pp_.pp_output_->text_len_))) {
+    pptk_free(pptk_pop_front(&cc->pp_.pp_output_));
+  }
+}
+
+static void glsl_es1_compiler_next_token(struct glsl_es1_compiler *cc) {
+  pptk_free(pptk_pop_front(&cc->pp_.pp_output_));
+  glsl_es1_compiler_skip_template_cruft(cc);
+}
+
+enum glsl_es1_compiler_result glsl_es1_compiler_stage(struct glsl_es1_compiler *cc) {
   int r;
 final_completion:
   if (cc->all_done_) {
@@ -67,8 +200,9 @@ c_parser_input:
               *    (A second occurrance of a typedef name is actually the declarator's identifier even if it clashes with
               *    an existing typedef name.)
               * See also the reduction of declaration-specifiers in particular. */
-            int became_typedefname = 0;
-            if (cc->ctx_.is_typedefname_permitted_ && cp_stack_accepts(&cc->cp_, CP_TYPEDEF_NAME)) {
+            if (cc->is_typename_permitted_ && glsl_es1_stack_accepts(&cc->parser_, GLSL_ES1_TYPE_NAME)) {
+              // XXX: Cascade through the scopes to look for a typedef name, if any.
+#if 0
               struct name_space *pns = cc->ctx_.block_ ? cc->ctx_.block_->ns_ : &cc->global_ns_;
               while (pns) {
                 struct sym *s = st_find(&pns->ordinary_idents_, tk->text_);
@@ -76,8 +210,9 @@ c_parser_input:
                   struct decl *d = (struct decl *)s;
                   if (d->sc_ == SC_TYPEDEF) {
                     /* Found a typedef where one is accepted, rewrite */
-                    cc->ctx_.is_typedefname_permitted_ = 0;
-                    sym = CP_TYPEDEF_NAME;
+                    cc->is_typename_permitted_ = 0;
+                    sym = GLSL_ES1_TYPE_NAME;
+                    tk->v_type_ = PPVT_TYPE_NAME;
                     tk->v_.type_ = d->type_;
                     tk->tok_ = PPTK_TYPEDEF_NAME;
                     became_typedefname = 1;
@@ -87,6 +222,7 @@ c_parser_input:
 
                 pns = pns->parent_;
               }
+#endif
             }
           }
         }
@@ -101,60 +237,75 @@ c_parser_input:
         }
         if (sym == GLSL_ES1_WHITESPACE) {
           /* Skip whitespace as input -- step to next tk */
-          cc_c_parser_next_token(cc);
+          glsl_es1_compiler_next_token(cc);
         }
       } while (sym == GLSL_ES1_WHITESPACE);\
       r = glsl_es1_parse(&cc->parser_, sym, cc, cc->pp_.pp_output_);
-      r = cp_parse(&cc->cp_, sym, cc, cc->pp_.pp_output_);
-      if ((r == _CP_SYNTAX_ERROR) || (r == _CP_FEED_ME)) {
-        if (r == _CP_SYNTAX_ERROR) {
-          if (cc->cp_input_) {
-            cc_error(cc, "syntax error at column %d: \"%s\"\n", situs_col(&cc->cp_input_->situs_), cc->cp_input_->text_);
+
+      if ((r == _GLSL_ES1_SYNTAX_ERROR) || (r == _GLSL_ES1_FEED_ME)) {
+        if (r == _GLSL_ES1_SYNTAX_ERROR) {
+          if (cc->pp_.pp_output_) {
+            glsl_es1_compiler_error(cc, "syntax error at column %d: \"%s\"\n", situs_col(&cc->pp_.pp_output_->situs_), cc->pp_.pp_output_->text_);
           }
           else {
-            cc_error(cc, "syntax error, unexpected end of file\n", cc->cp_input_file_, cc->cp_input_line_);
+            glsl_es1_compiler_error(cc, "syntax error, unexpected end of file\n", cc->glsl_input_file_, cc->glsl_input_line_);
           }
           /* keep going */
           goto c_parser_input;
         }
 
         /* Step to next tk */
-        cc_c_parser_next_token(cc);
+        glsl_es1_compiler_next_token(cc);
       }
 
-      if (r == _CP_FINISH) {
+      if (r == _GLSL_ES1_FINISH) {
         cc->all_done_ = 1;
         goto final_completion;
       }
-      else if ((r != _CP_SYNTAX_ERROR) && (r != _CP_FEED_ME)) {
-        if (cc->cp_input_) {
-          cc_printf(cc, "%s(%d): internal error (%d) from cp_parse at column %d: \"%s\"\n", cc->cp_input_file_, cc->cp_input_line_, r, situs_col(&cc->cp_input_->situs_), cc->cp_input_->text_);
+      else if ((r != _GLSL_ES1_SYNTAX_ERROR) && (r != _GLSL_ES1_FEED_ME)) {
+        if (cc->pp_.pp_output_) {
+          cc->fatal_error_ = 1;
+          cc->have_error_ = 1;
+          glsl_es1_compiler_printf(cc, "%s(%d): internal error (%d) from cp_parse at column %d: \"%s\"\n", cc->glsl_input_file_, cc->glsl_input_line_, r, situs_col(&cc->pp_.pp_output_->situs_), cc->pp_.pp_output_->text_);
         }
         else {
-          cc_printf(cc, "%s(%d): internal error (%d) from cp_parse at end of file\n", cc->cp_input_file_, cc->cp_input_line_, r);
+          cc->fatal_error_ = 1;
+          cc->have_error_ = 1;
+          glsl_es1_compiler_printf(cc, "%s(%d): internal error (%d) from cp_parse at end of file\n", cc->glsl_input_file_, cc->glsl_input_line_, r);
         }
         return GLSL_ES1_R_FAILED;
       }
-    } while (r == _CP_FEED_ME);
+    } while (r == _GLSL_ES1_FEED_ME);
   }
 
 preprocessor:
   return GLSL_ES1_R_NEED_INPUT;
 }
 
-enum c_compiler_result cc_compile(struct c_compiler *cc) {
-  enum c_compiler_result cr;
+enum glsl_es1_compiler_result glsl_es1_compile(struct glsl_es1_compiler *cc) {
+  enum glsl_es1_compiler_result cr;
 
   do {
-    cc_c_parser_skip_template_cruft(cc);
+    glsl_es1_compiler_skip_template_cruft(cc);
 
-    cr = cc_compiler_stage(cc);
+    cr = glsl_es1_compiler_stage(cc);
     if (cr != GLSL_ES1_R_NEED_INPUT) {
       return cr;
     }
 
-    cr = cc_preprocessor_stage(cc);
+    cr = pp_preprocessor_stage(&cc->pp_);
   } while (cr == GLSL_ES1_R_SUCCESS);
 
   return cr;
+}
+
+static int glsl_es1_compiler_stderr_vprintf_handler(void *baton, const char *file, int line_num, const char *fmt, va_list args) {
+  if (file) {
+    fprintf(stderr, "%s(%d): ", file, line_num);
+  }
+
+  int r;
+  r = vfprintf(stderr, fmt, args);
+
+  return r < 0;
 }
