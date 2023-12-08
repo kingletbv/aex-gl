@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Test BMP Image</title>
+  </head>
+  <body>
+    <h1>Displaying BMP Image</h1>
+    <img src="test.bmp" alt="Test BMP" />
+    <img id="zoomedbitmap" src="test.bmp" alt="Zoomed BMP" />
+  </body>
+  <script>
+    // JavaScript to scale the image
+    window.onload = function() {
+      var img = document.getElementById('zoomedbitmap');
+      img.width = img.naturalWidth * 4; // Scale the width to 4 times
+      img.height = img.naturalHeight * 4; // Scale the height to 4 times
+      img.style.imageRendering = 'pixelated'; // Scale the image using pixelated so we can reason about it.
+    };
+  </script>
+</html>
