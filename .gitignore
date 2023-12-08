@@ -33,3 +33,6 @@
 
 # Build directory
 build/
+
+# Drop VS user-specific files
+*.user
