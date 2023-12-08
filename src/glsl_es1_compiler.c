@@ -43,6 +43,11 @@
 #include "glsl_es1_tokens.h"
 #endif
 
+#ifndef PP_INPUT_FILE_H_INCLUDED
+#define PP_INPUT_FILE_H_INCLUDED
+#include "pp_input_file.h"
+#endif
+
 static int glsl_es1_compiler_stderr_vprintf_handler(void *baton, const char *file, int line_num, const char *fmt, va_list args);
 
 
@@ -308,4 +313,35 @@ static int glsl_es1_compiler_stderr_vprintf_handler(void *baton, const char *fil
   r = vfprintf(stderr, fmt, args);
 
   return r < 0;
+}
+
+struct glsl_es1_compiler_mem_input_file {
+  struct pp_input_file if_;
+  const void *mem_;
+  size_t memsize_;
+};
+
+static int glsl_es1_compiler_file_mem_input_request_callback(void *baton, struct pp_input_file *ifile) {
+  struct glsl_es1_compiler_mem_input_file *mif = (struct glsl_es1_compiler_mem_input_file *)ifile;
+  if_set_input(ifile, mif->mem_, mif->memsize_, 1);
+  return 0;
+}
+
+static struct pp_input_file *glsl_es1_compiler_push_input_file_mem(struct glsl_es1_compiler *cc, const char *filename, const void *mem, size_t memsize) {
+  struct glsl_es1_compiler_mem_input_file *ifile;
+  ifile = (struct glsl_es1_compiler_mem_input_file *)pp_push_input_file(&cc->pp_, filename, sizeof(struct glsl_es1_compiler_mem_input_file) - sizeof(struct pp_input_file));
+  ifile->if_.input_request_fn_ = glsl_es1_compiler_file_mem_input_request_callback;
+  ifile->mem_ = mem;
+  ifile->memsize_ = memsize;
+  return &ifile->if_;
+}
+
+
+enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_compiler *cc, const char *glsl_input_filename, const char *glsl_input_text, size_t glsl_input_text_len) {
+  struct pp_input_file *ifile = glsl_es1_compiler_push_input_file_mem(cc, glsl_input_filename, glsl_input_text, glsl_input_text_len);
+  if (!ifile) {
+    glsl_es1_compiler_no_memory(cc);
+    return GLSL_ES1_R_FAILED;
+  }
+  return glsl_es1_compile(cc);
 }

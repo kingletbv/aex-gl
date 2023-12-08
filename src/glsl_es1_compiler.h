@@ -67,6 +67,8 @@ struct glsl_es1_compiler {
 void glsl_es1_compiler_init(struct glsl_es1_compiler *compiler);
 void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *compiler);
 
+enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_compiler *cc, const char *glsl_input_filename, const char *glsl_input_text, size_t glsl_input_text_len);
+
 int glsl_es1_compiler_printf(struct glsl_es1_compiler *cc, const char *fmt, ...);
 int glsl_es1_compiler_error_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...);
 int glsl_es1_compiler_error(struct glsl_es1_compiler *cc, const char *fmt, ...);
