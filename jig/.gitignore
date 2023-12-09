@@ -1,0 +1,3 @@
+# Don't commit jig test.bmp to git (aside from the initial placeholder one)
+# this prevents contaminating the git status everytime we run an experiment.
+test.bmp
