@@ -308,7 +308,7 @@ struct macro_arg_inst *macro_arg_inst_join(struct macro_arg_inst *front, struct 
   return front_head;
 }
 
-int pptk_perform_macro_expansion(struct preprocessor *pp, struct pptk **pp_chain) {
+int pptk_perform_macro_expansion(struct preprocessor *pp, struct pptk **pp_chain, int keep_defined) {
   struct pptk *output_chain = NULL;
   struct pptk *token_chain = *pp_chain;
 
@@ -321,6 +321,9 @@ int pptk_perform_macro_expansion(struct preprocessor *pp, struct pptk **pp_chain
 
   while (token_chain) {
     int next_sym = g_pptk_to_ppme_[token_chain->tok_];
+    if ((!keep_defined) && (next_sym == PPME_DEFINED)) {
+      next_sym = PPME_IDENT;
+    }
     if (next_sym == PPME_IDENT) {
       struct macro *m = NULL;
       m = mt_find(&pp->macro_table_, token_chain->text_, token_chain->text_len_);
@@ -334,7 +337,7 @@ int pptk_perform_macro_expansion(struct preprocessor *pp, struct pptk **pp_chain
       }
     }
 
-    switch (ppme_parse(&macro_expander, next_sym, pp, &token_chain, 1 /* token_chain is entire and final bit of input */, &output_chain)) {
+    switch (ppme_parse(&macro_expander, next_sym, pp, &token_chain, 1 /* token_chain is entire and final bit of input */, &output_chain, keep_defined)) {
       case _PPME_FINISH:
         if (token_chain) {
           pp_printf(pp, "Unexpected macro-expander finish: input has not ended.\n");
@@ -781,8 +784,12 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
 
     int preceeded_by_hash = 0;
 
-    if ((g_pptk_to_ppme_[tk->tok_] == PPME_IDENT) ||
-        ((tk->tok_ == PPTK_HASH_MARK) && (tk->next_ != instanced) && (g_pptk_to_ppme_[tk->next_->tok_] == PPME_IDENT))) {
+    /* Check whether token is a stringizing identifier; given that we do this from a pptk token, we'll
+     * have to manually account for the "defined" token, back-converting it into an identifier for sake
+     * of stringification */
+#define IS_TOK_A_STRINGIZING_IDENT(t) (((t) == PPME_IDENT) || ((t) == PPME_DEFINED))
+    if ((IS_TOK_A_STRINGIZING_IDENT(g_pptk_to_ppme_[tk->tok_])) ||
+        ((tk->tok_ == PPTK_HASH_MARK) && (tk->next_ != instanced) && IS_TOK_A_STRINGIZING_IDENT(g_pptk_to_ppme_[tk->next_->tok_]))) {
       struct pptk *id = NULL;
       if (tk->tok_ != PPTK_HASH_MARK) {
         preceeded_by_hash = 0;
@@ -827,7 +834,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
               }
 
               if (!preceeded_by_hash && !preceeded_by_hash_hash && !followed_by_hash_hash) {
-                int r = pptk_perform_macro_expansion(pp, &arg_clone);
+                int r = pptk_perform_macro_expansion(pp, &arg_clone, 0);
                 if (r) {
                   pptk_free(expansion);
                   pptk_free(instanced);
@@ -890,7 +897,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
                   if (!preceeded_by_hash && !preceeded_by_hash_hash && !followed_by_hash_hash) {
                     /* Expand macros for each __VA_ARGS__ argument individually, and concatenate them together.
                      * (Don't expand as a whole or macro invocations can straddle multiple macro arguments.) */
-                    int r = pptk_perform_macro_expansion(pp, &arg_clone);
+                    int r = pptk_perform_macro_expansion(pp, &arg_clone, 0);
                     if (r) {
                       pptk_free(arg_clone);
                       pptk_free(expansion);
@@ -1043,7 +1050,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
    * only the case for the full replacement list, not for argument expansions and the
    * like. */
   m->nested_invocation_ = 1;
-  int r = pptk_perform_macro_expansion(pp, &repl_list);
+  int r = pptk_perform_macro_expansion(pp, &repl_list, 0);
   m->nested_invocation_ = 0;
   if (r) {
     pptk_free(repl_list);

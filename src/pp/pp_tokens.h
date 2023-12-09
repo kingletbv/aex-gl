@@ -155,7 +155,7 @@ extern "C" {
   xx(PPTK_LINE,               PPLD_LINE_TOK,       PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
   xx(PPTK_ERROR_KEYWORD,      PPLD_ERROR_TOK,      PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
   xx(PPTK_PRAGMA,             PPLD_PRAGMA_TOK,     PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
-  xx(PPTK_DEFINED,            PPLD_OTHER_TOK,      PPCE_DEFINED,             PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_DEFINED,            PPLD_OTHER_TOK,      PPCE_DEFINED,             PPME_DEFINED,    CP_IDENT) \
   xx(PPTK_PRAGMA_OP,          PPLD_OTHER_TOK,      PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
 \
   xx(PPTK_BOOL_CONSTANT,      PPLD_OTHER_TOK,      PPCE_IDENT,               PPME_OTHER,      CP_IDENT) \
@@ -281,8 +281,11 @@ struct macro_arg_inst *macro_arg_inst_join(struct macro_arg_inst *front, struct 
 /* Expands a single macro.. */
 int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro *m, struct macro_arg_inst *args, struct pptk **pp_output_chain);
 
-/* Perform in-place macro expansion for a single chain of pptk tokens; chain is modified in-place to reflect the expansions (if any). */
-int pptk_perform_macro_expansion(struct preprocessor *pp, struct pptk **pp_chain);
+/* Perform in-place macro expansion for a single chain of pptk tokens; chain is modified in-place to reflect the expansions (if any).
+ * keep_defined determines if, in the input "defined(X)", the tokens are retained and not expanded (e.g. suppose "defined" is a
+ * macro, it would not be expanded, suppose X is a macro, it would also not be expanded.) This should only be relevant when evaluating
+ * "#if" line directives, and should be set to 0 for other cases. */
+int pptk_perform_macro_expansion(struct preprocessor *pp, struct pptk **pp_chain, int keep_defined);
 
 /* Re-scans an input sequence by taking an input_chain of tokens and  */
 int pptk_rescan(struct preprocessor *pp, struct pptk *input_chain, struct pptk **pp_output_chain, int allow_header_name);

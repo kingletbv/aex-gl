@@ -394,6 +394,10 @@ macro_expander:
     else {
       next_sym = PPME_INPUT_END;
     }
+    /* "defined" token (therefore operator) always disabled on body text macro expansion; in other words,
+     * you could #define defined, and that would work everywhere except in an #if clause. */
+    if (next_sym == PPME_DEFINED) next_sym = PPME_IDENT;
+
     if (next_sym == PPME_IDENT) {
       struct macro *m = mt_find(&pp->macro_table_, pp->ppme_input_->text_, pp->ppme_input_->text_len_);
 
@@ -406,7 +410,7 @@ macro_expander:
         }
       }
     }
-    r = ppme_parse(&pp->ppme_, next_sym, pp, &pp->ppme_input_, pp->ppme_input_final_, &pp->pp_output_);
+    r = ppme_parse(&pp->ppme_, next_sym, pp, &pp->ppme_input_, pp->ppme_input_final_, &pp->pp_output_, 0);
     switch (r) {
       case _PPME_FINISH:
         pp->pp_output_final_ = 1;
