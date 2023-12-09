@@ -615,7 +615,7 @@ void tri3(uint8_t *rgba, size_t stride,
       // The idea is that if the determinant is positive, then the pixel is
       // inside the triangle; consequently, if the MSB sign bit is zero, then
       // the mask should be all 1's.
-      // XXX: This is incorrect, the test is actually > 0, not >= 0.
+      // Note that the test is now >= 0, different from tri2.
       int64_t Dp01_TL_Mask = ~(Dp01_TL >> 63);
       int64_t Dp12_TL_Mask = ~(Dp12_TL >> 63);
       int64_t Dp20_TL_Mask = ~(Dp20_TL >> 63);
@@ -701,6 +701,272 @@ void tri3_no_subpixels(uint8_t *rgba, size_t stride,
        x2 << SUBPIXEL_BITS, y2 << SUBPIXEL_BITS);
 }
 
+void tri4(uint8_t *rgba, size_t stride,
+          uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
+          int32_t x0, int32_t y0,
+          int32_t x1, int32_t y1,
+          int32_t x2, int32_t y2) {
+  // Go 4 pixels at a time, the four fragments form a square, the square is valid if a single fragment
+  // is inside the triangle and scissor (we will therefore intentionally be generating fragments that
+  // are outside the triangle, or the scissor; we will discard those fragments later - reason for this
+  // is to be able to do mip-mapping and dFdx/dFdy type stuff.)
+
+  // Be inclusive of odd edges on the scissor rectangle.
+  int64_t left = scissor_left & ~(int64_t)1;
+  int64_t top = scissor_top & ~(int64_t)1;
+  int64_t right = (scissor_right + 1) & ~(int64_t)1;
+  int64_t bottom = (scissor_bottom + 1) & ~(int64_t)1;
+
+  // The scissor rectangle is still in pixel coordinates, convert it into sub-pixel coordinates
+  int64_t left_sp = left << SUBPIXEL_BITS;
+  int64_t top_sp = top << SUBPIXEL_BITS;
+  int64_t right_sp = right << SUBPIXEL_BITS;
+  int64_t bottom_sp = bottom << SUBPIXEL_BITS;
+
+  int64_t Dp01_row, Dp12_row, Dp20_row;
+  // Dp01 = determinant for triangle formed by edge 01 and point p:
+  //        | px py 1 |
+  // Dp01 = | x0 y0 1 |
+  //        | x1 y1 1 |
+  Dp01_row = left_sp * (y0 - y1) + top_sp * (x1 - x0) + x0 * y1 - y0 * x1;
+
+  // Compute stepping variables, note that these are at discrete sub-pixels
+  int64_t Dp01_dx_sp = (y0 - y1);
+  int64_t Dp01_dy_sp = (x1 - x0);
+
+  // Dp12 = determinant for triangle formed by edge 12 and point p:
+  //        | px py 1 |
+  // Dp12 = | x1 y1 1 |
+  //        | x2 y2 1 |
+  Dp12_row = left_sp * (y1 - y2) + top_sp * (x2 - x1) + x1 * y2 - y1 * x2;
+
+  // Compute stepping variables, note that these are at discrete sub-pixels
+  int64_t Dp12_dx_sp = (y1 - y2);
+  int64_t Dp12_dy_sp = (x2 - x1);
+
+  // Dp20 = determinant for triangle formed by edge 20 and point p:
+  //        | px py 1 |
+  // Dp20 = | x2 y2 1 |
+  //        | x0 y0 1 |
+  Dp20_row = left_sp * (y2 - y0) + top_sp * (x0 - x2) + x2 * y0 - y2 * x0;
+
+  // Compute stepping variables, note that these are at discrete sub-pixels
+  int64_t Dp20_dx_sp = (y2 - y0);
+  int64_t Dp20_dy_sp = (x0 - x2);
+
+  // Compute the stepping variables for whole pixels (how much to step when
+  // we're at one pixel, and would like to skip (1 << SUBPIXEL_BITS) sub-pixels
+  // to get to the same subpixel one whole pixel on whatever stepping dim.)
+  int64_t Dp01_dx = Dp01_dx_sp << SUBPIXEL_BITS;
+  int64_t Dp01_dy = Dp01_dy_sp << SUBPIXEL_BITS;
+  int64_t Dp12_dx = Dp12_dx_sp << SUBPIXEL_BITS;
+  int64_t Dp12_dy = Dp12_dy_sp << SUBPIXEL_BITS;
+  int64_t Dp20_dx = Dp20_dx_sp << SUBPIXEL_BITS;
+  int64_t Dp20_dy = Dp20_dy_sp << SUBPIXEL_BITS;
+
+  // Compute the stepping variables for stepping 2 pixels at a time. This is
+  // trivial but something we explicitly want outside the loop.
+  int64_t Dp01_dx_2 = Dp01_dx << 1;
+  int64_t Dp01_dy_2 = Dp01_dy << 1;
+  int64_t Dp12_dx_2 = Dp12_dx << 1;
+  int64_t Dp12_dy_2 = Dp12_dy << 1;
+  int64_t Dp20_dx_2 = Dp20_dx << 1;
+  int64_t Dp20_dy_2 = Dp20_dy << 1;
+
+  // Now compute row values for each of the four pixels.
+  int64_t Dp01_row_TL = Dp01_row;
+  int64_t Dp01_row_TR = Dp01_row + Dp01_dx;
+  int64_t Dp01_row_BL = Dp01_row + Dp01_dy;
+  int64_t Dp01_row_BR = Dp01_row + Dp01_dx + Dp01_dy;
+  int64_t Dp12_row_TL = Dp12_row;
+  int64_t Dp12_row_TR = Dp12_row + Dp12_dx;
+  int64_t Dp12_row_BL = Dp12_row + Dp12_dy;
+  int64_t Dp12_row_BR = Dp12_row + Dp12_dx + Dp12_dy;
+  int64_t Dp20_row_TL = Dp20_row;
+  int64_t Dp20_row_TR = Dp20_row + Dp20_dx;
+  int64_t Dp20_row_BL = Dp20_row + Dp20_dy;
+  int64_t Dp20_row_BR = Dp20_row + Dp20_dx + Dp20_dy;
+
+  // Classify the edges so we know when to apply >0 and >=0 depending on whether
+  // the edge is inclusive on an exact match, or not. (Thus avoiding overdraw.)
+  // For this we apply the "top-left" rule: if an edge is horizontal, then a pixel
+  // that is exactly on the edge is considered to be "inside" the triangle if the
+  // edge is at the top of the triangle. Otherwise, if the edge is not horizontal,
+  // it is considered to be "inside" the triangle if the edge is to the left of the
+  // triangle. We check whether or not the edge is "at the top" or "on the left" on
+  // the basis of the triangle vertices being clockwise.
+  // 
+  // Classify 01
+  if (y0 == y1) {
+    if (x0 >= x1) {
+      /* Horizontal edge at the bottom of the triangle, exclude it */
+      Dp01_row_TL--;
+      Dp01_row_TR--;
+      Dp01_row_BL--;
+      Dp01_row_BR--;
+    }
+  }
+  else if (y0 < y1) {
+    /* Non-horizontal edge on the right side of the triangle, exclude it */
+    Dp01_row_TL--;
+    Dp01_row_TR--;
+    Dp01_row_BL--;
+    Dp01_row_BR--;
+  }
+
+  // Classify 12
+  if (y1 == y2) {
+    if (x1 >= x2) {
+      /* Horizontal edge at the bottom of the triangle, exclude it */
+      Dp12_row_TL--;
+      Dp12_row_TR--;
+      Dp12_row_BL--;
+      Dp12_row_BR--;
+    }
+  }
+  else if (y1 < y2) {
+    /* Non-horizontal edge on the right side of the triangle, exclude it */
+    Dp12_row_TL--;
+    Dp12_row_TR--;
+    Dp12_row_BL--;
+    Dp12_row_BR--;
+  }
+
+  // Classify 20
+  if (y2 == y0) {
+    if (x2 >= x0) {
+      /* Horizontal edge at the bottom of the triangle, exclude it */
+      Dp20_row_TL--;
+      Dp20_row_TR--;
+      Dp20_row_BL--;
+      Dp20_row_BR--;
+    }
+  }
+  else if (y2 < y0) {
+    /* Non-horizontal edge on the right side of the triangle, exclude it */
+    Dp20_row_TL--;
+    Dp20_row_TR--;
+    Dp20_row_BL--;
+    Dp20_row_BR--;
+  }
+
+  int64_t px, py;
+  uint8_t *pixel_TL = rgba + top * stride + left * 4;
+  uint8_t *pixel_TR = pixel_TL + 4;
+  uint8_t *pixel_BL = pixel_TL + stride;
+  uint8_t *pixel_BR = pixel_BL + 4;
+  int64_t pixel_mod = 2 * stride - (right - left) * 4; // bltdmod ;-) Keep in mind we go forward not 1, but 2 rows.
+
+  for (py = top; py < bottom; py += 2) {
+    int64_t Dp01_TL, Dp12_TL, Dp20_TL;
+    int64_t Dp01_TR, Dp12_TR, Dp20_TR;
+    int64_t Dp01_BL, Dp12_BL, Dp20_BL;
+    int64_t Dp01_BR, Dp12_BR, Dp20_BR;
+    // Copy row values to be ready for column increments
+    Dp01_TL = Dp01_row_TL;
+    Dp12_TL = Dp12_row_TL;
+    Dp20_TL = Dp20_row_TL;
+    Dp01_TR = Dp01_row_TR;
+    Dp12_TR = Dp12_row_TR;
+    Dp20_TR = Dp20_row_TR;
+    Dp01_BL = Dp01_row_BL;
+    Dp12_BL = Dp12_row_BL;
+    Dp20_BL = Dp20_row_BL;
+    Dp01_BR = Dp01_row_BR;
+    Dp12_BR = Dp12_row_BR;
+    Dp20_BR = Dp20_row_BR;
+    Dp01_row_TL += Dp01_dy_2;
+    Dp12_row_TL += Dp12_dy_2;
+    Dp20_row_TL += Dp20_dy_2;
+    Dp01_row_TR += Dp01_dy_2;
+    Dp12_row_TR += Dp12_dy_2;
+    Dp20_row_TR += Dp20_dy_2;
+    Dp01_row_BL += Dp01_dy_2;
+    Dp12_row_BL += Dp12_dy_2;
+    Dp20_row_BL += Dp20_dy_2;
+    Dp01_row_BR += Dp01_dy_2;
+    Dp12_row_BR += Dp12_dy_2;
+    Dp20_row_BR += Dp20_dy_2;
+    for (px = left; px < right; px += 2) {
+      // Compute the masks for each determinant at each of the four pixels
+      // The idea is that if the determinant is positive, then the pixel is
+      // inside the triangle; consequently, if the MSB sign bit is zero, then
+      // the mask should be all 1's.
+      // Because the test is >= 0, we can OR together the sign bits and
+      // create a unified mask (if any sign bit is set, then the mask
+      // is all zeroes, otherwise it is all ones.)
+      int64_t TL_Mask = ~((Dp01_TL | Dp12_TL | Dp20_TL) >> 63);
+      int64_t TR_Mask = ~((Dp01_TR | Dp12_TR | Dp20_TR) >> 63);
+      int64_t BL_Mask = ~((Dp01_BL | Dp12_BL | Dp20_BL) >> 63);
+      int64_t BR_Mask = ~((Dp01_BR | Dp12_BR | Dp20_BR) >> 63);
+
+      int64_t Any_Fragment_Valid = TL_Mask | TR_Mask | BL_Mask | BR_Mask;
+
+      if (Any_Fragment_Valid) {
+        // Emit 4 fragments; don't write the pixel if the mask is invalid.
+        if (TL_Mask) {
+          pixel_TL[0] = pixel_TL[0] ^ 0xFF;
+          pixel_TL[1] = 0x00;
+          pixel_TL[2] = 0x00;
+          pixel_TL[3] = 0xFF;
+        }
+        if (TR_Mask) {
+          pixel_TR[0] = pixel_TR[0] ^ 0xFF;
+          pixel_TR[1] = 0x00;
+          pixel_TR[2] = 0x00;
+          pixel_TR[3] = 0xFF;
+        }
+        if (BL_Mask) {
+          pixel_BL[0] = pixel_BL[0] ^ 0xFF;
+          pixel_BL[1] = 0x00;
+          pixel_BL[2] = 0x00;
+          pixel_BL[3] = 0xFF;
+        }
+        if (BR_Mask) {
+          pixel_BR[0] = pixel_BR[0] ^ 0xFF;
+          pixel_BR[1] = 0x00;
+          pixel_BR[2] = 0x00;
+          pixel_BR[3] = 0xFF;
+        }
+      }
+
+      Dp01_TL += Dp01_dx_2;
+      Dp12_TL += Dp12_dx_2;
+      Dp20_TL += Dp20_dx_2;
+      Dp01_TR += Dp01_dx_2;
+      Dp12_TR += Dp12_dx_2;
+      Dp20_TR += Dp20_dx_2;
+      Dp01_BL += Dp01_dx_2;
+      Dp12_BL += Dp12_dx_2;
+      Dp20_BL += Dp20_dx_2;
+      Dp01_BR += Dp01_dx_2;
+      Dp12_BR += Dp12_dx_2;
+      Dp20_BR += Dp20_dx_2;
+
+      // Move over to the next 4 pixels
+      pixel_TL += 4 * 2;
+      pixel_TR += 4 * 2;
+      pixel_BL += 4 * 2;
+      pixel_BR += 4 * 2;
+    }
+    pixel_TL += pixel_mod;
+    pixel_TR += pixel_mod;
+    pixel_BL += pixel_mod;
+    pixel_BR += pixel_mod;
+  }
+}
+
+void tri4_no_subpixels(uint8_t *rgba, size_t stride,
+                       uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
+                       int32_t x0, int32_t y0,
+                       int32_t x1, int32_t y1,
+                       int32_t x2, int32_t y2) {
+  tri3(rgba, stride, scissor_left, scissor_top, scissor_right, scissor_bottom,
+       x0 << SUBPIXEL_BITS, y0 << SUBPIXEL_BITS,
+       x1 << SUBPIXEL_BITS, y1 << SUBPIXEL_BITS,
+       x2 << SUBPIXEL_BITS, y2 << SUBPIXEL_BITS);
+}
+
 
 int main(int argc, char **argv) {
   int r;
@@ -743,8 +1009,14 @@ int main(int argc, char **argv) {
          last_col, 0,    /* vertex 0 */
          col, 0,         /* vertex 1 */
          0, 255);        /* vertex 2 */
-#elif 1
+#elif 0
     tri3_no_subpixels(rgba32, 256*4,
+                      0, 0, 256, 256, /* scissor rect */
+                      last_col, 0,    /* vertex 0 */
+                      col, 0,         /* vertex 1 */
+                      0, 255);        /* vertex 2 */
+#elif 1
+    tri4_no_subpixels(rgba32, 256*4,
                       0, 0, 256, 256, /* scissor rect */
                       last_col, 0,    /* vertex 0 */
                       col, 0,         /* vertex 1 */
