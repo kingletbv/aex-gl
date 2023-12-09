@@ -65,8 +65,8 @@ int test(void) {
 
   enum glsl_es1_compiler_result ccr;
   const char *input_frag =
-    "#define Yo\n"
-    "#if Yo defined(Yo)\n"
+    "#define defined\n"
+    "#if defined(defined)\n"
     "#error Hello\n"
     "#endif\n"
     "\n";
@@ -327,7 +327,7 @@ void tri2(uint8_t *rgba, size_t stride,
   //        | px py 1 |
   // Dp01 = | x0 y0 1 |
   //        | x1 y1 1 |
-  Dp01_row = scissor_left * (y0 - y1) + scissor_top * (x1 - x0) + x0 * y1 - y0 * x1;
+  Dp01_row = ((int64_t)(scissor_left)) * (y0 - y1) + ((int64_t)(scissor_top)) * (x1 - x0) + x0 * y1 - y0 * x1;
 
   int64_t Dp01_dx = (y0 - y1);
   int64_t Dp01_dy = (x1 - x0);
@@ -336,7 +336,7 @@ void tri2(uint8_t *rgba, size_t stride,
   //        | px py 1 |
   // Dp12 = | x1 y1 1 |
   //        | x2 y2 1 |
-  Dp12_row = scissor_left * (y1 - y2) + scissor_top * (x2 - x1) + x1 * y2 - y1 * x2;
+  Dp12_row = ((int64_t)(scissor_left)) * (y1 - y2) + ((int64_t)(scissor_top)) * (x2 - x1) + x1 * y2 - y1 * x2;
 
   int64_t Dp12_dx = (y1 - y2);
   int64_t Dp12_dy = (x2 - x1);
@@ -345,7 +345,7 @@ void tri2(uint8_t *rgba, size_t stride,
   //        | px py 1 |
   // Dp20 = | x2 y2 1 |
   //        | x0 y0 1 |
-  Dp20_row = scissor_left * (y2 - y0) + scissor_top * (x0 - x2) + x2 * y0 - y2 * x0;
+  Dp20_row = ((int64_t)(scissor_left)) * (y2 - y0) + ((int64_t)(scissor_top)) * (x0 - x2) + x2 * y0 - y2 * x0;
 
   int64_t Dp20_dx = (y2 - y0);
   int64_t Dp20_dy = (x0 - x2);
@@ -407,7 +407,7 @@ void tri2(uint8_t *rgba, size_t stride,
     for (px = scissor_left; px < scissor_right; ++px) {
       uint8_t *pixel = rgba + py * stride + px * 4;
       if (Dp01 > 0 && Dp12 > 0 && Dp20 > 0) {
-        pixel[0] = 0xFF;
+        pixel[0] = pixel[0] ^ 0xFF;
         pixel[1] = 0x00;
         pixel[2] = 0x00;
         pixel[3] = 0xFF;
@@ -430,9 +430,9 @@ int main(int argc, char **argv) {
   }
   FILE *fp = fopen("..\\jig\\test.bmp", "wb"); // relative to project file.
   if (!fp) {
-        perror("fopen");
-        return EXIT_FAILURE;
-        }
+    perror("fopen");
+    return EXIT_FAILURE;
+  }
   static uint8_t rgba32[256 * 256 * 4];
   int row, col;
   for (row = 0; row < 256; row++) {
@@ -445,6 +445,7 @@ int main(int argc, char **argv) {
     }
   }
 
+#if 0
   tri2(rgba32, 256 * 4, 
        0, 0, 256, 256, /* scissor rect */
        0, 0,    /* vertex 0 */
@@ -456,6 +457,17 @@ int main(int argc, char **argv) {
       0, 0,    /* vertex 0 */
       253, 0,  /* vertex 1 */
       2, 255); /* vertex 2 */
+#endif
+  int last_col = 0;
+  int step = 1;
+  for (col = step; col < 256; col += step) {
+    tri2(rgba32, 256*4,
+        0, 0, 256, 256, /* scissor rect */
+        last_col, 0,    /* vertex 0 */
+        col, 0,         /* vertex 1 */
+        0, 255);        /* vertex 2 */
+    last_col = col;
+  }
 
   /* Superimpose faint grid effect */
   for (row = 0; row < 256; row++) {
