@@ -518,6 +518,35 @@ int pptk_scan_str(struct preprocessor *pp, const char *text, struct pptk **pp_ou
   return 0;
 }
 
+char *pptk_to_str(struct preprocessor *pp, struct pptk *chain) {
+  size_t size_needed = 1;
+  struct pptk *tk = chain;
+  if (tk) {
+    do {
+      size_needed += tk->text_len_;
+      tk = tk->next_;
+    } while (tk != chain);
+  }
+  char *s = (char *)malloc(size_needed);
+  if (!s) {
+    pp_no_memory(pp);
+    return NULL;
+  }
+
+  tk = chain;
+  size_t offset = 0;
+  if (tk) {
+    do {
+      memcpy(s + offset, tk->text_, tk->text_len_);
+      offset += tk->text_len_;
+
+      tk = tk->next_;
+    } while (tk != chain);
+  }
+  s[offset] = '\0';
+  return s;
+}
+
 static int pptk_concat(struct preprocessor *pp, struct pptk *left, struct pptk *right, struct pptk **pp_output_chain) {
   struct pptk *input_chain = pptk_join(left, right);
   struct pptk *output_chain = NULL;

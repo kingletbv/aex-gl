@@ -294,6 +294,10 @@ int pptk_rescan(struct preprocessor *pp, struct pptk *input_chain, struct pptk *
  * be used in core compiler work, more intended for command line macro arguments etc. */
 int pptk_scan_str(struct preprocessor *pp, const char *text, struct pptk **pp_output_chain);
 
+/* Converts a chain of tokens into a string, allocating the string on the heap. Caller should release the memory
+ * with free(). */
+char *pptk_to_str(struct preprocessor *pp, struct pptk *chain);
+
 /* Evaluate the preprocessor const expression as formed by the tokens in the input chain and store the evaluated result in *result and
  * whether the result is signed or unsigned in *is_unsigned. The result is always either int64_t or uint64_t and so a truth test need
  * not depend on *is_unsigned. */
