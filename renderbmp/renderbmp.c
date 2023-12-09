@@ -28,6 +28,11 @@
 #include <stdint.h>
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
 #ifndef STDARG_H_INCLUDED
 #define STDARG_H_INCLUDED
 #include <stdarg.h>
@@ -43,11 +48,31 @@
 #include "glsl_es1_tokens.h"
 #endif
 
+#ifndef GLSL_ES1_COMPILER_H_INCLUDED
+#define GLSL_ES1_COMPILER_H_INCLUDED
+#include "glsl_es1_compiler.h"
+#endif
+
 int test(void) {
+  struct glsl_es1_compiler compiler, *cc;
+  cc = &compiler;
+  glsl_es1_compiler_init(cc);
+
   if (!glsl_es1_tokens_sanity_check()) {
     fprintf(stderr, "Failed sanity check\n");
     return -1;
   }
+
+  enum glsl_es1_compiler_result ccr;
+  const char *input_frag =
+    "#define Yo\n"
+    "#if Yo defined(Yo)\n"
+    "#error Hello\n"
+    "#endif\n"
+    "\n";
+  ccr = glsl_es1_compiler_compile_mem(cc, "input.frag", input_frag, strlen(input_frag));
+    
+   glsl_es1_compiler_cleanup(cc);
 
   return 0;
 }

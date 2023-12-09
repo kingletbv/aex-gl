@@ -379,7 +379,13 @@ pp-line: hash undef identifier ws-opt newline-opt {
 }
 
 pp-line: hash line pp-tokens newline-opt;
-pp-line: hash error-nt pp-tokens-opt newline-opt;
+pp-line: hash error-nt pp-tokens-opt newline-opt {
+  char *msg = pptk_to_str(pp, $2);
+  if (msg) {
+    pp_error_loc(pp, &$1->situs_, "Error: %s", msg);
+    free(msg);
+  }
+}
 pp-line: hash pragma pp-tokens-opt newline-opt;
 pp-line: hash ws-opt newline-opt {
   /* An otherwise empty # line passes silently and is a control line according to the standard.. */
