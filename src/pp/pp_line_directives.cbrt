@@ -380,10 +380,12 @@ pp-line: hash undef identifier ws-opt newline-opt {
 
 pp-line: hash line pp-tokens newline-opt;
 pp-line: hash error-nt pp-tokens-opt newline-opt {
-  char *msg = pptk_to_str(pp, $2);
-  if (msg) {
-    pp_error_loc(pp, &$1->situs_, "Error: %s", msg);
-    free(msg);
+  if (!pp->if_section_stack_ || pp->if_section_stack_->state_ == PP_IFSS_SELECTED) {
+    char *msg = pptk_to_str(pp, $2);
+    if (msg) {
+      pp_error_loc(pp, &$1->situs_, "Error: %s", msg);
+      free(msg);
+    }
   }
 }
 pp-line: hash pragma pp-tokens-opt newline-opt;
