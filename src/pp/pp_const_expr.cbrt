@@ -213,7 +213,19 @@ unary-exp: DEFINED PAR_OPEN IDENT PAR_CLOSE {
   $$.is_unsigned_ = 1;
   $$.v_.u_ = !!m;
 }
+unary-exp: DEFINED PAR_OPEN DEFINED PAR_CLOSE {
+  /* edge case, is the word "defined" a macro */
+  struct macro *m = mt_find(&pp->macro_table_, $2->text_, $2->text_len_);
+  $$.is_unsigned_ = 1;
+  $$.v_.u_ = !!m;
+}
 unary-exp: DEFINED IDENT {
+  struct macro *m = mt_find(&pp->macro_table_, $1->text_, $1->text_len_);
+  $$.is_unsigned_ = 1;
+  $$.v_.u_ = !!m;
+}
+unary-exp: DEFINED DEFINED {
+  /* edge case, is the word "defined" a macro */
   struct macro *m = mt_find(&pp->macro_table_, $1->text_, $1->text_len_);
   $$.is_unsigned_ = 1;
   $$.v_.u_ = !!m;

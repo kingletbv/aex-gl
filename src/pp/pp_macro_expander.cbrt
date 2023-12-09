@@ -180,6 +180,18 @@ top-stream: top-stream opt-function-seq DEFINED ws-opt PAR_OPEN ws-opt OBJECT ws
   $2 = $3 = $4 = $5 = $6.tk_ =$7 = $8 = NULL;
 }
 
+top-stream: top-stream opt-function-seq DEFINED ws-opt PAR_OPEN ws-opt DEFINED ws-opt PAR_CLOSE {
+  /* Insert "DEFINED (ID)" expansion; this is a straight up copy to preserve it for
+   * preprocessor constant expression evaluation. */
+  *pp_output_chain = pptk_join(*pp_output_chain, $2); /* DEFINED */
+  *pp_output_chain = pptk_join(*pp_output_chain, $3); /* ws-opt */
+  *pp_output_chain = pptk_join(*pp_output_chain, $4); /* PAR_OPEN */
+  *pp_output_chain = pptk_join(*pp_output_chain, $5); /* ws-opt */
+  *pp_output_chain = pptk_join(*pp_output_chain, $6); /* DEFINED */
+  *pp_output_chain = pptk_join(*pp_output_chain, $7); /* ws-opt */
+  *pp_output_chain = pptk_join(*pp_output_chain, $8); /* PAR_CLOSE */
+  $2 = $3 = $4 = $5 = $6 =$7 = $8 = NULL;
+}
 
 top-stream: top-stream opt-function-seq DEFINED ws-opt IDENT {
   /* Insert "DEFINED ID" expansion; this is a straight up copy to preserve it for
@@ -206,6 +218,15 @@ top-stream: top-stream opt-function-seq DEFINED ws-opt OBJECT {
   *pp_output_chain = pptk_join(*pp_output_chain, $3); /* ws-opt */
   *pp_output_chain = pptk_join(*pp_output_chain, $4.tk_); /* OBJECT */
   $2 = $3 = $4.tk_ = NULL;
+}
+
+top-stream: top-stream opt-function-seq DEFINED ws-opt DEFINED {
+  /* Insert "DEFINED ID" expansion; this is a straight up copy to preserve it for
+   * preprocessor constant expression evaluation. */
+  *pp_output_chain = pptk_join(*pp_output_chain, $2); /* DEFINED */
+  *pp_output_chain = pptk_join(*pp_output_chain, $3); /* ws-opt */
+  *pp_output_chain = pptk_join(*pp_output_chain, $4); /* DEFINED */
+  $2 = $3 = $4 = NULL;
 }
 
 opt-function-seq: ws-opt-emit ;
