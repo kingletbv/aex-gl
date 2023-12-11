@@ -961,10 +961,243 @@ void tri4_no_subpixels(uint8_t *rgba, size_t stride,
                        int32_t x0, int32_t y0,
                        int32_t x1, int32_t y1,
                        int32_t x2, int32_t y2) {
-  tri3(rgba, stride, scissor_left, scissor_top, scissor_right, scissor_bottom,
+  tri4(rgba, stride, scissor_left, scissor_top, scissor_right, scissor_bottom,
        x0 << SUBPIXEL_BITS, y0 << SUBPIXEL_BITS,
        x1 << SUBPIXEL_BITS, y1 << SUBPIXEL_BITS,
        x2 << SUBPIXEL_BITS, y2 << SUBPIXEL_BITS);
+}
+
+uint32_t hsvtorgb(uint32_t hue /* range 0 .. 1536 */, uint8_t sat, uint8_t val) {
+  uint32_t r, g, b;
+  uint32_t region, remainder, p, q, t;
+
+  if (sat == 0) {
+    r = val;
+    g = val;
+    b = val;
+    return (r << 16) | (g << 8) | b;
+  }
+
+  region = (hue >> 8) % 6;
+  remainder = hue & 255;
+
+  p = (val * (255 - sat)) >> 8;
+  q = (val * (255 - ((sat * remainder) >> 8))) >> 8;
+  t = (val * (255 - ((sat * (255 - remainder)) >> 8))) >> 8;
+
+  switch (region) {
+    case 0:
+      r = val; g = t; b = p;
+      break;
+    case 1:
+      r = q; g = val; b = p;
+      break;
+    case 2:
+      r = p; g = val; b = t;
+      break;
+    case 3:
+      r = p; g = q; b = val;
+      break;
+    case 4:
+      r = t; g = p; b = val;
+      break;
+    default:
+      r = val; g = p; b = q;
+      break;
+  }
+
+  return (r << 16) | (g << 8) | b;
+}
+
+void tri5(uint8_t *rgba, size_t stride,
+          uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
+          int32_t x0, int32_t y0, uint32_t z0,
+          int32_t x1, int32_t y1, uint32_t z1,
+          int32_t x2, int32_t y2, uint32_t z2) {
+  int64_t D012;
+  D012 = ((int64_t)x1) * ((int64_t)y2) - ((int64_t)x2) * ((int64_t)y1) - ((int64_t)x0) * ((int64_t)y2) + ((int64_t)x2) * ((int64_t)y0) + ((int64_t)x0) * ((int64_t)y1) - ((int64_t)x1) * ((int64_t)y0);
+
+  if (D012 <= 0) {
+    // Counterclockwise backface, or colinear. Reject.
+    return;
+  }
+
+  int64_t Dzx, Dzy, Dxyz;
+  Dzx = ((int64_t)z1) * ((int64_t)y2) - ((int64_t)z2) * ((int64_t)y1) - ((int64_t)z0) * ((int64_t)y2) + ((int64_t)z2) * ((int64_t)y0) + ((int64_t)z0) * ((int64_t)y1) - ((int64_t)z1) * ((int64_t)y0);
+  Dzy = ((int64_t)x1) * ((int64_t)z2) - ((int64_t)x2) * ((int64_t)z1) - ((int64_t)x0) * ((int64_t)z2) + ((int64_t)x2) * ((int64_t)z0) + ((int64_t)x0) * ((int64_t)z1) - ((int64_t)x1) * ((int64_t)z0);
+  Dxyz = ((int64_t)x0) * ( ((int64_t)y1) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z1) )
+       - ((int64_t)x1) * ( ((int64_t)y0) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z0) )
+       + ((int64_t)x2) * ( ((int64_t)y0) * ((int64_t)z1) - ((int64_t)y1) * ((int64_t)z0) );
+
+  int64_t z = Dzx * ((int64_t)(scissor_left)) + Dzy * ((int64_t)(scissor_top)) + Dxyz;
+  int64_t z_r = z % D012;
+  int64_t z_q = z / D012;
+
+  int64_t z_s; // stepper variable; outer loop is rows so we start with initialization for Y.
+
+  int64_t z_yi;
+  int64_t z_yp;
+  int64_t z_yq;
+  int direction_xy_flips;
+  z_yq = Dzy / D012;
+  if (Dzy > 0) {
+    z_s = D012 - z_r - 1;
+    z_yi = 1;
+    direction_xy_flips = 1;
+  }
+  else if (Dzy < 0) {
+    z_s = z_r;
+    z_yi = -1;
+    Dzy = -Dzy;
+    direction_xy_flips = 0;
+  }
+  else /* (Dzy == 0) */ {
+    z_s = z_r;
+    z_yi = 0;
+    direction_xy_flips = 0;
+    z_yp = 0;
+  }
+  z_yp = Dzy % D012;
+
+  int64_t z_xi;
+  int64_t z_xp;
+  int64_t z_xq;
+  z_xq = Dzx / D012;
+  if (Dzx > 0) {
+    z_xi = 1;
+    direction_xy_flips ^= 1;
+  }
+  else if (Dzx < 0) {
+    z_xi = -1;
+    Dzx = -Dzx;
+  }
+  else /* (Dzx == 0) */ {
+    z_xi = 0;
+    z_xp = 0;
+  }
+  z_xp = Dzx % D012;
+
+  int64_t Dp01_row, Dp12_row, Dp20_row;
+  // Dp01 = determinant for triangle formed by edge 01 and point p:
+  //        | px py 1 |
+  // Dp01 = | x0 y0 1 |
+  //        | x1 y1 1 |
+  int64_t Dp01_dx = (y0 - y1);
+  int64_t Dp01_dy = (x1 - x0);
+  Dp01_row = ((int64_t)(scissor_left)) * Dp01_dx + ((int64_t)(scissor_top)) * Dp01_dy + x0 * y1 - y0 * x1;
+
+
+  // Dp12 = determinant for triangle formed by edge 12 and point p:
+  //        | px py 1 |
+  // Dp12 = | x1 y1 1 |
+  //        | x2 y2 1 |
+  int64_t Dp12_dx = (y1 - y2);
+  int64_t Dp12_dy = (x2 - x1);
+  Dp12_row = ((int64_t)(scissor_left)) * Dp12_dx + ((int64_t)(scissor_top)) * Dp12_dy + x1 * y2 - y1 * x2;
+
+  // Dp20 = determinant for triangle formed by edge 20 and point p:
+  //        | px py 1 |
+  // Dp20 = | x2 y2 1 |
+  //        | x0 y0 1 |
+  int64_t Dp20_dx = (y2 - y0);
+  int64_t Dp20_dy = (x0 - x2);
+  Dp20_row = ((int64_t)(scissor_left)) * Dp20_dx + ((int64_t)(scissor_top)) * Dp20_dy + x2 * y0 - y2 * x0;
+
+  // Classify the edges so we know when to apply >0 and >=0 depending on whether
+  // the edge is inclusive on an exact match, or not. (Thus avoiding overdraw.)
+  // For this we apply the "top-left" rule: if an edge is horizontal, then a pixel
+  // that is exactly on the edge is considered to be "inside" the triangle if the
+  // edge is at the top of the triangle. Otherwise, if the edge is not horizontal,
+  // it is considered to be "inside" the triangle if the edge is to the left of the
+  // triangle. We check whether or not the edge is "at the top" or "on the left" on
+  // the basis of the triangle vertices being clockwise.
+  // 
+  // Classify 01
+  if (y0 == y1) {
+    if (x0 < x1) {
+      /* Horizontal edge at the top of the triangle */
+      Dp01_row++;
+    }
+  }
+  else if (y0 > y1) {
+    /* Non-horizontal edge on the left side of the triangle */
+    Dp01_row++;
+  }
+
+  // Classify 12
+  if (y1 == y2) {
+    if (x1 < x2) {
+      /* Horizontal edge at the top of the triangle */
+      Dp12_row++;
+    }
+  }
+  else if (y1 > y2) {
+    /* Non-horizontal edge on the left side of the triangle */
+    Dp12_row++;
+  }
+
+  // Classify 20
+  if (y2 == y0) {
+    if (x2 < x0) {
+      /* Horizontal edge at the top of the triangle */
+      Dp20_row++;
+    }
+  }
+  else if (y2 > y0) {
+    /* Non-horizontal edge on the left side of the triangle */
+    Dp20_row++;
+  }
+
+  int64_t px, py;
+  for (py = scissor_top; py < scissor_bottom; ++py) {
+    int64_t Dp01, Dp12, Dp20;
+    Dp01 = Dp01_row;
+    Dp12 = Dp12_row;
+    Dp20 = Dp20_row;
+    Dp01_row += Dp01_dy;
+    Dp12_row += Dp12_dy;
+    Dp20_row += Dp20_dy;
+
+    int64_t z_sx;
+    if (direction_xy_flips) {
+      /* Flip numerator to column (x) direction */
+      z_sx = D012 - z_s - 2;
+    }
+    else {
+      /* x and y are both ascending, or both descending, keep as-is */
+      z_sx = z_s;
+    }
+    int64_t z_x = z;
+
+    /* Step z_s to next row */
+    z += z_yq;
+    z_s -= z_yp;
+    int64_t step_mask = z_s >> 63;
+    z_s += D012 & step_mask;
+    z += z_yi & step_mask;
+
+    for (px = scissor_left; px < scissor_right; ++px) {
+      uint8_t *pixel = rgba + py * stride + px * 4;
+      if (Dp01 > 0 && Dp12 > 0 && Dp20 > 0) {
+        uint32_t clr = hsvtorgb((uint32_t)z_x, 255, 255);
+        pixel[0] = (uint8_t)(clr >> 16);
+        pixel[1] = (uint8_t)(clr >> 8);
+        pixel[2] = (uint8_t)(clr);
+        pixel[3] = 0xFF;
+      }
+
+      Dp01 += Dp01_dx;
+      Dp12 += Dp12_dx;
+      Dp20 += Dp20_dx;
+
+      /* Step z_x to next column */
+      z_x += z_xq;
+      z_sx -= z_xp;
+      step_mask = z_sx >> 63;
+      z_sx += D012 & step_mask;
+      z_x += z_xi & step_mask;
+    }
+  }
 }
 
 
@@ -1015,12 +1248,19 @@ int main(int argc, char **argv) {
                       last_col, 0,    /* vertex 0 */
                       col, 0,         /* vertex 1 */
                       0, 255);        /* vertex 2 */
-#elif 1
+#elif 0
     tri4_no_subpixels(rgba32, 256*4,
                       0, 0, 256, 256, /* scissor rect */
                       last_col, 0,    /* vertex 0 */
                       col, 0,         /* vertex 1 */
                       0, 255);        /* vertex 2 */
+#elif 0
+    tri5(rgba32, 256*4,
+         0, 0, 256, 256, /* scissor rect */
+         last_col, 0, 255, /* vertex 0 */
+         col, 0, 0,      /* vertex 1 */
+         0, 255, 0);     /* vertex 2 */
+    
 #else
 #endif
     last_col = col;
@@ -1031,6 +1271,13 @@ int main(int argc, char **argv) {
                     0, 0,    /* vertex 0 */
                     16, 0,         /* vertex 1 */
                     0, 16);        /* vertex 2 */
+#elif 1
+  tri5(rgba32, 256*4,
+        0, 0, 256, 256, /* scissor rect */
+        0, 0, 0, /* vertex 0 */
+        255, 0, 3 * 255,      /* vertex 1 */
+        0, 255, 6 * 255);     /* vertex 2 */
+
 #endif
 
   /* Superimpose faint grid effect */
