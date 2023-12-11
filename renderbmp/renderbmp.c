@@ -1031,7 +1031,7 @@ void tri5(uint8_t *rgba, size_t stride,
 
   int64_t z = Dzx * ((int64_t)(scissor_left)) + Dzy * ((int64_t)(scissor_top)) + Dxyz;
   int64_t z_r = z % D012;
-  int64_t z_q = z / D012;
+  z = z / D012;
 
   int64_t z_s; // stepper variable; outer loop is rows so we start with initialization for Y.
 
@@ -1271,13 +1271,24 @@ int main(int argc, char **argv) {
                     0, 0,    /* vertex 0 */
                     16, 0,         /* vertex 1 */
                     0, 16);        /* vertex 2 */
-#elif 1
+#elif 0
   tri5(rgba32, 256*4,
         0, 0, 256, 256, /* scissor rect */
-        0, 0, 0, /* vertex 0 */
-        255, 0, 3 * 255,      /* vertex 1 */
-        0, 255, 6 * 255);     /* vertex 2 */
-
+        0, 0, 4 * 255, /* vertex 0 */
+        255, 0, 2 * 255,      /* vertex 1 */
+        0, 255, 2 * 255);     /* vertex 2 */
+#elif 0
+  tri5(rgba32, 256*4,
+    0, 0, 256, 256, /* scissor rect */
+    10, 5, 4 * 255, /* vertex 0 */
+    255, 10, 2 * 255,      /* vertex 1 */
+    5, 255, 2 * 255);     /* vertex 2 */
+#elif 1
+  tri5(rgba32, 256*4,
+    0, 0, 256, 256, /* scissor rect */
+    3, 3, 0 * 255, /* vertex 0 */
+    55, 0, 1 * 255,      /* vertex 1 */
+    0, 65, 2 * 255);     /* vertex 2 */
 #endif
 
   /* Superimpose faint grid effect */
