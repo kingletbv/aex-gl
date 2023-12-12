@@ -1218,6 +1218,692 @@ void tri5(uint8_t *rgba, size_t stride,
   }
 }
 
+int mulu64(uint64_t a, uint64_t b, uint64_t *rhi, uint64_t *rlo){ 
+  /* Multiplication: 
+   * xy = z2 b^2 + z1 b + z0
+   * where:
+   * z2 = x1y1
+   * z1 = x1y0 + x0y1
+   * z0 = x0y0
+   * and b is base 2^32 */
+  uint32_t x0 = a & 0xFFFFFFFF;
+  uint32_t x1 = (a >> 32) & 0xFFFFFFFF;
+  uint32_t y0 = b & 0xFFFFFFFF;
+  uint32_t y1 = (b >> 32) & 0xFFFFFFFF;
+
+  uint64_t z2 = ((uint64_t)x1) * ((uint64_t)y1);
+  uint64_t z0 = ((uint64_t)x0) * ((uint64_t)y0);
+  uint64_t x1y0 = ((uint64_t)x1) * ((uint64_t)y0);
+  uint64_t x0y1 = ((uint64_t)x0) * ((uint64_t)y1);
+  uint64_t z1 = x1y0 + x0y1;
+  if (z1 < x1y0) {
+    /* Carry overflow from z1; add in to z2, note also that z2
+     * is at most 0xFFFFFFFE00000001 and so consequently would
+     * hereby become 0xFFFFFFFF00000001 in the worst case (we
+     * therefore don't need to check for overflow) */
+    z2 += ((uint64_t)1) << 32;
+  }
+  uint64_t result0;
+  uint64_t result1;
+  result0 = z0 + (z1 << 32);
+  if (result0 < z0) {
+    /* Overflow from z0 + loword(z1) into upper word of result */
+    z2 ++;
+  }
+  result1 = (z1 >> 32) + z2;
+
+  if (rlo) {
+    *rlo = result0;
+  }
+  if (rhi) {
+    /* note: can skip z2 if not interested in rhi */
+    *rhi = result1;
+  }
+
+  return !!result1;
+}
+
+int muls64(int64_t a, int64_t b, int64_t *rhi, int64_t *rlo) {
+  int is_neg = 0;
+  if (a < 0) {
+    a = -a;
+    is_neg ^= 1;
+  }
+  if (b < 0) {
+    b = -b;
+    is_neg ^= 1;
+  }
+  uint64_t result_hi, result_lo;
+  int r = mulu64((uint64_t)a, (uint64_t)b, &result_hi, &result_lo);
+  if (is_neg) {
+    // Two's complement negation.
+    result_lo = ~result_lo;
+    result_hi = ~result_hi;
+    result_lo++;
+    if (!result_lo /* following +1, is carry set? */ ) {
+      result_hi++;
+    }
+  }
+
+  if (rlo) {
+    *rlo = (int64_t)result_lo;
+  }
+  if (rhi) {
+    /* note: can skip z2 if not interested in rhi */
+    *rhi = (int64_t)result_hi;
+  }
+
+  return r;
+}
+
+/* Performs an unsigned division of a 128 bit numerator by a 64 bit denominator, returning
+ * a 128 bit number, split into a high and a low 64 bit number.
+ * Return value == -1 for division by zero.
+ *                  1 if the result requires more than 64 bits
+ *                  0 if the result requires less than 64 bits.
+ * *rhi is optional, you can check the return value for 1 to see if the result fits into *rlo.
+ */
+int divu128by64(uint64_t numhi, uint64_t numlo, uint64_t den, uint64_t *rhi, uint64_t *rlo) {
+  /* numerator shifted - note that the digit ordering, as is for all arrays, is little endian, with
+   * the least significant digit first. */
+  uint32_t sn[5] ={ 0 };
+  sn[0] = (uint32_t)(numlo & 0xFFFFFFFF);
+  sn[1] = (uint32_t)(numlo >> 32);
+  sn[2] = (uint32_t)(numhi & 0xFFFFFFFF);
+  sn[3] = (uint32_t)(numhi >> 32);
+  sn[4] = 0;
+
+  /* denominator shifted */
+  uint32_t sd[4] ={ 0 };
+  sd[0] = (uint32_t)(den & 0xFFFFFFFF);
+  sd[1] = (uint32_t)(den >> 32);
+  sd[2] = 0;
+  sd[3] = 0;
+
+  /* subtraction register */
+  uint32_t sr[5];
+  /* result register */
+  uint32_t r[4] ={ 0 };
+
+  uint32_t digit;
+  uint64_t acc;
+  int shift, lead_den_digit, lead_num_digit, n;
+
+  for (lead_den_digit = 3; lead_den_digit >= 0; --lead_den_digit) {
+    if (sd[lead_den_digit]) break;
+  }
+
+  if (lead_den_digit == -1) {
+    /* Division by zero */
+    return -1;
+  }
+
+  for (lead_num_digit = 3; lead_num_digit >= 0; --lead_num_digit) {
+    if (sn[lead_num_digit]) break;
+  }
+
+  if (lead_den_digit > lead_num_digit) {
+    /* Denominator is larger than numerator, the result is therefore zero. */
+    if (rhi) {
+      *rhi = 0x0ULL;
+    }
+    if (rlo) {
+      *rlo = 0x0ULL;
+    }
+    return 0;
+  }
+
+  /* Shift numerator and denominator left until the denominator's lead bit is in the
+   * most significant bit slot. We do this so that our "guessing" division in the core
+   * division algorithm is as accurate as possible because the denominator of *that*
+   * division (the lead digit of the overall denominator) is as big as possible. */
+  digit = sd[lead_den_digit];
+  if (digit & 0xFFFF0000) {
+    shift = 0;
+  }
+  else {
+    shift = 16;
+    digit <<= 16;
+  }
+  if (!(digit & 0xFF000000)) {
+    shift += 8;
+    digit <<= 8;
+  }
+  if (!(digit & 0xF0000000)) {
+    shift += 4;
+    digit <<= 4;
+  }
+  if (!(digit & 0xC0000000)) {
+    shift += 2;
+    digit <<= 2;
+  }
+  if (!(digit & 0x80000000)) {
+    shift++;
+  }
+  /* the "& (-shift >> 31)" part of the equation handles the case for shift == 0,
+   * during which we'd attempt a right-shift of (32 - 0) == 32, which is undefined
+   * over a 32 bit number (and likely to equal a shift of 0). The desired behavior
+   * is for the entire result to be 0, as-if all 0's would have shifted in. */
+  sn[lead_num_digit + 1] = (sn[lead_num_digit] >> (32 - shift)) & (-shift >> 31);
+  for (n = lead_num_digit; n > 0; --n) {
+    sn[n] = (sn[n] << shift) | ((sn[n - 1] >> (32 - shift)) & (-shift >> 31));
+  }
+  sn[0] = sn[0] << shift;
+  for (n = lead_den_digit; n > 0; --n) {
+    sd[n] = (sd[n] << shift) | ((sd[n - 1] >> (32 - shift)) & (-shift >> 31));
+  }
+  sd[0] = sd[0] << shift;
+
+  for (n = lead_num_digit; n >= lead_den_digit; --n) {
+    uint64_t div;
+    uint64_t mul;
+    int k;
+    int sr_is_bigger;
+    div = (((uint64_t)sn[n + 1]) << 32) | sn[n];
+    div /= sd[lead_den_digit];
+    mul = 0;
+    for (k = 0; k <= lead_den_digit; ++k) {
+      uint64_t factor = div * ((uint64_t)sd[k]);
+      mul += factor;
+      sr[k] = (uint32_t)mul;
+      mul >>= 32;
+    }
+    sr[k] = (uint32_t)mul;
+
+    do {
+      sr_is_bigger = 0;
+      for (k = lead_den_digit + 1; k >= 0; --k) {
+        if (sr[k] < sn[k - lead_den_digit + n]) {
+          sr_is_bigger = 0;
+          break;
+        }
+        else if (sr[k] > sn[k - lead_den_digit + n]) {
+          sr_is_bigger = 1;
+          break;
+        }
+      }
+
+      if (sr_is_bigger) {
+        /* Estimate is off, subtract denominator from subtraction register */
+        acc = 0;
+        --div;
+        for (k = 0; k <= lead_den_digit; ++k) {
+          acc += ((uint64_t)sr[k]) - (uint64_t)sd[k];
+          sr[k] = (uint32_t)acc;
+          acc = (uint64_t)(((int64_t)acc) >> 32);
+        }
+        sr[k] += (uint32_t)acc;
+      }
+    } while (sr_is_bigger);
+
+    /* Subtract the subtraction register (containing the current dividend digit
+     * estimate times the denominator) from the numerator to leave the remainder
+     * for subsequent digits. */
+    acc = 0;
+    for (k = 0; k <= (lead_den_digit + 1); ++k) {
+      acc += ((uint64_t)sn[k - lead_den_digit + n]) - ((uint64_t)sr[k]);
+      sn[k - lead_den_digit + n] = (uint32_t)acc;
+      acc = (uint64_t)(((int64_t)acc) >> 32);
+    }
+
+    r[n - lead_den_digit] = (uint32_t)div;
+  }
+
+  if (rhi) {
+    /* Again: notice the little-endian convention for digits */
+    *rhi = (((uint64_t)r[3]) << 32) | ((uint64_t)r[2]);
+  }
+  if (rlo) {
+    *rlo = (((uint64_t)r[1]) << 32) | ((uint64_t)r[0]);
+  }
+
+  /* Return 0 if result fits in 64 bits, 1 if more bits are needed. */
+  return (r[3] || r[2]) ? 1 : 0;
+}
+
+
+/* Performs a signed division of a 128 bit numerator by a 64 bit denominator, returning
+ * a 128 bit number, split into a high and a low 64 bit number.
+ * Return value == -1 for division by zero.
+ *                  1 if the result requires more than 64 bits
+ *                  0 if the result requires less than 64 bits.
+ * *rhi is optional, you can check the return value for 1 to see if the result fits into *rlo.
+ */
+int divs128by64(int64_t numhi, int64_t numlo, int64_t den, int64_t *rhi, int64_t *rlo) {
+  int is_neg = 0;
+  if (numhi < 0) {
+    // Two's complement negation.
+    numhi = ~numhi;
+    numlo = ~numlo;
+    numlo++;
+    if (!numlo /* following +1, is carry set? */) {
+      numhi++;
+    }
+    is_neg ^= 1;
+  }
+  if (den < 0) {
+    den = -den;
+    is_neg ^= 1;
+  }
+  int64_t result_hi, result_lo;
+  int r = divu128by64(numhi, numlo, den, &result_hi, &result_lo);
+  if (is_neg) {
+    // Two's complement negation.
+    result_lo = ~result_lo;
+    result_hi = ~result_hi;
+    result_lo++;
+    if (!result_lo /* following +1, is carry set? */) {
+      result_hi++;
+    }
+  }
+  if (rhi) {
+    *rhi = result_hi;
+  }
+  if (rlo) {
+    *rlo = result_lo;
+  }
+  return r;
+}
+
+void adds128by64(int64_t ahi, int64_t alo, int64_t b, int64_t *rhi, int64_t *rlo) {
+  /* the "s" in adds128by64 is relevant here as we sign-extend b to 128 bits; this would
+   * not be done for an unsigned variant. */
+  int64_t bhi = b >> 63;
+  int64_t result_lo = alo + b;
+  int64_t result_hi = ahi + bhi;
+  if (result_lo < alo) {
+    /* carry set */
+    result_hi++;
+  }
+  if (rhi) {
+    *rhi = result_hi;
+  }
+  if (rlo) {
+    *rlo = result_lo;
+  }
+}
+
+void adds128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
+  int64_t result_lo = alo + blo;
+  int64_t result_hi = ahi + bhi;
+  if (result_lo < alo) {
+    /* carry set */
+    result_hi++;
+  }
+  if (rhi) {
+    *rhi = result_hi;
+  }
+  if (rlo) {
+    *rlo = result_lo;
+  }
+}
+
+void subs128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
+  /* Two's complement negation */
+  blo = ~blo;
+  bhi = ~bhi;
+  blo++;
+  if (!blo /* following +1, is carry set? */) {
+    bhi++;
+  }
+
+  /* adding the negated value is the same as subtracting */
+  adds128(ahi, alo, bhi, blo, rhi, rlo);
+}
+
+void mulu128(uint64_t ahi, uint64_t alo, uint64_t bhi, uint64_t blo, uint64_t *rhi, uint64_t *rlo) {
+  //                 ahi         alo
+  //                 bhi         blo x
+  //                 ---------------
+  //                         blo*alo
+  //                 blo*ahi
+  //                 bhi*alo
+  //         bhi*ahi
+  //      
+  //                [--- 128 bits ---]
+  // [-- 128 bits --]
+  //     upper            lower
+  // we only care about the lower 128 bits; 
+  // this simplifies things for us.
+  uint64_t blo_alo_lo, blo_alo_hi;
+  mulu64(blo, alo, &blo_alo_hi, &blo_alo_lo);
+
+  uint64_t r_lo, r_hi;
+  r_lo = blo_alo_lo;
+  r_hi = blo_alo_hi;
+  r_hi += blo * ahi;
+  r_hi += bhi * alo;
+}
+
+void muls128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
+  int is_neg = 0;
+  if (ahi < 0) {
+    is_neg ^= 1;
+    alo = ~alo;
+    ahi = ~ahi;
+    alo++;
+    if (!alo) ahi++;
+  }
+  if (bhi < 0) {
+    is_neg ^= 1;
+    blo = ~blo;
+    bhi = ~bhi;
+    blo++;
+    if (!blo) bhi++;
+  }
+  uint64_t res_hi, res_lo;
+  mulu128(ahi, alo, bhi, blo, &res_hi, &res_lo);
+  if (is_neg) {
+    res_lo = ~res_lo;
+    res_hi = ~res_hi;
+    res_lo++;
+    if (!res_lo) res_hi++;
+  }
+  if (rhi) *rhi = res_hi;
+  if (rlo) *rlo = res_lo;
+}
+
+void tri6(uint8_t *rgba, size_t stride,
+          uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
+          int32_t x0, int32_t y0, uint32_t z0,
+          int32_t x1, int32_t y1, uint32_t z1,
+          int32_t x2, int32_t y2, uint32_t z2) {
+  int64_t D012;
+
+  // Location where we go "Pen down" - convenience short-hand.
+  int64_t Px = (int64_t)scissor_left;
+  int64_t Py = (int64_t)scissor_top;
+
+  // D012 = determinant of x and y coordinates (this is twice the area of the triangle (e.g. the area of the paralellogram))
+  //        | x0 y0 1 |
+  // D012 = | x1 y1 1 |
+  //        | x2 y2 1 |
+  D012 = ((int64_t)x1) * ((int64_t)y2) - ((int64_t)x2) * ((int64_t)y1) - ((int64_t)x0) * ((int64_t)y2) + ((int64_t)x2) * ((int64_t)y0) + ((int64_t)x0) * ((int64_t)y1) - ((int64_t)x1) * ((int64_t)y0);
+
+  if (D012 <= 0) {
+    // Counterclockwise backface, or colinear. Reject.
+    return;
+  }
+
+  int64_t Dzx, Dzy, Dxyz;
+  // Dzx = determinant of z and y coordinates (change in numerator for each successive column (x))
+  //       | z0 y0 1 |
+  // Dzx = | z1 y1 1 |
+  //       | z2 y2 1 |
+  Dzx = ((int64_t)z1) * ((int64_t)y2) - ((int64_t)z2) * ((int64_t)y1) - ((int64_t)z0) * ((int64_t)y2) + ((int64_t)z2) * ((int64_t)y0) + ((int64_t)z0) * ((int64_t)y1) - ((int64_t)z1) * ((int64_t)y0);
+
+  int64_t Dzx_1 =  ((int64_t)z1) * ((int64_t)y2) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_2 = -((int64_t)z2) * ((int64_t)y1) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_3 = -((int64_t)z0) * ((int64_t)y2) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_4 =  ((int64_t)z2) * ((int64_t)y0) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_5 =  ((int64_t)z0) * ((int64_t)y1) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_6 = -((int64_t)z1) * ((int64_t)y0) /* 30 + 32 = 62 bits */;
+
+  int64_t Dzx_a = Dzx_1 + Dzx_2 + Dzx_3 /* 62 + 62 + 62 = 64 bits */;
+  int64_t Dzx_b = Dzx_4 + Dzx_5 + Dzx_6 /* 62 + 62 + 62 = 64 bits */;
+  int64_t Dzx_lo, Dzx_hi;
+  adds128(Dzx_a>>63, Dzx_a, Dzx_b>>63, Dzx_b, &Dzx_hi, &Dzx_lo);
+
+  int64_t Dzx_Px_a_hi, Dzx_Px_a_lo;
+  int64_t Dzx_Px_b_hi, Dzx_Px_b_lo;
+  muls64(Dzx_a, Px, &Dzx_Px_a_hi, &Dzx_Px_a_lo);
+  muls64(Dzx_b, Px, &Dzx_Px_b_hi, &Dzx_Px_b_lo);
+  int64_t Dzx_Px_hi, Dzx_Px_lo;
+  adds128(Dzx_Px_a_hi, Dzx_Px_a_lo, Dzx_Px_b_hi, Dzx_Px_b_lo, &Dzx_Px_hi, &Dzx_Px_lo);
+
+  // Dzy = determinant of x and z coordinates (change in numerator for each successive row (y))
+  //       | x0 z0 1 |
+  // Dzy = | x1 z1 1 |
+  //       | x2 z2 1 |
+  Dzy = ((int64_t)x1) * ((int64_t)z2) - ((int64_t)x2) * ((int64_t)z1) - ((int64_t)x0) * ((int64_t)z2) + ((int64_t)x2) * ((int64_t)z0) + ((int64_t)x0) * ((int64_t)z1) - ((int64_t)x1) * ((int64_t)z0);
+
+  int64_t Dzy_1 =  ((int64_t)x1) * ((int64_t)z2) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_2 = -((int64_t)x2) * ((int64_t)z1) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_3 = -((int64_t)x0) * ((int64_t)z2) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_4 =  ((int64_t)x2) * ((int64_t)z0) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_5 =  ((int64_t)x0) * ((int64_t)z1) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_6 = -((int64_t)x1) * ((int64_t)z0) /* 30 + 32 = 62 bits */;
+
+  int64_t Dzy_a = Dzy_1 + Dzy_2 + Dzy_3 /* 62 + 62 + 62 = 64 bits */;
+  int64_t Dzy_b = Dzy_4 + Dzy_5 + Dzy_6 /* 62 + 62 + 62 = 64 bits */;
+  int64_t Dzy_lo, Dzy_hi;               /* 64 + 64 = 65 bits */
+  adds128(Dzy_a>>63, Dzy_a, Dzy_b>>63, Dzy_b, &Dzy_hi, &Dzy_lo);
+
+  int64_t Dzy_Py_a_hi, Dzy_Py_a_lo;
+  int64_t Dzy_Py_b_hi, Dzy_Py_b_lo;
+  muls64(Dzy_a, Py, &Dzy_Py_a_hi, &Dzy_Py_a_lo);
+  muls64(Dzy_b, Py, &Dzy_Py_b_hi, &Dzy_Py_b_lo);
+  int64_t Dzy_Py_hi, Dzy_Py_lo;
+  adds128(Dzy_Py_a_hi, Dzy_Py_a_lo, Dzy_Py_b_hi, Dzy_Py_b_lo, &Dzy_Py_hi, &Dzy_Py_lo);
+
+  // Dxyz = determinant of x, y and z-buffer coordinates
+  //        | x0 y0 z0 |
+  // Dxyz = | x1 y1 z1 |
+  //        | x2 y2 z2 |
+  Dxyz = ((int64_t)x0) * (((int64_t)y1) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z1))
+       - ((int64_t)x1) * (((int64_t)y0) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z0))
+       + ((int64_t)x2) * (((int64_t)y0) * ((int64_t)z1) - ((int64_t)y1) * ((int64_t)z0));
+
+  int64_t Dxyz_x0_hi, Dxyz_x0_lo;
+  int64_t Dxyz_x1_hi, Dxyz_x1_lo;
+  int64_t Dxyz_x2_hi, Dxyz_x2_lo;
+  muls64(x0, ((int64_t)y1) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z1), &Dxyz_x0_hi, &Dxyz_x0_lo);
+  muls64(x1, ((int64_t)y0) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z0), &Dxyz_x1_hi, &Dxyz_x1_lo);
+  muls64(x2, ((int64_t)y0) * ((int64_t)z1) - ((int64_t)y1) * ((int64_t)z0), &Dxyz_x2_hi, &Dxyz_x2_lo);
+  
+  int64_t Dxyz_hi = Dxyz_x0_hi;
+  int64_t Dxyz_lo = Dxyz_x0_lo;
+  subs128(Dxyz_hi, Dxyz_lo, Dxyz_x1_hi, Dxyz_x1_lo, &Dxyz_hi, &Dxyz_lo);
+  adds128(Dxyz_hi, Dxyz_lo, Dxyz_x2_hi, Dxyz_x2_lo, &Dxyz_hi, &Dxyz_lo);
+  // Dxyz_hi/lo now holds 95 bit Dxyz value.
+
+  // z_num = Dzx * Px + Dzy * Py + Dxyz
+  // we have the first two terms as Dzx_Px_hi/lo and Dzy_Py_hi/lo, and have Dzxy_hi/lo, but need to add them all together.
+  int64_t z_num_hi, z_num_lo;
+  adds128(Dzx_Px_hi, Dzx_Px_lo, Dzy_Py_hi, Dzy_Py_lo, &z_num_hi, &z_num_lo);
+  adds128(z_num_hi, z_num_lo, Dxyz_hi, Dxyz_lo, &z_num_hi, &z_num_lo);
+  
+  // We'd like to divide z_num by D012, and take its modulo D012.
+  // Do the division first, then multiply back out to get the modulo.
+  int64_t z_hi, z_lo;
+  // Note that division by zero should be impossible as we already checked for D012 <= 0 earlier.
+  int r = divs128by64(z_num_hi, z_num_lo, D012, &z_hi, &z_lo);
+  if (r) {
+    // Result doesn't fit in 64 bits, this is possible, and we will ignore the high bits. Ignoring
+    // the high-bits _is fine_. The reason this works is because we're only interested in the z-buffer
+    // values when they are in the range of the triangle, in that range, the values (through possibly
+    // many incremental, overflowing, steps) will always be in the range of 0 to D012-1. The one
+    // exception to this is when we start processing fragments in quadruples, in which case some of the
+    // fragments will be outside the triangle (and we would record the z-buffer value and start processing
+    // the fragment as-if it had passed for sake of the fragments that did, but would not use the z-buffer
+    // value itself as part of the z-buffer test.)
+    ;
+  }
+
+  // Multiply back up to D012 to find its modulo, careful with negative values.
+  int64_t z_base_mod_hi, z_base_mod_lo;
+  muls128(z_hi, z_lo, 0, D012, &z_base_mod_hi, &z_base_mod_lo);
+
+  int64_t z_mod_hi, z_mod_lo;
+  subs128(z_num_hi, z_num_lo, z_base_mod_hi, z_base_mod_lo, &z_mod_hi, &z_mod_lo);
+  if (z_mod_hi < 0) {
+    // Technique above gives us a remainder whereas we want a modulo, if the
+    // number is negative, we push it back into the positive.
+    adds128by64(z_mod_hi, z_mod_lo, D012, &z_mod_hi, &z_mod_lo);
+  }
+
+  int64_t z = Dzx * ((int64_t)(scissor_left)) + Dzy * ((int64_t)(scissor_top)) + Dxyz;
+  int64_t z_r = z % D012;
+  z = z / D012;
+
+  int64_t z_s; // stepper variable; outer loop is rows so we start with initialization for Y.
+
+  int64_t z_yi;
+  int64_t z_yp;
+  int64_t z_yq;
+  int direction_xy_flips;
+  z_yq = Dzy / D012;
+  if (Dzy > 0) {
+    z_s = D012 - z_r - 1;
+    z_yi = 1;
+    direction_xy_flips = 1;
+  }
+  else if (Dzy < 0) {
+    z_s = z_r;
+    z_yi = -1;
+    Dzy = -Dzy;
+    direction_xy_flips = 0;
+  }
+  else /* (Dzy == 0) */ {
+    z_s = z_r;
+    z_yi = 0;
+    direction_xy_flips = 0;
+    z_yp = 0;
+  }
+  z_yp = Dzy % D012;
+
+  int64_t z_xi;
+  int64_t z_xp;
+  int64_t z_xq;
+  z_xq = Dzx / D012;
+  if (Dzx > 0) {
+    z_xi = 1;
+    direction_xy_flips ^= 1;
+  }
+  else if (Dzx < 0) {
+    z_xi = -1;
+    Dzx = -Dzx;
+  }
+  else /* (Dzx == 0) */ {
+    z_xi = 0;
+    z_xp = 0;
+  }
+  z_xp = Dzx % D012;
+
+  int64_t Dp01_row, Dp12_row, Dp20_row;
+  // Dp01 = determinant for triangle formed by edge 01 and point p:
+  //        | px py 1 |
+  // Dp01 = | x0 y0 1 |
+  //        | x1 y1 1 |
+  int64_t Dp01_dx = (y0 - y1);
+  int64_t Dp01_dy = (x1 - x0);
+  Dp01_row = ((int64_t)(scissor_left)) * Dp01_dx + ((int64_t)(scissor_top)) * Dp01_dy + x0 * y1 - y0 * x1;
+
+
+  // Dp12 = determinant for triangle formed by edge 12 and point p:
+  //        | px py 1 |
+  // Dp12 = | x1 y1 1 |
+  //        | x2 y2 1 |
+  int64_t Dp12_dx = (y1 - y2);
+  int64_t Dp12_dy = (x2 - x1);
+  Dp12_row = ((int64_t)(scissor_left)) * Dp12_dx + ((int64_t)(scissor_top)) * Dp12_dy + x1 * y2 - y1 * x2;
+
+  // Dp20 = determinant for triangle formed by edge 20 and point p:
+  //        | px py 1 |
+  // Dp20 = | x2 y2 1 |
+  //        | x0 y0 1 |
+  int64_t Dp20_dx = (y2 - y0);
+  int64_t Dp20_dy = (x0 - x2);
+  Dp20_row = ((int64_t)(scissor_left)) * Dp20_dx + ((int64_t)(scissor_top)) * Dp20_dy + x2 * y0 - y2 * x0;
+
+  // Classify the edges so we know when to apply >0 and >=0 depending on whether
+  // the edge is inclusive on an exact match, or not. (Thus avoiding overdraw.)
+  // For this we apply the "top-left" rule: if an edge is horizontal, then a pixel
+  // that is exactly on the edge is considered to be "inside" the triangle if the
+  // edge is at the top of the triangle. Otherwise, if the edge is not horizontal,
+  // it is considered to be "inside" the triangle if the edge is to the left of the
+  // triangle. We check whether or not the edge is "at the top" or "on the left" on
+  // the basis of the triangle vertices being clockwise.
+  // 
+  // Classify 01
+  if (y0 == y1) {
+    if (x0 < x1) {
+      /* Horizontal edge at the top of the triangle */
+      Dp01_row++;
+    }
+  }
+  else if (y0 > y1) {
+    /* Non-horizontal edge on the left side of the triangle */
+    Dp01_row++;
+  }
+
+  // Classify 12
+  if (y1 == y2) {
+    if (x1 < x2) {
+      /* Horizontal edge at the top of the triangle */
+      Dp12_row++;
+    }
+  }
+  else if (y1 > y2) {
+    /* Non-horizontal edge on the left side of the triangle */
+    Dp12_row++;
+  }
+
+  // Classify 20
+  if (y2 == y0) {
+    if (x2 < x0) {
+      /* Horizontal edge at the top of the triangle */
+      Dp20_row++;
+    }
+  }
+  else if (y2 > y0) {
+    /* Non-horizontal edge on the left side of the triangle */
+    Dp20_row++;
+  }
+
+  int64_t px, py;
+  for (py = scissor_top; py < scissor_bottom; ++py) {
+    int64_t Dp01, Dp12, Dp20;
+    Dp01 = Dp01_row;
+    Dp12 = Dp12_row;
+    Dp20 = Dp20_row;
+    Dp01_row += Dp01_dy;
+    Dp12_row += Dp12_dy;
+    Dp20_row += Dp20_dy;
+
+    int64_t z_sx;
+    if (direction_xy_flips) {
+      /* Flip numerator to column (x) direction */
+      z_sx = D012 - z_s - 2;
+    }
+    else {
+      /* x and y are both ascending, or both descending, keep as-is */
+      z_sx = z_s;
+    }
+    int64_t z_x = z;
+
+    /* Step z_s to next row */
+    z += z_yq;
+    z_s -= z_yp;
+    int64_t step_mask = z_s >> 63;
+    z_s += D012 & step_mask;
+    z += z_yi & step_mask;
+
+    for (px = scissor_left; px < scissor_right; ++px) {
+      uint8_t *pixel = rgba + py * stride + px * 4;
+      if (Dp01 > 0 && Dp12 > 0 && Dp20 > 0) {
+        uint32_t clr = hsvtorgb((uint32_t)z_x, 255, 255);
+        pixel[0] = (uint8_t)(clr >> 16);
+        pixel[1] = (uint8_t)(clr >> 8);
+        pixel[2] = (uint8_t)(clr);
+        pixel[3] = 0xFF;
+      }
+
+      Dp01 += Dp01_dx;
+      Dp12 += Dp12_dx;
+      Dp20 += Dp20_dx;
+
+      /* Step z_x to next column */
+      z_x += z_xq;
+      z_sx -= z_xp;
+      step_mask = z_sx >> 63;
+      z_sx += D012 & step_mask;
+      z_x += z_xi & step_mask;
+    }
+  }
+}
+
+
 
 int main(int argc, char **argv) {
   int r;
