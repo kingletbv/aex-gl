@@ -1023,8 +1023,22 @@ void tri5(uint8_t *rgba, size_t stride,
   }
 
   int64_t Dzx, Dzy, Dxyz;
+  // Dzx = determinant of z and y coordinates (change in numerator for each successive column (x))
+  //       | z0 y0 1 |
+  // Dzx = | z1 y1 1 |
+  //       | z2 y2 1 |
   Dzx = ((int64_t)z1) * ((int64_t)y2) - ((int64_t)z2) * ((int64_t)y1) - ((int64_t)z0) * ((int64_t)y2) + ((int64_t)z2) * ((int64_t)y0) + ((int64_t)z0) * ((int64_t)y1) - ((int64_t)z1) * ((int64_t)y0);
+
+  // Dzy = determinant of x and z coordinates (change in numerator for each successive row (y))
+  //       | x0 z0 1 |
+  // Dzy = | x1 z1 1 |
+  //       | x2 z2 1 |
   Dzy = ((int64_t)x1) * ((int64_t)z2) - ((int64_t)x2) * ((int64_t)z1) - ((int64_t)x0) * ((int64_t)z2) + ((int64_t)x2) * ((int64_t)z0) + ((int64_t)x0) * ((int64_t)z1) - ((int64_t)x1) * ((int64_t)z0);
+
+  // Dxyz = determinant of x, y and z-buffer coordinates
+  //        | x0 y0 z0 |
+  // Dxyz = | x1 y1 z1 |
+  //        | x2 y2 z2 |
   Dxyz = ((int64_t)x0) * ( ((int64_t)y1) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z1) )
        - ((int64_t)x1) * ( ((int64_t)y0) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z0) )
        + ((int64_t)x2) * ( ((int64_t)y0) * ((int64_t)z1) - ((int64_t)y1) * ((int64_t)z0) );
