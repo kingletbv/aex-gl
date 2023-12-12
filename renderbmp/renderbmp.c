@@ -1015,7 +1015,7 @@ void tri5(uint8_t *rgba, size_t stride,
           int32_t x1, int32_t y1, uint32_t z1,
           int32_t x2, int32_t y2, uint32_t z2) {
   int64_t D012;
-  // D012 = determinant of x and y coordinates.
+  // D012 = determinant of x and y coordinates (this is twice the area of the triangle (e.g. the area of the paralellogram))
   //        | x0 y0 1 |
   // D012 = | x1 y1 1 |
   //        | x2 y2 1 |
