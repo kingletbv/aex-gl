@@ -1505,12 +1505,10 @@ int divs128by64(int64_t numhi, int64_t numlo, int64_t den, int64_t *rhi, int64_t
   return r;
 }
 
-void adds128by64(int64_t ahi, int64_t alo, int64_t b, int64_t *rhi, int64_t *rlo) {
-  /* the "s" in adds128by64 is relevant here as we sign-extend b to 128 bits; this would
-   * not be done for an unsigned variant. */
-  int64_t bhi = b >> 63;
-  int64_t result_lo = alo + b;
-  int64_t result_hi = ahi + bhi;
+void addu128(uint64_t ahi, uint64_t alo, uint64_t bhi, uint64_t blo, uint64_t *rhi, uint64_t *rlo) {
+  /* Implement signed addition as unsigned addition (identical if reg sizes are same) */
+  uint64_t result_lo = alo + blo;
+  uint64_t result_hi = ahi + bhi;
   if (result_lo < alo) {
     /* carry set */
     result_hi++;
@@ -1524,18 +1522,15 @@ void adds128by64(int64_t ahi, int64_t alo, int64_t b, int64_t *rhi, int64_t *rlo
 }
 
 void adds128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
-  int64_t result_lo = alo + blo;
-  int64_t result_hi = ahi + bhi;
-  if (result_lo < alo) {
-    /* carry set */
-    result_hi++;
-  }
-  if (rhi) {
-    *rhi = result_hi;
-  }
-  if (rlo) {
-    *rlo = result_lo;
-  }
+  /* Implement signed addition as unsigned addition (identical if reg sizes are same) */
+  addu128((uint64_t)ahi, (uint64_t)alo, (uint64_t)bhi, (uint64_t)blo, (uint64_t*)rhi, (uint64_t*)rlo);
+}
+
+void adds128by64(int64_t ahi, int64_t alo, int64_t b, int64_t *rhi, int64_t *rlo) {
+  /* the "s" in adds128by64 is relevant here as we sign-extend b to 128 bits; this would
+   * not be done for an unsigned variant. */
+  int64_t bhi = b >> 63;
+  addu128((uint64_t)ahi, (uint64_t)alo, (uint64_t)bhi, (uint64_t)b, (uint64_t *)rhi, (uint64_t *)rlo);
 }
 
 void subs128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
@@ -1573,6 +1568,8 @@ void mulu128(uint64_t ahi, uint64_t alo, uint64_t bhi, uint64_t blo, uint64_t *r
   r_hi = blo_alo_hi;
   r_hi += blo * ahi;
   r_hi += bhi * alo;
+  if (rhi) *rhi = r_hi;
+  if (rlo) *rlo = r_lo;
 }
 
 void muls128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
@@ -1702,7 +1699,13 @@ void tri6(uint8_t *rgba, size_t stride,
   int64_t z_num_hi, z_num_lo;
   adds128(Dzx_Px_hi, Dzx_Px_lo, Dzy_Py_hi, Dzy_Py_lo, &z_num_hi, &z_num_lo);
   adds128(z_num_hi, z_num_lo, Dxyz_hi, Dxyz_lo, &z_num_hi, &z_num_lo);
-  
+
+  int64_t z_num = Dzx * ((int64_t)(scissor_left)) + Dzy * ((int64_t)(scissor_top)) + Dxyz;
+  int64_t z_r = z_num % D012;
+  if (z_r < 0) z_r += D012; /* convert remainder to modulo */
+  int64_t z;
+  z = z_num / D012;
+
   // We'd like to divide z_num by D012, and take its modulo D012.
   // Do the division first, then multiply back out to get the modulo.
   int64_t z_hi, z_lo;
@@ -1732,9 +1735,10 @@ void tri6(uint8_t *rgba, size_t stride,
     adds128by64(z_mod_hi, z_mod_lo, D012, &z_mod_hi, &z_mod_lo);
   }
 
-  int64_t z = Dzx * ((int64_t)(scissor_left)) + Dzy * ((int64_t)(scissor_top)) + Dxyz;
-  int64_t z_r = z % D012;
-  z = z / D012;
+#if 1
+  z_r = z_mod_lo;
+  z = z_lo;
+#endif
 
   int64_t z_s; // stepper variable; outer loop is rows so we start with initialization for Y.
 
@@ -1987,12 +1991,18 @@ int main(int argc, char **argv) {
     10, 5, 4 * 255, /* vertex 0 */
     255, 10, 2 * 255,      /* vertex 1 */
     5, 255, 2 * 255);     /* vertex 2 */
-#elif 1
+#elif 0
   tri5(rgba32, 256*4,
     0, 0, 256, 256, /* scissor rect */
     3, 3, 0 * 255, /* vertex 0 */
     55, 0, 1 * 255,      /* vertex 1 */
     0, 65, 2 * 255);     /* vertex 2 */
+#elif 1
+  tri6(rgba32, 256*4,
+    0, 0, 256, 256, /* scissor rect */
+    3, 3, 2 * 255, /* vertex 0 */
+    55, 0, 1 * 255,      /* vertex 1 */
+    0, 65, 0 * 255);     /* vertex 2 */
 #endif
 
   /* Superimpose faint grid effect */
