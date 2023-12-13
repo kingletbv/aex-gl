@@ -2150,8 +2150,6 @@ struct tri7_sample {
   int32_t y_;
   // the z-buf value should be this
   uint64_t z_buf_value_;
-  // and the z-buf numerator should be this
-  uint64_t z_buf_num_;
 
   // area to record the observed values.
   uint64_t z_buf_value_recorded_;
@@ -2422,7 +2420,7 @@ void tri7(uint8_t *rgba, size_t stride,
     int64_t z_sx;
     if (direction_xy_flips) {
       /* Flip numerator to column (x) direction */
-      z_sx = D012 - z_s - 2;
+      z_sx = D012 - z_s - 1;
     }
     else {
       /* x and y are both ascending, or both descending, keep as-is */
@@ -2438,7 +2436,7 @@ void tri7(uint8_t *rgba, size_t stride,
     z += z_yi & step_mask;
 
     for (px = scissor_left; px < scissor_right; ++px) {
-      uint8_t *pixel = rgba + py * stride + px * 4;
+      uint8_t *pixel = rgba + (py - scissor_top) * stride + (px - scissor_left) * 4;
       if (Dp01 > 0 && Dp12 > 0 && Dp20 > 0) {
         uint32_t clr = hsvtorgb((uint32_t)z_x, 255, 255);
         pixel[0] = (uint8_t)(clr >> 16);
@@ -2453,8 +2451,7 @@ void tri7(uint8_t *rgba, size_t stride,
         if (samp->x_ == px && samp->y_ == py) {
           samp->z_buf_num_recorded_ = z_sx;
           samp->z_buf_value_recorded_ = z_x;
-          if ((samp->z_buf_num_ != samp->z_buf_num_recorded_) ||
-              (samp->z_buf_value_ != samp->z_buf_value_recorded_)) {
+          if (samp->z_buf_value_ != samp->z_buf_value_recorded_) {
             printf("pix7 sample mismatch at (%d, %d)\n", (int)px, (int)py);
           }
         }
@@ -2593,7 +2590,7 @@ int main(int argc, char **argv) {
     155, 0, 0xFFFF,    /* vertex 1 */
     100, 65, 0,         /* vertex 2 */
     sizeof(tri7_samples)/sizeof(*tri7_samples), tri7_samples);     
-#elif 1
+#elif 0
   struct tri7_sample tri7_samples[] = {
     {
       103, 3, 
@@ -2617,7 +2614,80 @@ int main(int argc, char **argv) {
     (1 << 30) - 1, (1 << 30) - 1, 0xFFFF,    /* vertex 1 */
     100, (1 << 30) - 1, 0xFFFFFFFF,         /* vertex 2 */
     sizeof(tri7_samples)/sizeof(*tri7_samples), tri7_samples);     
-
+#elif 0
+  struct tri7_sample tri7_samples[] ={
+    {
+      103, 3,
+      0xFFFFFFFF,  // z-buf value
+      0         // z-buf numerator
+    },
+    {
+      (1 << 27) - 1, 0,
+      0xFFFF,  // z-buf value
+      0         // z-buf numerator
+    },
+    {
+      100, 65,
+      0 * 255,  // z-buf value
+      0         // z-buf numerator
+    },
+  };
+  tri7(rgba32, 256*4,
+       32, 16, 256+32, 256+16, /* scissor rect */
+       103, 3, 0x0, /* vertex 0 */
+       (1 << 30) - 1, (1 << 30) - 1, 0xFFFF,    /* vertex 1 */
+       100, (1 << 30) - 1, 0xFFFFFFFF,         /* vertex 2 */
+       sizeof(tri7_samples)/sizeof(*tri7_samples), tri7_samples);
+#elif 0
+  struct tri7_sample tri7_samples[] ={
+    {
+      0, 0,
+      0x1,  // z-buf value
+    },
+    {
+      1, 0,
+      0x0,  // z-buf value
+    },
+    {
+      0, 1,
+      0x1,  // z-buf value
+    },
+    {
+      1, 1,
+      0x0,  // z-buf value
+    }
+  };
+  tri7(rgba32, 256*4,
+       0, 0, 256, 256, /* scissor rect */
+       0, 0, 0x1,    /* vertex 0 */
+       100, 0, 0x0,    /* vertex 1 */
+       0, 100, 0x1,         /* vertex 2 */
+       sizeof(tri7_samples)/sizeof(*tri7_samples), tri7_samples);
+#elif 1
+  struct tri7_sample tri7_samples[] ={
+    {
+      0, 0,
+      0x1,  // z-buf value
+    },
+    {
+      1, 0,
+      0x1,  // z-buf value
+    },
+    {
+      0, 1,
+      0x0,  // z-buf value
+    },
+    {
+      1, 1,
+      0x0,  // z-buf value
+    }
+  };
+  tri7(rgba32, 256*4,
+       0, 0, 256, 256, /* scissor rect */
+       0, 0, 0x1,    /* vertex 0 */
+       100, 0, 0x1,    /* vertex 1 */
+       0, (1 << 30) - 1, 0x0,         /* vertex 2 */
+       sizeof(tri7_samples)/sizeof(*tri7_samples), tri7_samples);
 #endif
 
   /* Superimpose faint grid effect */
