@@ -1762,6 +1762,18 @@ void adds128by64(int64_t ahi, int64_t alo, int64_t b, int64_t *rhi, int64_t *rlo
   addu128((uint64_t)ahi, (uint64_t)alo, (uint64_t)bhi, (uint64_t)b, (uint64_t *)rhi, (uint64_t *)rlo);
 }
 
+void neg128(int64_t hi, int64_t lo, int64_t *rhi, int64_t *rlo) {
+  /* Two's complement negation */
+  lo = ~lo;
+  hi = ~hi;
+  lo++;
+  if (!lo /* following +1, is carry set? */) {
+    hi++;
+  }
+  *rhi = hi;
+  *rlo = lo;
+}
+
 void subs128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
   /* Two's complement negation */
   blo = ~blo;
@@ -1952,21 +1964,9 @@ void tri6(uint8_t *rgba, size_t stride,
     // value itself as part of the z-buffer test.)
     ;
   }
-
-  // Multiply back up to D012 to find its modulo, careful with negative values.
-  int64_t z_base_mod_hi, z_base_mod_lo;
-  muls128(z_hi, z_lo, 0, D012, &z_base_mod_hi, &z_base_mod_lo);
-
-  int64_t z_mod_hi, z_mod_lo;
-  subs128(z_num_hi, z_num_lo, z_base_mod_hi, z_base_mod_lo, &z_mod_hi, &z_mod_lo);
-  if (z_mod_hi < 0) {
-    // Technique above gives us a remainder whereas we want a modulo, if the
-    // number is negative, we push it back into the positive.
-    adds128by64(z_mod_hi, z_mod_lo, D012, &z_mod_hi, &z_mod_lo);
-  }
-
+    
 #if 1
-  z_r = z_mod_lo;
+  z_r = z_mod;
   z = z_lo;
 #endif
 
@@ -1977,35 +1977,40 @@ void tri6(uint8_t *rgba, size_t stride,
   int64_t z_yq;
   int direction_xy_flips;
   z_yq = Dzy / D012;
-  if (Dzy > 0) {
+  if ((Dzy_hi > 0) || ((Dzy_hi == 0) && (Dzy_lo > 0))) {
+  //if (Dzy > 0) {
     z_s = D012 - z_r - 1;
     z_yi = 1;
     direction_xy_flips = 1;
   }
-  else if (Dzy < 0) {
+  else if (Dzy_hi < 0) {
     z_s = z_r;
     z_yi = -1;
+    neg128(Dzy_hi, Dzy_lo, &Dzy_hi, &Dzy_lo);
     Dzy = -Dzy;
     direction_xy_flips = 0;
   }
-  else /* (Dzy == 0) */ {
+  else /* (Dzy_hi == 0 && Dzy_lo == 0) */ {
     z_s = z_r;
     z_yi = 0;
     direction_xy_flips = 0;
     z_yp = 0;
   }
   z_yp = Dzy % D012;
+  divmods128by64(Dzy_hi, Dzy_lo, D012, NULL, NULL, &z_yp);
 
   int64_t z_xi;
   int64_t z_xp;
   int64_t z_xq;
   z_xq = Dzx / D012;
-  if (Dzx > 0) {
+  if ((Dzx_hi > 0) || ((Dzx_hi == 0) && (Dzx_lo > 0))) {
+  //if (Dzx > 0) {
     z_xi = 1;
     direction_xy_flips ^= 1;
   }
   else if (Dzx < 0) {
     z_xi = -1;
+    neg128(Dzx_hi, Dzx_lo, &Dzx_hi, &Dzx_lo);
     Dzx = -Dzx;
   }
   else /* (Dzx == 0) */ {
@@ -2013,6 +2018,7 @@ void tri6(uint8_t *rgba, size_t stride,
     z_xp = 0;
   }
   z_xp = Dzx % D012;
+  divmods128by64(Dzx_hi, Dzx_lo, D012, NULL, NULL, &z_xp);
 
   int64_t Dp01_row, Dp12_row, Dp20_row;
   // Dp01 = determinant for triangle formed by edge 01 and point p:
