@@ -1462,6 +1462,183 @@ int divu128by64(uint64_t numhi, uint64_t numlo, uint64_t den, uint64_t *rhi, uin
 }
 
 
+
+/* Performs an unsigned division of a 128 bit numerator by a 64 bit denominator, returning
+ * a 128 bit number, split into a high and a low 64 bit number, and the remainder as a
+ * 64 bit number.
+ * Return value == -1 for division by zero.
+ *                  1 if the result requires more than 64 bits
+ *                  0 if the result requires less than 64 bits.
+ * *rhi is optional, you can check the return value for 1 to see if the result fits into *rlo.
+ */
+int divremu128by64(uint64_t numhi, uint64_t numlo, uint64_t den, uint64_t *rhi, uint64_t *rlo, uint64_t *rem) {
+  /* numerator shifted - note that the digit ordering, as is for all arrays, is little endian, with
+   * the least significant digit first. */
+  uint32_t sn[5] ={ 0 };
+  sn[0] = (uint32_t)(numlo & 0xFFFFFFFF);
+  sn[1] = (uint32_t)(numlo >> 32);
+  sn[2] = (uint32_t)(numhi & 0xFFFFFFFF);
+  sn[3] = (uint32_t)(numhi >> 32);
+  sn[4] = 0;
+
+  /* denominator shifted */
+  uint32_t sd[4] ={ 0 };
+  sd[0] = (uint32_t)(den & 0xFFFFFFFF);
+  sd[1] = (uint32_t)(den >> 32);
+  sd[2] = 0;
+  sd[3] = 0;
+
+  /* subtraction register */
+  uint32_t sr[5];
+  /* result register */
+  uint32_t r[4] ={ 0 };
+
+  uint32_t digit;
+  uint64_t acc;
+  int shift, lead_den_digit, lead_num_digit, n;
+
+  for (lead_den_digit = 3; lead_den_digit >= 0; --lead_den_digit) {
+    if (sd[lead_den_digit]) break;
+  }
+
+  if (lead_den_digit == -1) {
+    /* Division by zero */
+    return -1;
+  }
+
+  for (lead_num_digit = 3; lead_num_digit >= 0; --lead_num_digit) {
+    if (sn[lead_num_digit]) break;
+  }
+
+  if (lead_den_digit > lead_num_digit) {
+    /* Denominator is larger than numerator, the result is therefore zero. */
+    if (rhi) {
+      *rhi = 0x0ULL;
+    }
+    if (rlo) {
+      *rlo = 0x0ULL;
+    }
+    if (rem) {
+      *rem = numlo;
+    }
+    return 0;
+  }
+
+  /* Shift numerator and denominator left until the denominator's lead bit is in the
+   * most significant bit slot. We do this so that our "guessing" division in the core
+   * division algorithm is as accurate as possible because the denominator of *that*
+   * division (the lead digit of the overall denominator) is as big as possible. */
+  digit = sd[lead_den_digit];
+  if (digit & 0xFFFF0000) {
+    shift = 0;
+  }
+  else {
+    shift = 16;
+    digit <<= 16;
+  }
+  if (!(digit & 0xFF000000)) {
+    shift += 8;
+    digit <<= 8;
+  }
+  if (!(digit & 0xF0000000)) {
+    shift += 4;
+    digit <<= 4;
+  }
+  if (!(digit & 0xC0000000)) {
+    shift += 2;
+    digit <<= 2;
+  }
+  if (!(digit & 0x80000000)) {
+    shift++;
+  }
+  /* the "& (-shift >> 31)" part of the equation handles the case for shift == 0,
+   * during which we'd attempt a right-shift of (32 - 0) == 32, which is undefined
+   * over a 32 bit number (and likely to equal a shift of 0). The desired behavior
+   * is for the entire result to be 0, as-if all 0's would have shifted in. */
+  sn[lead_num_digit + 1] = (sn[lead_num_digit] >> (32 - shift)) & (-shift >> 31);
+  for (n = lead_num_digit; n > 0; --n) {
+    sn[n] = (sn[n] << shift) | ((sn[n - 1] >> (32 - shift)) & (-shift >> 31));
+  }
+  sn[0] = sn[0] << shift;
+  for (n = lead_den_digit; n > 0; --n) {
+    sd[n] = (sd[n] << shift) | ((sd[n - 1] >> (32 - shift)) & (-shift >> 31));
+  }
+  sd[0] = sd[0] << shift;
+
+  for (n = lead_num_digit; n >= lead_den_digit; --n) {
+    uint64_t div;
+    uint64_t mul;
+    int k;
+    int sr_is_bigger;
+    div = (((uint64_t)sn[n + 1]) << 32) | sn[n];
+    div /= sd[lead_den_digit];
+    mul = 0;
+    for (k = 0; k <= lead_den_digit; ++k) {
+      uint64_t factor = div * ((uint64_t)sd[k]);
+      mul += factor;
+      sr[k] = (uint32_t)mul;
+      mul >>= 32;
+    }
+    sr[k] = (uint32_t)mul;
+
+    do {
+      sr_is_bigger = 0;
+      for (k = lead_den_digit + 1; k >= 0; --k) {
+        if (sr[k] < sn[k - lead_den_digit + n]) {
+          sr_is_bigger = 0;
+          break;
+        }
+        else if (sr[k] > sn[k - lead_den_digit + n]) {
+          sr_is_bigger = 1;
+          break;
+        }
+      }
+
+      if (sr_is_bigger) {
+        /* Estimate is off, subtract denominator from subtraction register */
+        acc = 0;
+        --div;
+        for (k = 0; k <= lead_den_digit; ++k) {
+          acc += ((uint64_t)sr[k]) - (uint64_t)sd[k];
+          sr[k] = (uint32_t)acc;
+          acc = (uint64_t)(((int64_t)acc) >> 32);
+        }
+        sr[k] += (uint32_t)acc;
+      }
+    } while (sr_is_bigger);
+
+    /* Subtract the subtraction register (containing the current dividend digit
+     * estimate times the denominator) from the numerator to leave the remainder
+     * for subsequent digits. */
+    acc = 0;
+    for (k = 0; k <= (lead_den_digit + 1); ++k) {
+      acc += ((uint64_t)sn[k - lead_den_digit + n]) - ((uint64_t)sr[k]);
+      sn[k - lead_den_digit + n] = (uint32_t)acc;
+      acc = (uint64_t)(((int64_t)acc) >> 32);
+    }
+
+    r[n - lead_den_digit] = (uint32_t)div;
+  }
+
+  if (rhi) {
+    /* Again: notice the little-endian convention for digits */
+    *rhi = (((uint64_t)r[3]) << 32) | ((uint64_t)r[2]);
+  }
+  if (rlo) {
+    *rlo = (((uint64_t)r[1]) << 32) | ((uint64_t)r[0]);
+  }
+  if (rem) {
+    *rem = (sn[0] >> shift) | 
+           (((uint64_t)sn[1]) << (32 - shift));
+    if (shift) {
+      *rem |= (((uint64_t)sn[2]) << (64 - shift));
+    }
+  }
+
+  /* Return 0 if result fits in 64 bits, 1 if more bits are needed. */
+  return (r[3] || r[2]) ? 1 : 0;
+}
+
 /* Performs a signed division of a 128 bit numerator by a 64 bit denominator, returning
  * a 128 bit number, split into a high and a low 64 bit number.
  * Return value == -1 for division by zero.
@@ -1486,7 +1663,7 @@ int divs128by64(int64_t numhi, int64_t numlo, int64_t den, int64_t *rhi, int64_t
     is_neg ^= 1;
   }
   int64_t result_hi, result_lo;
-  int r = divu128by64(numhi, numlo, den, &result_hi, &result_lo);
+  int r = divu128by64((uint64_t)numhi, (uint64_t)numlo, (uint64_t)den, (uint64_t *)&result_hi, (uint64_t *)&result_lo);
   if (is_neg) {
     // Two's complement negation.
     result_lo = ~result_lo;
@@ -1505,8 +1682,60 @@ int divs128by64(int64_t numhi, int64_t numlo, int64_t den, int64_t *rhi, int64_t
   return r;
 }
 
+int divrems128by64(int64_t numhi, int64_t numlo, int64_t den, int64_t *rhi, int64_t *rlo, int64_t *rem) {
+  int is_neg = 0;
+  if (numhi < 0) {
+    // Two's complement negation.
+    numhi = ~numhi;
+    numlo = ~numlo;
+    numlo++;
+    if (!numlo /* following +1, is carry set? */) {
+      numhi++;
+    }
+    is_neg ^= 1;
+  }
+  if (den < 0) {
+    den = -den;
+    is_neg ^= 1;
+  }
+  int64_t result_hi, result_lo;
+  int64_t remainder;
+  int r = divremu128by64((uint64_t)numhi, (uint64_t)numlo, (uint64_t)den, (uint64_t *)&result_hi, (uint64_t *)&result_lo, (uint64_t *)&remainder);
+  if (is_neg) {
+    // Two's complement negation.
+    result_lo = ~result_lo;
+    result_hi = ~result_hi;
+    result_lo++;
+    if (!result_lo /* following +1, is carry set? */) {
+      result_hi++;
+    }
+    remainder = -remainder;
+  }
+  if (rhi) {
+    *rhi = result_hi;
+  }
+  if (rlo) {
+    *rlo = result_lo;
+  }
+  if (rem) {
+    *rem = remainder;
+  }
+  return r;
+}
+
+int divmods128by64(int64_t numhi, int64_t numlo, int64_t den, int64_t *rhi, int64_t *rlo, int64_t *mod) {
+  int r;
+  int64_t remainder = 0;
+  r = divrems128by64(numhi, numlo, den, rhi, rlo, &remainder);
+  if (remainder < 0) {
+    remainder += den;
+  }
+  if (mod) *mod = remainder;
+  return r;
+}
+
+
 void addu128(uint64_t ahi, uint64_t alo, uint64_t bhi, uint64_t blo, uint64_t *rhi, uint64_t *rlo) {
-  /* Implement signed addition as unsigned addition (identical if reg sizes are same) */
   uint64_t result_lo = alo + blo;
   uint64_t result_hi = ahi + bhi;
   if (result_lo < alo) {
@@ -1709,8 +1938,9 @@ void tri6(uint8_t *rgba, size_t stride,
   // We'd like to divide z_num by D012, and take its modulo D012.
   // Do the division first, then multiply back out to get the modulo.
   int64_t z_hi, z_lo;
+  int64_t z_mod;
   // Note that division by zero should be impossible as we already checked for D012 <= 0 earlier.
-  int r = divs128by64(z_num_hi, z_num_lo, D012, &z_hi, &z_lo);
+  int r = divmods128by64(z_num_hi, z_num_lo, D012, &z_hi, &z_lo, &z_mod);
   if (r) {
     // Result doesn't fit in 64 bits, this is possible, and we will ignore the high bits. Ignoring
     // the high-bits _is fine_. The reason this works is because we're only interested in the z-buffer
