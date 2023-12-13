@@ -2471,6 +2471,343 @@ void tri7(uint8_t *rgba, size_t stride,
   }
 }
 
+struct tri8_sample {
+  // at point (x,y)
+  int32_t x_;
+  int32_t y_;
+  // the z-buf value should be this
+  uint64_t z_buf_value_;
+
+  // area to record the observed values.
+  uint64_t z_buf_value_recorded_;
+  uint64_t z_buf_num_recorded_;
+};
+
+void tri8(uint8_t *rgba, size_t stride,
+          uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
+          int32_t x0, int32_t y0, uint32_t z0,
+          int32_t x1, int32_t y1, uint32_t z1,
+          int32_t x2, int32_t y2, uint32_t z2,
+          size_t num_samples, struct tri8_sample *samples) {
+  int64_t D012;
+
+  // Location where we go "Pen down" - convenience short-hand.
+  int64_t Px = (int64_t)scissor_left;
+  int64_t Py = (int64_t)scissor_top;
+
+  // D012 = determinant of x and y coordinates (this is twice the area of the triangle (e.g. the area of the paralellogram))
+  //        | x0 y0 1 |
+  // D012 = | x1 y1 1 |
+  //        | x2 y2 1 |
+  D012 = ((int64_t)x1) * ((int64_t)y2) - ((int64_t)x2) * ((int64_t)y1) - ((int64_t)x0) * ((int64_t)y2) + ((int64_t)x2) * ((int64_t)y0) + ((int64_t)x0) * ((int64_t)y1) - ((int64_t)x1) * ((int64_t)y0);
+
+  if (D012 <= 0) {
+    // Counterclockwise backface, or colinear. Reject.
+    return;
+  }
+
+  int64_t Dzx, Dzy, Dxyz;
+  // Dzx = determinant of z and y coordinates (change in numerator for each successive column (x))
+  //       | z0 y0 1 |
+  // Dzx = | z1 y1 1 |
+  //       | z2 y2 1 |
+  Dzx = ((int64_t)z1) * ((int64_t)y2) - ((int64_t)z2) * ((int64_t)y1) - ((int64_t)z0) * ((int64_t)y2) + ((int64_t)z2) * ((int64_t)y0) + ((int64_t)z0) * ((int64_t)y1) - ((int64_t)z1) * ((int64_t)y0);
+
+  int64_t Dzx_1 =  ((int64_t)z1) * ((int64_t)y2) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_2 = -((int64_t)z2) * ((int64_t)y1) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_3 = -((int64_t)z0) * ((int64_t)y2) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_4 =  ((int64_t)z2) * ((int64_t)y0) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_5 =  ((int64_t)z0) * ((int64_t)y1) /* 30 + 32 = 62 bits */;
+  int64_t Dzx_6 = -((int64_t)z1) * ((int64_t)y0) /* 30 + 32 = 62 bits */;
+
+  int64_t Dzx_a = Dzx_1 + Dzx_2 + Dzx_3 /* 62 + 62 + 62 = 64 bits */;
+  int64_t Dzx_b = Dzx_4 + Dzx_5 + Dzx_6 /* 62 + 62 + 62 = 64 bits */;
+  int64_t Dzx_lo, Dzx_hi;
+  adds128(Dzx_a>>63, Dzx_a, Dzx_b>>63, Dzx_b, &Dzx_hi, &Dzx_lo);
+
+  int64_t Dzx_Px_a_hi, Dzx_Px_a_lo;
+  int64_t Dzx_Px_b_hi, Dzx_Px_b_lo;
+  muls64(Dzx_a, Px, &Dzx_Px_a_hi, &Dzx_Px_a_lo);
+  muls64(Dzx_b, Px, &Dzx_Px_b_hi, &Dzx_Px_b_lo);
+  int64_t Dzx_Px_hi, Dzx_Px_lo;
+  adds128(Dzx_Px_a_hi, Dzx_Px_a_lo, Dzx_Px_b_hi, Dzx_Px_b_lo, &Dzx_Px_hi, &Dzx_Px_lo);
+
+  // Dzy = determinant of x and z coordinates (change in numerator for each successive row (y))
+  //       | x0 z0 1 |
+  // Dzy = | x1 z1 1 |
+  //       | x2 z2 1 |
+  Dzy = ((int64_t)x1) * ((int64_t)z2) - ((int64_t)x2) * ((int64_t)z1) - ((int64_t)x0) * ((int64_t)z2) + ((int64_t)x2) * ((int64_t)z0) + ((int64_t)x0) * ((int64_t)z1) - ((int64_t)x1) * ((int64_t)z0);
+
+  int64_t Dzy_1 =  ((int64_t)x1) * ((int64_t)z2) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_2 = -((int64_t)x2) * ((int64_t)z1) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_3 = -((int64_t)x0) * ((int64_t)z2) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_4 =  ((int64_t)x2) * ((int64_t)z0) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_5 =  ((int64_t)x0) * ((int64_t)z1) /* 30 + 32 = 62 bits */;
+  int64_t Dzy_6 = -((int64_t)x1) * ((int64_t)z0) /* 30 + 32 = 62 bits */;
+
+  int64_t Dzy_a = Dzy_1 + Dzy_2 + Dzy_3 /* 62 + 62 + 62 = 64 bits */;
+  int64_t Dzy_b = Dzy_4 + Dzy_5 + Dzy_6 /* 62 + 62 + 62 = 64 bits */;
+  int64_t Dzy_lo, Dzy_hi;               /* 64 + 64 = 65 bits */
+  adds128(Dzy_a>>63, Dzy_a, Dzy_b>>63, Dzy_b, &Dzy_hi, &Dzy_lo);
+
+  int64_t Dzy_Py_a_hi, Dzy_Py_a_lo;
+  int64_t Dzy_Py_b_hi, Dzy_Py_b_lo;
+  muls64(Dzy_a, Py, &Dzy_Py_a_hi, &Dzy_Py_a_lo);
+  muls64(Dzy_b, Py, &Dzy_Py_b_hi, &Dzy_Py_b_lo);
+  int64_t Dzy_Py_hi, Dzy_Py_lo;
+  adds128(Dzy_Py_a_hi, Dzy_Py_a_lo, Dzy_Py_b_hi, Dzy_Py_b_lo, &Dzy_Py_hi, &Dzy_Py_lo);
+
+  // Dxyz = determinant of x, y and z-buffer coordinates
+  //        | x0 y0 z0 |
+  // Dxyz = | x1 y1 z1 |
+  //        | x2 y2 z2 |
+  Dxyz = ((int64_t)x0) * (((int64_t)y1) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z1))
+    - ((int64_t)x1) * (((int64_t)y0) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z0))
+    + ((int64_t)x2) * (((int64_t)y0) * ((int64_t)z1) - ((int64_t)y1) * ((int64_t)z0));
+
+  int64_t Dxyz_x0_hi, Dxyz_x0_lo;
+  int64_t Dxyz_x1_hi, Dxyz_x1_lo;
+  int64_t Dxyz_x2_hi, Dxyz_x2_lo;
+  muls64(x0, ((int64_t)y1) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z1), &Dxyz_x0_hi, &Dxyz_x0_lo);
+  muls64(x1, ((int64_t)y0) * ((int64_t)z2) - ((int64_t)y2) * ((int64_t)z0), &Dxyz_x1_hi, &Dxyz_x1_lo);
+  muls64(x2, ((int64_t)y0) * ((int64_t)z1) - ((int64_t)y1) * ((int64_t)z0), &Dxyz_x2_hi, &Dxyz_x2_lo);
+
+  int64_t Dxyz_hi = Dxyz_x0_hi;
+  int64_t Dxyz_lo = Dxyz_x0_lo;
+  subs128(Dxyz_hi, Dxyz_lo, Dxyz_x1_hi, Dxyz_x1_lo, &Dxyz_hi, &Dxyz_lo);
+  adds128(Dxyz_hi, Dxyz_lo, Dxyz_x2_hi, Dxyz_x2_lo, &Dxyz_hi, &Dxyz_lo);
+  // Dxyz_hi/lo now holds 95 bit Dxyz value.
+
+  // z_num = Dzx * Px + Dzy * Py + Dxyz
+  // we have the first two terms as Dzx_Px_hi/lo and Dzy_Py_hi/lo, and have Dzxy_hi/lo, but need to add them all together.
+  int64_t z_num_hi, z_num_lo;
+  adds128(Dzx_Px_hi, Dzx_Px_lo, Dzy_Py_hi, Dzy_Py_lo, &z_num_hi, &z_num_lo);
+  adds128(z_num_hi, z_num_lo, Dxyz_hi, Dxyz_lo, &z_num_hi, &z_num_lo);
+
+  int64_t z_num = Dzx * ((int64_t)(scissor_left)) + Dzy * ((int64_t)(scissor_top)) + Dxyz;
+  int64_t z_r = z_num % D012;
+  if (z_r < 0) z_r += D012; /* convert remainder to modulo */
+  int64_t z;
+  z = z_num / D012;
+
+  // We'd like to divide z_num by D012, and take its modulo D012.
+  // Do the division first, then multiply back out to get the modulo.
+  int64_t z_hi, z_lo;
+  int64_t z_mod;
+  // Note that division by zero should be impossible as we already checked for D012 <= 0 earlier.
+  int r = divmods128by64(z_num_hi, z_num_lo, D012, &z_hi, &z_lo, &z_mod);
+  if (r) {
+    // Result doesn't fit in 64 bits, this is possible, and we will ignore the high bits. Ignoring
+    // the high-bits _is fine_. The reason this works is because we're only interested in the z-buffer
+    // values when they are in the range of the triangle, in that range, the values (through possibly
+    // many incremental, overflowing, steps) will always be in the range of 0 to D012-1. The one
+    // exception to this is when we start processing fragments in quadruples, in which case some of the
+    // fragments will be outside the triangle (and we would record the z-buffer value and start processing
+    // the fragment as-if it had passed for sake of the fragments that did, but would not use the z-buffer
+    // value itself as part of the z-buffer test.)
+    ;
+  }
+
+#if 1
+  z_r = z_mod;
+  z = z_lo;
+#endif
+
+  int64_t z_s; // stepper variable; outer loop is rows so we start with initialization for Y.
+
+  int64_t z_yi;
+  int64_t z_yp;
+  int64_t z_yq;
+  int direction_xy_flips;
+  z_yq = Dzy / D012;
+  if ((Dzy_hi > 0) || ((Dzy_hi == 0) && (Dzy_lo > 0))) {
+  //if (Dzy > 0) {
+    z_s = D012 - z_r - 1;
+    z_yi = 1;
+    direction_xy_flips = 1;
+  }
+  else if (Dzy_hi < 0) {
+    z_s = z_r;
+    z_yi = -1;
+    neg128(Dzy_hi, Dzy_lo, &Dzy_hi, &Dzy_lo);
+    Dzy = -Dzy;
+    direction_xy_flips = 0;
+  }
+  else /* (Dzy_hi == 0 && Dzy_lo == 0) */ {
+    z_s = z_r;
+    z_yi = 0;
+    direction_xy_flips = 0;
+    z_yp = 0;
+  }
+  z_yp = Dzy % D012;
+  divmods128by64(Dzy_hi, Dzy_lo, D012, NULL, NULL, &z_yp);
+
+  int64_t z_xi;
+  int64_t z_xp;
+  int64_t z_xq;
+  z_xq = Dzx / D012;
+  if ((Dzx_hi > 0) || ((Dzx_hi == 0) && (Dzx_lo > 0))) {
+  //if (Dzx > 0) {
+    z_xi = 1;
+    direction_xy_flips ^= 1;
+  }
+  else if (Dzx < 0) {
+    z_xi = -1;
+    neg128(Dzx_hi, Dzx_lo, &Dzx_hi, &Dzx_lo);
+    Dzx = -Dzx;
+  }
+  else /* (Dzx == 0) */ {
+    z_xi = 0;
+    z_xp = 0;
+  }
+  z_xp = Dzx % D012;
+  divmods128by64(Dzx_hi, Dzx_lo, D012, NULL, NULL, &z_xp);
+
+  int64_t Dp01_row, Dp12_row, Dp20_row;
+  // Dp01 = determinant for triangle formed by edge 01 and point p:
+  //        | px py 1 |
+  // Dp01 = | x0 y0 1 |
+  //        | x1 y1 1 |
+  int64_t Dp01_dx = (y0 - y1);
+  int64_t Dp01_dy = (x1 - x0);
+  Dp01_row = ((int64_t)(scissor_left)) * Dp01_dx + ((int64_t)(scissor_top)) * Dp01_dy + ((int64_t)x0) * ((int64_t)y1) - ((int64_t)y0) * ((int64_t)x1);
+
+
+  // Dp12 = determinant for triangle formed by edge 12 and point p:
+  //        | px py 1 |
+  // Dp12 = | x1 y1 1 |
+  //        | x2 y2 1 |
+  int64_t Dp12_dx = (y1 - y2);
+  int64_t Dp12_dy = (x2 - x1);
+  Dp12_row = ((int64_t)(scissor_left)) * Dp12_dx + ((int64_t)(scissor_top)) * Dp12_dy + ((int64_t)x1) * ((int64_t)y2) - ((int64_t)y1) * ((int64_t)x2);
+
+  // Dp20 = determinant for triangle formed by edge 20 and point p:
+  //        | px py 1 |
+  // Dp20 = | x2 y2 1 |
+  //        | x0 y0 1 |
+  int64_t Dp20_dx = (y2 - y0);
+  int64_t Dp20_dy = (x0 - x2);
+  Dp20_row = ((int64_t)(scissor_left)) * Dp20_dx + ((int64_t)(scissor_top)) * Dp20_dy + ((int64_t)x2) * ((int64_t)y0) - ((int64_t)y2) * ((int64_t)x0);
+
+  // Classify the edges so we know when to apply >0 and >=0 depending on whether
+  // the edge is inclusive on an exact match, or not. (Thus avoiding overdraw.)
+  // For this we apply the "top-left" rule: if an edge is horizontal, then a pixel
+  // that is exactly on the edge is considered to be "inside" the triangle if the
+  // edge is at the top of the triangle. Otherwise, if the edge is not horizontal,
+  // it is considered to be "inside" the triangle if the edge is to the left of the
+  // triangle. We check whether or not the edge is "at the top" or "on the left" on
+  // the basis of the triangle vertices being clockwise.
+  // 
+  // Classify 01
+  if (y0 == y1) {
+    if (x0 < x1) {
+      /* Horizontal edge at the top of the triangle */
+      Dp01_row++;
+    }
+  }
+  else if (y0 > y1) {
+    /* Non-horizontal edge on the left side of the triangle */
+    Dp01_row++;
+  }
+
+  // Classify 12
+  if (y1 == y2) {
+    if (x1 < x2) {
+      /* Horizontal edge at the top of the triangle */
+      Dp12_row++;
+    }
+  }
+  else if (y1 > y2) {
+    /* Non-horizontal edge on the left side of the triangle */
+    Dp12_row++;
+  }
+
+  // Classify 20
+  if (y2 == y0) {
+    if (x2 < x0) {
+      /* Horizontal edge at the top of the triangle */
+      Dp20_row++;
+    }
+  }
+  else if (y2 > y0) {
+    /* Non-horizontal edge on the left side of the triangle */
+    Dp20_row++;
+  }
+
+  /* Ensure the Z-Buffer value rounds to nearest, rather than truncating. To do this, we would like to add half
+   * denominator to the numerator (which has the effect of rounding to nearest.) A problem with this is we don't
+   * know if the denominator (D012 in this case) is an odd number, if it is, then halving it would create a
+   * round-off error as we dispose of the least significant bit.
+   * To solve this, we double everything, D012, all the numerators, and all the numerator increments. Then, we
+   * add "half double D012" (i.e. just the original D012) to the numerator and we're done.
+   * D012, before doubling, uses 2n+3 = 2*30+3 = 63 bits, so we have space for the additional bit. */
+  z_s += z_s + D012; /* double, and add D012 */
+  z_yp += z_yp; /* numerator step-size for Y, double it */
+  z_xp += z_xp; /* numerator step-size for X, double it */
+  D012 += D012; /* and finally, our denominator, double it. */
+
+  int64_t px, py;
+  for (py = scissor_top; py < scissor_bottom; ++py) {
+    int64_t Dp01, Dp12, Dp20;
+    Dp01 = Dp01_row;
+    Dp12 = Dp12_row;
+    Dp20 = Dp20_row;
+    Dp01_row += Dp01_dy;
+    Dp12_row += Dp12_dy;
+    Dp20_row += Dp20_dy;
+
+    int64_t z_sx;
+    if (direction_xy_flips) {
+      /* Flip numerator to column (x) direction */
+      z_sx = D012 - z_s - 1;
+    }
+    else {
+      /* x and y are both ascending, or both descending, keep as-is */
+      z_sx = z_s;
+    }
+    int64_t z_x = z;
+
+    /* Step z_s to next row */
+    z += z_yq;
+    z_s -= z_yp;
+    int64_t step_mask = z_s >> 63;
+    z_s += D012 & step_mask;
+    z += z_yi & step_mask;
+
+    for (px = scissor_left; px < scissor_right; ++px) {
+      uint8_t *pixel = rgba + (py - scissor_top) * stride + (px - scissor_left) * 4;
+      if (Dp01 > 0 && Dp12 > 0 && Dp20 > 0) {
+        pixel[0] = (uint8_t)((z_x & 1) ? 0xCF : 0x3F);
+        pixel[1] = (uint8_t)((z_x & 1) ? 0xCF : 0x3F);
+        pixel[2] = (uint8_t)((z_x & 1) ? 0xCF : 0x3F);
+        pixel[3] = 0xFF;
+      }
+
+      size_t sample_index;
+      for (sample_index = 0; sample_index < num_samples; ++sample_index) {
+        struct tri8_sample *samp = samples + sample_index;
+        if (samp->x_ == px && samp->y_ == py) {
+          samp->z_buf_num_recorded_ = z_sx;
+          samp->z_buf_value_recorded_ = z_x;
+          if (samp->z_buf_value_ != samp->z_buf_value_recorded_) {
+            printf("pix8 sample mismatch at (%d, %d)\n", (int)px, (int)py);
+          }
+        }
+      }
+
+      Dp01 += Dp01_dx;
+      Dp12 += Dp12_dx;
+      Dp20 += Dp20_dx;
+
+      /* Step z_x to next column */
+      z_x += z_xq;
+      z_sx -= z_xp;
+      step_mask = z_sx >> 63;
+      z_sx += D012 & step_mask;
+      z_x += z_xi & step_mask;
+    }
+  }
+}
 
 int main(int argc, char **argv) {
   int r;
@@ -2663,7 +3000,7 @@ int main(int argc, char **argv) {
        100, 0, 0x0,    /* vertex 1 */
        0, 100, 0x1,         /* vertex 2 */
        sizeof(tri7_samples)/sizeof(*tri7_samples), tri7_samples);
-#elif 1
+#elif 0
   struct tri7_sample tri7_samples[] ={
     {
       0, 0,
@@ -2688,6 +3025,35 @@ int main(int argc, char **argv) {
        100, 0, 0x1,    /* vertex 1 */
        0, (1 << 30) - 1, 0x0,         /* vertex 2 */
        sizeof(tri7_samples)/sizeof(*tri7_samples), tri7_samples);
+#elif 1
+  struct tri8_sample tri8_samples[] ={
+    {
+      0, 0,
+      0x1,  // z-buf value
+    },
+    { // should cross-over exactly in the middle horizontally.
+      64, 0,
+      0x1,  // z-buf value
+    },
+    {
+      65, 0,
+      0x0,  // z-buf value
+    },
+    { // should cross-over exactly in the middle vertically too.
+      0, 64,
+      0x1,  // z-buf value
+    },
+    {
+      0, 65,
+      0x0,  // z-buf value
+    }
+  };
+  tri8(rgba32, 256*4,
+       0, 0, 256, 256, /* scissor rect */
+       0, 0, 0x1,    /* vertex 0 */
+       128, 0, 0x0,    /* vertex 1 */
+       0, 128, 0x0,         /* vertex 2 */
+       sizeof(tri8_samples)/sizeof(*tri8_samples), tri8_samples);
 #endif
 
   /* Superimpose faint grid effect */
