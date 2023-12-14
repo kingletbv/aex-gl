@@ -37,6 +37,7 @@ void fragment_buffer_init(struct fragment_buffer *fb) {
   fb->num_rows_ = 0;
   fb->num_cols_ = 0;
   fb->column_descriptions_ = NULL;
+  fb->column_data_ = NULL;
   fb->fixed_slab_ = NULL;
 }
 
@@ -65,6 +66,17 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
     fb->column_descriptions_ = NULL;
     return -1;
   }
+
+  if (fb->column_data_) free(fb->column_data_);
+  fb->column_data_ = (void **)malloc(sizeof(void *) * fb->num_cols_);
+  if (!fb->column_data_) {
+    free(fb->column_descriptions_);
+    fb->column_descriptions_ = NULL;
+    free(fb->fixed_slab_);
+    fb->fixed_slab_ = NULL;
+    return -1;
+  }
+
   uint8_t *mem = (uint8_t *)fb->fixed_slab_;
 
   fb->column_descriptions_[FB_IDX_EXECUTION_CHAIN].col_type_ = FBCT_EXECUTION_CHAIN;
@@ -112,6 +124,10 @@ void fragment_buffer_cleanup(struct fragment_buffer *fb) {
   if (fb->column_descriptions_) {
     free(fb->column_descriptions_);
     fb->column_descriptions_ = NULL;
+  }
+  if (fb->column_data_) {
+    free(fb->column_data_);
+    fb->column_data_ = NULL;
   }
   if (fb->fixed_slab_) {
     free(fb->fixed_slab_);
