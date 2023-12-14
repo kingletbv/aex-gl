@@ -3463,8 +3463,8 @@ void tri10(uint8_t *rgba, size_t stride,
   // Location where we go "Pen down" - convenience short-hand.
   // (1 << (SUBPIXEL_BITS-1)) gets us to put the pen at the center of the pixel,
   // rather than the top-left corner of it.
-  int64_t Px = (1 << (SUBPIXEL_BITS-1)) + (int64_t)left_sp;
-  int64_t Py = (1 << (SUBPIXEL_BITS-1)) + (int64_t)top_sp;
+  int64_t Px = (1 << (SUBPIXEL_BITS-1)) + left_sp;
+  int64_t Py = (1 << (SUBPIXEL_BITS-1)) + top_sp;
 
   // D012 = determinant of x and y coordinates (this is twice the area of the triangle (e.g. the area of the paralellogram))
   //        | x0 y0 1 |
@@ -3546,6 +3546,20 @@ void tri10(uint8_t *rgba, size_t stride,
   adds128(Dzx_Px_hi, Dzx_Px_lo, Dzy_Py_hi, Dzy_Py_lo, &z_num_hi, &z_num_lo);
   adds128(z_num_hi, z_num_lo, Dxyz_hi, Dxyz_lo, &z_num_hi, &z_num_lo);
 
+  /* Ensure the Z-Buffer value rounds to nearest, rather than truncating. To do this, we would like to add half
+   * denominator to the numerator (which has the effect of rounding to nearest.) A problem with this is we don't
+   * know if the denominator (D012 in this case) is an odd number, if it is, then halving it would create a
+   * round-off error as we dispose of the least significant bit.
+   * To solve this, we double everything, D012, all the numerators, and all the numerator increments. Then, we
+   * add "half double D012" (i.e. just the original D012) to the numerator and we're done.
+   * D012, before doubling, uses 2n+3 = 2*30+3 = 63 bits, so we have space for the additional bit. */
+  /* double, and add D012 */
+  adds128(z_num_hi, z_num_lo, z_num_hi, z_num_lo, &z_num_hi, &z_num_lo); /* z_num = z_num * 2 */
+  adds128(       0,     D012, z_num_hi, z_num_lo, &z_num_hi, &z_num_lo);            /* z_num += D012 */
+  D012 += D012;
+  adds128(Dzy_hi_sp, Dzy_lo_sp, Dzy_hi_sp, Dzy_lo_sp, &Dzy_hi_sp, &Dzy_lo_sp);  /* Dzy = Dzy * 2 */
+  adds128(Dzx_hi_sp, Dzx_lo_sp, Dzx_hi_sp, Dzx_lo_sp, &Dzx_hi_sp, &Dzx_lo_sp);  /* Dzx = Dzx * 2 */
+
   // We'd like to divide z_num by D012, and take its modulo D012.
   // Do the division first, then multiply back out to get the modulo.
   int64_t z_hi, z_lo;
@@ -3605,13 +3619,6 @@ void tri10(uint8_t *rgba, size_t stride,
   int64_t Dzx_hi, Dzx_lo;
   muls128(Dzx_hi_sp, Dzx_lo_sp, 0, 1 << SUBPIXEL_BITS, &Dzx_hi, &Dzx_lo);
 
-  // XXX:
-  // Dzy_hi/lo and Dzx_hi/lo step one whole pixel, consequently, z_yq, z_yp, z_xq, z_xp,
-  // all step one pixel. We need to step 2 pixels at a time.
-  // Use the one-pixel steppers to define TL/TR/BL/BR, and then double the one pixel steppers
-  // (overflowing z_xp*2/D012 into z_xq and overflowing z_yp*2/D012 into z_yq) so we can step
-  // inside the core loop.
-
   int64_t z_xi;
   int64_t z_xp;
   int64_t z_xq;
@@ -3628,19 +3635,6 @@ void tri10(uint8_t *rgba, size_t stride,
     z_xi = 0;
     z_xp = 0;
   }
-
-  /* Ensure the Z-Buffer value rounds to nearest, rather than truncating. To do this, we would like to add half
-   * denominator to the numerator (which has the effect of rounding to nearest.) A problem with this is we don't
-   * know if the denominator (D012 in this case) is an odd number, if it is, then halving it would create a
-   * round-off error as we dispose of the least significant bit.
-   * To solve this, we double everything, D012, all the numerators, and all the numerator increments. Then, we
-   * add "half double D012" (i.e. just the original D012) to the numerator and we're done.
-   * D012, before doubling, uses 2n+3 = 2*30+3 = 63 bits, so we have space for the additional bit. */
-  /* double, and add D012 */
-  z_s_TL += z_s_TL + D012;
-  z_yp += z_yp; /* numerator step-size for Y, double it */
-  z_xp += z_xp; /* numerator step-size for X, double it */
-  D012 += D012; /* and finally, our denominator, double it. */
 
   /* We have z_s_TL (the top-left fragment of our quadruple fragments), now take 1-pixel steps in X and Y
    * directions to find bottom-left (BL), top-right (TR) and bottom-right (BR) fragment numerators and
@@ -4359,7 +4353,7 @@ int main(int argc, char **argv) {
 #elif 1
   tri10_no_subpixels(rgba32, 256*4,
                      0, 0, 256, 256, /* scissor rect */
-                     1, 0, 0x1,    /* vertex 0 */
+                     0, 0, 0x1,    /* vertex 0 */
                      128, 16, 0x0,    /* vertex 1 */
                      16, 128, 0x0,         /* vertex 2 */
                      0, NULL);
