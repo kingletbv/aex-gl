@@ -2940,11 +2940,12 @@ void tri9(uint8_t *rgba, size_t stride,
     // Result doesn't fit in 64 bits, this is possible, and we will ignore the high bits. Ignoring
     // the high-bits _is fine_. The reason this works is because we're only interested in the z-buffer
     // values when they are in the range of the triangle, in that range, the values (through possibly
-    // many incremental, overflowing, steps) will always be in the range of 0 to D012-1. The one
-    // exception to this is when we start processing fragments in quadruples, in which case some of the
-    // fragments will be outside the triangle (and we would record the z-buffer value and start processing
-    // the fragment as-if it had passed for sake of the fragments that did, but would not use the z-buffer
-    // value itself as part of the z-buffer test.)
+    // many incremental, overflowing, steps) will always be in the range of 0 to Z-Buffer max (e.g. 
+    // 0xFFFFFFFF if 32 bits, 0xFFFFFF if 24 bits, and so on.) The one exception to this is when we 
+    // start processing fragments in quadruples, in which case some of the fragments will be outside 
+    // the triangle (and we would record the z-buffer value and start processing the fragment as-if 
+    // it had passed for sake of the fragments that did, but would not use the z-buffer value itself 
+    // as part of the z-buffer test.)
     ;
   }
 
