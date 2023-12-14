@@ -3811,7 +3811,7 @@ void tri10(uint8_t *rgba, size_t stride,
     Dp20_row_BR--;
   }
 
-  uint8_t *pixel_TL = rgba;
+  uint8_t *pixel_TL = rgba + top * stride + left * 4;
   uint8_t *pixel_TR = pixel_TL + 4;
   uint8_t *pixel_BL = pixel_TL + stride;
   uint8_t *pixel_BR = pixel_BL + 4;
@@ -3898,6 +3898,18 @@ void tri10(uint8_t *rgba, size_t stride,
     z_s_BR += D012 & step_mask;
     z_BR += z_yi & step_mask;
 
+    // (py - scissor_top)
+    // negative when top row is above top of scissor window.
+    int64_t scissor_top_row_mask = ~((py - scissor_top) >> 63);
+
+    // ((py + 1) - scissor_bottom)
+    // positive when bottom row of fragment quadruples are below 
+    // bottom of scissor window, negative otherwise
+    int64_t scissor_bottom_row_mask = ((py + 1) - scissor_bottom) >> 63;
+
+    // (left - scissor_left)
+    // negative when leftmost column is left of scissor window
+    int64_t scissor_left_column_mask = ~((left - scissor_left) >> 63);
 
     for (px = left; px < right; px += 2) {
       // Compute the masks for each determinant at each of the four pixels
@@ -3911,6 +3923,18 @@ void tri10(uint8_t *rgba, size_t stride,
       int64_t TR_Mask = ~((Dp01_TR | Dp12_TR | Dp20_TR) >> 63);
       int64_t BL_Mask = ~((Dp01_BL | Dp12_BL | Dp20_BL) >> 63);
       int64_t BR_Mask = ~((Dp01_BR | Dp12_BR | Dp20_BR) >> 63);
+            
+      // ((px + 1) - scissor_right)
+      // positive when the right side column of fragment quadruples are to 
+      // the right of the scissor window, negative otherwise.
+      int64_t scissor_right_column_mask = ((px + 1) - scissor_right) >> 63;
+
+      TL_Mask = TL_Mask & scissor_top_row_mask    & scissor_left_column_mask;
+      TR_Mask = TR_Mask & scissor_top_row_mask    & scissor_right_column_mask;
+      BL_Mask = BL_Mask & scissor_bottom_row_mask & scissor_left_column_mask;
+      BR_Mask = BR_Mask & scissor_bottom_row_mask & scissor_right_column_mask;
+
+      scissor_left_column_mask = ~(uint64_t)0;  /* only relevant for first column */
 
       int64_t Any_Fragment_Valid = TL_Mask | TR_Mask | BL_Mask | BR_Mask;
 
@@ -4321,7 +4345,7 @@ int main(int argc, char **argv) {
                     128, 0, 0x0,    /* vertex 1 */
                     0, 128, 0x0,         /* vertex 2 */
                     sizeof(tri9_samples)/sizeof(*tri9_samples), tri9_samples);
-#elif 1
+#elif 0
   struct tri10_sample tri10_samples[] ={
     {
       0, 0,
@@ -4353,7 +4377,14 @@ int main(int argc, char **argv) {
 #elif 1
   tri10_no_subpixels(rgba32, 256*4,
                      0, 0, 256, 256, /* scissor rect */
-                     0, 0, 0x1,    /* vertex 0 */
+                     8, 8, 0x1,    /* vertex 0 */
+                     128, 16, 0x0,    /* vertex 1 */
+                     16, 128, 0x0,         /* vertex 2 */
+                     0, NULL);
+#elif 0
+  tri10_no_subpixels(rgba32, 256*4,
+                     9, 9, 11, 12, /* scissor rect */
+                     8, 8, 0x1,    /* vertex 0 */
                      128, 16, 0x0,    /* vertex 1 */
                      16, 128, 0x0,         /* vertex 2 */
                      0, NULL);
