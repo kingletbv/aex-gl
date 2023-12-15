@@ -25,6 +25,7 @@
     <ClCompile Include="..\src\fragment_buffer.c" />
     <ClCompile Include="..\src\rasterizer.c" />
     <ClCompile Include="..\src\clipping_stage.c" />
+    <ClCompile Include="..\src\viewport_transformation.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -56,6 +57,7 @@
     <ClInclude Include="..\src\fragment_buffer.h" />
     <ClInclude Include="..\src\rasterizer.h" />
     <ClInclude Include="..\src\clipping_stage.h" />
+    <ClInclude Include="..\src\viewport_transformation.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">

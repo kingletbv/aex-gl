@@ -177,6 +177,7 @@
     <ClCompile Include="..\src\rasterizer.c">
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <ClCompile Include="..\src\viewport_transformation.c" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_const_expr.cbrt">
@@ -283,6 +284,7 @@
     <ClInclude Include="..\src\pp\scan_helpers.h" />
     <ClInclude Include="..\src\pp\situs.h" />
     <ClInclude Include="..\src\rasterizer.h" />
+    <ClInclude Include="..\src\viewport_transformation.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\glsl_es_1.cbrt">
