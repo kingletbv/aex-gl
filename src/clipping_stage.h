@@ -27,10 +27,18 @@ extern "C" {
 #define CLIPPING_STAGE_MAX_NUM_TRIANGLES 64
 
 /* Indices of the "known" and always present varyings. */
-#define CLIPPING_STAGE_IDX_X 0
-#define CLIPPING_STAGE_IDX_Y 1
-#define CLIPPING_STAGE_IDX_Z 2
-#define CLIPPING_STAGE_IDX_W 3
+
+/* SX, SY, SZ are screenspace representations of vertices as an input to the rasterizer, they
+ * are not an input or output of clipping, but the space for them is reserved inside the clipping stage. */
+#define CLIPPING_STAGE_IDX_SX 0
+#define CLIPPING_STAGE_IDX_SY 1
+#define CLIPPING_STAGE_IDX_SZ 2
+
+/* CLIPPING_STAGE_IDX_X/Y/Z/W mark the start of the varyings we actively clip during the clipping stage. */
+#define CLIPPING_STAGE_IDX_X 3
+#define CLIPPING_STAGE_IDX_Y 4
+#define CLIPPING_STAGE_IDX_Z 5
+#define CLIPPING_STAGE_IDX_W 6
 
 struct clipping_stage {
   /* Number of varying attributes, the first four are:
