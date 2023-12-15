@@ -48,7 +48,6 @@ struct clipping_stage {
    * take the next plane, clip all triangles from the other buffer back into the one buffer, and so on,
    * until clipping has completed.
    */
-  size_t num_triangles_in_a_;
   float *triangle_varyings_a_;
   size_t num_triangles_in_b_;
   float *triangle_varyings_b_;
@@ -75,8 +74,9 @@ void clipping_stage_cleanup(struct clipping_stage *cs);
 
 /* Process the triangle currently set in the clipping_stage using the
  * CLIPPING_STAGE_VARYING_INPUT() macro.
- * Returns non-zero if clipping results in one or more triangles inside the view frustrum. */
-int clipping_stage_process_triangle(struct clipping_stage *cs);
+ * Returns the number of triangles clipped to inside the view frustrum.
+ * Output of the clipping is in clipping_stage::triangle_varyins_in_b_ */
+size_t clipping_stage_process_triangle(struct clipping_stage *cs);
 
 
 #ifdef __cplusplus

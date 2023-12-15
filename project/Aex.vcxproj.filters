@@ -24,6 +24,7 @@
     <ClCompile Include="..\src\glsl_es1_tokens.c" />
     <ClCompile Include="..\src\fragment_buffer.c" />
     <ClCompile Include="..\src\rasterizer.c" />
+    <ClCompile Include="..\src\clipping_stage.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -54,6 +55,7 @@
     <ClInclude Include="..\src\glsl_es1_tokens.h" />
     <ClInclude Include="..\src\fragment_buffer.h" />
     <ClInclude Include="..\src\rasterizer.h" />
+    <ClInclude Include="..\src\clipping_stage.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
