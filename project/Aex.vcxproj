@@ -173,6 +173,9 @@
     <ClCompile Include="..\src\pp\pp_tokens.c" />
     <ClCompile Include="..\src\pp\scan_helpers.c" />
     <ClCompile Include="..\src\pp\situs.c" />
+    <ClCompile Include="..\src\rasterizer.c">
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_const_expr.cbrt">
@@ -277,6 +280,7 @@
     <ClInclude Include="..\src\pp\pp_tokens.h" />
     <ClInclude Include="..\src\pp\scan_helpers.h" />
     <ClInclude Include="..\src\pp\situs.h" />
+    <ClInclude Include="..\src\rasterizer.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\glsl_es_1.cbrt">
