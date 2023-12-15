@@ -30,7 +30,7 @@ static void adds128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t 
   }
 }
 
-void subs128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
+static void subs128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
   /* Two's complement negation */
   blo = ~blo;
   bhi = ~bhi;
@@ -476,6 +476,8 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
   int64_t z_xp, z_xq, z_xi;
   int64_t z_yp, z_yq, z_yi;
 
+  int64_t left, top, right, bottom;
+
   /* Recover context for resuming from yield */
   direction_xy_flips = rasterizer->direction_xy_flips_;
   D012 = rasterizer->D012_;
@@ -535,6 +537,10 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
   scissor_bottom_row_mask = rasterizer->scissor_bottom_row_mask_;
   scissor_left_column_mask = rasterizer->scissor_left_column_mask_;
   scissor_right_column_mask = rasterizer->scissor_right_column_mask_;
+  left = rasterizer->left_;
+  top = rasterizer->top_;
+  right = rasterizer->right_;
+  bottom = rasterizer->bottom_;
   TL_Mask = rasterizer->TL_Mask_;
   TR_Mask = rasterizer->TR_Mask_;
   BL_Mask = rasterizer->BL_Mask_;
@@ -560,10 +566,10 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     // is to be able to do mip-mapping and dFdx/dFdy type stuff.)
 
     // Be inclusive of odd edges on the scissor rectangle.
-    int64_t left = scissor_left & ~(int64_t)1;
-    int64_t top = scissor_top & ~(int64_t)1;
-    int64_t right = (scissor_right + 1) & ~(int64_t)1;
-    int64_t bottom = (scissor_bottom + 1) & ~(int64_t)1;
+    left = scissor_left & ~(int64_t)1;
+    top = scissor_top & ~(int64_t)1;
+    right = (scissor_right + 1) & ~(int64_t)1;
+    bottom = (scissor_bottom + 1) & ~(int64_t)1;
 
     // The scissor rectangle is still in pixel coordinates, convert it into sub-pixel coordinates
     int64_t left_sp = left << RASTERIZER_SUBPIXEL_BITS;
@@ -696,10 +702,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     int64_t Dzy_hi, Dzy_lo;
     muls128(Dzy_hi_sp, Dzy_lo_sp, 0, 1 << RASTERIZER_SUBPIXEL_BITS, &Dzy_hi, &Dzy_lo);
 
-    int64_t z_yi;
-    int64_t z_yp;
-    int64_t z_yq;
-    int direction_xy_flips;
+    direction_xy_flips;
     divmods128by64(Dzy_hi, Dzy_lo, D012, NULL, &z_yq, &z_yp);
     if ((Dzy_hi > 0) || ((Dzy_hi == 0) && (Dzy_lo > 0))) {
       z_s_TL = D012 - z_mod - 1;
@@ -722,9 +725,6 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     int64_t Dzx_hi, Dzx_lo;
     muls128(Dzx_hi_sp, Dzx_lo_sp, 0, 1 << RASTERIZER_SUBPIXEL_BITS, &Dzx_hi, &Dzx_lo);
 
-    int64_t z_xi;
-    int64_t z_xp;
-    int64_t z_xq;
     divmods128by64(Dzx_hi, Dzx_lo, D012, NULL, &z_xq, &z_xp);
     if ((Dzx_hi > 0) || ((Dzx_hi == 0) && (Dzx_lo > 0))) {
       z_xi = 1;
@@ -967,6 +967,11 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
         z_sx_BR = z_s_BR;
       }
 
+      z_x_TL = z_TL;
+      z_x_TR = z_TR;
+      z_x_BL = z_BL;
+      z_x_BR = z_BR;
+
       /* Step z_s to next row */
       z_TL += z_yq;
       z_s_TL -= z_yp;
@@ -1093,6 +1098,10 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
             rasterizer->scissor_bottom_row_mask_ = scissor_bottom_row_mask;
             rasterizer->scissor_left_column_mask_ = scissor_left_column_mask;
             rasterizer->scissor_right_column_mask_ = scissor_right_column_mask;
+            rasterizer->left_ = left;
+            rasterizer->top_ = top;
+            rasterizer->right_ = right;
+            rasterizer->bottom_ = bottom;
             rasterizer->TL_Mask_ = TL_Mask;
             rasterizer->TR_Mask_ = TR_Mask;
             rasterizer->BL_Mask_ = BL_Mask;
@@ -1139,10 +1148,10 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
           ((int32_t *)fragbf->column_data_[FB_IDX_Y_COORD])[fragbf->num_rows_ + 1] = (int32_t)py;
           ((int32_t *)fragbf->column_data_[FB_IDX_Y_COORD])[fragbf->num_rows_ + 2] = (int32_t)py + 1;
           ((int32_t *)fragbf->column_data_[FB_IDX_Y_COORD])[fragbf->num_rows_ + 3] = (int32_t)py + 1;
-          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 0] = (uint32_t)z_TL;
-          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 1] = (uint32_t)z_TR;
-          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 2] = (uint32_t)z_BL;
-          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 3] = (uint32_t)z_BR;
+          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 0] = (uint32_t)z_x_TL;
+          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 1] = (uint32_t)z_x_TR;
+          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 2] = (uint32_t)z_x_BL;
+          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 3] = (uint32_t)z_x_BR;
           fragbf->num_rows_ += 4;
         }
 
@@ -1205,7 +1214,12 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       zbuf_BR += zbuf_mod;
 
     }
-
+    if (fragbf->num_rows_) {
+      rasterizer->resume_at_ = __LINE__ + 2;
+      return 1;
+      case __LINE__: ;
+    }
+    rasterizer->resume_at_ = 0;
     return 0;
     default:
       return -1;

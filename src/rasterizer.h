@@ -42,6 +42,7 @@ struct rasterizer {
   
   int64_t scissor_top_row_mask_, scissor_bottom_row_mask_;
   int64_t scissor_left_column_mask_, scissor_right_column_mask_;
+  int64_t left_, top_, right_, bottom_;
 
   int64_t TL_Mask_, TR_Mask_, BL_Mask_, BR_Mask_;
   int64_t Dp01_dx_2_, Dp12_dx_2_, Dp20_dx_2_;

@@ -53,6 +53,16 @@
 #include "glsl_es1_compiler.h"
 #endif
 
+#ifndef FRAGMENT_BUFFER_H_INCLUDED
+#define FRAGMENT_BUFFER_H_INCLUDED
+#include "fragment_buffer.h"
+#endif
+
+#ifndef RASTERIZER_H_INCLUDED
+#define RASTERIZER_H_INCLUDED
+#include "rasterizer.h"
+#endif
+
 int test(void) {
   struct glsl_es1_compiler compiler, *cc;
   cc = &compiler;
@@ -4374,7 +4384,7 @@ int main(int argc, char **argv) {
                                      128, 0, 0x0,    /* vertex 1 */
                                      0, 128, 0x0,         /* vertex 2 */
                                      sizeof(tri10_samples)/sizeof(*tri10_samples), tri10_samples);
-#elif 1
+#elif 0
   tri10_no_subpixels(rgba32, 256*4,
                      0, 0, 256, 256, /* scissor rect */
                      8, 8, 0x1,    /* vertex 0 */
@@ -4388,6 +4398,45 @@ int main(int argc, char **argv) {
                      128, 16, 0x0,    /* vertex 1 */
                      16, 128, 0x0,         /* vertex 2 */
                      0, NULL);
+#elif 1
+  struct fragment_buffer fragbuf;
+  fragment_buffer_init(&fragbuf);
+  if (fragment_buffer_alloc_buffers(&fragbuf)) {
+    fprintf(stderr, "fragment_buffer_alloc_buffers failed\n");
+    fragment_buffer_cleanup(&fragbuf);
+    return EXIT_FAILURE;
+  }
+  struct rasterizer razer;
+  rasterizer_init(&razer);
+  while (rasterizer_triangle(&razer, &fragbuf,
+                             rgba32, 256*4, NULL, 0, 0,
+                             0, 0, 256, 256, /* scissor rect */
+                             8   << RASTERIZER_SUBPIXEL_BITS, 8   << RASTERIZER_SUBPIXEL_BITS, 0x1,    /* vertex 0 */
+                             128 << RASTERIZER_SUBPIXEL_BITS, 16  << RASTERIZER_SUBPIXEL_BITS, 0x0,    /* vertex 1 */
+                             16  << RASTERIZER_SUBPIXEL_BITS, 128 << RASTERIZER_SUBPIXEL_BITS, 0x0)) {      /* vertex 2 */
+    size_t frag_index;
+    for (frag_index = 0; frag_index < fragbuf.num_rows_; ++frag_index) {
+#if 0
+      /* Replicating this behavior: */
+      if (TL_Mask) {
+        pixel_TL[0] = (uint8_t)((z_x_TL & 1) ? 0xCF : 0x3F);
+        pixel_TL[1] = (uint8_t)((z_x_TL & 1) ? 0xCF : 0x3F);
+        pixel_TL[2] = (uint8_t)((z_x_TL & 1) ? 0xCF : 0x3F);
+        pixel_TL[3] = 0xFF;
+      }
+#endif
+      uint8_t mask = ((uint8_t *)fragbuf.column_data_[FB_IDX_MASK])[frag_index];
+      if (mask) {
+        uint32_t z = ((uint32_t *)fragbuf.column_data_[FB_IDX_ZBUF_VALUE])[frag_index];
+        uint8_t *pixel = ((uint8_t **)fragbuf.column_data_[FB_IDX_PIXEL_PTR])[frag_index];
+        pixel[0] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+        pixel[1] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+        pixel[2] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+        pixel[3] = 0xFF;
+      }
+    }
+    fragbuf.num_rows_ = 0;
+  }
 #endif
   
   /* Superimpose faint grid effect */
