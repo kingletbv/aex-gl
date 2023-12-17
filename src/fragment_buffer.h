@@ -27,13 +27,13 @@ extern "C" {
 #define FRAGMENT_BUFFER_MAX_ROWS 256
 
 typedef enum fragment_buffer_data_type {
-  FBCT_NONE,
-  FBCT_PTR,
-  FBCT_FLOAT,
-  FBCT_UINT8,
-  FBCT_UINT16,
-  FBCT_UINT32,
-  FBCT_INT32
+  FBDT_NONE,
+  FBDT_PTR,
+  FBDT_FLOAT,
+  FBDT_UINT8,
+  FBDT_UINT16,
+  FBDT_UINT32,
+  FBDT_INT32
   // .. the rest, presumably ..
 } frag_buf_data_type_t;
 

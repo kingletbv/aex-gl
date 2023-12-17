@@ -80,37 +80,37 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
   uint8_t *mem = (uint8_t *)fb->fixed_slab_;
 
   fb->column_descriptions_[FB_IDX_EXECUTION_CHAIN].col_type_ = FBCT_EXECUTION_CHAIN;
-  fb->column_descriptions_[FB_IDX_EXECUTION_CHAIN].data_type_ = FBCT_UINT8;
+  fb->column_descriptions_[FB_IDX_EXECUTION_CHAIN].data_type_ = FBDT_UINT8;
   fb->column_data_[FB_IDX_EXECUTION_CHAIN] = mem;
   mem += sizeof(uint8_t) * FRAGMENT_BUFFER_MAX_ROWS;
 
   fb->column_descriptions_[FB_IDX_MASK].col_type_ = FBCT_MASK;
-  fb->column_descriptions_[FB_IDX_MASK].data_type_ = FBCT_UINT8;
+  fb->column_descriptions_[FB_IDX_MASK].data_type_ = FBDT_UINT8;
   fb->column_data_[FB_IDX_MASK] = mem;
   mem += sizeof(uint8_t) * FRAGMENT_BUFFER_MAX_ROWS;
 
   fb->column_descriptions_[FB_IDX_PIXEL_PTR].col_type_ = FBCT_PIXEL_PTR;
-  fb->column_descriptions_[FB_IDX_PIXEL_PTR].data_type_ = FBCT_PTR;
+  fb->column_descriptions_[FB_IDX_PIXEL_PTR].data_type_ = FBDT_PTR;
   fb->column_data_[FB_IDX_PIXEL_PTR] = mem;
   mem += sizeof(void*) * FRAGMENT_BUFFER_MAX_ROWS;
         
   fb->column_descriptions_[FB_IDX_ZBUF_PTR].col_type_ = FBCT_ZBUF_PTR;
-  fb->column_descriptions_[FB_IDX_ZBUF_PTR].data_type_ = FBCT_PTR;
+  fb->column_descriptions_[FB_IDX_ZBUF_PTR].data_type_ = FBDT_PTR;
   fb->column_data_[FB_IDX_ZBUF_PTR] = mem;
   mem += sizeof(void*) * FRAGMENT_BUFFER_MAX_ROWS;
         
   fb->column_descriptions_[FB_IDX_X_COORD].col_type_ = FBCT_X_COORD;
-  fb->column_descriptions_[FB_IDX_X_COORD].data_type_ = FBCT_INT32;
+  fb->column_descriptions_[FB_IDX_X_COORD].data_type_ = FBDT_INT32;
   fb->column_data_[FB_IDX_X_COORD] = mem;
   mem += sizeof(int32_t) * FRAGMENT_BUFFER_MAX_ROWS;
         
   fb->column_descriptions_[FB_IDX_Y_COORD].col_type_ = FBCT_Y_COORD;
-  fb->column_descriptions_[FB_IDX_Y_COORD].data_type_ = FBCT_INT32;
+  fb->column_descriptions_[FB_IDX_Y_COORD].data_type_ = FBDT_INT32;
   fb->column_data_[FB_IDX_Y_COORD] = mem;
   mem += sizeof(int32_t) * FRAGMENT_BUFFER_MAX_ROWS;
         
   fb->column_descriptions_[FB_IDX_ZBUF_VALUE].col_type_ = FBCT_ZBUF_VALUE;
-  fb->column_descriptions_[FB_IDX_ZBUF_VALUE].data_type_ = FBCT_UINT32;
+  fb->column_descriptions_[FB_IDX_ZBUF_VALUE].data_type_ = FBDT_UINT32;
   fb->column_data_[FB_IDX_ZBUF_VALUE] = mem;
   mem += sizeof(uint32_t) * FRAGMENT_BUFFER_MAX_ROWS;
 
