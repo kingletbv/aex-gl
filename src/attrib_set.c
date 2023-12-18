@@ -54,6 +54,7 @@ void attrib_set_cleanup(struct attrib_set *as) {
 static int attrib_set_attrib_init(struct attrib *attr, char *name) {
   attr->buf_ = NULL;
   attr->size_ = 1;
+  attr->data_type_ = ADT_FLOAT;
   attr->att_ = AT_FLOAT;
   attr->normalize_ = 0;
   attr->enabled_ = 0;

@@ -20,6 +20,15 @@
 extern "C" {
 #endif
 
+typedef enum attrib_data_type {
+  ADT_BYTE,
+  ADT_UNSIGNED_BYTE,
+  ADT_SHORT,
+  ADT_UNSIGNED_SHORT,
+  ADT_FIXED,
+  ADT_FLOAT
+} attrib_data_type_t;
+
 typedef enum attrib_type {
   AT_FLOAT,
   AT_VEC2,
@@ -41,6 +50,10 @@ struct attrib {
    * max. 4; note that a shader can access more than size_ elements, in
    * that case, the remaining elements are from the generic values */
   int size_;
+
+  /* Datatype of attribute, as declared by client. This is what ptr_ refers
+   * to. */
+  attrib_data_type_t data_type_;
 
   /* Type of attribute, as declared in the shader. Note that the shader's
    * type specified here and the actual data type by this indexed attrib
