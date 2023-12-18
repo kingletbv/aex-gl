@@ -45,12 +45,28 @@ typedef enum primitive_assembly_column_type {
   PACT_VARYING
 } primitive_assembly_column_type_t;
 
+typedef enum primitive_assembly_mode {
+  PAM_POINTS,
+  PAM_LINES,
+  PAM_LINE_STRIP,
+  PAM_LINE_LOOP,
+  PAM_TRIANGLES,
+  PAM_TRIANGLE_STRIP,
+  PAM_TRIANGLE_FAN
+} primitive_assembly_mode_t;
+
 struct primitive_assembly_column_descriptor {
   /* Type of the primitive assembly column */
   primitive_assembly_column_type_t col_type_;
 
   /* Datatype of the primitive assembly column */
   primitive_assembly_data_type_t data_type_;
+
+  /* Index of the attribute variable, -1 if unbound */
+  int attrib_index_;
+
+  /* Index of the element in the attribute variable */
+  int attrib_element_index_;
 };
 
 struct primitive_assembly {
@@ -68,6 +84,14 @@ struct primitive_assembly {
   /* Array of num_cols_ column descriptions */
   size_t num_cols_;
   struct primitive_assembly_column_descriptor *column_descriptors_;
+
+  /* Vertex indices buffer */
+  size_t num_vertex_indices_;
+  uint32_t vertex_indices_[191];
+
+  /* While assembling primitives, this is used to mark internal progress */
+  size_t index_at_;
+  int continue_at_;
 };
 
 /* Initializes the primitive assembly but does not allocate the memory, to
@@ -77,6 +101,12 @@ void primitive_assembly_init(struct primitive_assembly *pa);
 int primitive_assembly_alloc_buffers(struct primitive_assembly *pa);
 
 void primitive_assembly_cleanup(struct primitive_assembly *pa);
+
+int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint8_t *indices, size_t num_indices);
+int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint16_t *indices, size_t num_indices);
+int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint32_t *indices, size_t num_indices);
+
+
 
 #ifdef __cplusplus
 } /* extern "C" */

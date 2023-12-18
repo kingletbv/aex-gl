@@ -175,7 +175,10 @@
     <ClCompile Include="..\src\pp\pp_tokens.c" />
     <ClCompile Include="..\src\pp\scan_helpers.c" />
     <ClCompile Include="..\src\pp\situs.c" />
-    <ClCompile Include="..\src\primitive_assembly.c" />
+    <ClCompile Include="..\src\primitive_assembly.c">
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
     <ClCompile Include="..\src\rasterizer.c">
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
     </ClCompile>

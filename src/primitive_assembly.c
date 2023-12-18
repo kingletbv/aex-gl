@@ -23,6 +23,16 @@
 #include <stdint.h>
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
+#ifndef ASSERT_H_INCLUDED
+#define ASSERT_H_INCLUDED
+#include <assert.h>
+#endif
+
 #ifndef PRIMITIVE_ASSEMBLY_H_INCLUDED
 #define PRIMITIVE_ASSEMBLY_H_INCLUDED
 #include "primitive_assembly.h"
@@ -34,6 +44,10 @@ void primitive_assembly_init(struct primitive_assembly *pa) {
   pa->column_descriptors_ = NULL;
   pa->column_data_ = NULL;
   pa->slab_ = NULL;
+  pa->num_vertex_indices_ = 0;
+  memset(pa->vertex_indices_, 0, sizeof(pa->vertex_indices_));
+  pa->index_at_ = 0;
+  pa->continue_at_ = 0;
 }
 
 
@@ -145,3 +159,566 @@ void primitive_assembly_cleanup(struct primitive_assembly *pa) {
   if (pa->slab_) free(pa->slab_);
 }
 
+int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint8_t *indices, size_t num_indices) {
+  /* Note: primitive_assembly_elements_u8, primitive_assembly_elements_u16 and primitive_assembly_elements_u32 share pretty much the
+   *       same code with a different index type. If you fix a bug here, chances are you'll need to fix it there as well. */
+  switch (pa->continue_at_) {
+    case 0:
+      if (pam == PAM_POINTS) {
+        for (;;) {
+          while ((pa->index_at_ < num_indices) && 
+                  (pa->num_vertex_indices_ < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__: ;
+          }
+          if (pa->index_at_== num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINES) {
+        for (;;) {
+          while (((pa->index_at_ + 2) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 2) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__: ;
+          }
+          if ((pa->index_at_ + 2) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINE_STRIP) {
+        // Need at least 2 inputs to start, then keep pushing out pair-wise.
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+                 ((pa->index_at_ + 2) <= num_indices)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_]; /* note we only advance once */
+          }
+          while (pa->num_vertex_indices_) {
+            /* Yield result */
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:
+          }
+          if ((pa->index_at_ + 2) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINE_LOOP) {
+        // Need at least 2 inputs to start, then keep pushing out pair-wise. Difference with PAM_LINE_STRIP is that
+        // we will also pair up the last with the first line item.
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+                 ((pa->index_at_ + 2) <= num_indices)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_]; /* note we only advance once */
+          }
+          if (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+              ((pa->index_at_ + 1) <= num_indices) && (num_indices >= 2)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[0]; /* loop to start */
+          }
+          while (pa->num_vertex_indices_) {
+            /* Yield result */
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:
+          }
+          if ((pa->index_at_ + 1) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLES) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLE_STRIP) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            if (pa->index_at_ & 0) {
+              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            }
+            else {
+              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            }
+            pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLE_FAN) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[0];
+            pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
+            pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else {
+        /* Trouble at the mill, unknown value */
+        assert(0 && "Unknown internal enum used");
+        return 0;
+      }
+    default:
+      assert(0 && "Unknown internal state");
+      pa->continue_at_ = 0;
+      return 0;
+  }
+}
+
+int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint16_t *indices, size_t num_indices) {
+  /* Note: primitive_assembly_elements_u8, primitive_assembly_elements_u16 and primitive_assembly_elements_u32 share pretty much the
+   *       same code with a different index type. If you fix a bug here, chances are you'll need to fix it there as well. */
+  switch (pa->continue_at_) {
+    case 0:
+      if (pam == PAM_POINTS) {
+        for (;;) {
+          while ((pa->index_at_ < num_indices) && 
+                  (pa->num_vertex_indices_ < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__: ;
+          }
+          if (pa->index_at_== num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINES) {
+        for (;;) {
+          while (((pa->index_at_ + 2) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 2) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__: ;
+          }
+          if ((pa->index_at_ + 2) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINE_STRIP) {
+        // Need at least 2 inputs to start, then keep pushing out pair-wise.
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+                 ((pa->index_at_ + 2) <= num_indices)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_]; /* note we only advance once */
+          }
+          while (pa->num_vertex_indices_) {
+            /* Yield result */
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:
+          }
+          if ((pa->index_at_ + 2) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINE_LOOP) {
+        // Need at least 2 inputs to start, then keep pushing out pair-wise. Difference with PAM_LINE_STRIP is that
+        // we will also pair up the last with the first line item.
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+                 ((pa->index_at_ + 2) <= num_indices)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_]; /* note we only advance once */
+          }
+          if (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+              ((pa->index_at_ + 1) <= num_indices) && (num_indices >= 2)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[0]; /* loop to start */
+          }
+          while (pa->num_vertex_indices_) {
+            /* Yield result */
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:
+          }
+          if ((pa->index_at_ + 1) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLES) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLE_STRIP) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            if (pa->index_at_ & 0) {
+              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            }
+            else {
+              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            }
+            pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLE_FAN) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[0];
+            pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
+            pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else {
+        /* Trouble at the mill, unknown value */
+        assert(0 && "Unknown internal enum used");
+        return 0;
+      }
+    default:
+      assert(0 && "Unknown internal state");
+      pa->continue_at_ = 0;
+      return 0;
+  }
+}
+
+int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint32_t *indices, size_t num_indices) {
+  /* Note: primitive_assembly_elements_u8, primitive_assembly_elements_u16 and primitive_assembly_elements_u32 share pretty much the
+   *       same code with a different index type. If you fix a bug here, chances are you'll need to fix it there as well. */
+  switch (pa->continue_at_) {
+    case 0:
+      if (pam == PAM_POINTS) {
+        for (;;) {
+          while ((pa->index_at_ < num_indices) && 
+                  (pa->num_vertex_indices_ < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__: ;
+          }
+          if (pa->index_at_== num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINES) {
+        for (;;) {
+          while (((pa->index_at_ + 2) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 2) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__: ;
+          }
+          if ((pa->index_at_ + 2) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINE_STRIP) {
+        // Need at least 2 inputs to start, then keep pushing out pair-wise.
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+                 ((pa->index_at_ + 2) <= num_indices)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_]; /* note we only advance once */
+          }
+          while (pa->num_vertex_indices_) {
+            /* Yield result */
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:
+          }
+          if ((pa->index_at_ + 2) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINE_LOOP) {
+        // Need at least 2 inputs to start, then keep pushing out pair-wise. Difference with PAM_LINE_STRIP is that
+        // we will also pair up the last with the first line item.
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+                 ((pa->index_at_ + 2) <= num_indices)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_]; /* note we only advance once */
+          }
+          if (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+              ((pa->index_at_ + 1) <= num_indices) && (num_indices >= 2)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[0]; /* loop to start */
+          }
+          while (pa->num_vertex_indices_) {
+            /* Yield result */
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:
+          }
+          if ((pa->index_at_ + 1) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLES) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_++];
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLE_STRIP) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            if (pa->index_at_ & 0) {
+              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            }
+            else {
+              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            }
+            pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLE_FAN) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_indices) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[0];
+            pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
+            pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_indices) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else {
+        /* Trouble at the mill, unknown value */
+        assert(0 && "Unknown internal enum used");
+        return 0;
+      }
+    default:
+      assert(0 && "Unknown internal state");
+      pa->continue_at_ = 0;
+      return 0;
+  }
+}
