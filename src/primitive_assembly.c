@@ -984,7 +984,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     else /* attr->normalize to 0..1 */ {
                       /* this is not ideal but prevents compilers converting it into divison (testing
                        * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
-                      float norm = 1.f/255;
+                      float norm = 2.f/255;
                       if (attr->stride_ != sizeof(int8_t)) {
                         size_t stride = attr->stride_;
                         for (row = 0; row < num_rows; ++row) {
@@ -1058,7 +1058,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     else /* attr->normalize to 0..1 */ {
                       /* this is not ideal but prevents compilers converting it into divison (testing
                        * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
-                      float norm = 1.f/65535;
+                      float norm = 2.f/65535;
                       if (attr->stride_ != sizeof(int16_t)) {
                         size_t stride = attr->stride_;
                         for (row = 0; row < num_rows; ++row) {
