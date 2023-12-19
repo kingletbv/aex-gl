@@ -35,6 +35,13 @@ typedef enum primitive_assembly_data_type {
   PADT_INT32
 } primitive_assembly_data_type_t;
 
+#define PAC_IDX_EXECUTION_CHAIN 0
+#define PAC_IDX_POSITION_X 1
+#define PAC_IDX_POSITION_Y 2
+#define PAC_IDX_POSITION_Z 3
+#define PAC_IDX_POSITION_W 4
+#define PAC_IDX_POINT_SIZE 5
+
 typedef enum primitive_assembly_column_type {
   PACT_EXECUTION_CHAIN,
   PACT_POSITION_X,
@@ -55,6 +62,12 @@ typedef enum primitive_assembly_mode {
   PAM_TRIANGLE_STRIP,
   PAM_TRIANGLE_FAN
 } primitive_assembly_mode_t;
+
+typedef enum primitive_assembly_index_type {
+  PAIT_UNSIGNED_BYTE,
+  PAIT_UNSIGNED_SHORT,
+  PAIT_UNSIGNED_INT
+} primitive_assembly_index_type_t;
 
 struct primitive_assembly_column_descriptor {
   /* Type of the primitive assembly column */
