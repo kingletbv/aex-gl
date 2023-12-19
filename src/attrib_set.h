@@ -20,6 +20,12 @@
 extern "C" {
 #endif
 
+/* XXX: Will move this into its own file, intended to model glBufferData */
+struct buffer {
+  size_t size_;
+  void *data_;
+};
+
 typedef enum attrib_data_type {
   ADT_BYTE,
   ADT_UNSIGNED_BYTE,
