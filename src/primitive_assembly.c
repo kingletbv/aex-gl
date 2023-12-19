@@ -218,7 +218,7 @@ int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_
             /* Yield result */
             pa->continue_at_ = __LINE__ + 2;
             return 1;
-    case __LINE__:
+    case __LINE__: ;
           }
           if ((pa->index_at_ + 2) > num_indices) {
             // Yield completion.
@@ -247,7 +247,7 @@ int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_
             /* Yield result */
             pa->continue_at_ = __LINE__ + 2;
             return 1;
-    case __LINE__:
+    case __LINE__: ;
           }
           if ((pa->index_at_ + 1) > num_indices) {
             // Yield completion.
@@ -406,7 +406,7 @@ int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib
             /* Yield result */
             pa->continue_at_ = __LINE__ + 2;
             return 1;
-    case __LINE__:
+    case __LINE__: ;
           }
           if ((pa->index_at_ + 2) > num_indices) {
             // Yield completion.
@@ -435,7 +435,7 @@ int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib
             /* Yield result */
             pa->continue_at_ = __LINE__ + 2;
             return 1;
-    case __LINE__:
+    case __LINE__: ;
           }
           if ((pa->index_at_ + 1) > num_indices) {
             // Yield completion.
@@ -594,7 +594,7 @@ int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib
             /* Yield result */
             pa->continue_at_ = __LINE__ + 2;
             return 1;
-    case __LINE__:
+    case __LINE__: ;
           }
           if ((pa->index_at_ + 2) > num_indices) {
             // Yield completion.
@@ -623,7 +623,7 @@ int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib
             /* Yield result */
             pa->continue_at_ = __LINE__ + 2;
             return 1;
-    case __LINE__:
+    case __LINE__: ;
           }
           if ((pa->index_at_ + 1) > num_indices) {
             // Yield completion.
@@ -721,4 +721,191 @@ int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib
       pa->continue_at_ = 0;
       return 0;
   }
+}
+
+int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, size_t num_elements) {
+  switch (pa->continue_at_) {
+    case 0:
+      if (pam == PAM_POINTS) {
+        for (;;) {
+          while ((pa->index_at_ < num_elements) &&
+                 (pa->num_vertex_indices_ < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if (pa->index_at_== num_elements) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINES) {
+        for (;;) {
+          while (((pa->index_at_ + 2) <= num_elements) &&
+                 ((pa->num_vertex_indices_ + 2) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 2) > num_elements) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINE_STRIP) {
+        // Need at least 2 inputs to start, then keep pushing out pair-wise.
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+                 ((pa->index_at_ + 2) <= num_elements)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_; /* note we only advance once */
+          }
+          while (pa->num_vertex_indices_) {
+            /* Yield result */
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__: ;
+          }
+          if ((pa->index_at_ + 2) > num_elements) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_LINE_LOOP) {
+        // Need at least 2 inputs to start, then keep pushing out pair-wise. Difference with PAM_LINE_STRIP is that
+        // we will also pair up the last with the first line item.
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+                 ((pa->index_at_ + 2) <= num_elements)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_; /* note we only advance once */
+          }
+          if (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
+              ((pa->index_at_ + 1) <= num_elements) && (num_elements >= 2)) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)0; /* loop to start */
+          }
+          while (pa->num_vertex_indices_) {
+            /* Yield result */
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__: ;
+          }
+          if ((pa->index_at_ + 1) > num_elements) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLES) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_elements) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_elements) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLE_STRIP) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_elements) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            if (pa->index_at_ & 0) {
+              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = (uint32_t)pa->index_at_ + 1;
+              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = (uint32_t)pa->index_at_ + 0;
+              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = (uint32_t)pa->index_at_ + 2;
+            }
+            else {
+              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = (uint32_t)pa->index_at_ + 0;
+              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = (uint32_t)pa->index_at_ + 1;
+              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = (uint32_t)pa->index_at_ + 2;
+            }
+            pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_elements) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else if (pam == PAM_TRIANGLE_FAN) {
+        pa->index_at_ = 0;
+        for (;;) {
+          while (((pa->index_at_ + 3) <= num_elements) &&
+                 ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
+            pa->vertex_indices_[pa->num_vertex_indices_ + 0] = 0;
+            pa->vertex_indices_[pa->num_vertex_indices_ + 1] = (uint32_t)pa->index_at_ + 1;
+            pa->vertex_indices_[pa->num_vertex_indices_ + 2] = (uint32_t)pa->index_at_ + 2;
+            pa->index_at_++;
+          }
+          while (pa->num_vertex_indices_) {
+            // Yield result
+            pa->continue_at_ = __LINE__ + 2;
+            return 1;
+    case __LINE__:;
+          }
+          if ((pa->index_at_ + 3) > num_elements) {
+            // Yield completion.
+            pa->index_at_ = 0;
+            pa->continue_at_ = 0;
+            return 0;
+          }
+        }
+      }
+      else {
+        /* Trouble at the mill, unknown value */
+        assert(0 && "Unknown internal enum used");
+        return 0;
+      }
+    default:
+      assert(0 && "Unknown internal state");
+      pa->continue_at_ = 0;
+      return 0;
+  }
+
 }
