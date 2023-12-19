@@ -31,6 +31,8 @@ typedef enum attrib_data_type {
   ADT_UNSIGNED_BYTE,
   ADT_SHORT,
   ADT_UNSIGNED_SHORT,
+  ADT_INT,
+  ADT_UNSIGNED_INT,
   ADT_FIXED,
   ADT_FLOAT
 } attrib_data_type_t;

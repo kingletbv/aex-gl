@@ -1112,6 +1112,80 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     }
                     break;
                   }
+                  case ADT_INT: {
+                    int32_t *restrict pi32;
+                    if (!attr->normalize_) {
+                      if (attr->stride_ != sizeof(int32_t)) {
+                        size_t stride = attr->stride_;
+                        for (row = 0; row < num_rows; ++row) {
+                          pi32 = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                          *pf++ = (float)*pi32;
+                        }
+                      }
+                      else {
+                        pi32 = (int32_t *restrict)p;
+                        for (row = 0; row < num_rows; ++row) {
+                          *pf++ = (float)pi32[indices[row]];
+                        }
+                      }
+                    }
+                    else /* attr->normalize to 0..1 */ {
+                      /* this is not ideal but prevents compilers converting it into divison (testing
+                       * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
+                      float norm = 2.f/65535;
+                      if (attr->stride_ != sizeof(int32_t)) {
+                        size_t stride = attr->stride_;
+                        for (row = 0; row < num_rows; ++row) {
+                          pi32 = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                          *pf++ = (((float)*pi32) + 2147483648.f) * norm - 1.f;
+                        }
+                      }
+                      else {
+                        pi32 = (uint32_t *restrict)p;
+                        for (row = 0; row < num_rows; ++row) {
+                          *pf++ = ((float)pi32[indices[row]] +  2147483648.f) * norm - 1.f;
+                        }
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_INT: {
+                    uint32_t *restrict pu32;
+                    if (!attr->normalize_) {
+                      if (attr->stride_ != sizeof(uint32_t)) {
+                        size_t stride = attr->stride_;
+                        for (row = 0; row < num_rows; ++row) {
+                          pu32 = (uint32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                          *pf++ = (float)*pu32;
+                        }
+                      }
+                      else {
+                        pu32 = (uint32_t *restrict)p;
+                        for (row = 0; row < num_rows; ++row) {
+                          *pf++ = (float)pu32[indices[row]];
+                        }
+                      }
+                    }
+                    else /* attr->normalize to 0..1 */ {
+                      /* this is not ideal but prevents compilers converting it into divison (testing
+                       * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
+                      float norm = (float)(1./4294967295.);
+                      if (attr->stride_ != sizeof(uint32_t)) {
+                        size_t stride = attr->stride_;
+                        for (row = 0; row < num_rows; ++row) {
+                          pu32 = (uint32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                          *pf++ = ((float)*pu32) * norm;
+                        }
+                      }
+                      else {
+                        pu32 = (uint32_t *restrict)p;
+                        for (row = 0; row < num_rows; ++row) {
+                          *pf++ = ((float)pu32[indices[row]]) * norm;
+                        }
+                      }
+                    }
+                    break;
+                  }
                   case ADT_FIXED: {
                     int32_t *restrict pfixed;
                     if (attr->stride_ != sizeof(int32_t)) {
@@ -1263,6 +1337,40 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     }
                     break;
                   }
+                  case ADT_INT: {
+                    int32_t *restrict pi32;
+                    if (attr->stride_ != sizeof(int32_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pi32 = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu8++ = (uint8_t)*pi32;
+                      }
+                    }
+                    else {
+                      pi32 = (int32_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu8++ = (uint8_t)pi32[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_INT: {
+                    uint32_t *restrict pu32;
+                    if (attr->stride_ != sizeof(uint32_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pu32 = (uint32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu8++ = (uint8_t)*pu32;
+                      }
+                    }
+                    else {
+                      pu32 = (uint32_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu8++ = (uint8_t)pu32[indices[row]];
+                      }
+                    }
+                    break;
+                  }
                   case ADT_FIXED: {
                     int32_t *restrict pfixed;
                     if (attr->stride_ != sizeof(int32_t)) {
@@ -1410,6 +1518,40 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     }
                     break;
                   }
+                  case ADT_INT: {
+                    int32_t *restrict pi32;
+                    if (attr->stride_ != sizeof(int32_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pi32 = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu16++ = (uint16_t)*pi32;
+                      }
+                    }
+                    else {
+                      pi32 = (int32_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu16++ = (uint16_t)pi32[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_INT: {
+                    uint32_t *restrict pu32;
+                    if (attr->stride_ != sizeof(uint32_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pu32 = (uint32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu16++ = (uint16_t)*pu32;
+                      }
+                    }
+                    else {
+                      pu32 = (uint32_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu16++ = (uint16_t)pu16[indices[row]];
+                      }
+                    }
+                    break;
+                  }
                   case ADT_FIXED: {
                     int32_t *restrict pfixed;
                     if (attr->stride_ != sizeof(int32_t)) {
@@ -1553,6 +1695,40 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                       pu16 = (uint16_t *restrict)p;
                       for (row = 0; row < num_rows; ++row) {
                         *pi32++ = (int32_t)pu16[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_INT: {
+                    int32_t *restrict psi32;
+                    if (attr->stride_ != sizeof(int32_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        psi32 = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pi32++ = *psi32;
+                      }
+                    }
+                    else {
+                      psi32 = (int32_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pi32++ = psi32[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_INT: {
+                    uint32_t *restrict pu32;
+                    if (attr->stride_ != sizeof(uint32_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pu32 = (uint32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pi32++ = (int32_t)*pu32;
+                      }
+                    }
+                    else {
+                      pu32 = (uint32_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pi32++ = (int32_t)pu32[indices[row]];
                       }
                     }
                     break;
