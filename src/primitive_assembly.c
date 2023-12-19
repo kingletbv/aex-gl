@@ -1175,6 +1175,134 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
           case PACT_POINT_SIZE:
           case PACT_ATTRIBUTE:
           case PACT_VARYING:
+            if (pacd->attrib_index_ != -1) {
+              struct attrib *attr = as->attribs_ + pacd->attrib_index_;
+
+              if ((attr->size_ <= pacd->attrib_element_index_) ||
+                  !attr->enabled_) {
+                uint8_t u8 = (uint8_t)attr->generic_values_[pacd->attrib_element_index_];
+                for (row = 0; row < num_rows; ++row) {
+                  *pu8++ = u8;
+                }
+              }
+              else {
+                void *p;
+                if (attr->buf_) {
+                  p = ((uint8_t *)attr->buf_->data_) + (uintptr_t)attr->ptr_;
+                }
+                else {
+                  p = attr->ptr_;
+                }
+
+                switch (attr->data_type_) {
+                  case ADT_BYTE: {
+                    int8_t *restrict pi8;
+                    if (attr->stride_ != sizeof(int8_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pi8 = (int8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu8++ = (uint8_t)*pi8;
+                      }
+                    }
+                    else {
+                      pi8 = (int8_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu8++ = (uint8_t)pi8[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_BYTE: {
+                    uint8_t *restrict psu8;
+                    if (attr->stride_ != sizeof(uint8_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        psu8 = (uint8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu8++ = (uint8_t)*psu8;
+                      }
+                    }
+                    else {
+                      psu8 = (uint8_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu8++ = (uint8_t)psu8[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_SHORT: {
+                    int16_t *restrict pi16;
+                    if (attr->stride_ != sizeof(int16_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pi16 = (int16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu8++ = (uint8_t)*pi16;
+                      }
+                    }
+                    else {
+                      pi16 = (int16_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu8++ = (uint8_t)pi16[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_SHORT: {
+                    uint16_t *restrict pu16;
+                    if (attr->stride_ != sizeof(uint16_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pu16 = (uint16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu8++ = (uint8_t)*pu16;
+                      }
+                    }
+                    else {
+                      pu16 = (uint16_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu8++ = (uint8_t)pu16[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_FIXED: {
+                    int32_t *restrict pfixed;
+                    if (attr->stride_ != sizeof(int32_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pfixed = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu8++ = (uint8_t)((*pfixed) >> 16);
+                      }
+                    }
+                    else {
+                      pfixed = (int32_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu8++ = (uint8_t)(pfixed[indices[row]] >> 16);
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_FLOAT: {
+                    float *restrict pf;
+                    if (attr->stride_ != sizeof(float)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pf = (float *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu8++ = (uint8_t)*pf;
+                      }
+                    }
+                    else {
+                      pf = (float *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu8++ = (uint8_t)pf[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                }
+              }
+            }
+            else {
+              /* Cannot gather attribs that are unbound */
+            }
             break;
         }
         break;
@@ -1194,14 +1322,288 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
           case PACT_POINT_SIZE:
           case PACT_ATTRIBUTE:
           case PACT_VARYING:
+            if (pacd->attrib_index_ != -1) {
+              struct attrib *attr = as->attribs_ + pacd->attrib_index_;
+
+              if ((attr->size_ <= pacd->attrib_element_index_) ||
+                !attr->enabled_) {
+                uint16_t u16 = (uint16_t)attr->generic_values_[pacd->attrib_element_index_];
+                for (row = 0; row < num_rows; ++row) {
+                  *pu16++ = u16;
+                }
+              }
+              else {
+                void *p;
+                if (attr->buf_) {
+                  p = ((uint8_t *)attr->buf_->data_) + (uintptr_t)attr->ptr_;
+                }
+                else {
+                  p = attr->ptr_;
+                }
+
+                switch (attr->data_type_) {
+                  case ADT_BYTE: {
+                    int8_t *restrict pi8;
+                    if (attr->stride_ != sizeof(int8_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pi8 = (int8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu16++ = (uint16_t)*pi8;
+                      }
+                    }
+                    else {
+                      pi8 = (int8_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu16++ = (uint16_t)pi8[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_BYTE: {
+                    uint8_t *restrict pu8;
+                    if (attr->stride_ != sizeof(uint8_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pu8 = (uint8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu16++ = (uint16_t)*pu8;
+                      }
+                    }
+                    else {
+                      pu8 = (uint8_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu16++ = (uint16_t)pu8[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_SHORT: {
+                    int16_t *restrict pi16;
+                    if (attr->stride_ != sizeof(int16_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pi16 = (int16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu16++ = (uint16_t)*pi16;
+                      }
+                    }
+                    else {
+                      pi16 = (int16_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu16++ = (uint16_t)pi16[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_SHORT: {
+                    uint16_t *restrict psu16;
+                    if (attr->stride_ != sizeof(uint16_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        psu16 = (uint16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu16++ = *psu16;
+                      }
+                    }
+                    else {
+                      psu16 = (uint16_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu16++ = psu16[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_FIXED: {
+                    int32_t *restrict pfixed;
+                    if (attr->stride_ != sizeof(int32_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pfixed = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu16++ = (uint16_t)((*pfixed) >> 16);
+                      }
+                    }
+                    else {
+                      pfixed = (int32_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu16++ = (uint16_t)(pfixed[indices[row]] >> 16);
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_FLOAT: {
+                    float *restrict pf;
+                    if (attr->stride_ != sizeof(float)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pf = (float *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pu16++ = (uint16_t)*pf;
+                      }
+                    }
+                    else {
+                      pf = (float *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pu16++ = (uint16_t)pf[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                }
+              }
+            }
+            else {
+              /* Cannot gather attribs that are unbound */
+            }
             break;
         }
         break;
       }
       case PADT_INT32: {
-        int32_t *pi32 = (int32_t *)data;
+        int32_t *restrict pi32 = (int32_t *restrict)data;
+        switch (pacd->col_type_) {
+          case PACT_EXECUTION_CHAIN:
+            for (row = 0; row < num_rows; ++row) {
+              *pi32++ = 1;
+            }
+            break;
+          case PACT_POSITION_X:
+          case PACT_POSITION_Y:
+          case PACT_POSITION_Z:
+          case PACT_POSITION_W:
+          case PACT_POINT_SIZE:
+          case PACT_ATTRIBUTE:
+          case PACT_VARYING:
+            if (pacd->attrib_index_ != -1) {
+              struct attrib *attr = as->attribs_ + pacd->attrib_index_;
+
+              if ((attr->size_ <= pacd->attrib_element_index_) ||
+                !attr->enabled_) {
+                uint16_t u16 = (uint16_t)attr->generic_values_[pacd->attrib_element_index_];
+                for (row = 0; row < num_rows; ++row) {
+                  *pi32++ = u16;
+                }
+              }
+              else {
+                void *p;
+                if (attr->buf_) {
+                  p = ((uint8_t *)attr->buf_->data_) + (uintptr_t)attr->ptr_;
+                }
+                else {
+                  p = attr->ptr_;
+                }
+
+                switch (attr->data_type_) {
+                  case ADT_BYTE: {
+                    int8_t *restrict pi8;
+                    if (attr->stride_ != sizeof(int8_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pi8 = (int8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pi32++ = (int32_t)*pi8;
+                      }
+                    }
+                    else {
+                      pi8 = (int8_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pi32++ = (int32_t)pi8[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_BYTE: {
+                    uint8_t *restrict pu8;
+                    if (attr->stride_ != sizeof(uint8_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pu8 = (uint8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pi32++ = (int32_t)*pu8;
+                      }
+                    }
+                    else {
+                      pu8 = (uint8_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pi32++ = (int32_t)pu8[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_SHORT: {
+                    int16_t *restrict pi16;
+                    if (attr->stride_ != sizeof(int16_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pi16 = (int16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pi32++ = (int32_t)*pi16;
+                      }
+                    }
+                    else {
+                      pi16 = (int16_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pi32++ = (int32_t)pi16[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_UNSIGNED_SHORT: {
+                    uint16_t *restrict pu16;
+                    if (attr->stride_ != sizeof(uint16_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pu16 = (uint16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pi32++ = (int32_t)*pu16;
+                      }
+                    }
+                    else {
+                      pu16 = (uint16_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pi32++ = (int32_t)pu16[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_FIXED: {
+                    int32_t *restrict pfixed;
+                    if (attr->stride_ != sizeof(int32_t)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pfixed = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pi32++ = (int32_t)((*pfixed) >> 16);
+                      }
+                    }
+                    else {
+                      pfixed = (int32_t *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pi32++ = (int32_t)(pfixed[indices[row]] >> 16);
+                      }
+                    }
+                    break;
+                  }
+                  case ADT_FLOAT: {
+                    float *restrict pf;
+                    if (attr->stride_ != sizeof(float)) {
+                      size_t stride = attr->stride_;
+                      for (row = 0; row < num_rows; ++row) {
+                        pf = (float *restrict)(((uint8_t *)p) + stride * indices[row]);
+                        *pi32++ = (int32_t)*pf;
+                      }
+                    }
+                    else {
+                      pf = (float *restrict)p;
+                      for (row = 0; row < num_rows; ++row) {
+                        *pi32++ = (int32_t)pf[indices[row]];
+                      }
+                    }
+                    break;
+                  }
+                }
+              }
+            }
+            else {
+              /* Cannot gather attribs that are unbound */
+            }
+            break;
+        }
         break;
       }
     }
   }
+  pa->num_rows_ += num_rows;
+
+  return !!pa->num_rows_;
 }
