@@ -1906,8 +1906,8 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
 
                   uint8_t *restrict exec_chain = (uint8_t *restrict)fragbuf->column_data_[FB_IDX_EXECUTION_CHAIN];
                   uint8_t *restrict mask = (uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK];
-                  uint8_t *restrict * rgb_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_PIXEL_PTR];
-                  uint8_t *restrict * zbuf_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_ZBUF_PTR];
+                  uint8_t *restrict *restrict rgb_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_PIXEL_PTR];
+                  uint8_t *restrict *restrict zbuf_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_ZBUF_PTR];
                   int32_t *restrict x_coord = (int32_t *restrict)fragbuf->column_data_[FB_IDX_X_COORD];
                   int32_t *restrict y_coord = (int32_t *restrict)fragbuf->column_data_[FB_IDX_Y_COORD];
                   uint32_t *restrict zbuf_value = (uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE];
