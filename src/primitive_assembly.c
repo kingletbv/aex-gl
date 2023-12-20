@@ -1984,11 +1984,13 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                     // XXX: Blend functions or whatnot go here.
                     size_t frag_row;
                     for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
-                      (*rgb_ptr)[0] = 0xFF;
-                      (*rgb_ptr)[1] = 0x00;
-                      (*rgb_ptr)[2] = 0x00;
-                      (*rgb_ptr)[3] = 0xFF;
 
+                      if (*mask) {
+                        (*rgb_ptr)[0] = 0xFF;
+                        (*rgb_ptr)[1] = 0x00;
+                        (*rgb_ptr)[2] = 0x00;
+                        (*rgb_ptr)[3] = 0xFF;
+                      }
                       exec_chain++;
                       mask++;
                       rgb_ptr++;
