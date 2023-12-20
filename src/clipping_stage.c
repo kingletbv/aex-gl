@@ -82,7 +82,7 @@ static size_t clipping_stage_process_triangle_plane(struct clipping_stage *cs,
       /* v1 inside */
       if (d2 >= 0.f) {
         /* v2 inside, all inside, pass triangle */
-        memcpy(output_v, input_v, cs->num_varyings_ * 3);
+        memcpy(output_v, input_v, sizeof(float) * cs->num_varyings_ * 3);
         output_v += cs->num_varyings_ * 3;
         return 1;
       }
