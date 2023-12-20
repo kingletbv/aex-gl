@@ -4484,18 +4484,18 @@ int main(int argc, char **argv) {
   uint32_t vp_width = 256;
   uint32_t vp_height = 256;
   float depth_range_near = 0.f;
-  float depth_range_far = 0.f;
+  float depth_range_far = 1.f;
   uint32_t screen_width = 256;
   uint32_t screen_height = 256;
-  uint32_t max_z = 0xFFFFFFFF;
+  uint32_t max_z = 0xFFFF;
 
   /* Going for XYZ, will lean on W being implied 1.
    * Trying to get 1.f on the z-buf, but this is likely going to be difficult to fit
    * in a float. */
   float verts[] = {
-    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 2.f / (double)(0xFFFFFFFF)),
-    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f + 2.f / (double)(0xFFFFFFFF)),
-    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f + 2.f / (double)(0xFFFFFFFF))
+    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 2.f / (double)(max_z)),
+    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f + 2.f / (double)(max_z)),
+    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f + 2.f / (double)(max_z))
   };
   int xyz_attr = attrib_set_alloc_attrib(&as);
   if (xyz_attr < 0) goto exit_cleanup;
