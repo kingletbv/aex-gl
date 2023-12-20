@@ -1814,6 +1814,11 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
     }
   }
   pa->num_rows_ += num_rows;
+  
+  if (pa->num_vertex_indices_ > num_rows) {
+    memcpy(pa->vertex_indices_, pa->vertex_indices_ + num_rows, num_rows - pa->num_vertex_indices_);
+  }
+  pa->num_vertex_indices_ -= num_rows;
 
   return !!pa->num_rows_;
 }
@@ -1871,81 +1876,103 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
             break;
           case PAM_TRIANGLES:
           case PAM_TRIANGLE_STRIP:
-          case PAM_TRIANGLE_FAN:
-            if (clipping_stage_process_triangle(cs)) {
-              /* XXX: Ugly reliance on size here, we stitch the SX,SY,SZ variables alongside 
-               *      the clipping output triangles, however the one is in floats, the other is in
-               *      int32_t's. We assume sizeof(float) == sizeof(int32_t). Find some better way */
-              assert(sizeof(float) == sizeof(int32_t));
+          case PAM_TRIANGLE_FAN: {
+            size_t tri_row_index;
+            for (tri_row_index = 0; tri_row_index < pa->num_rows_; tri_row_index += 3) {
+              float *iv0, *iv1, *iv2;
+              iv0 = cs->input_varyings_;
+              iv1 = iv0 + cs->num_varyings_;
+              iv2 = iv1 + cs->num_varyings_;
+              iv0[CLIPPING_STAGE_IDX_X] = ((float *)(pa->column_data_[PAC_IDX_POSITION_X]))[tri_row_index];
+              iv0[CLIPPING_STAGE_IDX_Y] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Y]))[tri_row_index];
+              iv0[CLIPPING_STAGE_IDX_Z] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Z]))[tri_row_index];
+              iv0[CLIPPING_STAGE_IDX_W] = ((float *)(pa->column_data_[PAC_IDX_POSITION_W]))[tri_row_index];
+              iv1[CLIPPING_STAGE_IDX_X] = ((float *)(pa->column_data_[PAC_IDX_POSITION_X]))[tri_row_index + 1];
+              iv1[CLIPPING_STAGE_IDX_Y] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Y]))[tri_row_index + 1];
+              iv1[CLIPPING_STAGE_IDX_Z] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Z]))[tri_row_index + 1];
+              iv1[CLIPPING_STAGE_IDX_W] = ((float *)(pa->column_data_[PAC_IDX_POSITION_W]))[tri_row_index + 1];
+              iv2[CLIPPING_STAGE_IDX_X] = ((float *)(pa->column_data_[PAC_IDX_POSITION_X]))[tri_row_index + 2];
+              iv2[CLIPPING_STAGE_IDX_Y] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Y]))[tri_row_index + 2];
+              iv2[CLIPPING_STAGE_IDX_Z] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Z]))[tri_row_index + 2];
+              iv2[CLIPPING_STAGE_IDX_W] = ((float *)(pa->column_data_[PAC_IDX_POSITION_W]))[tri_row_index + 2];
 
-              viewport_transformation(vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
-                                      screen_width, screen_height, max_z, 
-                                      3 * cs->num_triangles_in_b_, 
-                                      cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_X,
-                                      cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_Y,
-                                      cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_Z,
-                                      cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_W,
-                                      cs->num_varyings_ * sizeof(float),
-                                      (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SX,
-                                      (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SY,
-                                      (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SZ,
-                                      cs->num_varyings_ * sizeof(int32_t));
+              if (clipping_stage_process_triangle(cs)) {
+                /* XXX: Ugly reliance on size here, we stitch the SX,SY,SZ variables alongside 
+                 *      the clipping output triangles, however the one is in floats, the other is in
+                 *      int32_t's. We assume sizeof(float) == sizeof(int32_t). Find some better way */
+                assert(sizeof(float) == sizeof(int32_t));
 
-              size_t clip_tri_idx;
-              for (clip_tri_idx = 0; (clip_tri_idx + 2) < cs->num_triangles_in_b_; clip_tri_idx += 3) {
-                float *v0 = cs->triangle_varyings_b_ + cs->num_varyings_ * clip_tri_idx;
-                float *v1 = v0 + cs->num_varyings_;
-                float *v2 = v1 + cs->num_varyings_;
-                int32_t sx0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SX);
-                int32_t sy0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SY);
-                int32_t sz0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SZ);
-                int32_t sx1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SX);
-                int32_t sy1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SY);
-                int32_t sz1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SZ);
-                int32_t sx2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SX);
-                int32_t sy2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SY);
-                int32_t sz2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SZ);
+                viewport_transformation(vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
+                                        screen_width, screen_height, max_z, 
+                                        3 * cs->num_triangles_in_b_, 
+                                        cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_X,
+                                        cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_Y,
+                                        cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_Z,
+                                        cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_W,
+                                        cs->num_varyings_ * sizeof(float),
+                                        (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SX,
+                                        (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SY,
+                                        (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SZ,
+                                        cs->num_varyings_ * sizeof(int32_t));
 
-                while (rasterizer_triangle(ras, fragbuf, 
-                                           rgba, 256*4,     // bitmap
-                                           zbuf, zbuf_stride, zbuf_step,  // z-buffer
-                                           0, 0, 256, 256,  // scissor-rect
-                                           sx0, sy0, sz0,
-                                           sx1, sy1, sz1,
-                                           sx2, sy2, sz2)) {
-                  // XXX: Run fragment shader on top of the fragment buffer here...
+                size_t clip_tri_idx;
+                for (clip_tri_idx = 0; (clip_tri_idx + 2) < cs->num_triangles_in_b_; clip_tri_idx += 3) {
+                  float *v0 = cs->triangle_varyings_b_ + cs->num_varyings_ * clip_tri_idx;
+                  float *v1 = v0 + cs->num_varyings_;
+                  float *v2 = v1 + cs->num_varyings_;
+                  int32_t sx0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SX);
+                  int32_t sy0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SY);
+                  int32_t sz0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SZ);
+                  int32_t sx1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SX);
+                  int32_t sy1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SY);
+                  int32_t sz1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SZ);
+                  int32_t sx2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SX);
+                  int32_t sy2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SY);
+                  int32_t sz2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SZ);
 
-                  uint8_t *restrict exec_chain = (uint8_t *restrict)fragbuf->column_data_[FB_IDX_EXECUTION_CHAIN];
-                  uint8_t *restrict mask = (uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK];
-                  uint8_t *restrict *restrict rgb_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_PIXEL_PTR];
-                  uint8_t *restrict *restrict zbuf_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_ZBUF_PTR];
-                  int32_t *restrict x_coord = (int32_t *restrict)fragbuf->column_data_[FB_IDX_X_COORD];
-                  int32_t *restrict y_coord = (int32_t *restrict)fragbuf->column_data_[FB_IDX_Y_COORD];
-                  uint32_t *restrict zbuf_value = (uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE];
+                  while (rasterizer_triangle(ras, fragbuf, 
+                                             rgba, 256*4,     // bitmap
+                                             zbuf, zbuf_stride, zbuf_step,  // z-buffer
+                                             0, 0, 256, 256,  // scissor-rect
+                                             sx0, sy0, sz0,
+                                             sx1, sy1, sz1,
+                                             sx2, sy2, sz2)) {
+                    // XXX: Run fragment shader on top of the fragment buffer here...
 
-                  // Write out / blend pixels
+                    uint8_t *restrict exec_chain = (uint8_t *restrict)fragbuf->column_data_[FB_IDX_EXECUTION_CHAIN];
+                    uint8_t *restrict mask = (uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK];
+                    uint8_t *restrict *restrict rgb_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_PIXEL_PTR];
+                    uint8_t *restrict *restrict zbuf_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_ZBUF_PTR];
+                    int32_t *restrict x_coord = (int32_t *restrict)fragbuf->column_data_[FB_IDX_X_COORD];
+                    int32_t *restrict y_coord = (int32_t *restrict)fragbuf->column_data_[FB_IDX_Y_COORD];
+                    uint32_t *restrict zbuf_value = (uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE];
+
+                    // Write out / blend pixels
                   
-                  // XXX: Blend functions or whatnot go here.
-                  size_t frag_row;
-                  for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
-                    (*rgb_ptr)[0] = 0xFF;
-                    (*rgb_ptr)[1] = 0x00;
-                    (*rgb_ptr)[2] = 0x00;
-                    (*rgb_ptr)[3] = 0xFF;
+                    // XXX: Blend functions or whatnot go here.
+                    size_t frag_row;
+                    for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                      (*rgb_ptr)[0] = 0xFF;
+                      (*rgb_ptr)[1] = 0x00;
+                      (*rgb_ptr)[2] = 0x00;
+                      (*rgb_ptr)[3] = 0xFF;
 
-                    exec_chain++;
-                    mask++;
-                    rgb_ptr++;
-                    zbuf_ptr++;
-                    x_coord++;
-                    y_coord++;
-                    zbuf_value++;
+                      exec_chain++;
+                      mask++;
+                      rgb_ptr++;
+                      zbuf_ptr++;
+                      x_coord++;
+                      y_coord++;
+                      zbuf_value++;
+                    }
                   }
                 }
               }
             }
+            pa->num_rows_ = 0;
             
             break;
+          }
         }
       }
 
