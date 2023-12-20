@@ -47,7 +47,7 @@ struct clipping_stage {
    */
   size_t num_varyings_;
 
-  /* Input varyings, contains num_varyings_ floats */
+  /* Input varyings, contains num_varyings_*3 floats */
   float *input_varyings_;
 
   /* Buffers for use during clipping. Each buffer has room for CLIPPING_STAGE_MAX_NUM_TRIANGLES.
