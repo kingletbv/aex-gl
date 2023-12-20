@@ -999,6 +999,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
 
                 switch (attr->data_type_) {
                   case ADT_BYTE: {
+                    p = ((int8_t *)p) + pacd->attrib_element_index_;
                     int8_t *restrict pi8;
                     if (!attr->normalize_) {
                       if (attr->stride_ != sizeof(int8_t)) {
@@ -1036,6 +1037,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_BYTE: {
+                    p = ((uint8_t *)p) + pacd->attrib_element_index_;
                     uint8_t *restrict pu8;
                     if (!attr->normalize_) {
                       if (attr->stride_ != sizeof(uint8_t)) {
@@ -1073,6 +1075,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_SHORT: {
+                    p = ((int16_t *)p) + pacd->attrib_element_index_;
                     int16_t *restrict pi16;
                     if (!attr->normalize_) {
                       if (attr->stride_ != sizeof(int16_t)) {
@@ -1110,6 +1113,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_SHORT: {
+                    p = ((uint16_t *)p) + pacd->attrib_element_index_;
                     uint16_t *restrict pu16;
                     if (!attr->normalize_) {
                       if (attr->stride_ != sizeof(uint16_t)) {
@@ -1147,6 +1151,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_INT: {
+                    p = ((int32_t *)p) + pacd->attrib_element_index_;
                     int32_t *restrict pi32;
                     if (!attr->normalize_) {
                       if (attr->stride_ != sizeof(int32_t)) {
@@ -1184,6 +1189,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_INT: {
+                    p = ((uint32_t *)p) + pacd->attrib_element_index_;
                     uint32_t *restrict pu32;
                     if (!attr->normalize_) {
                       if (attr->stride_ != sizeof(uint32_t)) {
@@ -1221,6 +1227,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_FIXED: {
+                    p = ((int32_t *)p) + pacd->attrib_element_index_;
                     int32_t *restrict pfixed;
                     if (attr->stride_ != sizeof(int32_t)) {
                       size_t stride = attr->stride_;
@@ -1239,6 +1246,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_FLOAT: {
+                    p = ((float *)p) + pacd->attrib_element_index_;
                     float *restrict psf;
                     if (attr->stride_ != sizeof(float)) {
                       size_t stride = attr->stride_;
@@ -1304,6 +1312,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
 
                 switch (attr->data_type_) {
                   case ADT_BYTE: {
+                    p = ((int8_t *)p) + pacd->attrib_element_index_;
                     int8_t *restrict pi8;
                     if (attr->stride_ != sizeof(int8_t)) {
                       size_t stride = attr->stride_;
@@ -1321,6 +1330,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_BYTE: {
+                    p = ((uint8_t *)p) + pacd->attrib_element_index_;
                     uint8_t *restrict psu8;
                     if (attr->stride_ != sizeof(uint8_t)) {
                       size_t stride = attr->stride_;
@@ -1338,6 +1348,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_SHORT: {
+                    p = ((int16_t *)p) + pacd->attrib_element_index_;
                     int16_t *restrict pi16;
                     if (attr->stride_ != sizeof(int16_t)) {
                       size_t stride = attr->stride_;
@@ -1355,6 +1366,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_SHORT: {
+                    p = ((uint16_t *)p) + pacd->attrib_element_index_;
                     uint16_t *restrict pu16;
                     if (attr->stride_ != sizeof(uint16_t)) {
                       size_t stride = attr->stride_;
@@ -1372,6 +1384,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_INT: {
+                    p = ((int32_t *)p) + pacd->attrib_element_index_;
                     int32_t *restrict pi32;
                     if (attr->stride_ != sizeof(int32_t)) {
                       size_t stride = attr->stride_;
@@ -1389,6 +1402,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_INT: {
+                    p = ((uint32_t *)p) + pacd->attrib_element_index_;
                     uint32_t *restrict pu32;
                     if (attr->stride_ != sizeof(uint32_t)) {
                       size_t stride = attr->stride_;
@@ -1406,6 +1420,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_FIXED: {
+                    p = ((int32_t *)p) + pacd->attrib_element_index_;
                     int32_t *restrict pfixed;
                     if (attr->stride_ != sizeof(int32_t)) {
                       size_t stride = attr->stride_;
@@ -1423,6 +1438,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_FLOAT: {
+                    p = ((float *)p) + pacd->attrib_element_index_;
                     float *restrict pf;
                     if (attr->stride_ != sizeof(float)) {
                       size_t stride = attr->stride_;
@@ -1485,6 +1501,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
 
                 switch (attr->data_type_) {
                   case ADT_BYTE: {
+                    p = ((int8_t *)p) + pacd->attrib_element_index_;
                     int8_t *restrict pi8;
                     if (attr->stride_ != sizeof(int8_t)) {
                       size_t stride = attr->stride_;
@@ -1502,6 +1519,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_BYTE: {
+                    p = ((uint8_t *)p) + pacd->attrib_element_index_;
                     uint8_t *restrict pu8;
                     if (attr->stride_ != sizeof(uint8_t)) {
                       size_t stride = attr->stride_;
@@ -1519,6 +1537,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_SHORT: {
+                    p = ((int16_t *)p) + pacd->attrib_element_index_;
                     int16_t *restrict pi16;
                     if (attr->stride_ != sizeof(int16_t)) {
                       size_t stride = attr->stride_;
@@ -1536,6 +1555,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_SHORT: {
+                    p = ((uint16_t *)p) + pacd->attrib_element_index_;
                     uint16_t *restrict psu16;
                     if (attr->stride_ != sizeof(uint16_t)) {
                       size_t stride = attr->stride_;
@@ -1553,6 +1573,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_INT: {
+                    p = ((int32_t *)p) + pacd->attrib_element_index_;
                     int32_t *restrict pi32;
                     if (attr->stride_ != sizeof(int32_t)) {
                       size_t stride = attr->stride_;
@@ -1570,6 +1591,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_INT: {
+                    p = ((uint32_t *)p) + pacd->attrib_element_index_;
                     uint32_t *restrict pu32;
                     if (attr->stride_ != sizeof(uint32_t)) {
                       size_t stride = attr->stride_;
@@ -1587,6 +1609,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_FIXED: {
+                    p = ((int32_t *)p) + pacd->attrib_element_index_;
                     int32_t *restrict pfixed;
                     if (attr->stride_ != sizeof(int32_t)) {
                       size_t stride = attr->stride_;
@@ -1604,6 +1627,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_FLOAT: {
+                    p = ((float *)p) + pacd->attrib_element_index_;
                     float *restrict pf;
                     if (attr->stride_ != sizeof(float)) {
                       size_t stride = attr->stride_;
@@ -1666,6 +1690,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
 
                 switch (attr->data_type_) {
                   case ADT_BYTE: {
+                    p = ((int8_t *)p) + pacd->attrib_element_index_;
                     int8_t *restrict pi8;
                     if (attr->stride_ != sizeof(int8_t)) {
                       size_t stride = attr->stride_;
@@ -1683,6 +1708,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_BYTE: {
+                    p = ((uint8_t *)p) + pacd->attrib_element_index_;
                     uint8_t *restrict pu8;
                     if (attr->stride_ != sizeof(uint8_t)) {
                       size_t stride = attr->stride_;
@@ -1700,6 +1726,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_SHORT: {
+                    p = ((int16_t *)p) + pacd->attrib_element_index_;
                     int16_t *restrict pi16;
                     if (attr->stride_ != sizeof(int16_t)) {
                       size_t stride = attr->stride_;
@@ -1717,6 +1744,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_SHORT: {
+                    p = ((uint16_t *)p) + pacd->attrib_element_index_;
                     uint16_t *restrict pu16;
                     if (attr->stride_ != sizeof(uint16_t)) {
                       size_t stride = attr->stride_;
@@ -1734,6 +1762,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_INT: {
+                    p = ((int32_t *)p) + pacd->attrib_element_index_;
                     int32_t *restrict psi32;
                     if (attr->stride_ != sizeof(int32_t)) {
                       size_t stride = attr->stride_;
@@ -1751,6 +1780,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_UNSIGNED_INT: {
+                    p = ((uint32_t *)p) + pacd->attrib_element_index_;
                     uint32_t *restrict pu32;
                     if (attr->stride_ != sizeof(uint32_t)) {
                       size_t stride = attr->stride_;
@@ -1768,6 +1798,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_FIXED: {
+                    p = ((int32_t *)p) + pacd->attrib_element_index_;
                     int32_t *restrict pfixed;
                     if (attr->stride_ != sizeof(int32_t)) {
                       size_t stride = attr->stride_;
@@ -1785,6 +1816,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
                     break;
                   }
                   case ADT_FLOAT: {
+                    p = ((float *)p) + pacd->attrib_element_index_;
                     float *restrict pf;
                     if (attr->stride_ != sizeof(float)) {
                       size_t stride = attr->stride_;
@@ -1965,6 +1997,8 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                       y_coord++;
                       zbuf_value++;
                     }
+
+                    fragbuf->num_rows_ = 0;
                   }
                 }
               }
