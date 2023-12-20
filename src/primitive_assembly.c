@@ -1986,10 +1986,12 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                     for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
 
                       if (*mask) {
-                        (*rgb_ptr)[0] = 0xFF;
-                        (*rgb_ptr)[1] = 0x00;
-                        (*rgb_ptr)[2] = 0x00;
-                        (*rgb_ptr)[3] = 0xFF;
+                        uint32_t z = *zbuf_value;
+                        uint8_t *pixel = *rgb_ptr;
+                        pixel[0] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                        pixel[1] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                        pixel[2] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                        pixel[3] = 0xFF;
                       }
                       exec_chain++;
                       mask++;
