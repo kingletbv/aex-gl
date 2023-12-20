@@ -41,6 +41,7 @@ typedef enum primitive_assembly_data_type {
 #define PAC_IDX_POSITION_Z 3
 #define PAC_IDX_POSITION_W 4
 #define PAC_IDX_POINT_SIZE 5
+#define PAC_IDX_NUM_FIXED_IDX 6
 
 typedef enum primitive_assembly_column_type {
   PACT_EXECUTION_CHAIN,
@@ -123,6 +124,15 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
 
 int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attrib_set *as);
 
+void primitive_assembly_draw_elements(struct primitive_assembly *pa,
+                                      struct attrib_set *as,
+                                      struct clipping_stage *cs,
+                                      struct rasterizer *ras,
+                                      struct fragment_buffer *fragbuf,
+                                      primitive_assembly_mode_t mode, 
+                                      size_t num_elements,
+                                      primitive_assembly_index_type_t index_type,
+                                      void *indices);
 
 #ifdef __cplusplus
 } /* extern "C" */

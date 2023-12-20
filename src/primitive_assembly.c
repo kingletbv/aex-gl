@@ -134,7 +134,7 @@ int primitive_assembly_alloc_buffers(struct primitive_assembly *pa) {
   if (!pa->num_cols_) {
     /* First-time initialization of the column,
      * initialize with execution-chain + XYZW */
-    size_t num_cols = 5;
+    size_t num_cols = PAC_IDX_NUM_FIXED_IDX;
     if (pa->column_descriptors_) free(pa->column_descriptors_);
     pa->column_descriptors_ = (struct primitive_assembly_column_descriptor *)malloc(sizeof(struct primitive_assembly_column_descriptor) * num_cols);
     if (!pa->column_descriptors_) {
