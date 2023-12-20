@@ -4493,7 +4493,7 @@ int main(int argc, char **argv) {
    * Trying to get 1.f on the z-buf, but this is likely going to be difficult to fit
    * in a float. */
   float verts[] = {
-    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 1.000961289 * 2.f / (double)(max_z)),
+    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 1. * 2.f / (double)(max_z)),
     -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f),
     -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f)
   };

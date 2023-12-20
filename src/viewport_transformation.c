@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+#ifndef MATH_H_INCLUDED
+#define MATH_H_INCLUDED
+#include <math.h>
+#endif
+
 #ifndef RASTERIZER_H_INCLUDED
 #define RASTERIZER_H_INCLUDED
 #include "rasterizer.h"
@@ -47,7 +52,10 @@ void viewport_transformation(int32_t vp_x, int32_t vp_y,
     *osx = (int32_t)((half_w * (*px * oow) + center_x) * (1 << RASTERIZER_SUBPIXEL_BITS));
     *osy = subpixel_screen_height - (int32_t)((half_h * (*py * oow) + center_y) * (1 << RASTERIZER_SUBPIXEL_BITS));
     float z_rescaled_0to1 = half_depth_range * *pz + depth_range_middle;
-    *osz = (uint32_t)(max_z * z_rescaled_0to1);
+    /* llroundf rounds to nearest int64, which we then cast down to uint32 for the z-buffer value.
+     * This is necessary so we induce the desired round-to-nearest behavior, rather than whatever
+     * arbitrary rounding mode the FPU/SSE/compiler might otherwise do (e.g. truncation.) */
+    *osz = (uint32_t)llroundf(max_z * z_rescaled_0to1);
 
     px = (float *)(input_stride + (char *)px);
     py = (float *)(input_stride + (char *)py);
