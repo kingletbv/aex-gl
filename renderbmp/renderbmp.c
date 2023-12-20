@@ -53,14 +53,34 @@
 #include "glsl_es1_compiler.h"
 #endif
 
-#ifndef FRAGMENT_BUFFER_H_INCLUDED
-#define FRAGMENT_BUFFER_H_INCLUDED
-#include "fragment_buffer.h"
+#ifndef PRIMITIVE_ASSEMBLY_H_INCLUDED
+#define PRIMITIVE_ASSEMBLY_H_INCLUDED
+#include "primitive_assembly.h"
+#endif
+
+#ifndef ATTRIB_SET_H_INCLUDED
+#define ATTRIB_SET_H_INCLUDED
+#include "attrib_set.h"
+#endif
+
+#ifndef CLIPPING_STAGE_H_INCLUDED
+#define CLIPPING_STAGE_H_INCLUDED
+#include "clipping_stage.h"
+#endif
+
+#ifndef VIEWPORT_TRANSFORMATION_H_INCLUDED
+#define VIEWPORT_TRANSFORMATION_H_INCLUDED
+#include "viewport_transformation.h"
 #endif
 
 #ifndef RASTERIZER_H_INCLUDED
 #define RASTERIZER_H_INCLUDED
 #include "rasterizer.h"
+#endif
+
+#ifndef FRAGMENT_BUFFER_H_INCLUDED
+#define FRAGMENT_BUFFER_H_INCLUDED
+#include "fragment_buffer.h"
 #endif
 
 int test(void) {
@@ -4082,6 +4102,8 @@ void tri10_no_subpixels_topleft_sampled(uint8_t *rgba, size_t stride,
 
 
 int main(int argc, char **argv) {
+  int exit_ret = EXIT_FAILURE;
+
   int r;
   r = test();
   if (r) {
@@ -4398,7 +4420,7 @@ int main(int argc, char **argv) {
                      128, 16, 0x0,    /* vertex 1 */
                      16, 128, 0x0,         /* vertex 2 */
                      0, NULL);
-#elif 1
+#elif 0
   struct fragment_buffer fragbuf;
   fragment_buffer_init(&fragbuf);
   if (fragment_buffer_alloc_buffers(&fragbuf)) {
@@ -4416,7 +4438,7 @@ int main(int argc, char **argv) {
                              16  << RASTERIZER_SUBPIXEL_BITS, 128 << RASTERIZER_SUBPIXEL_BITS, 0x0)) {      /* vertex 2 */
     size_t frag_index;
     for (frag_index = 0; frag_index < fragbuf.num_rows_; ++frag_index) {
-#if 0
+      #if 0
       /* Replicating this behavior: */
       if (TL_Mask) {
         pixel_TL[0] = (uint8_t)((z_x_TL & 1) ? 0xCF : 0x3F);
@@ -4424,7 +4446,7 @@ int main(int argc, char **argv) {
         pixel_TL[2] = (uint8_t)((z_x_TL & 1) ? 0xCF : 0x3F);
         pixel_TL[3] = 0xFF;
       }
-#endif
+      #endif
       uint8_t mask = ((uint8_t *)fragbuf.column_data_[FB_IDX_MASK])[frag_index];
       if (mask) {
         uint32_t z = ((uint32_t *)fragbuf.column_data_[FB_IDX_ZBUF_VALUE])[frag_index];
@@ -4437,6 +4459,82 @@ int main(int argc, char **argv) {
     }
     fragbuf.num_rows_ = 0;
   }
+#elif 1
+  struct primitive_assembly pa;
+  struct attrib_set as;
+  struct clipping_stage cs;
+  struct rasterizer ras;
+  struct fragment_buffer fragbuf;
+
+  primitive_assembly_init(&pa);
+  attrib_set_init(&as);
+  clipping_stage_init(&cs);
+  rasterizer_init(&ras);
+  fragment_buffer_init(&fragbuf);
+
+  if (primitive_assembly_alloc_buffers(&pa) ||
+      clipping_stage_alloc_varyings(&cs, 0) ||
+      fragment_buffer_alloc_buffers(&fragbuf)) {
+    fprintf(stderr, "Failed to initialize due to allocation failure\n");
+    goto exit_cleanup;
+  }
+
+  int32_t vp_x = 0; /* left */
+  int32_t vp_y = 0; /* bottom */
+  uint32_t vp_width = 256;
+  uint32_t vp_height = 256;
+  float depth_range_near = 0.f;
+  float depth_range_far = 0.f;
+  uint32_t screen_width = 256;
+  uint32_t screen_height = 256;
+  uint32_t max_z = 0xFFFFFFFF;
+
+  /* Going for XYZ, will lean on W being implied 1.
+   * Trying to get 1.f on the z-buf, but this is likely going to be difficult to fit
+   * in a float. */
+  float verts[] = {
+    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 2.f / (double)(0xFFFFFFFF)),
+    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f + 2.f / (double)(0xFFFFFFFF)),
+    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f + 2.f / (double)(0xFFFFFFFF))
+  };
+  int xyz_attr = attrib_set_alloc_attrib(&as);
+  if (xyz_attr < 0) goto exit_cleanup;
+  as.attribs_[xyz_attr].buf_ = NULL;
+  as.attribs_[xyz_attr].size_ = 3; /* Rely on fourth coord W to be the fixed 1. preset */
+  as.attribs_[xyz_attr].data_type_ = ADT_FLOAT;
+  as.attribs_[xyz_attr].att_ = AT_VEC4;
+  as.attribs_[xyz_attr].normalize_ = 0;
+  as.attribs_[xyz_attr].enabled_ = 1;
+  as.attribs_[xyz_attr].ptr_ = verts;
+  as.attribs_[xyz_attr].stride_ = sizeof(float) * 3;
+  // as.attribs_[xyz_attr].name_ = // canonical way of setting this still to be made
+
+  pa.column_descriptors_[PACT_POSITION_X].attrib_index_ = xyz_attr;
+  pa.column_descriptors_[PACT_POSITION_X].attrib_element_index_ = 0;
+  pa.column_descriptors_[PACT_POSITION_Y].attrib_index_ = xyz_attr;
+  pa.column_descriptors_[PACT_POSITION_Y].attrib_element_index_ = 1;
+  pa.column_descriptors_[PACT_POSITION_Z].attrib_index_ = xyz_attr;
+  pa.column_descriptors_[PACT_POSITION_Z].attrib_element_index_ = 2;
+
+  uint32_t indices[] = {
+    0, 1, 2
+  };
+
+  primitive_assembly_draw_elements(&pa, &as, &cs, &ras, &fragbuf,
+                                   vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
+                                   screen_width, screen_height, max_z,
+                                   rgba32, screen_width*4,
+                                   NULL, 256*4, 4,
+                                   PAM_TRIANGLES, 3, PAIT_UNSIGNED_INT, indices);
+
+  exit_ret = EXIT_SUCCESS;
+  exit_cleanup:
+  fragment_buffer_cleanup(&fragbuf);
+  rasterizer_cleanup(&ras);
+  clipping_stage_cleanup(&cs);
+  attrib_set_cleanup(&as);
+  primitive_assembly_cleanup(&pa);
+
 #endif
   
   /* Superimpose faint grid effect */
@@ -4457,10 +4555,11 @@ int main(int argc, char **argv) {
   FILE *fp = fopen("..\\jig\\test.bmp", "wb"); // relative to project file.
   if (!fp) {
     perror("fopen");
-    return EXIT_FAILURE;
+    exit_ret = EXIT_FAILURE;
+    return exit_ret;
   }
   write_rgba_bmp(fp, rgba32, 256, 256, 256 * 4);
   fclose(fp);
 
-  return EXIT_SUCCESS;
+  return exit_ret;
 }
