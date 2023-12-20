@@ -1916,7 +1916,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                         cs->num_varyings_ * sizeof(int32_t));
 
                 size_t clip_tri_idx;
-                for (clip_tri_idx = 0; (clip_tri_idx + 2) < cs->num_triangles_in_b_; clip_tri_idx += 3) {
+                for (clip_tri_idx = 0; (clip_tri_idx + 2) < (3 * cs->num_triangles_in_b_); clip_tri_idx += 3) {
                   float *v0 = cs->triangle_varyings_b_ + cs->num_varyings_ * clip_tri_idx;
                   float *v1 = v0 + cs->num_varyings_;
                   float *v2 = v1 + cs->num_varyings_;
