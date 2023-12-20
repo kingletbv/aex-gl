@@ -4516,6 +4516,12 @@ int main(int argc, char **argv) {
   pa.column_descriptors_[PACT_POSITION_Z].attrib_index_ = xyz_attr;
   pa.column_descriptors_[PACT_POSITION_Z].attrib_element_index_ = 2;
 
+  /* Note that xyz_attr has size_ 3, not size_ 4, consequently, attrib_element_index_ 
+   * should map into the attrib::generic_values_[3] value, which, by default, should
+   * map to 1. */
+  pa.column_descriptors_[PACT_POSITION_W].attrib_index_ = xyz_attr;
+  pa.column_descriptors_[PACT_POSITION_W].attrib_element_index_ = 3;
+
   uint32_t indices[] = {
     0, 1, 2
   };
