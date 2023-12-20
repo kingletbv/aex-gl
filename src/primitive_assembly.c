@@ -1811,6 +1811,17 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       struct clipping_stage *cs,
                                       struct rasterizer *ras,
                                       struct fragment_buffer *fragbuf,
+                                      int32_t vp_x,
+                                      int32_t vp_y,
+                                      uint32_t vp_width,
+                                      uint32_t vp_height,
+                                      float depth_range_near,
+                                      float depth_range_far,
+                                      uint32_t screen_width,
+                                      uint32_t screen_height,
+                                      uint32_t max_z,
+                                      uint8_t *rgba, size_t rgba_stride,
+                                      uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
                                       primitive_assembly_mode_t mode, 
                                       size_t num_elements,
                                       primitive_assembly_index_type_t index_type,
@@ -1855,18 +1866,6 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                *      int32_t's. We assume sizeof(float) == sizeof(int32_t). Find some better way */
               assert(sizeof(float) == sizeof(int32_t));
 
-              int32_t vp_x = 0; /* left */
-              int32_t vp_y = 0; /* bottom */
-              uint32_t vp_width = 256;
-              uint32_t vp_height = 256;
-              float depth_range_near = 0.f;
-              float depth_range_far = 0.f;
-              uint32_t screen_width = 256;
-              uint32_t screen_height = 256;
-              uint32_t max_z = 0xFFFFFFFF;
-
-              static uint8_t rgba[256 * 256 * 4];
-
               viewport_transformation(vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
                                       screen_width, screen_height, max_z, 
                                       3 * cs->num_triangles_in_b_, 
@@ -1897,7 +1896,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
 
                 while (rasterizer_triangle(ras, fragbuf, 
                                            rgba, 256*4,     // bitmap
-                                           NULL, 256*4, 4,  // z-buffer
+                                           zbuf, zbuf_stride, zbuf_step,  // z-buffer
                                            0, 0, 256, 256,  // scissor-rect
                                            sx0, sy0, sz0,
                                            sx1, sy1, sz1,
