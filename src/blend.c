@@ -138,6 +138,7 @@ void blend(size_t num_fragments, uint8_t *maskp, uint8_t *rgba_srcp, uint8_t **r
       case BF_SRC_ALPHA_SATURATE:
         src_wgh_red = 255 - dst_alp;
         src_wgh_red = (src_wgh_red < src_alp) ? src_wgh_red : src_alp;
+        src_wgh_blu = src_wgh_grn = src_wgh_red;
         break;
     }
 
@@ -310,7 +311,9 @@ void blend(size_t num_fragments, uint8_t *maskp, uint8_t *rgba_srcp, uint8_t **r
         break;
       case BF_SRC_ALPHA_SATURATE:
         dst_wgh_red = 255 - dst_alp;
-        dst_wgh_red = (src_wgh_red < src_alp) ? src_wgh_red : src_alp;
+        dst_wgh_red = (dst_wgh_red < src_alp) ? dst_wgh_red : dst_alp;
+        dst_wgh_blu = dst_wgh_grn = dst_wgh_red;
+
         break;
     }
 
