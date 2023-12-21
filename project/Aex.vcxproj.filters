@@ -28,6 +28,7 @@
     <ClCompile Include="..\src\viewport_transformation.c" />
     <ClCompile Include="..\src\primitive_assembly.c" />
     <ClCompile Include="..\src\attrib_set.c" />
+    <ClCompile Include="..\src\blend.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">

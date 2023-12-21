@@ -164,6 +164,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\attrib_set.c" />
+    <ClCompile Include="..\src\blend.c" />
     <ClCompile Include="..\src\clipping_stage.c" />
     <ClCompile Include="..\src\fragment_buffer.c" />
     <ClCompile Include="..\src\glsl_es1_compiler.c" />
