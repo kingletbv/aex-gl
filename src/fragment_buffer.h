@@ -76,11 +76,7 @@ typedef enum fragment_buffer_column_type {
 #define FB_IDX_TEMP_BYTE_9     20
 #define FB_IDX_TEMP_BYTE_10    21
 #define FB_IDX_TEMP_BYTE_11    22
-#define FB_IDX_TEMP_BYTE_12    23
-#define FB_IDX_TEMP_BYTE_13    24
-#define FB_IDX_TEMP_BYTE_14    25
-#define FB_IDX_TEMP_BYTE_15    26
-#define FB_IDX_NUM_FIXED_IDX   27
+#define FB_IDX_NUM_FIXED_IDX   23
 
 struct fragment_buffer_column_descriptor {
   /* Type of fragment buffer column (e.g. the semantic value of it) */

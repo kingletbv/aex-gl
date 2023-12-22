@@ -59,7 +59,7 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
                  + sizeof(int32_t)  /* FBCT_Y_COORD */
                  + sizeof(uint32_t) /* FBCT_ZBUF_VALUE */
                  + 4 * sizeof(uint8_t)  /* FBCT_FRAG_RED, FBCT_FRAG_GREEN, FBCT_FRAG_BLUE, FBCT_FRAG_ALPHA */
-                 + 16 * sizeof(uint8_t) /* FBCT_IDX_TEMP_BYTE_0 .. FBCT_IDX_TEMP_BYTE_15 */
+                 + 12 * sizeof(uint8_t) /* FBCT_IDX_TEMP_BYTE_0 .. FBCT_IDX_TEMP_BYTE_11 */
                  ;
   size_t size_needed = rowsize * FRAGMENT_BUFFER_MAX_ROWS;
   if (fb->fixed_slab_) free(fb->fixed_slab_);
@@ -138,7 +138,7 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
   mem += sizeof(uint8_t) * FRAGMENT_BUFFER_MAX_ROWS;
 
   size_t temp_idx;
-  for (temp_idx = FB_IDX_TEMP_BYTE_0; temp_idx <= FB_IDX_TEMP_BYTE_15; ++temp_idx) {
+  for (temp_idx = FB_IDX_TEMP_BYTE_0; temp_idx <= FB_IDX_TEMP_BYTE_11; ++temp_idx) {
     fb->column_descriptions_[temp_idx].col_type_ = FBCT_TEMP;
     fb->column_descriptions_[temp_idx].data_type_ = FBDT_UINT8;
     fb->column_data_[temp_idx] = mem;

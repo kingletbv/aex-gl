@@ -2015,12 +2015,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                           fragbuf->column_data_[FB_IDX_TEMP_BYTE_8],
                           fragbuf->column_data_[FB_IDX_TEMP_BYTE_9],
                           fragbuf->column_data_[FB_IDX_TEMP_BYTE_10],
-                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_11],
-
-                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_12],
-                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_13],
-                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_14],
-                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_15]);
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_11]);
 
 #if 0
                     for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {

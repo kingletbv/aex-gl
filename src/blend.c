@@ -28,7 +28,6 @@ void blend(size_t num_fragments, uint8_t *maskp,
            uint8_t constant_red, uint8_t constant_grn, uint8_t constant_blu, uint8_t constant_alpha,
            uint8_t *scratch_src_wgh_redp, uint8_t *scratch_src_wgh_grnp, uint8_t *scratch_src_wgh_blup, uint8_t *scratch_src_wgh_alpp,
            uint8_t *scratch_dst_wgh_redp, uint8_t *scratch_dst_wgh_grnp, uint8_t *scratch_dst_wgh_blup, uint8_t *scratch_dst_wgh_alpp,
-           uint8_t *scratch_src_redp, uint8_t *scratch_src_grnp, uint8_t *scratch_src_blup, uint8_t *scratch_src_alpp,
            uint8_t *scratch_dst_redp, uint8_t *scratch_dst_grnp, uint8_t *scratch_dst_blup, uint8_t *scratch_dst_alpp) {
   size_t frag;
   uint8_t *restrict maskpr = (uint8_t *restrict)maskp;
