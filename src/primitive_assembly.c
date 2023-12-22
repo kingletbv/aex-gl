@@ -63,6 +63,11 @@
 #include "fragment_buffer.h"
 #endif
 
+#ifndef BLEND_H_INCLUDED
+#define BLEND_H_INCLUDED
+#include "blend.h"
+#endif
+
 void primitive_assembly_init(struct primitive_assembly *pa) {
   pa->num_rows_ = 0;
   pa->num_cols_ = 0;
@@ -1980,8 +1985,39 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                     uint32_t *restrict zbuf_value = (uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE];
 
                     // Write out / blend pixels
-                  
-                    // XXX: Blend functions or whatnot go here.
+
+                    blend(fragbuf->num_rows_, mask, 
+                          fragbuf->column_data_[FB_IDX_FRAG_RED],
+                          fragbuf->column_data_[FB_IDX_FRAG_GREEN],
+                          fragbuf->column_data_[FB_IDX_FRAG_BLUE],
+                          fragbuf->column_data_[FB_IDX_FRAG_ALPHA],
+                          rgb_ptr,
+                          1, 1, 1, 1,
+                          BEQ_FUNC_ADD, BEQ_FUNC_ADD,
+                          BF_SRC_ALPHA, BF_SRC_ALPHA,
+                          BF_ONE_MINUS_SRC_ALPHA, BF_ONE_MINUS_SRC_ALPHA,
+                          0, 0, 0, 0,
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_0],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_1],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_2],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_3],
+
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_4],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_5],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_6],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_7],
+
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_8],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_9],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_10],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_11],
+
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_12],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_13],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_14],
+                          fragbuf->column_data_[FB_IDX_TEMP_BYTE_15]);
+
+#if 0
                     size_t frag_row;
                     for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
 
@@ -2001,7 +2037,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                       y_coord++;
                       zbuf_value++;
                     }
-
+#endif
                     fragbuf->num_rows_ = 0;
                   }
                 }
