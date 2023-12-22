@@ -1974,24 +1974,29 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                              sx0, sy0, sz0,
                                              sx1, sy1, sz1,
                                              sx2, sy2, sz2)) {
-                    // XXX: Run fragment shader on top of the fragment buffer here...
 
-                    uint8_t *restrict exec_chain = (uint8_t *restrict)fragbuf->column_data_[FB_IDX_EXECUTION_CHAIN];
-                    uint8_t *restrict mask = (uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK];
-                    uint8_t *restrict *restrict rgb_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_PIXEL_PTR];
-                    uint8_t *restrict *restrict zbuf_ptr = (uint8_t *restrict *)fragbuf->column_data_[FB_IDX_ZBUF_PTR];
-                    int32_t *restrict x_coord = (int32_t *restrict)fragbuf->column_data_[FB_IDX_X_COORD];
-                    int32_t *restrict y_coord = (int32_t *restrict)fragbuf->column_data_[FB_IDX_Y_COORD];
-                    uint32_t *restrict zbuf_value = (uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE];
+
+                    // XXX: Run fragment shader on top of the fragment buffer here...
+                                        
+                    // Run an experimental "fragment shader" to fill out the color to be identical to
+                    // our prior experiments.
+                    size_t frag_row;
+                    for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                      uint32_t z = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_RED])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_GREEN])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_BLUE])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[frag_row] = 0xFF;
+                    }
 
                     // Write out / blend pixels
 
-                    blend(fragbuf->num_rows_, mask, 
+                    blend(fragbuf->num_rows_, fragbuf->column_data_[FB_IDX_MASK],
                           fragbuf->column_data_[FB_IDX_FRAG_RED],
                           fragbuf->column_data_[FB_IDX_FRAG_GREEN],
                           fragbuf->column_data_[FB_IDX_FRAG_BLUE],
                           fragbuf->column_data_[FB_IDX_FRAG_ALPHA],
-                          rgb_ptr,
+                          fragbuf->column_data_[FB_IDX_PIXEL_PTR],
                           1, 1, 1, 1,
                           BEQ_FUNC_ADD, BEQ_FUNC_ADD,
                           BF_SRC_ALPHA, BF_SRC_ALPHA,
@@ -2018,7 +2023,6 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                           fragbuf->column_data_[FB_IDX_TEMP_BYTE_15]);
 
 #if 0
-                    size_t frag_row;
                     for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
 
                       if (*mask) {
