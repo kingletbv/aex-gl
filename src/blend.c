@@ -443,7 +443,7 @@ void blend(size_t num_fragments, uint8_t *maskp,
           /* Saturation */
           ired = (ired > 255) ? 255 : ired;
           uint8_t mask = maskpr[frag];
-          rgba_dstppr[frag][0] = (((uint8_t)ired) & mask) | (src_redp[frag] & ~mask);
+          rgba_dstppr[frag][0] = (((uint8_t)ired) & mask) | (dst_redp[frag] & ~mask);
         }
       }
 
@@ -454,7 +454,7 @@ void blend(size_t num_fragments, uint8_t *maskp,
           /* Saturation */
           igrn = (igrn > 255) ? 255 : igrn;
           uint8_t mask = maskpr[frag];
-          rgba_dstppr[frag][1] = (((uint8_t)igrn) & mask) | (src_grnp[frag] & ~mask);
+          rgba_dstppr[frag][1] = (((uint8_t)igrn) & mask) | (dst_grnp[frag] & ~mask);
         }
       }
 
@@ -465,7 +465,7 @@ void blend(size_t num_fragments, uint8_t *maskp,
           /* Saturation */
           iblu = (iblu > 255) ? 255 : iblu;
           uint8_t mask = maskpr[frag];
-          rgba_dstppr[frag][2] = (((uint8_t)iblu) & mask) | (src_blup[frag] & ~mask);
+          rgba_dstppr[frag][2] = (((uint8_t)iblu) & mask) | (dst_blup[frag] & ~mask);
         }
       }
       break;
