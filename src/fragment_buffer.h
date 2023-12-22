@@ -44,7 +44,12 @@ typedef enum fragment_buffer_column_type {
   FBCT_ZBUF_PTR,        /* FBCT_PTR: Pointer to the z-buffer depth value to be compared and tested against (only if after fragment shader); may be NULL only if FBCT_MASK is 0x00. */
   FBCT_X_COORD,         /* FBCT_INT32: X screen coordinate of pixel */
   FBCT_Y_COORD,         /* FBCT_INT32: Y screen coordinate of pixel */
-  FBCT_ZBUF_VALUE       /* FBCT_UINT32: z-buffer value range 0 to (2^z-buffer-depth - 1) */
+  FBCT_ZBUF_VALUE,      /* FBCT_UINT32: z-buffer value range 0 to (2^z-buffer-depth - 1) */
+  FBCT_FRAG_RED,        /* FBCT_UINT8: red component of gl_FragColor */
+  FBCT_FRAG_GREEN,      /* FBCT_UINT8: green component of gl_FragColor */
+  FBCT_FRAG_BLUE,       /* FBCT_UINT8: blue component of gl_FragColor */
+  FBCT_FRAG_ALPHA,      /* FBCT_UINT8: alpha component of gl_FragColor */
+  FBCT_TEMP             /* Temporary value, unspecified type. */
 } frag_buf_col_type_t;
 
 /* Fixed indices into column_data_ and column_descriptions_ that lead to known, hard-coded, columns. */
@@ -55,7 +60,27 @@ typedef enum fragment_buffer_column_type {
 #define FB_IDX_X_COORD         4
 #define FB_IDX_Y_COORD         5
 #define FB_IDX_ZBUF_VALUE      6
-#define FB_IDX_NUM_FIXED_IDX   7
+#define FB_IDX_FRAG_RED        7
+#define FB_IDX_FRAG_GREEN      8
+#define FB_IDX_FRAG_BLUE       9
+#define FB_IDX_FRAG_ALPHA      10
+#define FB_IDX_TEMP_BYTE_0     11
+#define FB_IDX_TEMP_BYTE_1     12
+#define FB_IDX_TEMP_BYTE_2     13
+#define FB_IDX_TEMP_BYTE_3     14
+#define FB_IDX_TEMP_BYTE_4     15
+#define FB_IDX_TEMP_BYTE_5     16
+#define FB_IDX_TEMP_BYTE_6     17
+#define FB_IDX_TEMP_BYTE_7     18
+#define FB_IDX_TEMP_BYTE_8     19
+#define FB_IDX_TEMP_BYTE_9     20
+#define FB_IDX_TEMP_BYTE_10    21
+#define FB_IDX_TEMP_BYTE_11    22
+#define FB_IDX_TEMP_BYTE_12    23
+#define FB_IDX_TEMP_BYTE_13    24
+#define FB_IDX_TEMP_BYTE_14    25
+#define FB_IDX_TEMP_BYTE_15    26
+#define FB_IDX_NUM_FIXED_IDX   27
 
 struct fragment_buffer_column_descriptor {
   /* Type of fragment buffer column (e.g. the semantic value of it) */

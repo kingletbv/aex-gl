@@ -57,7 +57,10 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
                  + sizeof(void*)    /* FBCT_ZBUF_PTR */
                  + sizeof(int32_t)  /* FBCT_X_COORD */
                  + sizeof(int32_t)  /* FBCT_Y_COORD */
-                 + sizeof(uint32_t) /* FBCT_ZBUF_VALUE */;
+                 + sizeof(uint32_t) /* FBCT_ZBUF_VALUE */
+                 + 4 * sizeof(uint8_t)  /* FBCT_FRAG_RED, FBCT_FRAG_GREEN, FBCT_FRAG_BLUE, FBCT_FRAG_ALPHA */
+                 + 16 * sizeof(uint8_t) /* FBCT_IDX_TEMP_BYTE_0 .. FBCT_IDX_TEMP_BYTE_15 */
+                 ;
   size_t size_needed = rowsize * FRAGMENT_BUFFER_MAX_ROWS;
   if (fb->fixed_slab_) free(fb->fixed_slab_);
   fb->fixed_slab_ = malloc(size_needed);
@@ -113,6 +116,34 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
   fb->column_descriptions_[FB_IDX_ZBUF_VALUE].data_type_ = FBDT_UINT32;
   fb->column_data_[FB_IDX_ZBUF_VALUE] = mem;
   mem += sizeof(uint32_t) * FRAGMENT_BUFFER_MAX_ROWS;
+
+  fb->column_descriptions_[FB_IDX_FRAG_RED].col_type_ = FBCT_FRAG_RED;
+  fb->column_descriptions_[FB_IDX_FRAG_RED].data_type_ = FBDT_UINT8;
+  fb->column_data_[FB_IDX_FRAG_RED] = mem;
+  mem += sizeof(uint8_t) * FRAGMENT_BUFFER_MAX_ROWS;
+
+  fb->column_descriptions_[FB_IDX_FRAG_GREEN].col_type_ = FBCT_FRAG_GREEN;
+  fb->column_descriptions_[FB_IDX_FRAG_GREEN].data_type_ = FBDT_UINT8;
+  fb->column_data_[FB_IDX_FRAG_GREEN] = mem;
+  mem += sizeof(uint8_t) * FRAGMENT_BUFFER_MAX_ROWS;
+
+  fb->column_descriptions_[FB_IDX_FRAG_BLUE].col_type_ = FBCT_FRAG_BLUE;
+  fb->column_descriptions_[FB_IDX_FRAG_BLUE].data_type_ = FBDT_UINT8;
+  fb->column_data_[FB_IDX_FRAG_BLUE] = mem;
+  mem += sizeof(uint8_t) * FRAGMENT_BUFFER_MAX_ROWS;
+
+  fb->column_descriptions_[FB_IDX_FRAG_ALPHA].col_type_ = FBCT_FRAG_ALPHA;
+  fb->column_descriptions_[FB_IDX_FRAG_ALPHA].data_type_ = FBDT_UINT8;
+  fb->column_data_[FB_IDX_FRAG_ALPHA] = mem;
+  mem += sizeof(uint8_t) * FRAGMENT_BUFFER_MAX_ROWS;
+
+  size_t temp_idx;
+  for (temp_idx = FB_IDX_TEMP_BYTE_0; temp_idx <= FB_IDX_TEMP_BYTE_15; ++temp_idx) {
+    fb->column_descriptions_[temp_idx].col_type_ = FBCT_TEMP;
+    fb->column_descriptions_[temp_idx].data_type_ = FBDT_UINT8;
+    fb->column_data_[temp_idx] = mem;
+    mem += sizeof(uint8_t) * FRAGMENT_BUFFER_MAX_ROWS;
+  }
 
   size_t size_used = mem - (uint8_t *)fb->fixed_slab_;
   assert(size_used == size_needed);
