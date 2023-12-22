@@ -2017,26 +2017,6 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                           fragbuf->column_data_[FB_IDX_TEMP_BYTE_10],
                           fragbuf->column_data_[FB_IDX_TEMP_BYTE_11]);
 
-#if 0
-                    for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
-
-                      if (*mask) {
-                        uint32_t z = *zbuf_value;
-                        uint8_t *pixel = *rgb_ptr;
-                        pixel[0] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                        pixel[1] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                        pixel[2] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                        pixel[3] = 0xFF;
-                      }
-                      exec_chain++;
-                      mask++;
-                      rgb_ptr++;
-                      zbuf_ptr++;
-                      x_coord++;
-                      y_coord++;
-                      zbuf_value++;
-                    }
-#endif
                     fragbuf->num_rows_ = 0;
                   }
                 }
