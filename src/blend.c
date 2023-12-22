@@ -18,7 +18,9 @@
 #include "blend.h"
 #endif
 
-void blend(size_t num_fragments, uint8_t *maskp, uint8_t *rgba_srcp, uint8_t **rgba_dstpp, 
+void blend(size_t num_fragments, uint8_t *maskp, 
+           uint8_t *rgba_src_red, uint8_t *rgba_src_green, uint8_t *rgba_src_blue, uint8_t *rgba_src_alpha,
+           uint8_t **rgba_dstpp, 
            int enable_red, int enable_green, int enable_blue, int enable_alpha,
            blend_eq_t rgb_eq, blend_eq_t alpha_eq,
            blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
@@ -30,7 +32,6 @@ void blend(size_t num_fragments, uint8_t *maskp, uint8_t *rgba_srcp, uint8_t **r
            uint8_t *scratch_dst_redp, uint8_t *scratch_dst_grnp, uint8_t *scratch_dst_blup, uint8_t *scratch_dst_alpp) {
   size_t frag;
   uint8_t *restrict maskpr = (uint8_t *restrict)maskp;
-  uint8_t *restrict rgba_srcpr = (uint8_t *restrict)rgba_srcp;
   uint8_t *restrict *restrict rgba_dstppr = (uint8_t *restrict *restrict) rgba_dstpp;
 
   uint8_t *restrict src_wgh_redp = (uint8_t *restrict)scratch_src_wgh_redp;
@@ -43,23 +44,18 @@ void blend(size_t num_fragments, uint8_t *maskp, uint8_t *rgba_srcp, uint8_t **r
   uint8_t *restrict dst_wgh_blup = (uint8_t *restrict)scratch_dst_wgh_blup;
   uint8_t *restrict dst_wgh_alpp = (uint8_t *restrict)scratch_dst_wgh_alpp;
 
-  uint8_t *restrict src_redp = (uint8_t *restrict)scratch_src_redp;
-  uint8_t *restrict src_grnp = (uint8_t *restrict)scratch_src_grnp;
-  uint8_t *restrict src_blup = (uint8_t *restrict)scratch_src_blup;
-  uint8_t *restrict src_alpp = (uint8_t *restrict)scratch_src_alpp;
+  uint8_t *restrict src_redp = (uint8_t *restrict)rgba_src_red;
+  uint8_t *restrict src_grnp = (uint8_t *restrict)rgba_src_green;
+  uint8_t *restrict src_blup = (uint8_t *restrict)rgba_src_blue;
+  uint8_t *restrict src_alpp = (uint8_t *restrict)rgba_src_alpha;
 
   uint8_t *restrict dst_redp = (uint8_t *restrict)scratch_dst_redp;
   uint8_t *restrict dst_grnp = (uint8_t *restrict)scratch_dst_grnp;
   uint8_t *restrict dst_blup = (uint8_t *restrict)scratch_dst_blup;
   uint8_t *restrict dst_alpp = (uint8_t *restrict)scratch_dst_alpp;
 
-  /* Un-swizzle input bitmaps */
+  /* Un-swizzle destination bitmap */
   for (frag = 0; frag < num_fragments; ++frag) {
-    src_redp[frag] = rgba_srcpr[4 * frag + 0];
-    src_grnp[frag] = rgba_srcpr[4 * frag + 1];
-    src_blup[frag] = rgba_srcpr[4 * frag + 2];
-    src_alpp[frag] = rgba_srcpr[4 * frag + 3];
-
     dst_redp[frag] = rgba_dstppr[frag][0];
     dst_grnp[frag] = rgba_dstppr[frag][1];
     dst_blup[frag] = rgba_dstppr[frag][2];
