@@ -20,6 +20,11 @@
 #include <stdlib.h>
 #endif
 
+#ifndef BLEND_H_INCLUDED
+#define BLEND_H_INCLUDED
+#include "blend.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -140,7 +145,12 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       uint32_t max_z,
                                       uint8_t *rgba, size_t rgba_stride,
                                       uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
-                                      primitive_assembly_mode_t mode, 
+                                      int enable_red, int enable_green, int enable_blue, int enable_alpha,
+                                      blend_eq_t rgb_eq, blend_eq_t alpha_eq,
+                                      blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
+                                      blend_func_t dst_rgb_fn, blend_func_t dst_alpha_fn,
+                                      uint8_t constant_red, uint8_t constant_grn, uint8_t constant_blu, uint8_t constant_alpha,
+                                      primitive_assembly_mode_t mode,
                                       size_t num_elements,
                                       primitive_assembly_index_type_t index_type,
                                       void *indices);
