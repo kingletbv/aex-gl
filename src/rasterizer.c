@@ -455,6 +455,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
                         struct fragment_buffer *fragbf,
                         uint8_t *rgba, size_t stride,
                         uint8_t *zbuf, size_t zstride, size_t zstep,
+                        uint8_t *stencilbuf, size_t stencil_stride, size_t stencil_step,
                         uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
                         int32_t x0, int32_t y0, uint32_t z0,
                         int32_t x1, int32_t y1, uint32_t z1,
@@ -464,7 +465,8 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
   int64_t D012;
   uint8_t *pixel_TL, *pixel_TR, *pixel_BL, *pixel_BR;
   uint8_t *zbuf_TL, *zbuf_TR, *zbuf_BL, *zbuf_BR;
-  int64_t pixel_mod, zbuf_mod;
+  uint8_t *stencil_TL, *stencil_TR, *stencil_BL, *stencil_BR;
+  int64_t pixel_mod, zbuf_mod, stencil_mod;
   int64_t px, py;
 
   int64_t Dp01_TL, Dp12_TL, Dp20_TL;
@@ -504,8 +506,13 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
   zbuf_TR = rasterizer->zbuf_TR_;
   zbuf_BL = rasterizer->zbuf_BL_;
   zbuf_BR = rasterizer->zbuf_BR_;
+  stencil_TL = rasterizer->stencil_TL_;
+  stencil_TR = rasterizer->stencil_TR_;
+  stencil_BL = rasterizer->stencil_BL_;
+  stencil_BR = rasterizer->stencil_BR_;
   pixel_mod = rasterizer->pixel_mod_;
   zbuf_mod = rasterizer->zbuf_mod_;
+  stencil_mod = rasterizer->stencil_mod_;
   px = rasterizer->px_;
   py = rasterizer->py_;
   Dp01_TL = rasterizer->Dp01_TL_;
@@ -939,6 +946,11 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     zbuf_BL = zbuf_TL + zstride;
     zbuf_BR = zbuf_BL + zstep;
     zbuf_mod = 2 * zstride - (right - left) * zstep;
+    stencil_TL = stencilbuf + top * stencil_stride + left * stencil_step;
+    stencil_TR = stencil_TL + stencil_step;
+    stencil_BL = stencil_TL + stencil_stride;
+    stencil_BR = stencil_BL + stencil_step;
+    stencil_mod = 2 * stencil_stride - (right - left) * stencil_step;
 
     for (py = top; py < bottom; py += 2) {
       // Copy row values to be ready for column increments
@@ -1065,8 +1077,13 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
             rasterizer->zbuf_TR_ = zbuf_TR;
             rasterizer->zbuf_BL_ = zbuf_BL;
             rasterizer->zbuf_BR_ = zbuf_BR;
+            rasterizer->stencil_TL_ = stencil_TL;
+            rasterizer->stencil_TR_ = stencil_TR;
+            rasterizer->stencil_BL_ = stencil_BL;
+            rasterizer->stencil_BR_ = stencil_BR;
             rasterizer->pixel_mod_ = pixel_mod;
             rasterizer->zbuf_mod_ = zbuf_mod;
+            rasterizer->stencil_mod_ = stencil_mod;
             rasterizer->px_ = px;
             rasterizer->py_ = py;
             rasterizer->Dp01_TL_ = Dp01_TL;
@@ -1155,6 +1172,10 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
           ((void **)fragbf->column_data_[FB_IDX_ZBUF_PTR])[fragbf->num_rows_ + 1] = zbuf_TR;
           ((void **)fragbf->column_data_[FB_IDX_ZBUF_PTR])[fragbf->num_rows_ + 2] = zbuf_BL;
           ((void **)fragbf->column_data_[FB_IDX_ZBUF_PTR])[fragbf->num_rows_ + 3] = zbuf_BR;
+          ((void **)fragbf->column_data_[FB_IDX_STENCIL_PTR])[fragbf->num_rows_ + 0] = stencil_TL;
+          ((void **)fragbf->column_data_[FB_IDX_STENCIL_PTR])[fragbf->num_rows_ + 1] = stencil_TR;
+          ((void **)fragbf->column_data_[FB_IDX_STENCIL_PTR])[fragbf->num_rows_ + 2] = stencil_BL;
+          ((void **)fragbf->column_data_[FB_IDX_STENCIL_PTR])[fragbf->num_rows_ + 3] = stencil_BR;
           ((int32_t *)fragbf->column_data_[FB_IDX_X_COORD])[fragbf->num_rows_ + 0] = (int32_t)px;
           ((int32_t *)fragbf->column_data_[FB_IDX_X_COORD])[fragbf->num_rows_ + 1] = (int32_t)px + 1;
           ((int32_t *)fragbf->column_data_[FB_IDX_X_COORD])[fragbf->num_rows_ + 2] = (int32_t)px;
@@ -1216,6 +1237,11 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
         zbuf_TL += zstep * 2;
         zbuf_TR += zstep * 2;
         zbuf_BL += zstep * 2;
+        zbuf_BR += zstep * 2;
+        stencil_TL += stencil_step * 2;
+        stencil_TR += stencil_step * 2;
+        stencil_BL += stencil_step * 2;
+        stencil_BR += stencil_step * 2;
       }
 
       pixel_TL += pixel_mod;
@@ -1228,6 +1254,10 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       zbuf_BL += zbuf_mod;
       zbuf_BR += zbuf_mod;
 
+      stencil_TL += stencil_mod;
+      stencil_TR += stencil_mod;
+      stencil_BL += stencil_mod;
+      stencil_BR += stencil_mod;
     }
     if (fragbf->num_rows_) {
       rasterizer->resume_at_ = __LINE__ + 2;

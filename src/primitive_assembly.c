@@ -1876,6 +1876,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       uint32_t max_z,
                                       uint8_t *rgba, size_t rgba_stride,
                                       uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
+                                      uint8_t *stencil_buf, size_t stencil_stride, size_t stencil_step,
                                       int enable_red, int enable_green, int enable_blue, int enable_alpha,
                                       blend_eq_t rgb_eq, blend_eq_t alpha_eq,
                                       blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
@@ -1975,6 +1976,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                   while (rasterizer_triangle(ras, fragbuf, 
                                              rgba, 256*4,     // bitmap
                                              zbuf, zbuf_stride, zbuf_step,  // z-buffer
+                                             stencil_buf, stencil_stride, stencil_step,  // stencil buffer
                                              0, 0, 256, 256,  // scissor-rect
                                              sx0, sy0, sz0,
                                              sx1, sy1, sz1,

@@ -37,7 +37,8 @@ struct rasterizer {
   int64_t D012_;
   uint8_t *pixel_TL_, *pixel_TR_, *pixel_BL_, *pixel_BR_;
   uint8_t *zbuf_TL_, *zbuf_TR_, *zbuf_BL_, *zbuf_BR_;
-  int64_t pixel_mod_, zbuf_mod_;
+  uint8_t *stencil_TL_, *stencil_TR_, *stencil_BL_, *stencil_BR_;
+  int64_t pixel_mod_, zbuf_mod_, stencil_mod_;
   int64_t px_, py_;
 
   int64_t Dp01_TL_, Dp12_TL_, Dp20_TL_;
@@ -75,6 +76,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
                         struct fragment_buffer *fragbf,
                         uint8_t *rgba, size_t stride,
                         uint8_t *zbuf, size_t zstride, size_t zstep,
+                        uint8_t *stencilbuf, size_t stencil_stride, size_t stencil_step,
                         uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
                         int32_t x0, int32_t y0, uint32_t z0,
                         int32_t x1, int32_t y1, uint32_t z1,

@@ -4531,6 +4531,7 @@ int main(int argc, char **argv) {
                                    screen_width, screen_height, max_z,
                                    rgba32, screen_width*4,
                                    NULL, 256*4, 4,
+                                   NULL, 256*2, 2,
                                    1, 1, 1, 1,
                                    BEQ_FUNC_ADD, BEQ_FUNC_ADD,
                                    BF_SRC_ALPHA, BF_SRC_ALPHA,

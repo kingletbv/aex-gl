@@ -55,6 +55,7 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
                  + sizeof(uint8_t)  /* FBCT_MASK */
                  + sizeof(void*)    /* FBCT_PIXEL_PTR */
                  + sizeof(void*)    /* FBCT_ZBUF_PTR */
+                 + sizeof(void*)    /* FBCT_STENCIL_PTR */
                  + sizeof(int32_t)  /* FBCT_X_COORD */
                  + sizeof(int32_t)  /* FBCT_Y_COORD */
                  + sizeof(uint32_t) /* FBCT_ZBUF_VALUE */
@@ -100,6 +101,11 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
   fb->column_descriptions_[FB_IDX_ZBUF_PTR].col_type_ = FBCT_ZBUF_PTR;
   fb->column_descriptions_[FB_IDX_ZBUF_PTR].data_type_ = FBDT_PTR;
   fb->column_data_[FB_IDX_ZBUF_PTR] = mem;
+  mem += sizeof(void*) * FRAGMENT_BUFFER_MAX_ROWS;
+
+  fb->column_descriptions_[FB_IDX_STENCIL_PTR].col_type_ = FBCT_STENCIL_PTR;
+  fb->column_descriptions_[FB_IDX_STENCIL_PTR].data_type_ = FBDT_PTR;
+  fb->column_data_[FB_IDX_STENCIL_PTR] = mem;
   mem += sizeof(void*) * FRAGMENT_BUFFER_MAX_ROWS;
         
   fb->column_descriptions_[FB_IDX_X_COORD].col_type_ = FBCT_X_COORD;

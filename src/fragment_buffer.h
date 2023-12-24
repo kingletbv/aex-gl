@@ -42,6 +42,7 @@ typedef enum fragment_buffer_column_type {
   FBCT_MASK,            /* FBCT_UINT8: Either 0xFF, or 0x00. If 0x00, then the fragment generates no output (but still executes for side-effects) */
   FBCT_PIXEL_PTR,       /* FBCT_PTR: Pointer to the pixel to be written; may be NULL only if FBCT_MASK is 0x00. */
   FBCT_ZBUF_PTR,        /* FBCT_PTR: Pointer to the z-buffer depth value to be compared and tested against (only if after fragment shader); may be NULL only if FBCT_MASK is 0x00. */
+  FBCT_STENCIL_PTR,     /* FBCT_PTR: Pointer to the stencil buffer value to be compared and tested against (only if after fragment shader); may be NULL only if FBCT_MASK is 0x00. */
   FBCT_X_COORD,         /* FBCT_INT32: X screen coordinate of pixel */
   FBCT_Y_COORD,         /* FBCT_INT32: Y screen coordinate of pixel */
   FBCT_ZBUF_VALUE,      /* FBCT_UINT32: z-buffer value range 0 to (2^z-buffer-depth - 1) */
@@ -57,26 +58,27 @@ typedef enum fragment_buffer_column_type {
 #define FB_IDX_MASK            1
 #define FB_IDX_PIXEL_PTR       2
 #define FB_IDX_ZBUF_PTR        3
-#define FB_IDX_X_COORD         4
-#define FB_IDX_Y_COORD         5
-#define FB_IDX_ZBUF_VALUE      6
-#define FB_IDX_FRAG_RED        7
-#define FB_IDX_FRAG_GREEN      8
-#define FB_IDX_FRAG_BLUE       9
-#define FB_IDX_FRAG_ALPHA      10
-#define FB_IDX_TEMP_BYTE_0     11
-#define FB_IDX_TEMP_BYTE_1     12
-#define FB_IDX_TEMP_BYTE_2     13
-#define FB_IDX_TEMP_BYTE_3     14
-#define FB_IDX_TEMP_BYTE_4     15
-#define FB_IDX_TEMP_BYTE_5     16
-#define FB_IDX_TEMP_BYTE_6     17
-#define FB_IDX_TEMP_BYTE_7     18
-#define FB_IDX_TEMP_BYTE_8     19
-#define FB_IDX_TEMP_BYTE_9     20
-#define FB_IDX_TEMP_BYTE_10    21
-#define FB_IDX_TEMP_BYTE_11    22
-#define FB_IDX_NUM_FIXED_IDX   23
+#define FB_IDX_STENCIL_PTR     4
+#define FB_IDX_X_COORD         5
+#define FB_IDX_Y_COORD         6
+#define FB_IDX_ZBUF_VALUE      7
+#define FB_IDX_FRAG_RED        8
+#define FB_IDX_FRAG_GREEN      9
+#define FB_IDX_FRAG_BLUE       10
+#define FB_IDX_FRAG_ALPHA      11
+#define FB_IDX_TEMP_BYTE_0     12
+#define FB_IDX_TEMP_BYTE_1     13
+#define FB_IDX_TEMP_BYTE_2     14
+#define FB_IDX_TEMP_BYTE_3     15
+#define FB_IDX_TEMP_BYTE_4     16
+#define FB_IDX_TEMP_BYTE_5     17
+#define FB_IDX_TEMP_BYTE_6     18
+#define FB_IDX_TEMP_BYTE_7     19
+#define FB_IDX_TEMP_BYTE_8     20
+#define FB_IDX_TEMP_BYTE_9     21
+#define FB_IDX_TEMP_BYTE_10    22
+#define FB_IDX_TEMP_BYTE_11    23
+#define FB_IDX_NUM_FIXED_IDX   24
 
 struct fragment_buffer_column_descriptor {
   /* Type of fragment buffer column (e.g. the semantic value of it) */
