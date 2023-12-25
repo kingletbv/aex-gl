@@ -27,6 +27,10 @@ extern "C" {
 
 #define RASTERIZER_SUBPIXEL_BITS 8
 
+#define RASTERIZER_CLOCKWISE 1
+#define RASTERIZER_COUNTERCLOCKWISE 2
+#define RASTERIZER_BOTH (RASTERIZER_CLOCKWISE | RASTERIZER_COUNTERCLOCKWISE)
+
 struct fragment_buffer;
 
 struct rasterizer {
@@ -35,6 +39,13 @@ struct rasterizer {
   /* context recovery values */
   int direction_xy_flips_;
   int64_t D012_;
+
+  int orientation_; /* RASTERIZER_CLOCKWISE or RASTERIZER_COUNTERCLOCKWISE */
+
+  int32_t x0_, y0_, z0_;
+  int32_t x1_, y1_, z1_;
+  int32_t x2_, y2_, z2_;
+
   uint8_t *pixel_TL_, *pixel_TR_, *pixel_BL_, *pixel_BR_;
   uint8_t *zbuf_TL_, *zbuf_TR_, *zbuf_BL_, *zbuf_BR_;
   uint8_t *stencil_TL_, *stencil_TR_, *stencil_BL_, *stencil_BR_;
@@ -71,7 +82,12 @@ struct rasterizer {
 void rasterizer_init(struct rasterizer *rasterizer);
 void rasterizer_cleanup(struct rasterizer *rasterizer);
 
-/* Returns non-zero if the fragment buffer fragbf is full and needs to be processed, zero otherwise. */
+/* Returns the orientation of the triangle, if the fragment buffer fragbf is full and needs to be processed, zero otherwise.
+ * Relatively self-explanatory, permitted_orientations is one of RASTERIZER_CLOCKWISE, RASTERIZER_COUNTERCLOCKWISE,
+ * or RASTERIZER_BOTH (i.e. it is a combination of RASTERIZER_CLOCKWISE and RASTERIZER_COUNTERCLOCKWISE).
+ * Returns the orientation, if the fragment buffer is full and needs to be processed, and zero otherwise. If the detected 
+ * orientation is not in the permitted_orientations, zero is returned and no fragments are generated.
+ */
 int rasterizer_triangle(struct rasterizer *rasterizer,
                         struct fragment_buffer *fragbf,
                         uint8_t *rgba, size_t stride,
@@ -80,7 +96,8 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
                         uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
                         int32_t x0, int32_t y0, uint32_t z0,
                         int32_t x1, int32_t y1, uint32_t z1,
-                        int32_t x2, int32_t y2, uint32_t z2);
+                        int32_t x2, int32_t y2, uint32_t z2,
+                        int permitted_orientations);
 
 
 #ifdef __cplusplus

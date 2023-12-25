@@ -1973,14 +1973,16 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                   int32_t sy2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SY);
                   int32_t sz2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SZ);
 
-                  while (rasterizer_triangle(ras, fragbuf, 
-                                             rgba, 256*4,     // bitmap
-                                             zbuf, zbuf_stride, zbuf_step,  // z-buffer
-                                             stencil_buf, stencil_stride, stencil_step,  // stencil buffer
-                                             0, 0, 256, 256,  // scissor-rect
-                                             sx0, sy0, sz0,
-                                             sx1, sy1, sz1,
-                                             sx2, sy2, sz2)) {
+                  int orientation;
+                  while ((orientation = rasterizer_triangle(ras, fragbuf, 
+                                                            rgba, 256*4,     // bitmap
+                                                            zbuf, zbuf_stride, zbuf_step,  // z-buffer
+                                                            stencil_buf, stencil_stride, stencil_step,  // stencil buffer
+                                                            0, 0, 256, 256,  // scissor-rect
+                                                            sx0, sy0, sz0,
+                                                            sx1, sy1, sz1,
+                                                            sx2, sy2, sz2,
+                                                            RASTERIZER_BOTH))) {
 
 
                     // XXX: Run fragment shader on top of the fragment buffer here...
@@ -1990,10 +1992,18 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                     size_t frag_row;
                     for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
                       uint32_t z = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
-                      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_RED])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_GREEN])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_BLUE])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[frag_row] = 0xFF;
+                      if (orientation == RASTERIZER_CLOCKWISE) {
+                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_RED])[frag_row] = (uint8_t)((z & 1) ? 0xFF : 0x3F);
+                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_GREEN])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_BLUE])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[frag_row] = 0xFF;
+                      }
+                      else if (orientation == RASTERIZER_COUNTERCLOCKWISE) {
+                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_RED])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_GREEN])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
+                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_BLUE])[frag_row] = (uint8_t)((z & 1) ? 0xFF : 0x3F);
+                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[frag_row] = 0xFF;
+                      }
                     }
 
                     // Write out / blend pixels

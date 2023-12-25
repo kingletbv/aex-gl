@@ -457,12 +457,17 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
                         uint8_t *zbuf, size_t zstride, size_t zstep,
                         uint8_t *stencilbuf, size_t stencil_stride, size_t stencil_step,
                         uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
-                        int32_t x0, int32_t y0, uint32_t z0,
-                        int32_t x1, int32_t y1, uint32_t z1,
-                        int32_t x2, int32_t y2, uint32_t z2) {
+                        int32_t px0, int32_t py0, uint32_t pz0,
+                        int32_t px1, int32_t py1, uint32_t pz1,
+                        int32_t px2, int32_t py2, uint32_t pz2,
+                        int permitted_orientations) {
 
   int direction_xy_flips;
   int64_t D012;
+  int orientation; /* RASTERIZER_CLOCKWISE or RASTERIZER_COUNTERCLOCKWISE */
+  int32_t x0, y0, z0;
+  int32_t x1, y1, z1;
+  int32_t x2, y2, z2;
   uint8_t *pixel_TL, *pixel_TR, *pixel_BL, *pixel_BR;
   uint8_t *zbuf_TL, *zbuf_TR, *zbuf_BL, *zbuf_BR;
   uint8_t *stencil_TL, *stencil_TR, *stencil_BL, *stencil_BR;
@@ -498,6 +503,16 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
   /* Recover context for resuming from yield */
   direction_xy_flips = rasterizer->direction_xy_flips_;
   D012 = rasterizer->D012_;
+  orientation = rasterizer->orientation_;
+  x0 = rasterizer->x0_;
+  y0 = rasterizer->y0_;
+  z0 = rasterizer->z0_;
+  x1 = rasterizer->x1_;
+  y1 = rasterizer->y1_;
+  z1 = rasterizer->z1_;
+  x2 = rasterizer->x2_;
+  y2 = rasterizer->y2_;
+  z2 = rasterizer->z2_;
   pixel_TL = rasterizer->pixel_TL_;
   pixel_TR = rasterizer->pixel_TR_;
   pixel_BL = rasterizer->pixel_BL_;
@@ -609,10 +624,53 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     //        | x0 y0 1 |
     // D012 = | x1 y1 1 |
     //        | x2 y2 1 |
-    D012 = ((int64_t)x1) * ((int64_t)y2) - ((int64_t)x2) * ((int64_t)y1) - ((int64_t)x0) * ((int64_t)y2) + ((int64_t)x2) * ((int64_t)y0) + ((int64_t)x0) * ((int64_t)y1) - ((int64_t)x1) * ((int64_t)y0);
+    D012 = ((int64_t)px1) * ((int64_t)py2) - ((int64_t)px2) * ((int64_t)py1) - ((int64_t)px0) * ((int64_t)py2) + ((int64_t)px2) * ((int64_t)py0) + ((int64_t)px0) * ((int64_t)py1) - ((int64_t)px1) * ((int64_t)py0);
 
-    if (D012 <= 0) {
-      // Counterclockwise backface, or colinear. Reject.
+    if (D012 < 0) {
+      // Counterclockwise, check if permitted and convert to clockwise if not
+      if (permitted_orientations & RASTERIZER_COUNTERCLOCKWISE) {
+        orientation = RASTERIZER_COUNTERCLOCKWISE;
+        D012 = -D012;
+        // Swap vertices 0 and 1, this is the same as swapping two rows in the various
+        // determinants that follow, which has the effect of negating the sign. We could
+        // keep a separate flag around to do it that way (negating signs) but this swapping
+        // around is actually an effective way of accomplishing the same thing.
+        x0 = px1;
+        y0 = py1;
+        z0 = pz1;
+        x1 = px0;
+        y1 = py0;
+        z1 = pz0;
+        x2 = px2;
+        y2 = py2;
+        z2 = pz2;
+      }
+      else {
+        // Counterclockwise not permitted, reject
+        return 0;
+      }
+    }
+    else if (D012 > 0) {
+      // Clockwise, check if permitted.
+      if (permitted_orientations & RASTERIZER_CLOCKWISE) {
+        // Adopt xyz012 as is.
+      orientation = RASTERIZER_CLOCKWISE;
+        x0 = px0;
+        y0 = py0;
+        z0 = pz0;
+        x1 = px1;
+        y1 = py1;
+        z1 = pz1;
+        x2 = px2;
+        y2 = py2;
+        z2 = pz2;
+      }
+      else {
+        // Clockwise not permitted, reject.
+      }
+    }
+    else {
+      // Colinear, reject.
       return 0;
     }
 
@@ -1069,6 +1127,16 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
             /* Store context so we can resume from yield */
             rasterizer->direction_xy_flips_ = direction_xy_flips;
             rasterizer->D012_ = D012;
+            rasterizer->orientation_ = orientation;
+            rasterizer->x0_ = x0;
+            rasterizer->y0_ = y0;
+            rasterizer->z0_ = z0;
+            rasterizer->x1_ = x1;
+            rasterizer->y1_ = y1;
+            rasterizer->z1_ = z1;
+            rasterizer->x2_ = x2;
+            rasterizer->y2_ = y2;
+            rasterizer->z2_ = z2;
             rasterizer->pixel_TL_ = pixel_TL;
             rasterizer->pixel_TR_ = pixel_TR;
             rasterizer->pixel_BL_ = pixel_BL;
@@ -1152,7 +1220,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
             rasterizer->z_yi_ = z_yi;
 
             rasterizer->resume_at_ = __LINE__ + 2;
-            return 1;
+            return orientation;
             case __LINE__:;
           }
           // Emit 4 fragments.
