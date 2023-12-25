@@ -1877,6 +1877,17 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       uint8_t *rgba, size_t rgba_stride,
                                       uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
                                       uint8_t *stencil_buf, size_t stencil_stride, size_t stencil_step,
+                                      int enable_stencil_test, 
+                                      uint32_t stencil_cw_mask,
+                                      primitive_assembly_stencil_func_t stencil_cw_func, uint32_t stencil_cw_func_ref, uint32_t stencil_cw_func_mask,
+                                      primitive_assembly_stencil_op_t stencil_cw_sfail, 
+                                      primitive_assembly_stencil_op_t stencil_cw_zfail, 
+                                      primitive_assembly_stencil_op_t stencil_cw_zpass,
+                                      uint32_t stencil_ccw_mask,
+                                      primitive_assembly_stencil_func_t stencil_ccw_func, uint32_t stencil_ccw_func_ref, uint32_t stencil_ccw_func_mask,
+                                      primitive_assembly_stencil_op_t stencil_ccw_sfail, 
+                                      primitive_assembly_stencil_op_t stencil_ccw_zfail, 
+                                      primitive_assembly_stencil_op_t stencil_ccw_zpass,
                                       int enable_red, int enable_green, int enable_blue, int enable_alpha,
                                       blend_eq_t rgb_eq, blend_eq_t alpha_eq,
                                       blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
@@ -2005,6 +2016,9 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                         ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[frag_row] = 0xFF;
                       }
                     }
+
+                    // Stencil test
+
 
                     // Write out / blend pixels
 

@@ -4532,6 +4532,17 @@ int main(int argc, char **argv) {
                                    rgba32, screen_width*4,
                                    NULL, 256*4, 4,
                                    NULL, 256*2, 2,
+                                   0, /* no stencil test */
+                                   /* Settings for stencil on clockwise triangles: */
+                                   ~(uint32_t)0, /* clockwise stencil mask: all output bits enabled */
+                                   PASF_NEVER, /* clockwise stencil test: never pass */
+                                   0, 0, /* clockwise stencil function reference value and function mask value */
+                                   PASO_KEEP, PASO_KEEP, PASO_KEEP, /* clockwise stencil-fail, stencil-success, stencil&depth-success: all keep */
+                                   /* Same for counter-clockwise: */
+                                   ~(uint32_t)0, 
+                                   PASF_NEVER,
+                                   0, 0,
+                                   PASO_KEEP, PASO_KEEP, PASO_KEEP,
                                    1, 1, 1, 1,
                                    BEQ_FUNC_ADD, BEQ_FUNC_ADD,
                                    BF_SRC_ALPHA, BF_SRC_ALPHA,

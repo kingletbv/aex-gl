@@ -75,6 +75,28 @@ typedef enum primitive_assembly_index_type {
   PAIT_UNSIGNED_INT
 } primitive_assembly_index_type_t;
 
+typedef enum primitive_assembly_stencil_func {
+  PASF_EQUAL,
+  PASF_NOTEQUAL,
+  PASF_LESS,
+  PASF_GREATER,
+  PASF_LEQUAL,
+  PASF_GEQUAL,
+  PASF_ALWAYS,
+  PASF_NEVER
+} primitive_assembly_stencil_func_t;
+
+typedef enum primitive_assembly_stencil_op {
+  PASO_ZERO,
+  PASO_REPLACE,
+  PASO_INCR,
+  PASO_DECR,
+  PASO_INCR_WRAP,
+  PASO_DECR_WRAP,
+  PASO_KEEP,
+  PASO_INVERT
+} primitive_assembly_stencil_op_t;
+
 struct primitive_assembly_column_descriptor {
   /* Type of the primitive assembly column */
   primitive_assembly_column_type_t col_type_;
@@ -146,6 +168,17 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       uint8_t *rgba, size_t rgba_stride,
                                       uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
                                       uint8_t *stencil_buf, size_t stencil_stride, size_t stencil_step,
+                                      int enable_stencil_test, 
+                                      uint32_t stencil_cw_mask,
+                                      primitive_assembly_stencil_func_t stencil_cw_func, uint32_t stencil_cw_func_ref, uint32_t stencil_cw_func_mask,
+                                      primitive_assembly_stencil_op_t stencil_cw_sfail, 
+                                      primitive_assembly_stencil_op_t stencil_cw_zfail, 
+                                      primitive_assembly_stencil_op_t stencil_cw_zpass,
+                                      uint32_t stencil_ccw_mask,
+                                      primitive_assembly_stencil_func_t stencil_ccw_func, uint32_t stencil_ccw_func_ref, uint32_t stencil_ccw_func_mask,
+                                      primitive_assembly_stencil_op_t stencil_ccw_sfail, 
+                                      primitive_assembly_stencil_op_t stencil_ccw_zfail, 
+                                      primitive_assembly_stencil_op_t stencil_ccw_zpass,
                                       int enable_red, int enable_green, int enable_blue, int enable_alpha,
                                       blend_eq_t rgb_eq, blend_eq_t alpha_eq,
                                       blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
