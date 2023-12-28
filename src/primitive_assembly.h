@@ -97,6 +97,17 @@ typedef enum primitive_assembly_stencil_op {
   PASO_INVERT
 } primitive_assembly_stencil_op_t;
 
+typedef enum primitive_assembly_zbuf_func {
+  PAZF_NEVER,
+  PAZF_LESS,
+  PAZF_EQUAL,
+  PAZF_LEQUAL,
+  PAZF_GREATER,
+  PAZF_NOTEQUAL,
+  PAZF_GEQUAL,
+  PAZF_ALWAYS
+} primitive_assembly_zbuf_func_t;
+
 struct primitive_assembly_column_descriptor {
   /* Type of the primitive assembly column */
   primitive_assembly_column_type_t col_type_;
@@ -179,6 +190,9 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       primitive_assembly_stencil_op_t stencil_ccw_sfail, 
                                       primitive_assembly_stencil_op_t stencil_ccw_zfail, 
                                       primitive_assembly_stencil_op_t stencil_ccw_zpass,
+                                      int enable_zbuf_test,
+                                      primitive_assembly_zbuf_func_t zbuf_func,
+                                      int enable_zbuf_write,
                                       int enable_red, int enable_green, int enable_blue, int enable_alpha,
                                       blend_eq_t rgb_eq, blend_eq_t alpha_eq,
                                       blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,

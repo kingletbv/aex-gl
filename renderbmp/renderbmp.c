@@ -4543,6 +4543,7 @@ int main(int argc, char **argv) {
                                    PASF_NEVER,
                                    0, 0,
                                    PASO_KEEP, PASO_KEEP, PASO_KEEP,
+                                   0, PAZF_LESS, 0, /* enable_zbuf_test, zbuf_func, enable_zbuf_write */
                                    1, 1, 1, 1,
                                    BEQ_FUNC_ADD, BEQ_FUNC_ADD,
                                    BF_SRC_ALPHA, BF_SRC_ALPHA,
