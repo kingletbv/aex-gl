@@ -42,6 +42,8 @@ struct rasterizer {
 
   int orientation_; /* RASTERIZER_CLOCKWISE or RASTERIZER_COUNTERCLOCKWISE */
 
+  int32_t z_offset_;
+
   int32_t x0_, y0_, z0_;
   int32_t x1_, y1_, z1_;
   int32_t x2_, y2_, z2_;
@@ -97,7 +99,8 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
                         int32_t x0, int32_t y0, uint32_t z0,
                         int32_t x1, int32_t y1, uint32_t z1,
                         int32_t x2, int32_t y2, uint32_t z2,
-                        int permitted_orientations);
+                        int permitted_orientations,
+                        int32_t offset_factor_fixed8, int32_t offset_units_fixed8);
 
 
 #ifdef __cplusplus

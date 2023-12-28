@@ -1996,7 +1996,8 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                                             sx0, sy0, sz0,
                                                             sx1, sy1, sz1,
                                                             sx2, sy2, sz2,
-                                                            RASTERIZER_BOTH))) {
+                                                            RASTERIZER_BOTH,
+                                                            0, 0))) {
 
 
                     // XXX: Run fragment shader on top of the fragment buffer here...

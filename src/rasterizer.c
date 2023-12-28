@@ -460,11 +460,13 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
                         int32_t px0, int32_t py0, uint32_t pz0,
                         int32_t px1, int32_t py1, uint32_t pz1,
                         int32_t px2, int32_t py2, uint32_t pz2,
-                        int permitted_orientations) {
+                        int permitted_orientations,
+                        int32_t offset_factor_fixed8, int32_t offset_units_fixed8) {
 
   int direction_xy_flips;
   int64_t D012;
   int orientation; /* RASTERIZER_CLOCKWISE or RASTERIZER_COUNTERCLOCKWISE */
+  int32_t z_offset;
   int32_t x0, y0, z0;
   int32_t x1, y1, z1;
   int32_t x2, y2, z2;
@@ -504,6 +506,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
   direction_xy_flips = rasterizer->direction_xy_flips_;
   D012 = rasterizer->D012_;
   orientation = rasterizer->orientation_;
+  z_offset = rasterizer->z_offset_;
   x0 = rasterizer->x0_;
   y0 = rasterizer->y0_;
   z0 = rasterizer->z0_;
@@ -778,6 +781,10 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
 
     z_TL = z_lo;
 
+    // Will contain the maximum absolute gradient of z in either x or y directions, per pixel step.
+    // This is used for computing the polygon offset. The value is always positive.
+    int64_t Dz_gradient_hi, Dz_gradient_lo;
+
     // outer loop is rows so we start with initialization for Y.
     int64_t Dzy_hi, Dzy_lo;
     muls128(Dzy_hi_sp, Dzy_lo_sp, 0, 1 << RASTERIZER_SUBPIXEL_BITS, &Dzy_hi, &Dzy_lo);
@@ -788,18 +795,24 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       z_s_TL = D012 - z_mod - 1;
       z_yi = 1;
       direction_xy_flips = 1;
+      Dz_gradient_hi = Dzy_hi;
+      Dz_gradient_lo = Dzy_lo;
     }
     else if (Dzy_hi < 0) {
       z_s_TL = z_mod;
       z_yi = -1;
       z_yp = D012 - z_yp - 1;
       direction_xy_flips = 0;
+
+      subs128(0, 0, Dzy_hi, Dzy_lo, &Dz_gradient_hi, &Dz_gradient_lo);
     }
     else /* (Dzy_hi == 0 && Dzy_lo == 0) */ {
       z_s_TL = z_mod;
       z_yi = 0;
       direction_xy_flips = 0;
       z_yp = 0;
+
+      Dz_gradient_hi = Dz_gradient_lo = 0;
     }
 
     int64_t Dzx_hi, Dzx_lo;
@@ -809,15 +822,55 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     if ((Dzx_hi > 0) || ((Dzx_hi == 0) && (Dzx_lo > 0))) {
       z_xi = 1;
       direction_xy_flips ^= 1;
+
+      if ((Dzx_hi > Dz_gradient_hi) || ((Dzx_hi == Dz_gradient_hi) && (Dzx_lo > Dz_gradient_lo))) {
+        Dz_gradient_hi = Dzx_hi;
+        Dz_gradient_lo = Dzx_lo;
+      }
     }
     else if (Dzx_hi < 0) {
       z_xi = -1;
       z_xp = D012 - z_xp - 1;
+
+      int64_t nDzx_hi, nDzx_lo;
+      subs128(0, 0, Dzx_hi, Dzx_lo, &nDzx_hi, &nDzx_lo);
+      if ((nDzx_hi > Dz_gradient_hi) || ((nDzx_hi == Dz_gradient_hi) && (nDzx_lo > Dz_gradient_lo))) {
+        Dz_gradient_hi = nDzx_hi;
+        Dz_gradient_lo = nDzx_lo;
+      }
     }
     else /* (Dzx == 0) */ {
       z_xi = 0;
       z_xp = 0;
     }
+
+    /* Dzx_sp and Dzy_sp needed 65 bits, we used another (max. 8) RASTERIZER_SUBPIXEL_BITS, giving us 72
+     * bits used (we're ignoring that we turned this into an absolute value, arguably returning us a bit)
+     * For 128 bits, this leaves us 128-72 = 56 bits to play with, let's adopt 8 bits fixed point at 32
+     * bits signed total for the offset factor */
+#if RASTERIZER_SUBPIXEL_BITS > 8
+#error You'll want to verify this logic when upping the bits
+#endif
+    muls128(Dz_gradient_hi, Dz_gradient_lo, ((int64_t)offset_factor_fixed8) >> 63, (int64_t)offset_factor_fixed8, &Dz_gradient_hi, &Dz_gradient_lo);
+    int64_t Dz_gradient_rem;
+    divrems128by64(Dz_gradient_hi, Dz_gradient_lo, D012, &Dz_gradient_hi, &Dz_gradient_lo, &Dz_gradient_rem);
+    /* We want a "ceil" function effect, negative numbers should round to their next greatest negative number,
+     * positive numbers should round to their next greatest positive number. We check if there is a remainder,
+     * and, depending on the sign of the gradient, adopt an increment or decrement. */
+    if (Dz_gradient_rem) {
+      /* Dz_gradient here should be well under 32 bits; we ignore Dz_gradient_hi so, while it is accessible
+       * for debugging, for a release build, the compiler can optimize it out. */
+      if (Dz_gradient_lo < 0) {
+        subs128(Dz_gradient_hi, Dz_gradient_lo, 0, 1, &Dz_gradient_hi, &Dz_gradient_lo);
+      }
+      else {
+        adds128(Dz_gradient_hi, Dz_gradient_lo, 0, 1, &Dz_gradient_hi, &Dz_gradient_lo);
+      }
+    }
+
+    /* Find correction to 8 bit fixed point */
+    int64_t Dz_offset = Dz_gradient_lo + offset_units_fixed8;
+    int32_t z_offset = (int32_t)((Dz_offset + (1 << 8) - 1) >> 8);
 
     /* We have z_s_TL (the top-left fragment of our quadruple fragments), now take 1-pixel steps in X and Y
      * directions to find bottom-left (BL), top-right (TR) and bottom-right (BR) fragment numerators and
@@ -1128,6 +1181,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
             rasterizer->direction_xy_flips_ = direction_xy_flips;
             rasterizer->D012_ = D012;
             rasterizer->orientation_ = orientation;
+            rasterizer->z_offset_ = z_offset;
             rasterizer->x0_ = x0;
             rasterizer->y0_ = y0;
             rasterizer->z0_ = z0;
@@ -1252,10 +1306,10 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
           ((int32_t *)fragbf->column_data_[FB_IDX_Y_COORD])[fragbf->num_rows_ + 1] = (int32_t)py;
           ((int32_t *)fragbf->column_data_[FB_IDX_Y_COORD])[fragbf->num_rows_ + 2] = (int32_t)py + 1;
           ((int32_t *)fragbf->column_data_[FB_IDX_Y_COORD])[fragbf->num_rows_ + 3] = (int32_t)py + 1;
-          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 0] = (uint32_t)z_x_TL;
-          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 1] = (uint32_t)z_x_TR;
-          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 2] = (uint32_t)z_x_BL;
-          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 3] = (uint32_t)z_x_BR;
+          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 0] = (uint32_t)z_x_TL + z_offset; /* XXX: Should be clamping to z-buffer range */
+          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 1] = (uint32_t)z_x_TR + z_offset;
+          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 2] = (uint32_t)z_x_BL + z_offset;
+          ((uint32_t *)fragbf->column_data_[FB_IDX_ZBUF_VALUE])[fragbf->num_rows_ + 3] = (uint32_t)z_x_BR + z_offset;
           fragbf->num_rows_ += 4;
         }
 
