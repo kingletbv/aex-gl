@@ -183,6 +183,7 @@
     <ClCompile Include="..\src\rasterizer.c">
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <ClCompile Include="..\src\sym_table.c" />
     <ClCompile Include="..\src\viewport_transformation.c" />
   </ItemGroup>
   <ItemGroup>
@@ -293,6 +294,7 @@
     <ClInclude Include="..\src\pp\situs.h" />
     <ClInclude Include="..\src\primitive_assembly.h" />
     <ClInclude Include="..\src\rasterizer.h" />
+    <ClInclude Include="..\src\sym_table.h" />
     <ClInclude Include="..\src\viewport_transformation.h" />
   </ItemGroup>
   <ItemGroup>

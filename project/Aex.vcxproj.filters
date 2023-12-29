@@ -29,6 +29,7 @@
     <ClCompile Include="..\src\primitive_assembly.c" />
     <ClCompile Include="..\src\attrib_set.c" />
     <ClCompile Include="..\src\blend.c" />
+    <ClCompile Include="..\src\sym_table.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -64,6 +65,7 @@
     <ClInclude Include="..\src\primitive_assembly.h" />
     <ClInclude Include="..\src\attrib_set.h" />
     <ClInclude Include="..\src\blend.h" />
+    <ClInclude Include="..\src\sym_table.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
