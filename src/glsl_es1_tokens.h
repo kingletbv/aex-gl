@@ -116,7 +116,7 @@ extern "C" {
   xx(PPTK_VOID,               GLSL_ES1_VOID) \
   xx(PPTK_VOLATILE,           GLSL_ES1_OTHER) \
   xx(PPTK_WHILE,              GLSL_ES1_WHILE) \
-  xx(PPTK_BOOL,               GLSL_ES1_BOOL) \
+  xx(PPTK_BOOL,               GLSL_ES1_IDENTIFIER) /* "_Bool", see PPTK_BOOL_ID for "bool" below. */ \
   xx(PPTK_COMPLEX,            GLSL_ES1_IDENTIFIER) \
   xx(PPTK_IMAGINARY,          GLSL_ES1_IDENTIFIER) \
   xx(PPTK_INTEGER_LIT,        GLSL_ES1_INTCONSTANT) \
@@ -143,6 +143,7 @@ extern "C" {
   xx(PPTK_DEFINED,            GLSL_ES1_IDENTIFIER) \
   xx(PPTK_PRAGMA_OP,          GLSL_ES1_IDENTIFIER) \
 \
+  xx(PPTK_BOOL_ID,            GLSL_ES1_BOOL) \
   xx(PPTK_BOOL_CONSTANT,      GLSL_ES1_BOOLCONSTANT) \
   xx(PPTK_CARET_CARET,        GLSL_ES1_XOR_OP) \
   xx(PPTK_ATTRIBUTE,          GLSL_ES1_ATTRIBUTE) \
@@ -171,6 +172,42 @@ extern "C" {
   xx(PPTK_MEDIUM_PRECISION,   GLSL_ES1_MEDIUM_PRECISION) \
   xx(PPTK_LOW_PRECISION,      GLSL_ES1_LOW_PRECISION) \
   xx(PPTK_PRECISION,          GLSL_ES1_PRECISION) \
+\
+  /* tokens reserved by GLSL 1 for future use, these should give an error */ \
+  xx(PPTK_ASM,                GLSL_ES1_OTHER) \
+  xx(PPTK_CLASS,              GLSL_ES1_OTHER) \
+  xx(PPTK_TEMPLATE,           GLSL_ES1_OTHER) \
+  xx(PPTK_THIS,               GLSL_ES1_OTHER) \
+  xx(PPTK_PACKED,             GLSL_ES1_OTHER) \
+  xx(PPTK_NOINLINE,           GLSL_ES1_OTHER) \
+  xx(PPTK_PUBLIC,             GLSL_ES1_OTHER) \
+  xx(PPTK_EXTERNAL,           GLSL_ES1_OTHER) \
+  xx(PPTK_INTERFACE,          GLSL_ES1_OTHER) \
+  xx(PPTK_FLAT,               GLSL_ES1_OTHER) \
+  xx(PPTK_HALF,               GLSL_ES1_OTHER) \
+  xx(PPTK_FIXED,              GLSL_ES1_OTHER) \
+  xx(PPTK_SUPERP,             GLSL_ES1_OTHER) \
+  xx(PPTK_INPUT,              GLSL_ES1_OTHER) \
+  xx(PPTK_OUTPUT,             GLSL_ES1_OTHER) \
+  xx(PPTK_HVEC2,              GLSL_ES1_OTHER) \
+  xx(PPTK_HVEC3,              GLSL_ES1_OTHER) \
+  xx(PPTK_HVEC4,              GLSL_ES1_OTHER) \
+  xx(PPTK_DVEC2,              GLSL_ES1_OTHER) \
+  xx(PPTK_DVEC3,              GLSL_ES1_OTHER) \
+  xx(PPTK_DVEC4,              GLSL_ES1_OTHER) \
+  xx(PPTK_FVEC2,              GLSL_ES1_OTHER) \
+  xx(PPTK_FVEC3,              GLSL_ES1_OTHER) \
+  xx(PPTK_FVEC4,              GLSL_ES1_OTHER) \
+  xx(PPTK_SAMPLER1D,          GLSL_ES1_OTHER) \
+  xx(PPTK_SAMPLER3D,          GLSL_ES1_OTHER) \
+  xx(PPTK_SAMPLER1DSHADOW,    GLSL_ES1_OTHER) \
+  xx(PPTK_SAMPLER2DSHADOW,    GLSL_ES1_OTHER) \
+  xx(PPTK_SAMPLER2DRECT,      GLSL_ES1_OTHER) \
+  xx(PPTK_SAMPLER3DRECT,      GLSL_ES1_OTHER) \
+  xx(PPTK_SAMPLER2DRECTSHADOW,GLSL_ES1_OTHER) \
+  xx(PPTK_CAST,               GLSL_ES1_OTHER) \
+  xx(PPTK_NAMESPACE,          GLSL_ES1_OTHER) \
+  xx(PPTK_USING,              GLSL_ES1_OTHER) \
 \
   /* placemarker used during macro expansion of empty arguments adjacent to ## tokens (See C99 6.10.3.3-2) */ \
   xx(PPTK_PLACEMARKER,        0) \
