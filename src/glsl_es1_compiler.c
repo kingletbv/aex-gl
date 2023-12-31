@@ -54,6 +54,7 @@ static int glsl_es1_compiler_stderr_vprintf_handler(void *baton, const char *fil
 void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   pp_init(&cc->pp_);
   glsl_es1_stack_init(&cc->parser_);
+  sl_type_base_init(&cc->tb_);
   cc->all_done_ = cc->fatal_error_ = 0;
   cc->is_typename_permitted_ = 1;
   cc->glsl_input_file_ = "";
@@ -61,9 +62,10 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   cc->vprintf_handler = glsl_es1_compiler_stderr_vprintf_handler;
 }
 
-void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *compiler) {
-  pp_cleanup(&compiler->pp_);
-  glsl_es1_stack_cleanup(&compiler->parser_);
+void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *cc) {
+  sl_type_base_cleanup(&cc->tb_);
+  pp_cleanup(&cc->pp_);
+  glsl_es1_stack_cleanup(&cc->parser_);
 }
 
 int glsl_es1_compiler_printf(struct glsl_es1_compiler *cc, const char *fmt, ...) {

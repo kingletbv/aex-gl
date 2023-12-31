@@ -26,6 +26,11 @@
 #include "glsl_es_1.h"
 #endif
 
+#ifndef SL_TYPES_H_INCLUDED
+#define SL_TYPES_H_INCLUDED
+#include "sl_types.h"
+#endif
+
 enum glsl_es1_compiler_result {
   GLSL_ES1_R_SUCCESS,
   GLSL_ES1_R_NEED_INPUT,
@@ -38,6 +43,7 @@ enum glsl_es1_compiler_result {
 struct glsl_es1_compiler {
   struct preprocessor pp_;
   struct glsl_es1_stack parser_;
+  struct sl_type_base tb_;
 
   int all_done_:1;
   int have_error_:1;
