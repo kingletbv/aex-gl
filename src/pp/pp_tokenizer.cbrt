@@ -248,6 +248,74 @@ $: {
   : defined { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_DEFINED, &$); }
   : _Pragma { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_PRAGMA_OP, &$); }
 
+  /* keywords and operators specific to GLSL */
+  : bool { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_BOOL_ID, &$); }  
+  : true { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_BOOL_CONSTANT, &$); tk->v_type_ = PPVT_INT; tk->v_.u64_ = 1; }
+  : false { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_BOOL_CONSTANT, &$); tk->v_type_ = PPVT_INT; tk->v_.u64_ = 0; }
+  : \^\^ { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_CARET_CARET, &$); }
+  : attribute { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_ATTRIBUTE, &$); }  
+  : discard { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_DISCARD, &$); }  
+  : bvec2 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_BVEC2, &$); }  
+  : bvec3 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_BVEC3, &$); }  
+  : bvec4 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_BVEC4, &$); }  
+  : ivec2 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_IVEC2, &$); }  
+  : ivec3 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_IVEC3, &$); }  
+  : ivec4 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_IVEC4, &$); }  
+  : vec2 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_VEC2, &$); }  
+  : vec3 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_VEC3, &$); }  
+  : vec4 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_VEC4, &$); }  
+  : mat2 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_MAT2, &$); }  
+  : mat3 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_MAT3, &$); }  
+  : mat4 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_MAT4, &$); }  
+  : in { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_IN, &$); }  
+  : out { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_OUT, &$); }  
+  : inout { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_INOUT, &$); }  
+  : uniform { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_UNIFORM, &$); }  
+  : varying { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_VARYING, &$); }  
+  : sampler2D { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SAMPLER2D, &$); }  
+  : samplerCube { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SAMPLERCUBE, &$); }  
+  : invariant { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_INVARIANT, &$); }  
+  : highp { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_HIGH_PRECISION, &$); }  
+  : mediump { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_MEDIUM_PRECISION, &$); }  
+  : lowp { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_LOW_PRECISION, &$); }  
+  : precision { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_PRECISION, &$); }  
+
+  /* keywords denoted as reserved in GLSL, should map to error generating tokens for GLSL */
+  : asm { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_ASM, &$); }
+  : class { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_CLASS, &$); }
+  : template { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_TEMPLATE, &$); }
+  : this { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_THIS, &$); }
+  : packed { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_PACKED, &$); }
+  : noinline { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_NOINLINE, &$); }
+  : public { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_PUBLIC, &$); }
+  : external { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_EXTERNAL, &$); }
+  : interface { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_INTERFACE, &$); }
+  : flat { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_FLAT, &$); }
+  : half { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_HALF, &$); }
+  : fixed { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_FIXED, &$); }
+  : superp { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SUPERP, &$); }
+  : input { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_INPUT, &$); }
+  : output { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_OUTPUT, &$); }
+  : hvec2 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_HVEC2, &$); }
+  : hvec3 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_HVEC3, &$); }
+  : hvec4 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_HVEC4, &$); }
+  : dvec2 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_DVEC2, &$); }
+  : dvec3 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_DVEC3, &$); }
+  : dvec4 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_DVEC4, &$); }
+  : fvec2 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_FVEC2, &$); }
+  : fvec3 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_FVEC3, &$); }
+  : fvec4 { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_FVEC4, &$); }
+  : sampler1D { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SAMPLER1D, &$); }
+  : sampler3D { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SAMPLER3D, &$); }
+  : sampler1DShadow { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SAMPLER1DSHADOW, &$); }
+  : sampler2DShadow { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SAMPLER2DSHADOW, &$); }
+  : sampler2DRect { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SAMPLER2DRECT, &$); }
+  : sampler3DRect { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SAMPLER3DRECT, &$); }
+  : sampler2DRectShadow { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_SAMPLER2DRECTSHADOW, &$); }
+  : cast { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_CAST, &$); }
+  : namespace { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_NAMESPACE, &$); }
+  : using { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_USING, &$); }
+
   /* Integer constants 6.4.4.1 */
 
   /* decimal integer literal */

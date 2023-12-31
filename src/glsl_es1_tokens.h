@@ -88,33 +88,33 @@ extern "C" {
   xx(PPTK_CHAR,               GLSL_ES1_IDENTIFIER) \
   xx(PPTK_CONST,              GLSL_ES1_CONST) \
   xx(PPTK_CONTINUE,           GLSL_ES1_CONTINUE) \
-  xx(PPTK_DEFAULT,            GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_DEFAULT,            GLSL_ES1_OTHER) \
   xx(PPTK_DO,                 GLSL_ES1_DO) \
-  xx(PPTK_DOUBLE,             GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_DOUBLE,             GLSL_ES1_OTHER) \
   xx(PPTK_ELSE,               GLSL_ES1_ELSE) \
-  xx(PPTK_ENUM,               GLSL_ES1_IDENTIFIER) \
-  xx(PPTK_EXTERN,             GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_ENUM,               GLSL_ES1_OTHER) \
+  xx(PPTK_EXTERN,             GLSL_ES1_OTHER) \
   xx(PPTK_FLOAT,              GLSL_ES1_FLOAT) \
   xx(PPTK_FOR,                GLSL_ES1_FOR) \
-  xx(PPTK_GOTO,               GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_GOTO,               GLSL_ES1_OTHER) \
   xx(PPTK_IF,                 GLSL_ES1_IF) \
-  xx(PPTK_INLINE,             GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_INLINE,             GLSL_ES1_OTHER) \
   xx(PPTK_INT,                GLSL_ES1_INT) \
-  xx(PPTK_LONG,               GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_LONG,               GLSL_ES1_OTHER) \
   xx(PPTK_REGISTER,           GLSL_ES1_IDENTIFIER) \
   xx(PPTK_RESTRICT,           GLSL_ES1_IDENTIFIER) \
   xx(PPTK_RETURN,             GLSL_ES1_RETURN) \
-  xx(PPTK_SHORT,              GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_SHORT,              GLSL_ES1_OTHER) \
   xx(PPTK_SIGNED,             GLSL_ES1_IDENTIFIER) \
-  xx(PPTK_SIZEOF,             GLSL_ES1_IDENTIFIER) \
-  xx(PPTK_STATIC,             GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_SIZEOF,             GLSL_ES1_OTHER) \
+  xx(PPTK_STATIC,             GLSL_ES1_OTHER) \
   xx(PPTK_STRUCT,             GLSL_ES1_STRUCT) \
-  xx(PPTK_SWITCH,             GLSL_ES1_IDENTIFIER) \
-  xx(PPTK_TYPEDEF,            GLSL_ES1_IDENTIFIER) \
-  xx(PPTK_UNION,              GLSL_ES1_IDENTIFIER) \
-  xx(PPTK_UNSIGNED,           GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_SWITCH,             GLSL_ES1_OTHER) \
+  xx(PPTK_TYPEDEF,            GLSL_ES1_OTHER) \
+  xx(PPTK_UNION,              GLSL_ES1_OTHER) \
+  xx(PPTK_UNSIGNED,           GLSL_ES1_OTHER) \
   xx(PPTK_VOID,               GLSL_ES1_VOID) \
-  xx(PPTK_VOLATILE,           GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_VOLATILE,           GLSL_ES1_OTHER) \
   xx(PPTK_WHILE,              GLSL_ES1_WHILE) \
   xx(PPTK_BOOL,               GLSL_ES1_BOOL) \
   xx(PPTK_COMPLEX,            GLSL_ES1_IDENTIFIER) \

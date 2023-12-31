@@ -131,7 +131,7 @@ extern "C" {
   xx(PPTK_VOID,               PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_VOID) \
   xx(PPTK_VOLATILE,           PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_VOLATILE) \
   xx(PPTK_WHILE,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_WHILE) \
-  xx(PPTK_BOOL,               PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_BOOL) \
+  xx(PPTK_BOOL,               PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_BOOL) /* "_Bool" */ \
   xx(PPTK_COMPLEX,            PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_COMPLEX) \
   xx(PPTK_IMAGINARY,          PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IMAGINARY) \
   xx(PPTK_INTEGER_LIT,        PPLD_OTHER_TOK,      PPCE_INTEGER_LIT,         PPME_OTHER,      CP_INTEGER_LIT) \
@@ -158,6 +158,7 @@ extern "C" {
   xx(PPTK_DEFINED,            PPLD_IDENTIFIER_TOK, PPCE_DEFINED,             PPME_DEFINED,    CP_IDENT) \
   xx(PPTK_PRAGMA_OP,          PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
 \
+  xx(PPTK_BOOL_ID,            PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_OTHER,      CP_IDENT) /* "bool" */ \
   xx(PPTK_BOOL_CONSTANT,      PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_OTHER,      CP_IDENT) \
   xx(PPTK_CARET_CARET,        PPLD_OTHER_TOK,      PPCE_OTHER,               PPME_IDENT,      CP_OTHER) \
   xx(PPTK_ATTRIBUTE,          PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
@@ -186,6 +187,42 @@ extern "C" {
   xx(PPTK_MEDIUM_PRECISION,   PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
   xx(PPTK_LOW_PRECISION,      PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
   xx(PPTK_PRECISION,          PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+\
+  /* tokens reserved by GLSL 1 for future use */ \
+  xx(PPTK_ASM,                PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_CLASS,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_TEMPLATE,           PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_THIS,               PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_PACKED,             PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_NOINLINE,           PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_PUBLIC,             PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_EXTERNAL,           PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_INTERFACE,          PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_FLAT,               PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_HALF,               PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_FIXED,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_SUPERP,             PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_INPUT,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_OUTPUT,             PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_HVEC2,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_HVEC3,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_HVEC4,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_DVEC2,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_DVEC3,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_DVEC4,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_FVEC2,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_FVEC3,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_FVEC4,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_SAMPLER1D,          PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_SAMPLER3D,          PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_SAMPLER1DSHADOW,    PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_SAMPLER2DSHADOW,    PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_SAMPLER2DRECT,      PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_SAMPLER3DRECT,      PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_SAMPLER2DRECTSHADOW,PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_CAST,               PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_NAMESPACE,          PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_USING,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
 \
   /* placemarker used during macro expansion of empty arguments adjacent to ## tokens (See C99 6.10.3.3-2) */ \
   xx(PPTK_PLACEMARKER,        0,                   0,                        0,               0) \
