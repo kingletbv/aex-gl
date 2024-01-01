@@ -178,6 +178,14 @@ void sl_type_base_cleanup(struct sl_type_base *sltb);
  * if no such type is found, a new type is formed and returned. */
 struct sl_type *sl_type_base_qualified_type(struct sl_type_base *tb, struct sl_type *derived_type, int extra_qualifiers);
 
+/* The field returned will be chained to itself (e.g. forms a tail cyclic chain by itself, ready for use with sl_type_field_join()) */
+struct sl_type_field *sl_type_field_alloc(struct sl_type_base *tb, const char *ident, struct situs *ident_loc, struct sl_type *field_type);
+
+/* Joins two tail-cyclic chains of sl_type_fields together and returns the last element of the new chain */
+struct sl_type_field *sl_type_field_join(struct sl_type_field *front, struct sl_type_field *back);
+
+/* Frees all fields in the chain */
+void sl_type_field_free_chain(struct sl_type_field *chain);
 
 #ifdef __cplusplus
 } /* extern "C" */

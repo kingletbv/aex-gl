@@ -18,6 +18,11 @@
 #include <stdlib.h>
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
 #ifndef SL_TYPES_H_INCLUDED
 #define SL_TYPES_H_INCLUDED
 #include "sl_types.h"
@@ -96,21 +101,8 @@ static void sl_type_cleanup(struct sl_type *t) {
   if (t->tag_) free(t->tag_);
   situs_cleanup(&t->tag_loc_);
 
-  struct sl_type_field *field;
-  field = t->fields_;
-  if (field) {
-    struct sl_type_field *next = field->chain_;
-    do {
-      field = next;
-      next = field->chain_;
-
-      sl_type_field_cleanup(field);
-
-      free(field);
-
-    } while (field != t->fields_);
-    t->fields_ = NULL;
-  }
+  sl_type_field_free_chain(t->fields_);
+  t->fields_ = NULL;
 }
 
 static void sl_type_base_insert_type_into_hashtable(struct sl_type_base *tb, struct sl_type *t) {
@@ -240,4 +232,67 @@ struct sl_type *sl_type_base_qualified_type(struct sl_type_base *tb, struct sl_t
   return t;
 }
 
+
+struct sl_type_field *sl_type_field_join(struct sl_type_field *front, struct sl_type_field *back) {
+  if (!back) return front;
+  if (!front) return back;
+
+  struct sl_type_field *front_head = front->chain_;
+  struct sl_type_field *front_tail = front;
+
+  struct sl_type_field *back_head = back->chain_;
+  struct sl_type_field *back_tail = back;
+
+  back_tail->chain_ = front_head;
+  front_tail->chain_ = back_head;
+
+  return back_tail;
+}
+
+
+struct sl_type_field *sl_type_field_alloc(struct sl_type_base *tb, const char *ident, struct situs *ident_loc, struct sl_type *field_type) {
+  struct sl_type_field *tf = (struct sl_type_field *)malloc(sizeof(struct sl_type_field));
+  if (!tf) return NULL;
+  if (ident) {
+    size_t ident_len = strlen(ident);
+    tf->ident_ = (char *)malloc(ident_len + 1);
+    if (!tf->ident_) {
+      free(tf);
+      return NULL;
+    }
+    memcpy(tf->ident_, ident, ident_len);
+    tf->ident_[ident_len] = '\0';
+  }
+  else {
+    tf->ident_ = NULL;
+  }
+  situs_init(&tf->ident_loc_);
+  if (!situs_clone(&tf->ident_loc_, ident_loc)) {
+    free(tf->ident_);
+    free(tf);
+    return NULL;
+  }
+  tf->type_ = field_type;
+   
+  tf->chain_ = tf;
+
+  return tf;
+}
+
+void sl_type_field_free_chain(struct sl_type_field *chain) {
+  struct sl_type_field *field;
+  field = chain;
+  if (field) {
+    struct sl_type_field *next = field->chain_;
+    do {
+      field = next;
+      next = field->chain_;
+
+      sl_type_field_cleanup(field);
+
+      free(field);
+
+    } while (field != chain);
+  }
+}
 
