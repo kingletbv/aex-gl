@@ -19,6 +19,16 @@
 #include "glsl_es_1.h"
 #endif
 
+#ifndef GLSL_ES1_COMPILER_H_INCLUDED
+#define GLSL_ES1_COMPILER_H_INCLUDED
+#include "glsl_es1_compiler.h"
+#endif
+
+#ifndef PP_TOKENS_H_INCLUDED
+#define PP_TOKENS_H_INCLUDED
+#include "pp/pp_tokens.h"
+#endif
+
 #ifndef SITUS_H_INCLUDED
 #define SITUS_H_INCLUDED
 #include "situs.h"
@@ -72,6 +82,28 @@ grammar: translation-unit;
 %common_type struct situs
 %constructor situs_init(&$$);
 %destructor situs_cleanup(&$$);
+%token_action if (input_chain) { \
+  if (situs_clone(&$, &input_chain->situs_)) { \
+    glsl_es1_compiler_no_memory(cc); \
+    return -1; \
+  } \
+}
+
+/* Common action for all productions that follow */
+$: {
+  /* iterate over all common-data and merge their situs; this ensures
+   * non-terminals also carry source location data. */
+  if ($len) {
+    size_t n;
+    size_t len = $len;
+    for (n = 0; n < len; ++n) {
+      if (situs_concat(&$, &${n})) {
+        glsl_es1_compiler_no_memory(cc);
+        return -1;
+      }
+    }
+  }
+}
 
 variable-identifier: IDENTIFIER;
 
@@ -347,6 +379,11 @@ jump-statement: RETURN SEMICOLON;
 jump-statement: RETURN expression SEMICOLON;
 jump-statement: DISCARD SEMICOLON;
 
+/* Reset common action - we don't want to merge the entire source into a single large situs; hence
+ * the largest productions (translation unit, external declarations and whole function definitions)
+ * are at the bottom and don't merge the situs of their parts. */
+$: {}
+
 translation-unit: external-declaration;
 translation-unit: translation-unit external-declaration;
 
@@ -354,4 +391,3 @@ external-declaration: function-definition;
 external-declaration: declaration;
 
 function-definition: function-prototype compound-statement-no-new-scope;
-
