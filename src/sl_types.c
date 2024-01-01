@@ -188,3 +188,56 @@ void sl_type_base_cleanup(struct sl_type_base *tb) {
     tb->types_ = NULL;
   }
 }
+
+struct sl_type *sl_type_base_qualified_type(struct sl_type_base *tb, struct sl_type *derived_type, int extra_qualifiers) {
+  int hash;
+  if (!derived_type) return NULL; /* silent pass-through of failure */
+  if (derived_type->kind_ == sltk_qualifier) {
+    /* pop the sltk_qualifier and combine its qualifier mask with the extra_qualifiers */
+    extra_qualifiers |= derived_type->qualifiers_;
+    derived_type = derived_type->derived_type_;
+  }
+
+  if (!extra_qualifiers) {
+    /* No qualifiers means no sltk_qualifier type but just the original type */
+    return derived_type;
+  }
+
+  hash = sl_type_hash_qualifiers(extra_qualifiers, derived_type);
+  struct sl_type *t;
+  t = tb->hash_table_[hash];
+  if (t) {
+    struct sl_type *next = t->hash_chain_;
+    do {
+      t = t->hash_chain_;
+
+      if ((t->kind_ == sltk_qualifier) &&
+          (t->qualifiers_ == extra_qualifiers) &&
+          (t->derived_type_ == derived_type)) {
+        /* Found pre-existing matching type, return it */
+        return t;
+      }
+
+    } while (t != tb->hash_table_[hash]);
+  }
+    
+  /* Create new type */
+  t = (struct sl_type *)malloc(sizeof(struct sl_type));
+  if (!t) return NULL; /* no memory */
+  sl_type_init(t, tb);
+  t->kind_ = sltk_qualifier;
+  t->derived_type_ = derived_type;
+  t->qualifiers_ = extra_qualifiers;
+  if (tb->hash_table_[hash]) {
+    t->hash_chain_ = tb->hash_table_[hash]->hash_chain_;
+    tb->hash_table_[hash]->hash_chain_ = t->hash_chain_;
+  }
+  else {
+    t->hash_chain_ = t;
+  }
+  tb->hash_table_[hash] = t;
+
+  return t;
+}
+
+

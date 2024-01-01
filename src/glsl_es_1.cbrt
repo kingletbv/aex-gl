@@ -279,8 +279,15 @@ single-declaration: INVARIANT IDENTIFIER;
 %type type-qualifier precision-qualifier: int
 %constructor $$ = 0;
 
-fully-specified-type: type-specifier;
-fully-specified-type: type-qualifier type-specifier;
+fully-specified-type: type-specifier { $$ = $0; }
+fully-specified-type: type-qualifier type-specifier { 
+  struct sl_type *t = sl_type_base_qualified_type(&cc->tb_, $1, $0);
+  if (!t && $1) {
+    glsl_es1_compiler_no_memory(cc);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$ = t;
+}
 
 type-qualifier: CONST             { $$ = SL_TYPE_QUALIFIER_CONST; }
 type-qualifier: ATTRIBUTE         { $$ = SL_TYPE_QUALIFIER_ATTRIBUTE; }

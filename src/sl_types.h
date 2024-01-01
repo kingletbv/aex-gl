@@ -170,6 +170,15 @@ struct sl_type_base {
 void sl_type_base_init(struct sl_type_base *sltb);
 void sl_type_base_cleanup(struct sl_type_base *sltb);
 
+/* construct qualified type given the type to derive from, and the extra qualifiers on top.
+ * Returns NULL if there is no memory, or if derived_type was NULL.
+ * If the derived_type is an sltk_qualifier type, then the qualifiers are merged using OR, and a new
+ * type is formed. If extra_qualifiers is 0, then derived_type is returned.
+ * A search is performed if an existing sltk_qualifier type exists with the specified qualifiers, or,
+ * if no such type is found, a new type is formed and returned. */
+struct sl_type *sl_type_base_qualified_type(struct sl_type_base *tb, struct sl_type *derived_type, int extra_qualifiers);
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
