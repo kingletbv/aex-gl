@@ -271,42 +271,50 @@ single-declaration: fully-specified-type IDENTIFIER LEFT_BRACKET constant-expres
 single-declaration: fully-specified-type IDENTIFIER EQUAL initializer;
 single-declaration: INVARIANT IDENTIFIER; 
 
+%type fully-specified-type type-specifier type-specifier-no-prec struct-specifier: struct sl_type *
+%constructor $$ = NULL;
+/* note: no %destructor, sl_type* is owned by sl_type_base. */
+%move $$ = $0;
+
+%type type-qualifier precision-qualifier: int
+%constructor $$ = 0;
+
 fully-specified-type: type-specifier;
 fully-specified-type: type-qualifier type-specifier;
 
-type-qualifier: CONST;
-type-qualifier: ATTRIBUTE;
-type-qualifier: VARYING;
-type-qualifier: INVARIANT VARYING;
-type-qualifier: UNIFORM;
+type-qualifier: CONST             { $$ = SL_TYPE_QUALIFIER_CONST; }
+type-qualifier: ATTRIBUTE         { $$ = SL_TYPE_QUALIFIER_ATTRIBUTE; }
+type-qualifier: VARYING           { $$ = SL_TYPE_QUALIFIER_VARYING; }
+type-qualifier: INVARIANT VARYING { $$ = SL_TYPE_QUALIFIER_INVARIANT | SL_TYPE_QUALIFIER_VARYING; }
+type-qualifier: UNIFORM           { $$ = SL_TYPE_QUALIFIER_UNIFORM; }
 
 type-specifier: type-specifier-no-prec;
 type-specifier: precision-qualifier type-specifier-no-prec;
 
-type-specifier-no-prec: VOID;
-type-specifier-no-prec: FLOAT;
-type-specifier-no-prec: INT;
-type-specifier-no-prec: BOOL;
-type-specifier-no-prec: VEC2;
-type-specifier-no-prec: VEC3;
-type-specifier-no-prec: VEC4;
-type-specifier-no-prec: BVEC2;
-type-specifier-no-prec: BVEC3;
-type-specifier-no-prec: BVEC4;
-type-specifier-no-prec: IVEC2;
-type-specifier-no-prec: IVEC3;
-type-specifier-no-prec: IVEC4;
-type-specifier-no-prec: MAT2;
-type-specifier-no-prec: MAT3;
-type-specifier-no-prec: MAT4;
-type-specifier-no-prec: SAMPLER2D;
-type-specifier-no-prec: SAMPLERCUBE;
-type-specifier-no-prec: struct-specifier;
-type-specifier-no-prec: TYPE_NAME;
+type-specifier-no-prec: VOID  { $$ = &cc->tb_.void_; }
+type-specifier-no-prec: FLOAT { $$ = &cc->tb_.float_; }
+type-specifier-no-prec: INT   { $$ = &cc->tb_.int_; }
+type-specifier-no-prec: BOOL  { $$ = &cc->tb_.bool_; }
+type-specifier-no-prec: VEC2  { $$ = &cc->tb_.vec2_; }
+type-specifier-no-prec: VEC3  { $$ = &cc->tb_.vec3_; }
+type-specifier-no-prec: VEC4  { $$ = &cc->tb_.vec4_; }
+type-specifier-no-prec: BVEC2 { $$ = &cc->tb_.bvec2_; }
+type-specifier-no-prec: BVEC3 { $$ = &cc->tb_.bvec3_; }
+type-specifier-no-prec: BVEC4 { $$ = &cc->tb_.bvec4_; }
+type-specifier-no-prec: IVEC2 { $$ = &cc->tb_.ivec2_; }
+type-specifier-no-prec: IVEC3 { $$ = &cc->tb_.ivec3_; }
+type-specifier-no-prec: IVEC4 { $$ = &cc->tb_.ivec4_; }
+type-specifier-no-prec: MAT2  { $$ = &cc->tb_.mat2_; }
+type-specifier-no-prec: MAT3  { $$ = &cc->tb_.mat3_; }
+type-specifier-no-prec: MAT4  { $$ = &cc->tb_.mat4_; }
+type-specifier-no-prec: SAMPLER2D { $$ = &cc->tb_.sampler2D_; }
+type-specifier-no-prec: SAMPLERCUBE { $$ = &cc->tb_.samplerCube_; }
+type-specifier-no-prec: struct-specifier { $$ = $0; }
+type-specifier-no-prec: TYPE_NAME { /* XXX: RESOLVE TYPE_NAME TO SL_TYPE! */ }
 
-precision-qualifier: HIGH_PRECISION;
-precision-qualifier: MEDIUM_PRECISION;
-precision-qualifier: LOW_PRECISION;
+precision-qualifier: HIGH_PRECISION   { $$ = SL_TYPE_QUALIFIER_HIGH_PRECISION; }
+precision-qualifier: MEDIUM_PRECISION { $$ = SL_TYPE_QUALIFIER_MEDIUM_PRECISION; }
+precision-qualifier: LOW_PRECISION    { $$ = SL_TYPE_QUALIFIER_LOW_PRECISION; }
 
 struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRACE;
 struct-specifier: STRUCT LEFT_BRACE struct-declaration-list RIGHT_BRACE;
