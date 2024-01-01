@@ -82,10 +82,11 @@ grammar: translation-unit;
 %common_type struct situs
 %constructor situs_init(&$$);
 %destructor situs_cleanup(&$$);
+%move situs_swap(&$$, &$0);
 %token_action if (input_chain) { \
   if (situs_clone(&$, &input_chain->situs_)) { \
     glsl_es1_compiler_no_memory(cc); \
-    return -1; \
+    return _GLSL_ES1_NO_MEMORY; \
   } \
 }
 
@@ -99,7 +100,7 @@ $: {
     for (n = 0; n < len; ++n) {
       if (situs_concat(&$, &${n})) {
         glsl_es1_compiler_no_memory(cc);
-        return -1;
+        return _GLSL_ES1_NO_MEMORY;
       }
     }
   }
