@@ -75,6 +75,7 @@ struct sl_expr_temp {
   } v_;
 };
 
+void sl_expr_temp_init_void(struct sl_expr_temp *slet);
 void sl_expr_temp_init_float(struct sl_expr_temp *slet, float f);
 void sl_expr_temp_init_int(struct sl_expr_temp *slet, int64_t i);
 void sl_expr_temp_init_bool(struct sl_expr_temp *slet, int b);
@@ -98,7 +99,10 @@ int sl_expr_temp_init_struct(struct sl_expr_temp *slet, struct sl_type *struct_t
 
 /* initializes a temporary with the given type; this can also be a struct or array type.
  * The value(s) is/are initialized to its 0 state (e.g. 0, false, 0.f, etc.)
- * Passing in an sltk_void type is permitted but means the temp has no value.
+ * Passing in an sltk_void type is permitted but means the temp has no value. You can
+ * also pass in a NULL pointer for the type to imply void, this ensures you can later
+ * safely call sl_expr_temp_cleanup() on the temp irrespective of subsequent 
+ * sl_expr_temp_init_XXX calls to fully initialize the temp.
  * Returns 0 upon success or -1 upon memory error or integer overflow. */
 int sl_expr_temp_init(struct sl_expr_temp *slet, struct sl_type *t);
 

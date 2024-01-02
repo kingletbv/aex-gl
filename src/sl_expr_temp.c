@@ -33,6 +33,10 @@
 #include "sl_types.h"
 #endif
 
+void sl_expr_temp_init_void(struct sl_expr_temp *slet) {
+  slet->kind_ = sletk_void;
+}
+
 void sl_expr_temp_init_float(struct sl_expr_temp *slet, float f) {
   slet->kind_ = sletk_float;
   slet->v_.f_ = f;
@@ -237,6 +241,11 @@ int sl_expr_temp_init_struct(struct sl_expr_temp *slet, struct sl_type *struct_t
 }
 
 int sl_expr_temp_init(struct sl_expr_temp *slet, struct sl_type *t) {
+  if (!t) {
+    /* special case for dud initialization short-hand */
+    slet->kind_ = sletk_void;
+    return 0;
+  }
   struct sl_type *tunq = sl_type_unqualified(t);
   switch (tunq->kind_) {
     case sltk_array:

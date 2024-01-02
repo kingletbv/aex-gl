@@ -99,6 +99,8 @@ int test(void) {
     "#if defined(defined)\n"
     "#error Hello\n"
     "#endif\n"
+    "struct A { int x; };\n"
+    "struct B { A y[3]; };\n"
     "\n";
   ccr = glsl_es1_compiler_compile_mem(cc, "input.frag", input_frag, strlen(input_frag));
     

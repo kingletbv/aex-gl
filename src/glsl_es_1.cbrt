@@ -37,6 +37,11 @@
 #include "situs.h"
 #endif
 
+#ifndef SL_EXPR_H_INCLUDED
+#define SL_EXPR_H_INCLUDED
+#include "sl_expr.h"
+#endif
+
 %grammar%
 
 %prefix glsl_es1_
@@ -117,20 +122,39 @@ $: {
 
 variable-identifier: IDENTIFIER;
 
-primary-expression: variable-identifier;
-primary-expression: INTCONSTANT;
-primary-expression: FLOATCONSTANT;
-primary-expression: BOOLCONSTANT;
-primary-expression: LEFT_PAREN expression RIGHT_PAREN;
+%type primary-expression postfix-expression integer-expression unary-expression multiplicative-expression additive-expression shift-expression \
+      relational-expression equality-expression and-expression exclusive-or-expression inclusive-or-expression logical-and-expression logical-xor-expression \
+      logical-or-expression conditional-expression assignment-expression expression constant-expression: struct sl_expr *
+%constructor $$ = NULL;
+%move $$ = $0; $0 = NULL;
+%destructor sl_expr_free($$);
 
-postfix-expression: primary-expression;
+%type INTCONSTANT: int64_t
+%constructor $$ = 0;
+%token_action $$ = input_chain->v_.i64_;
+
+%type FLOATCONSTANT: float
+%constructor $$ = 0.f;
+%token_action $$ = (input_chain->v_type_ == PPVT_FLOAT) ? input_chain->v_.f_ : (float)input_chain->v_.d_;
+
+%type BOOLCONSTANT: int
+%constructor $$ = 0;
+%token_action $$ = !!input_chain->v_.u64_;
+
+primary-expression: variable-identifier;
+primary-expression: INTCONSTANT   { $$ = sl_expr_alloc_int_lit($0, &${0});   if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+primary-expression: FLOATCONSTANT { $$ = sl_expr_alloc_float_lit($0, &${0}); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+primary-expression: BOOLCONSTANT  { $$ = sl_expr_alloc_bool_lit($0, &${0});  if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+primary-expression: LEFT_PAREN expression RIGHT_PAREN { $$ = $1; $1 = NULL; }
+
+postfix-expression: primary-expression { $$ = $0; $0 = NULL; }
 postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRACKET;
 postfix-expression: function-call;
 postfix-expression: postfix-expression DOT IDENTIFIER;
 postfix-expression: postfix-expression INC_OP;
 postfix-expression: postfix-expression DEC_OP;
 
-integer-expression: expression;
+integer-expression: expression  { $$ = $0; $0 = NULL; }
 
 function-call: function-call-generic;
 
@@ -165,7 +189,7 @@ constructor-identifier: MAT3;
 constructor-identifier: MAT4;
 constructor-identifier: TYPE_NAME;
 
-unary-expression: postfix-expression;
+unary-expression: postfix-expression  { $$ = $0; $0 = NULL; }
 unary-expression: INC_OP unary-expression;
 unary-expression: DEC_OP unary-expression;
 unary-expression: unary-operator unary-expression;
@@ -173,71 +197,71 @@ unary-expression: unary-operator unary-expression;
 unary-operator: PLUS;
 unary-operator: DASH;
 unary-operator: BANG;
-unary-operator: TILDE;
+unary-operator: TILDE; // bitwise not is reserved in GLSL 1
 
-multiplicative-expression: unary-expression;
+multiplicative-expression: unary-expression  { $$ = $0; $0 = NULL; }
 multiplicative-expression: multiplicative-expression STAR unary-expression;
 multiplicative-expression: multiplicative-expression SLASH unary-expression;
-multiplicative-expression: multiplicative-expression PERCENT unary-expression;
+multiplicative-expression: multiplicative-expression PERCENT unary-expression; // modulo is reserved in GLSL 1
 
-additive-expression: multiplicative-expression;
+additive-expression: multiplicative-expression  { $$ = $0; $0 = NULL; }
 additive-expression: additive-expression PLUS multiplicative-expression;
 additive-expression: additive-expression DASH multiplicative-expression;
 
-shift-expression: additive-expression;
-shift-expression: shift-expression LEFT_OP additive-expression;
-shift-expression: shift-expression RIGHT_OP additive-expression;
+shift-expression: additive-expression  { $$ = $0; $0 = NULL; }
+shift-expression: shift-expression LEFT_OP additive-expression; // left shift is reserved in GLSL 1
+shift-expression: shift-expression RIGHT_OP additive-expression;// right shift is reserved in GLSL 1
 
-relational-expression: shift-expression;
+relational-expression: shift-expression  { $$ = $0; $0 = NULL; }
 relational-expression: relational-expression LEFT_ANGLE shift-expression;
 relational-expression: relational-expression RIGHT_ANGLE shift-expression;
 relational-expression: relational-expression LE_OP shift-expression;
 relational-expression: relational-expression GE_OP shift-expression;
 
-equality-expression: relational-expression;
+equality-expression: relational-expression  { $$ = $0; $0 = NULL; }
 equality-expression: equality-expression EQ_OP relational-expression;
 equality-expression: equality-expression NE_OP relational-expression;
 
-and-expression: equality-expression;
-and-expression: and-expression AMPERSAND equality-expression;
+and-expression: equality-expression  { $$ = $0; $0 = NULL; }
+and-expression: and-expression AMPERSAND equality-expression;   // bitwise and is reserved in GLSL 1
 
-exclusive-or-expression: and-expression;
-exclusive-or-expression: exclusive-or-expression CARET and-expression;
+exclusive-or-expression: and-expression  { $$ = $0; $0 = NULL; }
+exclusive-or-expression: exclusive-or-expression CARET and-expression;  // bitwise xor is reserved in GLSL 1
 
-inclusive-or-expression: exclusive-or-expression;
-inclusive-or-expression: inclusive-or-expression VERTICAL_BAR exclusive-or-expression;
+inclusive-or-expression: exclusive-or-expression  { $$ = $0; $0 = NULL; }
+inclusive-or-expression: inclusive-or-expression VERTICAL_BAR exclusive-or-expression; // bitwise or is reserved in GLSL 1
 
-logical-and-expression: inclusive-or-expression;
+logical-and-expression: inclusive-or-expression  { $$ = $0; $0 = NULL; }
 logical-and-expression: logical-and-expression AND_OP inclusive-or-expression;
 
-logical-xor-expression: logical-and-expression;
+logical-xor-expression: logical-and-expression  { $$ = $0; $0 = NULL; }
 logical-xor-expression: logical-xor-expression XOR_OP logical-and-expression;
 
-logical-or-expression: logical-xor-expression;
+logical-or-expression: logical-xor-expression  { $$ = $0; $0 = NULL; }
 logical-or-expression: logical-or-expression OR_OP logical-xor-expression;
 
-conditional-expression: logical-or-expression;
+conditional-expression: logical-or-expression  { $$ = $0; $0 = NULL; }
 conditional-expression: logical-or-expression QUESTION expression COLON assignment-expression;
 
-assignment-expression: conditional-expression;
+assignment-expression: conditional-expression  { $$ = $0; $0 = NULL; }
 assignment-expression: unary-expression assignment-operator assignment-expression;
 
 assignment-operator: EQUAL;
 assignment-operator: MUL_ASSIGN;
 assignment-operator: DIV_ASSIGN;
-assignment-operator: MOD_ASSIGN;
+assignment-operator: MOD_ASSIGN;  // modulo assign is reserved in GLSL 1
 assignment-operator: ADD_ASSIGN;
 assignment-operator: SUB_ASSIGN;
-assignment-operator: LEFT_ASSIGN;
-assignment-operator: RIGHT_ASSIGN;
-assignment-operator: AND_ASSIGN;
-assignment-operator: XOR_ASSIGN;
-assignment-operator: OR_ASSIGN;
+assignment-operator: LEFT_ASSIGN;   // left shift assign is reserved in GLSL 1
+assignment-operator: RIGHT_ASSIGN;  // right shift assign is reserved in GLSL 1
+assignment-operator: AND_ASSIGN;    // bitwise and assign is reserved in GLSL 1
+assignment-operator: XOR_ASSIGN;    // bitwise xor assign is reserved in GLSL 1
+assignment-operator: OR_ASSIGN;     // bitwise or assign is reserved in GLSL 1
 
-expression: assignment-expression;
+expression: assignment-expression  { $$ = $0; $0 = NULL; }
 expression: expression COMMA assignment-expression;
 
-constant-expression: conditional-expression;
+constant-expression: conditional-expression  { $$ = $0; $0 = NULL; }
 
 declaration: function-prototype SEMICOLON;
 declaration: init-declarator-list SEMICOLON;
@@ -429,6 +453,15 @@ struct-declarator: IDENTIFIER {
 struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   /* XXX: EVALUATE CONSTANT-EXPRESSION FOR ARRAY SIZE */
   uint64_t array_size = 1; /* XXX: EVALUTE ARRAY SIZE */
+  if ($2) {
+    /* XXX: Placeholder code to see if the literal value bubbles all the way up */
+    if ($2->op_ == exop_literal) {
+      array_size = (uint64_t)$2->literal_value_.v_.i_;
+    }
+    else {
+      glsl_es1_compiler_error_loc(cc, &${2}, "Error: array size must be a constant expression");
+    }
+  }
   struct sl_type *arraytype = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, array_size);
   if (!arraytype && cc->last_type_specifier_) {
     glsl_es1_compiler_no_memory(cc);
