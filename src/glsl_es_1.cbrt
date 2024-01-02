@@ -296,6 +296,7 @@ fully-specified-type: type-qualifier type-specifier {
     return _GLSL_ES1_NO_MEMORY;
   }
   $$ = t;
+  cc->last_type_specifier_ = t;
 }
 
 type-qualifier: CONST             { $$ = SL_TYPE_QUALIFIER_CONST; }
@@ -312,6 +313,7 @@ type-specifier: precision-qualifier type-specifier-no-prec {
     return _GLSL_ES1_NO_MEMORY;
   }
   $$ = t;
+  cc->last_type_specifier_ = t;
 }
 
 type-specifier-no-prec: VOID  { $$ = &cc->tb_.void_; }
@@ -339,120 +341,66 @@ precision-qualifier: HIGH_PRECISION   { $$ = SL_TYPE_QUALIFIER_HIGH_PRECISION; }
 precision-qualifier: MEDIUM_PRECISION { $$ = SL_TYPE_QUALIFIER_MEDIUM_PRECISION; }
 precision-qualifier: LOW_PRECISION    { $$ = SL_TYPE_QUALIFIER_LOW_PRECISION; }
 
-%%
-struct glsl_es1_declarator_list {
-  struct glsl_es1_declarator_list *chain_;
-  char *ident_;
-  struct situs ident_loc_;
-  uint64_t array_size_;
-};
-
-struct glsl_es1_declarator_list *glsl_es1_declarator_list_alloc(char *ident, struct situs *ident_loc, uint64_t array_size) {
-  struct glsl_es1_declarator_list *dl = (struct glsl_es1_declarator_list *)malloc(sizeof(struct glsl_es1_declarator_list));
-  if (!dl) return NULL;
-  dl->chain_ = dl;
-  dl->ident_ = ident;
-  situs_init(&dl->ident_loc_);
-  if (situs_clone(&dl->ident_loc_, ident_loc)) {
-    situs_cleanup(&dl->ident_loc_);
-    free(dl);
-    return NULL;
-  }
-  dl->array_size_ = array_size;
-  return dl;
-}
-
-void glsl_es1_declarator_list_free_chain(struct glsl_es1_declarator_list *chain) {
-  struct glsl_es1_declarator_list *dl = chain;
-  if (dl) {
-    struct glsl_es1_declarator_list *next = dl->chain_;
-    do {
-      dl = next;
-      next = dl->chain_;
-
-      if (dl->ident_) free(dl->ident_);
-      situs_cleanup(&dl->ident_loc_);
-      free(dl);
-
-    } while (dl != chain);
-  }
-}
-
-struct glsl_es1_declarator_list *glsl_es1_declarator_list_join(struct glsl_es1_declarator_list *front, struct glsl_es1_declarator_list *back) {
-  if (!back) return front;
-  if (!front) return back;
-
-  struct glsl_es1_declarator_list *front_head = front->chain_;
-  struct glsl_es1_declarator_list *front_tail = front;
-
-  struct glsl_es1_declarator_list *back_head = back->chain_;
-  struct glsl_es1_declarator_list *back_tail = back;
-
-  back_tail->chain_ = front_head;
-  front_tail->chain_ = back_head;
-
-  return back_tail;
-}
-
-%%
-
 struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRACE;
 struct-specifier: STRUCT LEFT_BRACE struct-declaration-list RIGHT_BRACE;
 
-%type struct-declaration-list struct-declaration: struct sl_type_field *
+%type struct-declaration-list struct-declaration struct-declarator-list struct-declarator: struct sl_type_field *
 %constructor $$ = NULL;
 %move $$ = $0; $0 = NULL;
 %destructor sl_type_field_free_chain($$);
 
-struct-declaration-list : struct-declaration {
+struct-declaration-list: struct-declaration {
   $$ = $0;
   $0 = NULL;
 }
-struct-declaration-list : struct-declaration-list struct-declaration {
+struct-declaration-list: struct-declaration-list struct-declaration {
   $$ = sl_type_field_join($0, $1);
   $0 = $1 = NULL;
 }
 
-struct-declaration : type-specifier struct-declarator-list SEMICOLON {
-  /* go over the glsl_es1_declarator_list and instantiate each field as
-   * an instance of type-specifier's type. */
-
+struct-declaration: type-specifier struct-declarator-list SEMICOLON {
+  /* type-specifier reduction was already passed to the struct-declarator-list
+   * through cc->last_type_specifier_ ; so just pass along the struct-declarator-list */
+  $$ = $1;
+  $1 = NULL;
 }
 
-
-%type struct-declarator-list struct-declarator: struct glsl_es1_declarator_list *
-%constructor $$ = NULL;
-%destructor glsl_es1_declarator_list_free_chain($$);
-%move $$ = $0; $0 = NULL;
-
-struct-declarator-list : struct-declarator {
+struct-declarator-list: struct-declarator {
   $$ = $0;
   $0 = NULL;
 }
-struct-declarator-list : struct-declarator-list COMMA struct-declarator {
-  $$ = glsl_es1_declarator_list_join($0, $2);
+struct-declarator-list: struct-declarator-list COMMA struct-declarator {
+  $$ = sl_type_field_join($0, $2);
   $0 = $2 = NULL;
 }
 
 struct-declarator: IDENTIFIER {
-  struct glsl_es1_declarator_list *dl = glsl_es1_declarator_list_alloc($0, &${0}, 0);
-  if (!dl) {
+  struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, NULL, &${0}, cc->last_type_specifier_);
+  if (!tf) {
     glsl_es1_compiler_no_memory(cc);
     return _GLSL_ES1_NO_MEMORY;
   }
-  $0 = NULL; /* dl adopted ownership */
-  $$ = dl;
+  tf->ident_ = $0; /* tf adopts ownership, prevents malloc/free pair. */
+  $0 = NULL; /* tf adopted ownership */
+  $$ = tf;
 }
 
 struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   /* XXX: EVALUATE CONSTANT-EXPRESSION FOR ARRAY SIZE */
-  struct glsl_es1_declarator_list *dl = glsl_es1_declarator_list_alloc($0, &${ 0 }, 0);
-  if (!dl) {
+  uint64_t array_size = 1; /* XXX: EVALUTE ARRAY SIZE */
+  struct sl_type *arraytype = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, array_size);
+  if (!arraytype && cc->last_type_specifier_) {
     glsl_es1_compiler_no_memory(cc);
     return _GLSL_ES1_NO_MEMORY;
   }
-  $0 = NULL; /* dl adopted ownership */
-  $$ = dl;
+  struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, NULL, &${0}, arraytype);
+  if (!tf) {
+    glsl_es1_compiler_no_memory(cc);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  tf->ident_ = $0; /* tf adopts ownership, prevents malloc/free pair. */
+  $0 = NULL; /* tf adopted ownership */
+  $$ = tf;
 }
 
 initializer: assignment-expression;

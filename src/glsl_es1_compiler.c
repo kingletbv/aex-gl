@@ -57,6 +57,7 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   sl_type_base_init(&cc->tb_);
   cc->all_done_ = cc->fatal_error_ = 0;
   cc->is_typename_permitted_ = 1;
+  cc->last_type_specifier_ = NULL;
   cc->glsl_input_file_ = "";
   cc->glsl_input_line_ = 0;
   cc->vprintf_handler = glsl_es1_compiler_stderr_vprintf_handler;

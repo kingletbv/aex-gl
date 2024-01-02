@@ -62,6 +62,11 @@ struct glsl_es1_compiler {
    */
   int is_typename_permitted_:1;
 
+  /* The last type specifier parsed and reduced inside the grammar. This is
+   * used for declarator lists to assign the type in place of their identifiers.
+   * Specifically the reductions of: type-specifier, fully-specified-type*/
+  struct sl_type *last_type_specifier_;
+
   const char *glsl_input_file_;
   int         glsl_input_line_;
 
