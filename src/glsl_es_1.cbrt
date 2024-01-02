@@ -305,7 +305,10 @@ type-qualifier: VARYING           { $$ = SL_TYPE_QUALIFIER_VARYING; }
 type-qualifier: INVARIANT VARYING { $$ = SL_TYPE_QUALIFIER_INVARIANT | SL_TYPE_QUALIFIER_VARYING; }
 type-qualifier: UNIFORM           { $$ = SL_TYPE_QUALIFIER_UNIFORM; }
 
-type-specifier: type-specifier-no-prec { $$ = $0; }
+type-specifier: type-specifier-no-prec { 
+  $$ = $0; 
+  cc->last_type_specifier_ = $0;
+}
 type-specifier: precision-qualifier type-specifier-no-prec { 
   struct sl_type *t = sl_type_base_qualified_type(&cc->tb_, $1, $0);
   if (!t && $1) {
@@ -350,7 +353,7 @@ struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRA
   }
   if (str == STR_DUPLICATE) {
     glsl_es1_compiler_error_loc(cc, &${1}, "Error: duplicate identifier \"%s\" declaration", $1);
-    glsl_es1_compiler_error_loc(cc, &s->loc_, "See original use of %s", s->name_);
+    glsl_es1_compiler_error_loc(cc, &s->loc_, "See original use of \"%s\"", s->name_);
   }
   struct sl_type *t = sl_type_base_struct_type(&cc->tb_, $1, &${1}, $3);
   if (!t) {
@@ -402,7 +405,7 @@ struct-declarator-list: struct-declarator-list COMMA struct-declarator {
 }
 
 struct-declarator: IDENTIFIER {
-  struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, NULL, &${0}, cc->last_type_specifier_);
+  struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, $0, &${0}, cc->last_type_specifier_);
   if (!tf) {
     glsl_es1_compiler_no_memory(cc);
     return _GLSL_ES1_NO_MEMORY;
@@ -420,7 +423,7 @@ struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
     glsl_es1_compiler_no_memory(cc);
     return _GLSL_ES1_NO_MEMORY;
   }
-  struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, NULL, &${0}, arraytype);
+  struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, $0, &${0}, arraytype);
   if (!tf) {
     glsl_es1_compiler_no_memory(cc);
     return _GLSL_ES1_NO_MEMORY;
