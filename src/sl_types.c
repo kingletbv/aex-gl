@@ -364,3 +364,9 @@ void sl_type_field_free_chain(struct sl_type_field *chain) {
   }
 }
 
+struct sl_type *sl_type_unqualified(struct sl_type *t) {
+  if (t->kind_ == sltk_qualifier) {
+    return t->derived_type_;
+  }
+  return t;
+}

@@ -199,6 +199,9 @@ struct sl_type_field *sl_type_field_join(struct sl_type_field *front, struct sl_
 /* Frees all fields in the chain */
 void sl_type_field_free_chain(struct sl_type_field *chain);
 
+/* Returns the type with any qualifiers removed */
+struct sl_type *sl_type_unqualified(struct sl_type *t);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
