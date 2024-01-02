@@ -319,6 +319,11 @@ type-specifier: precision-qualifier type-specifier-no-prec {
   cc->last_type_specifier_ = t;
 }
 
+%type TYPE_NAME: struct sl_type *
+%constructor $$ = NULL;
+%move $$ = $0;
+%token_action $$ = input_chain->v_.type_;
+
 type-specifier-no-prec: VOID  { $$ = &cc->tb_.void_; }
 type-specifier-no-prec: FLOAT { $$ = &cc->tb_.float_; }
 type-specifier-no-prec: INT   { $$ = &cc->tb_.int_; }
@@ -338,7 +343,8 @@ type-specifier-no-prec: MAT4  { $$ = &cc->tb_.mat4_; }
 type-specifier-no-prec: SAMPLER2D { $$ = &cc->tb_.sampler2D_; }
 type-specifier-no-prec: SAMPLERCUBE { $$ = &cc->tb_.samplerCube_; }
 type-specifier-no-prec: struct-specifier { $$ = $0; }
-type-specifier-no-prec: TYPE_NAME { /* XXX: RESOLVE TYPE_NAME TO SL_TYPE! */ }
+type-specifier-no-prec: TYPE_NAME { $$ = $0; }
+
 
 precision-qualifier: HIGH_PRECISION   { $$ = SL_TYPE_QUALIFIER_HIGH_PRECISION; }
 precision-qualifier: MEDIUM_PRECISION { $$ = SL_TYPE_QUALIFIER_MEDIUM_PRECISION; }
@@ -360,7 +366,10 @@ struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRA
     glsl_es1_compiler_no_memory(cc);
     return _GLSL_ES1_NO_MEMORY;
   }
-  
+  if (str == STR_OK) {
+    /* Store a pointer to the type inside the sym */
+    s->v_.type_ = t;
+  }
   $$ = t;
 }
 

@@ -261,6 +261,8 @@ enum pp_value_type {
   PPVT_NO_VALUE
 };
 
+struct sl_type;
+
 struct pptk {
   struct pptk *next_, *prev_;
   enum pptoken tok_;
@@ -281,7 +283,7 @@ struct pptk {
     int64_t i64_;     /* PPVT_SHORT, PPVT_INT, PPVT_LONG_INT, PPVT_LONG_LONG_INT */
     double d_;        /* PPVT_DOUBLE, PPVT_LONG_DOUBLE */
     float f_;         /* PPVT_FLOAT */ 
-    void *type_;      /* PPVT_TYPE_NAME */
+    struct sl_type *type_;      /* PPVT_TYPE_NAME */
   } v_;
 };
 

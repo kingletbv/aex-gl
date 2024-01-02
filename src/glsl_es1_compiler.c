@@ -204,36 +204,36 @@ c_parser_input:
           sym = g_pptk_to_glsl_es1_[tk->tok_];
           if (sym == GLSL_ES1_IDENTIFIER) {
             /* Possibly retarget to TYPEDEF_NAME at runtime, depending on:
-              * 1) if a TYPEDEF_NAME is currently accepted by the grammar (cp_stack_accepts(stack, CP_TYPEDEF_NAME))
+              * 1) if a TYPE_NAME is currently accepted by the grammar
               *    AND
-              * 2) TYPEDEF_NAME is permitted based on the context. If we successfully retarget as TYPEDEF_NAME, we must
+              * 2) TYPE_NAME is permitted based on the context. If we successfully retarget as TYPEDEF_NAME, we must
               *    immediately *disable* this permission. It will be re-enabled by the reduction of declaration-specifiers.
               *    (A second occurrance of a typedef name is actually the declarator's identifier even if it clashes with
               *    an existing typedef name.)
               * See also the reduction of declaration-specifiers in particular. */
             if (cc->is_typename_permitted_ && glsl_es1_stack_accepts(&cc->parser_, GLSL_ES1_TYPE_NAME)) {
-              // XXX: Cascade through the scopes to look for a typedef name, if any.
-#if 0
-              struct name_space *pns = cc->ctx_.block_ ? cc->ctx_.block_->ns_ : &cc->global_ns_;
-              while (pns) {
-                struct sym *s = st_find(&pns->ordinary_idents_, tk->text_);
+              // Cascade through the scopes to look for a typedef name, if any.
+              struct sym_table *st = cc->current_scope_;
+              struct sl_type *named_type = NULL;
+              while (st) {
+                struct sym *s = st_find(st, tk->text_, tk->text_len_);
                 if (s) {
-                  struct decl *d = (struct decl *)s;
-                  if (d->sc_ == SC_TYPEDEF) {
-                    /* Found a typedef where one is accepted, rewrite */
-                    cc->is_typename_permitted_ = 0;
-                    sym = GLSL_ES1_TYPE_NAME;
-                    tk->v_type_ = PPVT_TYPE_NAME;
-                    tk->v_.type_ = d->type_;
-                    tk->tok_ = PPTK_TYPEDEF_NAME;
-                    became_typedefname = 1;
-                    break;
+                  if (s->kind_ == SK_STRUCT) {
+                    named_type = s->v_.type_;
                   }
+                  /* Even if we found something other than a struct, we still stop the
+                   * search and let the parser deal with it as an identifier. */
+                  break;
                 }
-
-                pns = pns->parent_;
+                st = st->parent_;
               }
-#endif
+              if (named_type) {
+                sym = GLSL_ES1_TYPE_NAME;
+                cc->is_typename_permitted_ = 0;
+                tk->v_type_ = PPVT_TYPE_NAME;
+                tk->v_.type_ = named_type;
+                tk->tok_ = PPTK_TYPEDEF_NAME;
+              }
             }
           }
         }
