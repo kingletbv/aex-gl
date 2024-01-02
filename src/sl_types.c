@@ -273,6 +273,32 @@ struct sl_type *sl_type_base_array_type(struct sl_type_base *tb, struct sl_type 
   return t;
 }
 
+struct sl_type *sl_type_base_struct_type(struct sl_type_base *tb,const char *tag,struct situs *tag_loc,struct sl_type_field *fields) {
+  struct sl_type *t;
+  t = (struct sl_type *)malloc(sizeof(struct sl_type));
+  if (!t) return NULL; /* no memory */
+  sl_type_init(t, tb);
+  t->kind_ = sltk_struct;
+  if (tag) {
+    size_t tag_len = strlen(tag);
+    t->tag_ = (char *)malloc(tag_len + 1);
+    if (!t->tag_) {
+      free(t);
+      return NULL; /* no memory */
+    }
+    memcpy(t->tag_, tag, tag_len);
+    t->tag_[tag_len] = '\0';
+  }
+  if (tag_loc) {
+    if (situs_clone(&t->tag_loc_,tag_loc)) {
+      situs_cleanup(&t->tag_loc_);
+      free(t->tag_);
+      free(t);
+      return NULL; /* no memory */
+    }
+  }
+  return t;
+}
 
 
 struct sl_type_field *sl_type_field_join(struct sl_type_field *front, struct sl_type_field *back) {

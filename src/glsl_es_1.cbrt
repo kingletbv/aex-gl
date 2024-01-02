@@ -341,8 +341,25 @@ precision-qualifier: HIGH_PRECISION   { $$ = SL_TYPE_QUALIFIER_HIGH_PRECISION; }
 precision-qualifier: MEDIUM_PRECISION { $$ = SL_TYPE_QUALIFIER_MEDIUM_PRECISION; }
 precision-qualifier: LOW_PRECISION    { $$ = SL_TYPE_QUALIFIER_LOW_PRECISION; }
 
-struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRACE;
-struct-specifier: STRUCT LEFT_BRACE struct-declaration-list RIGHT_BRACE;
+struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRACE {
+  /* XXX: MUST ADD THIS TO CURRENT NAMESPACE */
+  struct sl_type *t = sl_type_base_struct_type(&cc->tb_, $1, &${1}, $3);
+  if(t) {
+    glsl_es1_compiler_no_memory(cc);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$ = t;
+}
+
+struct-specifier: STRUCT LEFT_BRACE struct-declaration-list RIGHT_BRACE {
+  /* Use "struct" &{0} location for source reference */
+  struct sl_type *t = sl_type_base_struct_type(&cc->tb_, NULL, &${0}, $2);
+  if(!t) {
+    glsl_es1_compiler_no_memory(cc);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$ = t;
+}
 
 %type struct-declaration-list struct-declaration struct-declarator-list struct-declarator: struct sl_type_field *
 %constructor $$ = NULL;

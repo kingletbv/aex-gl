@@ -179,8 +179,16 @@ void sl_type_base_cleanup(struct sl_type_base *sltb);
 struct sl_type *sl_type_base_qualified_type(struct sl_type_base *tb, struct sl_type *derived_type, int extra_qualifiers);
 
 /* construct an array type given the type to derive from and the size of the array.
- * Returns NULL if there is no memory, or if derived_type was NULL. */
+ * Returns NULL if there is no memory, or if derived_type was NULL.
+ * A search is performed if an existing sltk_array type exists with the specified array size and
+ * element type, or, if no such type is found, a new type is formed and returned. */
 struct sl_type *sl_type_base_array_type(struct sl_type_base *tb, struct sl_type *derived_type, uint64_t array_size);
+
+/* construct a struct type and have that type take ownership of the passed in struct fields.
+ * It is permitted for the tag and tag_loc to be NULL (in which case the struct is anonymous.)
+ * Does not add the struct to any sym table. Also, important, does not perform any search
+ * to see if an identical struct already exists: structs are always unique types. */
+struct sl_type *sl_type_base_struct_type(struct sl_type_base *tb, const char *tag, struct situs *tag_loc, struct sl_type_field *fields);
 
 /* The field returned will be chained to itself (e.g. forms a tail cyclic chain by itself, ready for use with sl_type_field_join()) */
 struct sl_type_field *sl_type_field_alloc(struct sl_type_base *tb, const char *ident, struct situs *ident_loc, struct sl_type *field_type);
