@@ -31,6 +31,11 @@
 #include "sl_types.h"
 #endif
 
+#ifndef SYM_TABLE_H_INCLUDED
+#define SYM_TABLE_H_INCLUDED
+#include "sym_table.h"
+#endif
+
 enum glsl_es1_compiler_result {
   GLSL_ES1_R_SUCCESS,
   GLSL_ES1_R_NEED_INPUT,
@@ -66,6 +71,12 @@ struct glsl_es1_compiler {
    * used for declarator lists to assign the type in place of their identifiers.
    * Specifically the reductions of: type-specifier, fully-specified-type*/
   struct sl_type *last_type_specifier_;
+
+  /* The symbol table representing the global scope. */
+  struct sym_table global_scope_;
+
+  /* Pointer to the current scope, initially this is a pointer to the global_scope_ */
+  struct sym_table *current_scope_;
 
   const char *glsl_input_file_;
   int         glsl_input_line_;

@@ -31,6 +31,7 @@ extern "C" {
 #endif
 
 struct sym;
+struct sl_type;
 
 typedef enum sym_table_result {
   STR_OK = 0,
@@ -38,6 +39,12 @@ typedef enum sym_table_result {
   STR_DUPLICATE = -2,
   STR_NOT_FOUND = -3
 } sym_table_result_t;
+
+typedef enum sym_kind {
+  SK_STRUCT,
+  SK_FUNCTION,
+  SK_VARIABLE
+} sym_kind_t;
 
 struct sym_table {
   /* Root of red-black tree of symbols. */
@@ -63,6 +70,12 @@ struct sym {
   struct situs loc_;    /* location of symbol name in input */
   size_t name_len_;     /* length of symbol name excl. null terminator */
   char *name_;          /* null-terminated symbol name (allocated as part of sym) */
+
+  /* Kind of symbol */
+  sym_kind_t kind_;
+  union {
+    struct sl_type *type_; /* valid for SK_STRUCT */
+  } v_;
 };
 
 void sym_init(struct sym *s);
@@ -77,7 +90,7 @@ void st_init(struct sym_table *st, struct sym_table *parent);
 void st_cleanup(struct sym_table *st);
 
 struct sym *st_find(struct sym_table *st, const char *name, size_t name_len);
-sym_table_result_t st_find_or_insert(struct sym_table *st, const char *name, size_t name_len, const struct situs *loc, size_t full_sym_size, struct sym **new_sym);
+sym_table_result_t st_find_or_insert(struct sym_table *st, sym_kind_t kind, const char *name, size_t name_len, const struct situs *loc, size_t full_sym_size, struct sym **new_sym);
 void st_remove(struct sym_table *st, struct sym *s);
 
 /* Tests internals, returns 0 upon success.

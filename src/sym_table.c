@@ -590,7 +590,7 @@ struct sym *st_alloc_sym(const char *name, size_t name_len, const struct situs *
   return s;
 }
 
-sym_table_result_t st_find_or_insert(struct sym_table *st, const char *name, size_t name_len, const struct situs *loc, size_t full_sym_size, struct sym **new_sym) {
+sym_table_result_t st_find_or_insert(struct sym_table *st, sym_kind_t kind, const char *name, size_t name_len, const struct situs *loc, size_t full_sym_size, struct sym **new_sym) {
   struct sym *s;
   s = st->root_;
   if (!s) {
@@ -601,6 +601,7 @@ sym_table_result_t st_find_or_insert(struct sym_table *st, const char *name, siz
     st->seq_ = ns;
     ns->is_red_ = 0; /* root is always black */
     st->root_ = ns;
+    ns->kind_ = kind;
     *new_sym = ns;
     return STR_OK;
   }
@@ -617,6 +618,7 @@ sym_table_result_t st_find_or_insert(struct sym_table *st, const char *name, siz
         ns->prev_ = s->prev_;
         ns->next_ = s;
         ns->prev_->next_ = ns->next_->prev_ = ns;
+        ns->kind_ = kind;
 
         st_process_insert(st, ns);
 
@@ -637,6 +639,7 @@ sym_table_result_t st_find_or_insert(struct sym_table *st, const char *name, siz
         ns->prev_ = s;
         ns->next_ = s->next_;
         ns->prev_->next_ = ns->next_->prev_ = ns;
+        ns->kind_ = kind;
 
         st_process_insert(st, ns);
 
@@ -798,7 +801,7 @@ int st_test(void) {
       if (schk) { 
         fprintf(stderr, "(at line %d)\n", __LINE__); r = schk; goto exit;
       }
-      str = st_find_or_insert(&st, tn->name_, strlen(tn->name_), NULL, sizeof(struct sym), &tn->s_);
+      str = st_find_or_insert(&st, SK_STRUCT, tn->name_, strlen(tn->name_), NULL, sizeof(struct sym), &tn->s_);
       if (str != STR_OK) {
         fprintf(stderr, "st_test(): Failed testcase\n");
         goto exit;

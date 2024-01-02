@@ -58,12 +58,15 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   cc->all_done_ = cc->fatal_error_ = 0;
   cc->is_typename_permitted_ = 1;
   cc->last_type_specifier_ = NULL;
+  st_init(&cc->global_scope_, NULL);
+  cc->current_scope_ = &cc->global_scope_;
   cc->glsl_input_file_ = "";
   cc->glsl_input_line_ = 0;
   cc->vprintf_handler = glsl_es1_compiler_stderr_vprintf_handler;
 }
 
 void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *cc) {
+  st_cleanup(&cc->global_scope_);
   sl_type_base_cleanup(&cc->tb_);
   pp_cleanup(&cc->pp_);
   glsl_es1_stack_cleanup(&cc->parser_);

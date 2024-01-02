@@ -342,19 +342,29 @@ precision-qualifier: MEDIUM_PRECISION { $$ = SL_TYPE_QUALIFIER_MEDIUM_PRECISION;
 precision-qualifier: LOW_PRECISION    { $$ = SL_TYPE_QUALIFIER_LOW_PRECISION; }
 
 struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRACE {
-  /* XXX: MUST ADD THIS TO CURRENT NAMESPACE */
-  struct sl_type *t = sl_type_base_struct_type(&cc->tb_, $1, &${1}, $3);
-  if(t) {
+  struct sym *s = NULL;
+  sym_table_result_t str = st_find_or_insert(cc->current_scope_, SK_STRUCT, $1, strlen($1), &${1}, sizeof(struct sym), &s);
+  if (str == STR_NOMEM) {
     glsl_es1_compiler_no_memory(cc);
     return _GLSL_ES1_NO_MEMORY;
   }
+  if (str == STR_DUPLICATE) {
+    glsl_es1_compiler_error_loc(cc, &${1}, "Error: duplicate identifier \"%s\" declaration", $1);
+    glsl_es1_compiler_error_loc(cc, &s->loc_, "See original use of %s", s->name_);
+  }
+  struct sl_type *t = sl_type_base_struct_type(&cc->tb_, $1, &${1}, $3);
+  if (!t) {
+    glsl_es1_compiler_no_memory(cc);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  
   $$ = t;
 }
 
 struct-specifier: STRUCT LEFT_BRACE struct-declaration-list RIGHT_BRACE {
   /* Use "struct" &{0} location for source reference */
   struct sl_type *t = sl_type_base_struct_type(&cc->tb_, NULL, &${0}, $2);
-  if(!t) {
+  if (!t) {
     glsl_es1_compiler_no_memory(cc);
     return _GLSL_ES1_NO_MEMORY;
   }
