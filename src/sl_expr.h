@@ -111,6 +111,21 @@ struct sl_expr *sl_expr_alloc_float_lit(float f, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_int_lit(int64_t i, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_bool_lit(int b, const struct situs *loc);
 
+/* Allocate a unary operator expression, op and loc are operator and situs location of the
+ * expression. The opd is a pointer to the pointer of the operand. If the function succeeds,
+ * the new expression (referencing *opd) is returned, and *opd is set to NULL, thus helping
+ * ensure only one reference to the operand exists for cleanup purposes. */
+struct sl_expr *sl_expr_alloc_unop(expr_op_t op,const struct situs *loc, struct sl_expr **opd);
+
+/* Allocate a binary operator expression, op and loc are the operator and location respectively, the
+ * lhs and rhs are pointers to the pointers of the left and right hand side expressions. If the function
+ * succeeds, and the left and right hand side of the binop are now referenced by the returned expression, then
+ * *lhs and *rhs are set to NULL, thus making it easier to avoid double-cleanup. */
+struct sl_expr *sl_expr_alloc_binop(expr_op_t op,const struct situs *loc,struct sl_expr **lhs, struct sl_expr **rhs);
+
+/* like sl_expr_alloc_binop, but for operators with 3 operands. */
+struct sl_expr *sl_expr_alloc_ternop(expr_op_t op,const struct situs *loc,struct sl_expr **opd0, struct sl_expr **opd1, struct sl_expr **opd2);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

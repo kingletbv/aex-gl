@@ -93,3 +93,50 @@ struct sl_expr *sl_expr_alloc_bool_lit(int b, const struct situs *loc) {
   sl_expr_temp_init_bool(&x->literal_value_, b);
   return x;
 }
+
+struct sl_expr *sl_expr_alloc_unop(expr_op_t op,const struct situs *loc, struct sl_expr **opd) {
+  struct sl_expr *x = sl_expr_alloc(op,loc);
+  if(!x) return NULL;
+  x->num_children_ = 1;
+  x->children_ = (struct sl_expr **)malloc(sizeof(struct sl_expr *) * x->num_children_);
+  if (!x->children_) {
+    sl_expr_free(x);
+    return NULL;
+  }
+  x->children_[0] = *opd; *opd = NULL;
+
+  return x;
+}
+
+struct sl_expr *sl_expr_alloc_binop(expr_op_t op, const struct situs *loc, struct sl_expr **lhs, struct sl_expr **rhs) {
+  struct sl_expr *x = sl_expr_alloc(op, loc);
+  if (!x) return NULL;
+  x->num_children_ = 2;
+  x->children_ = (struct sl_expr **)malloc(sizeof(struct sl_expr *) * x->num_children_);
+  if (!x->children_) {
+    sl_expr_free(x);
+    return NULL;
+  }
+  x->children_[0] = *lhs; *lhs = NULL;
+  x->children_[1] = *rhs; *rhs = NULL;
+
+  return x;
+}
+
+struct sl_expr *sl_expr_alloc_ternop(expr_op_t op,const struct situs *loc,struct sl_expr **opd0, struct sl_expr **opd1, struct sl_expr **opd2) {
+  struct sl_expr *x = sl_expr_alloc(op, loc);
+  if (!x) return NULL;
+  x->num_children_ = 3;
+  x->children_ = (struct sl_expr **)malloc(sizeof(struct sl_expr *) * x->num_children_);
+  if (!x->children_) {
+    sl_expr_free(x);
+    return NULL;
+  }
+  x->children_[0] = *opd0; *opd0 = NULL;
+  x->children_[1] = *opd1; *opd1 = NULL;
+  x->children_[2] = *opd2; *opd2 = NULL;
+
+  return x;
+}
+
+

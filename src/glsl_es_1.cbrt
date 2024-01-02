@@ -147,12 +147,28 @@ primary-expression: FLOATCONSTANT { $$ = sl_expr_alloc_float_lit($0, &${0}); if 
 primary-expression: BOOLCONSTANT  { $$ = sl_expr_alloc_bool_lit($0, &${0});  if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 primary-expression: LEFT_PAREN expression RIGHT_PAREN { $$ = $1; $1 = NULL; }
 
-postfix-expression: primary-expression { $$ = $0; $0 = NULL; }
-postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRACKET;
-postfix-expression: function-call;
-postfix-expression: postfix-expression DOT IDENTIFIER;
-postfix-expression: postfix-expression INC_OP;
-postfix-expression: postfix-expression DEC_OP;
+postfix-expression: primary-expression{$$ = $0; $0 = NULL;}
+postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRACKET {
+  struct situs combined_brackets;
+  situs_init(&combined_brackets);
+  if (situs_concat(&combined_brackets, &${1})) {
+    glsl_es1_compiler_no_memory(cc);
+    situs_cleanup(&combined_brackets);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$ = sl_expr_alloc_binop(exop_array_subscript, &combined_brackets, &$0, &$2);
+  situs_cleanup(&combined_brackets);
+  if (!$$) {
+    glsl_es1_compiler_no_memory(cc); 
+    return _GLSL_ES1_NO_MEMORY;
+  }
+}
+
+postfix-expression: function-call; /* XXX: HANDLE FUNCTION CALLS */
+
+postfix-expression: postfix-expression DOT IDENTIFIER; /* XXX: HANDLE FIELD SELECTION */
+postfix-expression: postfix-expression INC_OP { $$ = sl_expr_alloc_unop(exop_post_inc, &${1}, &$0); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+postfix-expression: postfix-expression DEC_OP { $$ = sl_expr_alloc_unop(exop_post_dec, &${1}, &$0); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 
 integer-expression: expression  { $$ = $0; $0 = NULL; }
 
@@ -190,76 +206,120 @@ constructor-identifier: MAT4;
 constructor-identifier: TYPE_NAME;
 
 unary-expression: postfix-expression  { $$ = $0; $0 = NULL; }
-unary-expression: INC_OP unary-expression;
-unary-expression: DEC_OP unary-expression;
-unary-expression: unary-operator unary-expression;
+unary-expression: INC_OP unary-expression { $$ = sl_expr_alloc_unop(exop_pre_inc, &${0}, &$1); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+unary-expression: DEC_OP unary-expression { $$ = sl_expr_alloc_unop(exop_pre_dec, &${0}, &$1); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 
-unary-operator: PLUS;
-unary-operator: DASH;
-unary-operator: BANG;
-unary-operator: TILDE; // bitwise not is reserved in GLSL 1
+%type unary-operator: expr_op_t
+%constructor $$ = exop_invalid;
+
+unary-expression: unary-operator unary-expression {
+  if ($0 == exop_invalid) {
+    $$ = $1;
+    $1 = NULL;
+  }
+  else {
+    $$ = sl_expr_alloc_unop($0, &${0}, &$1);
+    if(!$$) {
+      glsl_es1_compiler_no_memory(cc); 
+      return _GLSL_ES1_NO_MEMORY; 
+    }
+  }
+}
+
+unary-operator: PLUS { $$ = exop_invalid; }
+unary-operator: DASH { $$ = exop_negate; }
+unary-operator: BANG { $$ = exop_logical_not; }
+unary-operator: TILDE { glsl_es1_compiler_error_loc(cc, &${0}, "bitwise-not is reserved in GLSL 1"); }
 
 multiplicative-expression: unary-expression  { $$ = $0; $0 = NULL; }
-multiplicative-expression: multiplicative-expression STAR unary-expression;
-multiplicative-expression: multiplicative-expression SLASH unary-expression;
-multiplicative-expression: multiplicative-expression PERCENT unary-expression; // modulo is reserved in GLSL 1
+multiplicative-expression: multiplicative-expression STAR unary-expression { $$ = sl_expr_alloc_binop(exop_multiply, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+multiplicative-expression: multiplicative-expression SLASH unary-expression { $$ = sl_expr_alloc_binop(exop_divide, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+multiplicative-expression: multiplicative-expression PERCENT unary-expression { glsl_es1_compiler_error_loc(cc, &${1}, "modulo is reserved in GLSL 1"); }
 
 additive-expression: multiplicative-expression  { $$ = $0; $0 = NULL; }
-additive-expression: additive-expression PLUS multiplicative-expression;
-additive-expression: additive-expression DASH multiplicative-expression;
+additive-expression: additive-expression PLUS multiplicative-expression { $$ = sl_expr_alloc_binop(exop_add, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+additive-expression: additive-expression DASH multiplicative-expression { $$ = sl_expr_alloc_binop(exop_subtract, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 
 shift-expression: additive-expression  { $$ = $0; $0 = NULL; }
-shift-expression: shift-expression LEFT_OP additive-expression; // left shift is reserved in GLSL 1
-shift-expression: shift-expression RIGHT_OP additive-expression;// right shift is reserved in GLSL 1
+shift-expression: shift-expression LEFT_OP additive-expression { glsl_es1_compiler_error_loc(cc, &${1}, "left shift is reserved in GLSL 1"); }
+shift-expression: shift-expression RIGHT_OP additive-expression { glsl_es1_compiler_error_loc(cc, &${1}, "right shift is reserved in GLSL 1"); }
 
 relational-expression: shift-expression  { $$ = $0; $0 = NULL; }
-relational-expression: relational-expression LEFT_ANGLE shift-expression;
-relational-expression: relational-expression RIGHT_ANGLE shift-expression;
-relational-expression: relational-expression LE_OP shift-expression;
-relational-expression: relational-expression GE_OP shift-expression;
+relational-expression: relational-expression LEFT_ANGLE shift-expression { $$ = sl_expr_alloc_binop(exop_lt, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+relational-expression: relational-expression RIGHT_ANGLE shift-expression { $$ = sl_expr_alloc_binop(exop_gt, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+relational-expression: relational-expression LE_OP shift-expression { $$ = sl_expr_alloc_binop(exop_le, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+relational-expression: relational-expression GE_OP shift-expression { $$ = sl_expr_alloc_binop(exop_ge, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 
 equality-expression: relational-expression  { $$ = $0; $0 = NULL; }
-equality-expression: equality-expression EQ_OP relational-expression;
-equality-expression: equality-expression NE_OP relational-expression;
+equality-expression: equality-expression EQ_OP relational-expression { $$ = sl_expr_alloc_binop(exop_eq, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+equality-expression: equality-expression NE_OP relational-expression { $$ = sl_expr_alloc_binop(exop_ne, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 
 and-expression: equality-expression  { $$ = $0; $0 = NULL; }
-and-expression: and-expression AMPERSAND equality-expression;   // bitwise and is reserved in GLSL 1
+and-expression: and-expression AMPERSAND equality-expression { glsl_es1_compiler_error_loc(cc, &${1}, "bitwise-and is reserved in GLSL 1"); }
 
 exclusive-or-expression: and-expression  { $$ = $0; $0 = NULL; }
-exclusive-or-expression: exclusive-or-expression CARET and-expression;  // bitwise xor is reserved in GLSL 1
+exclusive-or-expression: exclusive-or-expression CARET and-expression { glsl_es1_compiler_error_loc(cc, &${1}, "bitwise-exclusive-or is reserved in GLSL 1"); }
 
 inclusive-or-expression: exclusive-or-expression  { $$ = $0; $0 = NULL; }
-inclusive-or-expression: inclusive-or-expression VERTICAL_BAR exclusive-or-expression; // bitwise or is reserved in GLSL 1
+inclusive-or-expression: inclusive-or-expression VERTICAL_BAR exclusive-or-expression { glsl_es1_compiler_error_loc(cc, &${1}, "bitwise-or is reserved in GLSL 1"); }
 
 logical-and-expression: inclusive-or-expression  { $$ = $0; $0 = NULL; }
-logical-and-expression: logical-and-expression AND_OP inclusive-or-expression;
+logical-and-expression: logical-and-expression AND_OP inclusive-or-expression { $$ = sl_expr_alloc_binop(exop_logical_and, &${1}, &$0, &$2); if(!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 
 logical-xor-expression: logical-and-expression  { $$ = $0; $0 = NULL; }
-logical-xor-expression: logical-xor-expression XOR_OP logical-and-expression;
+logical-xor-expression: logical-xor-expression XOR_OP logical-and-expression { $$ = sl_expr_alloc_binop(exop_logical_xor, &${1}, &$0, &$2); if(!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 
 logical-or-expression: logical-xor-expression  { $$ = $0; $0 = NULL; }
-logical-or-expression: logical-or-expression OR_OP logical-xor-expression;
+logical-or-expression: logical-or-expression OR_OP logical-xor-expression { $$ = sl_expr_alloc_binop(exop_logical_or, &${1}, &$0, &$2); if(!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 
 conditional-expression: logical-or-expression  { $$ = $0; $0 = NULL; }
-conditional-expression: logical-or-expression QUESTION expression COLON assignment-expression;
+conditional-expression: logical-or-expression QUESTION expression COLON assignment-expression {
+  struct situs question_colon;
+  situs_init(&question_colon);
+  if (situs_concat(&question_colon, &${1})) {
+    glsl_es1_compiler_no_memory(cc);
+    situs_cleanup(&question_colon);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$ = sl_expr_alloc_ternop(exop_logical_or, &question_colon, &$0, &$2, &$4);
+  situs_cleanup(&question_colon);
+  if (!$$) { 
+    glsl_es1_compiler_no_memory(cc); 
+    return _GLSL_ES1_NO_MEMORY; 
+  } 
+}
+
+%type assignment-operator: expr_op_t
+%constructor $$ = exop_invalid;
 
 assignment-expression: conditional-expression  { $$ = $0; $0 = NULL; }
-assignment-expression: unary-expression assignment-operator assignment-expression;
+assignment-expression: unary-expression assignment-operator assignment-expression {
+  if ($1 == exop_invalid) {
+    /* Cannot perform op, (e.g. not supported) error already reported, just pass NULL along. */
+  }
+  else {
+    $$ = sl_expr_alloc_binop($1, &${1}, &$0, &$2); 
+    if (!$$) { 
+      glsl_es1_compiler_no_memory(cc); 
+      return _GLSL_ES1_NO_MEMORY; 
+    }
+  }
+}
 
-assignment-operator: EQUAL;
-assignment-operator: MUL_ASSIGN;
-assignment-operator: DIV_ASSIGN;
-assignment-operator: MOD_ASSIGN;  // modulo assign is reserved in GLSL 1
-assignment-operator: ADD_ASSIGN;
-assignment-operator: SUB_ASSIGN;
-assignment-operator: LEFT_ASSIGN;   // left shift assign is reserved in GLSL 1
-assignment-operator: RIGHT_ASSIGN;  // right shift assign is reserved in GLSL 1
-assignment-operator: AND_ASSIGN;    // bitwise and assign is reserved in GLSL 1
-assignment-operator: XOR_ASSIGN;    // bitwise xor assign is reserved in GLSL 1
-assignment-operator: OR_ASSIGN;     // bitwise or assign is reserved in GLSL 1
+assignment-operator: EQUAL { $$ = exop_assign; }
+assignment-operator: MUL_ASSIGN { $$ = exop_mul_assign; }
+assignment-operator: DIV_ASSIGN { $$ = exop_div_assign; }
+assignment-operator: MOD_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "modulo-assignment is reserved in GLSL 1"); }
+assignment-operator: ADD_ASSIGN { $$ = exop_add_assign; }
+assignment-operator: SUB_ASSIGN { $$ = exop_sub_assign; }
+assignment-operator: LEFT_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "left-shift-assignment is reserved in GLSL 1"); }
+assignment-operator: RIGHT_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "right-shift-assignment is reserved in GLSL 1"); }
+assignment-operator: AND_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "bitwise-and-assignment is reserved in GLSL 1"); }
+assignment-operator: XOR_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "bitwise-xor-assignment is reserved in GLSL 1"); }
+assignment-operator: OR_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "bitwise-or-assignment is reserved in GLSL 1"); }
 
 expression: assignment-expression  { $$ = $0; $0 = NULL; }
-expression: expression COMMA assignment-expression;
+expression: expression COMMA assignment-expression { $$ = sl_expr_alloc_binop(exop_sequence, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
 
 constant-expression: conditional-expression  { $$ = $0; $0 = NULL; }
 
