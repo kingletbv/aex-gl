@@ -178,6 +178,10 @@ void sl_type_base_cleanup(struct sl_type_base *sltb);
  * if no such type is found, a new type is formed and returned. */
 struct sl_type *sl_type_base_qualified_type(struct sl_type_base *tb, struct sl_type *derived_type, int extra_qualifiers);
 
+/* construct an array type given the type to derive from and the size of the array.
+ * Returns NULL if there is no memory, or if derived_type was NULL. */
+struct sl_type *sl_type_base_array_type(struct sl_type_base *tb, struct sl_type *derived_type, uint64_t array_size);
+
 /* The field returned will be chained to itself (e.g. forms a tail cyclic chain by itself, ready for use with sl_type_field_join()) */
 struct sl_type_field *sl_type_field_alloc(struct sl_type_base *tb, const char *ident, struct situs *ident_loc, struct sl_type *field_type);
 

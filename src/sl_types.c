@@ -232,6 +232,48 @@ struct sl_type *sl_type_base_qualified_type(struct sl_type_base *tb, struct sl_t
   return t;
 }
 
+struct sl_type *sl_type_base_array_type(struct sl_type_base *tb, struct sl_type *derived_type, uint64_t array_size) {
+  int hash;
+  if (!derived_type) return NULL; /* silent pass-through of failure */
+
+  hash = sl_type_hash_array(array_size, derived_type);
+  struct sl_type *t;
+  t = tb->hash_table_[hash];
+  if (t) {
+    struct sl_type *next = t->hash_chain_;
+    do {
+      t = t->hash_chain_;
+
+      if ((t->kind_ == sltk_array) &&
+          (t->array_size_ == array_size) &&
+          (t->derived_type_ == derived_type)) {
+        /* Found pre-existing matching type, return it */
+        return t;
+      }
+
+    } while (t != tb->hash_table_[hash]);
+  }
+
+  /* Create new type */
+  t = (struct sl_type *)malloc(sizeof(struct sl_type));
+  if (!t) return NULL; /* no memory */
+  sl_type_init(t, tb);
+  t->kind_ = sltk_array;
+  t->derived_type_ = derived_type;
+  t->array_size_ = array_size;
+  if (tb->hash_table_[hash]) {
+    t->hash_chain_ = tb->hash_table_[hash]->hash_chain_;
+    tb->hash_table_[hash]->hash_chain_ = t->hash_chain_;
+  }
+  else {
+    t->hash_chain_ = t;
+  }
+  tb->hash_table_[hash] = t;
+
+  return t;
+}
+
+
 
 struct sl_type_field *sl_type_field_join(struct sl_type_field *front, struct sl_type_field *back) {
   if (!back) return front;
