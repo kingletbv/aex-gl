@@ -453,14 +453,18 @@ struct-declarator: IDENTIFIER {
 struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   /* XXX: EVALUATE CONSTANT-EXPRESSION FOR ARRAY SIZE */
   uint64_t array_size = 1; /* XXX: EVALUTE ARRAY SIZE */
+  int invalid_array_size = 1;
   if ($2) {
     /* XXX: Placeholder code to see if the literal value bubbles all the way up */
-    if ($2->op_ == exop_literal) {
-      array_size = (uint64_t)$2->literal_value_.v_.i_;
+    if (($2->op_ == exop_literal) && ($2->literal_value_.kind_ == sletk_int)) {
+      if ($2->literal_value_.v_.i_ > 0) {
+        array_size = (uint64_t)$2->literal_value_.v_.i_;
+        invalid_array_size = 0;
+      }
     }
-    else {
-      glsl_es1_compiler_error_loc(cc, &${2}, "Error: array size must be a constant expression");
-    }
+  }
+  if (invalid_array_size) {
+    glsl_es1_compiler_error_loc(cc, &${ 2 }, "Error: array size must be a constant integer expression greater than 0");
   }
   struct sl_type *arraytype = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, array_size);
   if (!arraytype && cc->last_type_specifier_) {
