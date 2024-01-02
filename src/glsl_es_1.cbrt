@@ -370,6 +370,7 @@ struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRA
     /* Store a pointer to the type inside the sym */
     s->v_.type_ = t;
   }
+  t->fields_ = $3; $3 = NULL;
   $$ = t;
 }
 
@@ -380,6 +381,7 @@ struct-specifier: STRUCT LEFT_BRACE struct-declaration-list RIGHT_BRACE {
     glsl_es1_compiler_no_memory(cc);
     return _GLSL_ES1_NO_MEMORY;
   }
+  t->fields_ = $2; $2 = NULL;
   $$ = t;
 }
 
