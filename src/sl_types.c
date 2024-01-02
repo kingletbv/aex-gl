@@ -335,7 +335,7 @@ struct sl_type_field *sl_type_field_alloc(struct sl_type_base *tb, const char *i
     tf->ident_ = NULL;
   }
   situs_init(&tf->ident_loc_);
-  if (!situs_clone(&tf->ident_loc_, ident_loc)) {
+  if (situs_clone(&tf->ident_loc_, ident_loc)) {
     free(tf->ident_);
     free(tf);
     return NULL;
