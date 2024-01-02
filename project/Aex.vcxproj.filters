@@ -31,6 +31,7 @@
     <ClCompile Include="..\src\blend.c" />
     <ClCompile Include="..\src\sym_table.c" />
     <ClCompile Include="..\src\sl_types.c" />
+    <ClCompile Include="..\src\sl_expr_temp.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -68,6 +69,7 @@
     <ClInclude Include="..\src\blend.h" />
     <ClInclude Include="..\src\sym_table.h" />
     <ClInclude Include="..\src\sl_types.h" />
+    <ClInclude Include="..\src\sl_expr_temp.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
