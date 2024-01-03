@@ -32,6 +32,7 @@ extern "C" {
 
 struct sym;
 struct sl_type;
+struct sl_variable;
 
 typedef enum sym_table_result {
   STR_OK = 0,
@@ -50,7 +51,7 @@ struct sym_table {
   /* Root of red-black tree of symbols. */
   struct sym *root_;
 
-  /* First macro in cyclic list, in order of insertion. */
+  /* First symbol in cyclic list, in order of insertion. */
   struct sym *seq_;
 
   /* Parent symbol table; linear chain to outer scopes until NULL. */
@@ -74,7 +75,8 @@ struct sym {
   /* Kind of symbol */
   sym_kind_t kind_;
   union {
-    struct sl_type *type_; /* valid for SK_STRUCT */
+    struct sl_type *type_;          /* valid for SK_STRUCT */
+    struct sl_variable *variable_;  /* valid for SK_VARIABLE */
   } v_;
 };
 

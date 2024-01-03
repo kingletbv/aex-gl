@@ -36,6 +36,11 @@
 #include "sym_table.h"
 #endif
 
+#ifndef SL_FRAME_H_INCLUDED
+#define SL_FRAME_H_INCLUDED
+#include "sl_frame.h"
+#endif
+
 enum glsl_es1_compiler_result {
   GLSL_ES1_R_SUCCESS,
   GLSL_ES1_R_NEED_INPUT,
@@ -78,6 +83,13 @@ struct glsl_es1_compiler {
   /* Pointer to the current scope, initially this is a pointer to the global_scope_ */
   struct sym_table *current_scope_;
 
+  /* The global frame (containing all function definitions and global variables) */
+  struct sl_frame global_frame_;
+
+  /* The current frame, when outside functions, this is the global_frame_, when
+   * inside, it is the local frame of the function */
+  struct sl_frame *current_frame_;
+
   const char *glsl_input_file_;
   int         glsl_input_line_;
 
@@ -92,11 +104,11 @@ void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *compiler);
 enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_compiler *cc, const char *glsl_input_filename, const char *glsl_input_text, size_t glsl_input_text_len);
 
 int glsl_es1_compiler_printf(struct glsl_es1_compiler *cc, const char *fmt, ...);
-int glsl_es1_compiler_error_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...);
+int glsl_es1_compiler_error_loc(struct glsl_es1_compiler *cc, const struct situs *sit, const char *fmt, ...);
 int glsl_es1_compiler_error(struct glsl_es1_compiler *cc, const char *fmt, ...);
-int glsl_es1_compiler_fatal_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...);
+int glsl_es1_compiler_fatal_loc(struct glsl_es1_compiler *cc, const struct situs *sit, const char *fmt, ...);
 int glsl_es1_compiler_fatal(struct glsl_es1_compiler *cc, const char *fmt, ...);
-int glsl_es1_compiler_warn_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...);
+int glsl_es1_compiler_warn_loc(struct glsl_es1_compiler *cc, const struct situs *sit, const char *fmt, ...);
 int glsl_es1_compiler_warn(struct glsl_es1_compiler *cc, const char *fmt, ...);
 void glsl_es1_compiler_no_memory(struct glsl_es1_compiler *cc);
 

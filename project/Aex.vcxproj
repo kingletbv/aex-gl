@@ -185,6 +185,7 @@
     </ClCompile>
     <ClCompile Include="..\src\sl_expr.c" />
     <ClCompile Include="..\src\sl_expr_temp.c" />
+    <ClCompile Include="..\src\sl_frame.c" />
     <ClCompile Include="..\src\sl_types.c" />
     <ClCompile Include="..\src\sym_table.c" />
     <ClCompile Include="..\src\viewport_transformation.c" />
@@ -299,6 +300,7 @@
     <ClInclude Include="..\src\rasterizer.h" />
     <ClInclude Include="..\src\sl_expr.h" />
     <ClInclude Include="..\src\sl_expr_temp.h" />
+    <ClInclude Include="..\src\sl_frame.h" />
     <ClInclude Include="..\src\sl_types.h" />
     <ClInclude Include="..\src\sym_table.h" />
     <ClInclude Include="..\src\viewport_transformation.h" />

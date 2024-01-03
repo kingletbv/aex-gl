@@ -55,11 +55,14 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   pp_init(&cc->pp_);
   glsl_es1_stack_init(&cc->parser_);
   sl_type_base_init(&cc->tb_);
-  cc->all_done_ = cc->fatal_error_ = 0;
+  cc->all_done_ = cc->have_error_ = cc->fatal_error_ = 0;
   cc->is_typename_permitted_ = 1;
   cc->last_type_specifier_ = NULL;
   st_init(&cc->global_scope_, NULL);
   cc->current_scope_ = &cc->global_scope_;
+  sl_frame_init(&cc->global_frame_);
+  cc->current_frame_ = &cc->global_frame_;
+
   cc->glsl_input_file_ = "";
   cc->glsl_input_line_ = 0;
   cc->vprintf_handler = glsl_es1_compiler_stderr_vprintf_handler;
@@ -67,6 +70,7 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
 
 void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *cc) {
   st_cleanup(&cc->global_scope_);
+  sl_frame_cleanup(&cc->global_frame_);
   sl_type_base_cleanup(&cc->tb_);
   pp_cleanup(&cc->pp_);
   glsl_es1_stack_cleanup(&cc->parser_);
@@ -81,7 +85,7 @@ int glsl_es1_compiler_printf(struct glsl_es1_compiler *cc, const char *fmt, ...)
   return r;
 }
 
-int glsl_es1_compiler_error_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...) {
+int glsl_es1_compiler_error_loc(struct glsl_es1_compiler *cc, const struct situs *sit, const char *fmt, ...) {
   int r;
   va_list args;
   // Duplicate fmt to append newline.
@@ -112,7 +116,7 @@ int glsl_es1_compiler_error(struct glsl_es1_compiler *cc, const char *fmt, ...) 
   return r;
 }
 
-int glsl_es1_compiler_fatal_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...) {
+int glsl_es1_compiler_fatal_loc(struct glsl_es1_compiler *cc, const struct situs *sit, const char *fmt, ...) {
   int r;
   va_list args;
   cc->have_error_ = cc->fatal_error_ = 1;
@@ -132,7 +136,7 @@ int glsl_es1_compiler_fatal(struct glsl_es1_compiler *cc, const char *fmt, ...) 
   return r;
 }
 
-int glsl_es1_compiler_warn_loc(struct glsl_es1_compiler *cc, struct situs *sit, const char *fmt, ...) {
+int glsl_es1_compiler_warn_loc(struct glsl_es1_compiler *cc, const struct situs *sit, const char *fmt, ...) {
   int r;
   va_list args;
   // Duplicate fmt to append newline.
