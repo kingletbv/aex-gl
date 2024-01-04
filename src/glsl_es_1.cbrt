@@ -195,6 +195,14 @@ function-call-header-with-parameters: function-call-header-with-parameters COMMA
 
 function-call-header: function-identifier LEFT_PAREN;
 
+%type function-identifier: struct { char *name_; struct situs loc_; struct sl_type *constructor_type_; }
+%constructor $$.name_ = NULL; situs_init(&$$.loc_); $$.constructor_type_ = NULL;
+%move $$.name_ = $0.name_; $0.name_ = NULL; \
+      situs_swap(&$$.loc_, &$0.loc_); \
+      $$.constructor_type_ = $0.constructor_type_; $0.constructor_type_ = NULL;
+%destructor if ($$.name_) free($$.name_); \
+            situs_cleanup(&$$.loc_);
+
 function-identifier: constructor-identifier;
 function-identifier: IDENTIFIER;
 
@@ -337,7 +345,15 @@ declaration: function-prototype SEMICOLON;
 declaration: init-declarator-list SEMICOLON;
 declaration: PRECISION precision-qualifier type-specifier-no-prec SEMICOLON;
 
-function-prototype: function-declarator RIGHT_PAREN;
+function-prototype: function-declarator RIGHT_PAREN {
+  /* Function prototype formed in cc->current_function_prototype_ (if no error),
+   * do we promote it to the symbol table & current frame? */
+  if (cc->current_function_prototype_) {
+    /* XXX: Punt on it for now */
+    sl_frame_free_function(cc->current_function_prototype_);
+    cc->current_function_prototype_ = NULL;
+  }
+}
 
 function-declarator: function-header;
 function-declarator: function-header-with-parameters;
@@ -345,23 +361,118 @@ function-declarator: function-header-with-parameters;
 function-header-with-parameters: function-header parameter-declaration;
 function-header-with-parameters: function-header-with-parameters COMMA parameter-declaration;
 
-function-header: fully-specified-type function-identifier LEFT_PAREN;
+function-header: fully-specified-type function-identifier LEFT_PAREN {
+  //struct sl_function *sl_frame_alloc_function(const char *name, const struct situs *loc, struct sl_type *return_type)
+  struct sl_function *f = sl_frame_alloc_function($1.name_, &$1.loc_, $0);
+  if (!f) {
+    glsl_es1_compiler_no_memory(cc);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  cc->current_function_prototype_ = f;
+}
 
-parameter-declarator: type-specifier IDENTIFIER;
-parameter-declarator: type-specifier IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET;
+// careful with this: the sl_parameter is an element in an array, lasts only until the next sl_function_append_parameter.
+%type parameter-declarator: struct sl_parameter *
+%move $$ = $0;
+parameter-declarator: type-specifier IDENTIFIER {
+  if (cc->current_function_prototype_ && $0) {
+    size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, $1, &${ 1 }, $0);
+    if (parameter_index == SIZE_MAX) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+  }
+}
 
-parameter-declaration: type-qualifier parameter-qualifier parameter-declarator;
-parameter-declaration: parameter-qualifier parameter-declarator;
-parameter-declaration: type-qualifier parameter-qualifier parameter-type-specifier;
-parameter-declaration: parameter-qualifier parameter-type-specifier;
+parameter-declarator: type-specifier IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
+  if (cc->current_function_prototype_ && $0) {
+    struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, $0, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $3, &${ 3 }));
+
+    if (!array_type && cc->last_type_specifier_) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, $1, &${ 1 }, array_type);
+    if (parameter_index == SIZE_MAX) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+  }
+}
+
+parameter-declaration: type-qualifier parameter-qualifier parameter-declarator {
+  struct sl_parameter *p = $2;
+  if (p) {
+    struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, p->type_, $0 | $1);
+    if (!p->type_) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+  }
+}
+
+parameter-declaration: parameter-qualifier parameter-declarator {
+  struct sl_parameter *p = $1;
+  if (p) {
+    struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, p->type_, $0);
+    if (!p->type_) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+  }
+}
+
+parameter-declaration: type-qualifier parameter-qualifier parameter-type-specifier {
+  if (cc->current_function_prototype_ && $2) {
+    struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, $2, $0 | $1);
+    if (!qualified_type) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, NULL, &${2}, qualified_type);
+    if (parameter_index == SIZE_MAX) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+  }
+}
+
+parameter-declaration: parameter-qualifier parameter-type-specifier {
+  if (cc->current_function_prototype_ && $1) {
+    struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, $1, $0);
+    if (!qualified_type) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, NULL, &${1}, qualified_type);
+    if (parameter_index == SIZE_MAX) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+  }
+}
 
 parameter-qualifier: ;
-parameter-qualifier: IN;
-parameter-qualifier: OUT;
-parameter-qualifier: INOUT;
+parameter-qualifier: IN { $$ = SL_TYPE_QUALIFIER_IN; }
+parameter-qualifier: OUT { $$ = SL_TYPE_QUALIFIER_OUT; }
+parameter-qualifier: INOUT { $$ = SL_TYPE_QUALIFIER_INOUT; }
 
-parameter-type-specifier: type-specifier;
-parameter-type-specifier: type-specifier LEFT_BRACKET constant-expression RIGHT_BRACKET;
+%type parameter-type-specifier: struct sl_type *
+parameter-type-specifier: type-specifier {
+  $$ = $0;
+}
+
+parameter-type-specifier: type-specifier LEFT_BRACKET constant-expression RIGHT_BRACKET {
+  if ($0) {
+    struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, $0, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $2, &${ 2 }));
+
+    if (!array_type && cc->last_type_specifier_) {
+      glsl_es1_compiler_no_memory(cc);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    $$ = array_type;
+  }
+}
 
 %%
 
@@ -468,7 +579,7 @@ single-declaration: INVARIANT IDENTIFIER; /* XXX: HANDLE INVARIANT */
 /* note: no %destructor, sl_type* is owned by sl_type_base. */
 %move $$ = $0;
 
-%type type-qualifier precision-qualifier: int
+%type type-qualifier precision-qualifier parameter-qualifier: int
 %constructor $$ = 0;
 
 fully-specified-type: type-specifier { 

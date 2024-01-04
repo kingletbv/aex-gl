@@ -77,6 +77,7 @@ struct sym {
   union {
     struct sl_type *type_;          /* valid for SK_STRUCT */
     struct sl_variable *variable_;  /* valid for SK_VARIABLE */
+    struct sl_function *function_;  /* valid for SK_FUNCTION */
   } v_;
 };
 

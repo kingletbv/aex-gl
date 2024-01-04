@@ -77,6 +77,14 @@ struct glsl_es1_compiler {
    * Specifically the reductions of: type-specifier, fully-specified-type*/
   struct sl_type *last_type_specifier_;
 
+  /* The function prototype being parsed, this is valid during the parsing of
+   * function-declarator, starting with the reduction of function-header, up
+   * to the reduction of function-prototype. The current_function_prototype_
+   * function has not yet been added to the symbol table, nor has it been 
+   * added to the current frame. A prototype declaration and the final function
+   * definition may need to be merged. */
+  struct sl_function *current_function_prototype_;
+
   /* The symbol table representing the global scope. */
   struct sym_table global_scope_;
 

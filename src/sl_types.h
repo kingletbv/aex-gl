@@ -40,6 +40,9 @@ extern "C" {
 #define SL_TYPE_QUALIFIER_HIGH_PRECISION   0x20
 #define SL_TYPE_QUALIFIER_MEDIUM_PRECISION 0x40
 #define SL_TYPE_QUALIFIER_LOW_PRECISION    0x80
+#define SL_TYPE_QUALIFIER_IN               0x100
+#define SL_TYPE_QUALIFIER_OUT              0x200
+#define SL_TYPE_QUALIFIER_INOUT            0x400
 
 typedef enum sl_type_kind {
   sltk_invalid,
