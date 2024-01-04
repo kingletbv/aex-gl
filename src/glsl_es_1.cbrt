@@ -17,6 +17,11 @@
 #include <stdlib.h>
 #endif
 
+#ifndef STDIO_H_INCLUDED
+#define STDIO_H_INCLUDED
+#include <stdio.h>
+#endif
+
 #ifndef STRING_H_INCLUDED
 #define STRING_H_INCLUDED
 #include <string.h>
@@ -130,6 +135,11 @@ $: {
 %destructor if ($$) free($$);
 %token_action $$ = input_chain->text_; input_chain->text_ = NULL; /* take pptk's text buffer by force to prevent allocation */
 
+%type TYPE_NAME: struct sl_type *
+%constructor $$ = NULL;
+%move $$ = $0;
+%token_action $$ = input_chain->v_.type_;
+
 variable-identifier: IDENTIFIER;
 
 %type primary-expression postfix-expression integer-expression unary-expression multiplicative-expression additive-expression shift-expression \
@@ -203,25 +213,32 @@ function-call-header: function-identifier LEFT_PAREN;
 %destructor if ($$.name_) free($$.name_); \
             situs_cleanup(&$$.loc_);
 
-function-identifier: constructor-identifier;
-function-identifier: IDENTIFIER;
+%type constructor-identifier: struct sl_type *
+function-identifier: constructor-identifier {
+  $$.constructor_type_ = $0;
+}
+function-identifier: IDENTIFIER {
+  $$.name_ = $0;
+  $0 = NULL;
+}
 
-constructor-identifier: FLOAT;
-constructor-identifier: INT;
-constructor-identifier: BOOL;
-constructor-identifier: VEC2;
-constructor-identifier: VEC3;
-constructor-identifier: VEC4;
-constructor-identifier: BVEC2;
-constructor-identifier: BVEC3;
-constructor-identifier: BVEC4;
-constructor-identifier: IVEC2;
-constructor-identifier: IVEC3;
-constructor-identifier: IVEC4;
-constructor-identifier: MAT2;
-constructor-identifier: MAT3;
-constructor-identifier: MAT4;
-constructor-identifier: TYPE_NAME;
+
+constructor-identifier: FLOAT { $$ = &cc->tb_.float_; }
+constructor-identifier: INT { $$ = &cc->tb_.int_; }
+constructor-identifier: BOOL { $$ = &cc->tb_.bool_; }
+constructor-identifier: VEC2 { $$ =  &cc->tb_.vec2_; }
+constructor-identifier: VEC3 { $$ =  &cc->tb_.vec3_; }
+constructor-identifier: VEC4 { $$ =  &cc->tb_.vec4_; }
+constructor-identifier: BVEC2 { $$ =  &cc->tb_.bvec2_; }
+constructor-identifier: BVEC3 { $$ =  &cc->tb_.bvec3_; }
+constructor-identifier: BVEC4 { $$ =  &cc->tb_.bvec4_; }
+constructor-identifier: IVEC2 { $$ =  &cc->tb_.ivec2_; }
+constructor-identifier: IVEC3 { $$ =  &cc->tb_.ivec3_; }
+constructor-identifier: IVEC4 { $$ =  &cc->tb_.ivec4_; }
+constructor-identifier: MAT2 { $$ =  &cc->tb_.mat2_; }
+constructor-identifier: MAT3 { $$ =  &cc->tb_.mat3_; }
+constructor-identifier: MAT4 { $$ =  &cc->tb_.mat4_; }
+constructor-identifier: TYPE_NAME { $$ =  $0; }
 
 unary-expression: postfix-expression  { $$ = $0; $0 = NULL; }
 unary-expression: INC_OP unary-expression { $$ = sl_expr_alloc_unop(exop_pre_inc, &${0}, &$1); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
@@ -350,6 +367,19 @@ function-prototype: function-declarator RIGHT_PAREN {
    * do we promote it to the symbol table & current frame? */
   if (cc->current_function_prototype_) {
     /* XXX: Punt on it for now */
+    fprintf(stderr, "Function declared:\n");
+    fprintf(stderr, "  %s ", cc->current_function_prototype_->return_type_->name_);
+    fprintf(stderr, "%s(", cc->current_function_prototype_->name_);
+    size_t n;
+    for (n = 0; n < cc->current_function_prototype_->num_parameters_; ++n) {
+      struct sl_parameter *p = cc->current_function_prototype_->parameters_ + n;
+      fprintf(stderr, "%s", n ? ", " : "");
+
+      if (p->type_->name_) {
+        fprintf(stderr, "%s", p->type_->name_);
+      }
+    }
+    fprintf(stderr, ")\n");
     sl_frame_free_function(cc->current_function_prototype_);
     cc->current_function_prototype_ = NULL;
   }
@@ -615,11 +645,6 @@ type-specifier: precision-qualifier type-specifier-no-prec {
   $$ = t;
   cc->last_type_specifier_ = t;
 }
-
-%type TYPE_NAME: struct sl_type *
-%constructor $$ = NULL;
-%move $$ = $0;
-%token_action $$ = input_chain->v_.type_;
 
 type-specifier-no-prec: VOID  { $$ = &cc->tb_.void_; }
 type-specifier-no-prec: FLOAT { $$ = &cc->tb_.float_; }
