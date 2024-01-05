@@ -52,11 +52,11 @@ void dx_diags_cleanup(struct diags *dx);
 
 int dx_vprintf(struct diags *dx, const char *fmt, va_list args);
 int dx_printf(struct diags *dx, const char *fmt, ...);
-int dx_error_loc(struct diags *dx, struct situs *sit, const char *fmt, ...);
+int dx_error_loc(struct diags *dx, const struct situs *sit, const char *fmt, ...);
 int dx_error(struct diags *dx, const char *fmt, ...);
-int dx_fatal_loc(struct diags *dx, struct situs *sit, const char *fmt, ...);
+int dx_fatal_loc(struct diags *dx, const struct situs *sit, const char *fmt, ...);
 int dx_fatal(struct diags *dx, const char *fmt, ...);
-int dx_warn_loc(struct diags *dx, struct situs *sit, const char *fmt, ...);
+int dx_warn_loc(struct diags *dx, const struct situs *sit, const char *fmt, ...);
 int dx_warn(struct diags *dx, const char *fmt, ...);
 void dx_no_memory(struct diags *dx);
 

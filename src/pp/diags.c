@@ -61,19 +61,9 @@ void dx_diags_init(struct diags *dx) {
 void dx_diags_cleanup(struct diags *dx) {
 }
 
-int dx_printf(struct diags *dx, const char *fmt, ...);
-int dx_error_loc(struct diags *dx, struct situs *sit, const char *fmt, ...);
-int dx_error(struct diags *dx, const char *fmt, ...);
-int dx_fatal_loc(struct diags *dx, struct situs *sit, const char *fmt, ...);
-int dx_fatal(struct diags *dx, const char *fmt, ...);
-int dx_warn_loc(struct diags *dx, struct situs *sit, const char *fmt, ...);
-int dx_warn(struct diags *dx, const char *fmt, ...);
-void dx_no_memory(struct diags *dx);
-
 int dx_vprintf(struct diags *dx, const char *fmt, va_list args) {
   return dx->vprintf_handler(dx->vprintf_baton_, NULL, 0, fmt, args);
 }
-
 
 int dx_printf(struct diags *dx, const char *fmt, ...) {
   int r;
@@ -84,7 +74,7 @@ int dx_printf(struct diags *dx, const char *fmt, ...) {
   return r;
 }
 
-int dx_error_loc(struct diags *dx, struct situs *sit, const char *fmt, ...) {
+int dx_error_loc(struct diags *dx, const struct situs *sit, const char *fmt, ...) {
   int r;
   va_list args;
   // Duplicate fmt to append newline.
@@ -115,7 +105,7 @@ int dx_error(struct diags *dx, const char *fmt, ...) {
   return r;
 }
 
-int dx_fatal_loc(struct diags *dx, struct situs *sit, const char *fmt, ...) {
+int dx_fatal_loc(struct diags *dx, const struct situs *sit, const char *fmt, ...) {
   int r;
   va_list args;
   dx->have_error_ = dx->fatal_error_ = 1;
@@ -135,7 +125,7 @@ int dx_fatal(struct diags *dx, const char *fmt, ...) {
   return r;
 }
 
-int dx_warn_loc(struct diags *dx, struct situs *sit, const char *fmt, ...) {
+int dx_warn_loc(struct diags *dx, const struct situs *sit, const char *fmt, ...) {
   int r;
   va_list args;
   // Duplicate fmt to append newline.

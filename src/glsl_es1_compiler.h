@@ -21,6 +21,11 @@
 #include "pp.h"
 #endif
 
+#ifndef DIAGS_H_INCLUDED
+#define DIAGS_H_INCLUDED
+#include "pp/diags.h"
+#endif
+
 #ifndef GLSL_ES_1_H_INCLUDED
 #define GLSL_ES_1_H_INCLUDED
 #include "glsl_es_1.h"
@@ -41,6 +46,8 @@
 #include "sl_frame.h"
 #endif
 
+
+
 enum glsl_es1_compiler_result {
   GLSL_ES1_R_SUCCESS,
   GLSL_ES1_R_NEED_INPUT,
@@ -51,13 +58,16 @@ enum glsl_es1_compiler_result {
 };
 
 struct glsl_es1_compiler {
+  struct diags default_dx_;
+  /* default points to default_dx_, but can be overridden by caller to another diags,
+   * NOTE: make sure to also override pp_.dx_ when you do this! It'll (by default)
+   *       point to glsl_es1_compiler::default_dx_ and not magically use dx_. */
+  struct diags *dx_;  
   struct preprocessor pp_;
   struct glsl_es1_stack parser_;
   struct sl_type_base tb_;
 
   int all_done_:1;
-  int have_error_:1;
-  int fatal_error_:1;
 
   /* If true, then the next token could be a typename, provided one is
    * accepted in the current parser_ state. This is used to disambiguate
@@ -97,29 +107,11 @@ struct glsl_es1_compiler {
   /* The current frame, when outside functions, this is the global_frame_, when
    * inside, it is the local frame of the function */
   struct sl_frame *current_frame_;
-
-  const char *glsl_input_file_;
-  int         glsl_input_line_;
-
-  /* Print handlers for error reporting */
-  int (*vprintf_handler)(void *printf_baton, const char *file, int line_num, const char *fmt, va_list args);
-  void *vprintf_baton_;
 };
 
 void glsl_es1_compiler_init(struct glsl_es1_compiler *compiler);
 void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *compiler);
 
 enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_compiler *cc, const char *glsl_input_filename, const char *glsl_input_text, size_t glsl_input_text_len);
-
-int glsl_es1_compiler_printf(struct glsl_es1_compiler *cc, const char *fmt, ...);
-int glsl_es1_compiler_error_loc(struct glsl_es1_compiler *cc, const struct situs *sit, const char *fmt, ...);
-int glsl_es1_compiler_error(struct glsl_es1_compiler *cc, const char *fmt, ...);
-int glsl_es1_compiler_fatal_loc(struct glsl_es1_compiler *cc, const struct situs *sit, const char *fmt, ...);
-int glsl_es1_compiler_fatal(struct glsl_es1_compiler *cc, const char *fmt, ...);
-int glsl_es1_compiler_warn_loc(struct glsl_es1_compiler *cc, const struct situs *sit, const char *fmt, ...);
-int glsl_es1_compiler_warn(struct glsl_es1_compiler *cc, const char *fmt, ...);
-void glsl_es1_compiler_no_memory(struct glsl_es1_compiler *cc);
-
-
 
 #endif /* GLSL_ES1_COMPILER_H */

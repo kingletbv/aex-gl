@@ -108,7 +108,7 @@ grammar: translation-unit;
 %move situs_swap(&$$, &$0);
 %token_action if (input_chain) { \
   if (situs_clone(&$, &input_chain->situs_)) { \
-    glsl_es1_compiler_no_memory(cc); \
+    dx_no_memory(cc->dx_); \
     return _GLSL_ES1_NO_MEMORY; \
   } \
 }
@@ -122,7 +122,7 @@ $: {
     size_t len = $len;
     for (n = 0; n < len; ++n) {
       if (situs_concat(&$, &${n})) {
-        glsl_es1_compiler_no_memory(cc);
+        dx_no_memory(cc->dx_);
         return _GLSL_ES1_NO_MEMORY;
       }
     }
@@ -162,9 +162,9 @@ variable-identifier: IDENTIFIER;
 %token_action $$ = !!input_chain->v_.u64_;
 
 primary-expression: variable-identifier;
-primary-expression: INTCONSTANT   { $$ = sl_expr_alloc_int_lit($0, &${0});   if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-primary-expression: FLOATCONSTANT { $$ = sl_expr_alloc_float_lit($0, &${0}); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-primary-expression: BOOLCONSTANT  { $$ = sl_expr_alloc_bool_lit($0, &${0});  if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+primary-expression: INTCONSTANT   { $$ = sl_expr_alloc_int_lit($0, &${0});   if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+primary-expression: FLOATCONSTANT { $$ = sl_expr_alloc_float_lit($0, &${0}); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+primary-expression: BOOLCONSTANT  { $$ = sl_expr_alloc_bool_lit($0, &${0});  if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 primary-expression: LEFT_PAREN expression RIGHT_PAREN { $$ = $1; $1 = NULL; }
 
 postfix-expression: primary-expression{$$ = $0; $0 = NULL;}
@@ -172,14 +172,14 @@ postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRA
   struct situs combined_brackets;
   situs_init(&combined_brackets);
   if (situs_concat(&combined_brackets, &${1})) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     situs_cleanup(&combined_brackets);
     return _GLSL_ES1_NO_MEMORY;
   }
   $$ = sl_expr_alloc_binop(exop_array_subscript, &combined_brackets, &$0, &$2);
   situs_cleanup(&combined_brackets);
   if (!$$) {
-    glsl_es1_compiler_no_memory(cc); 
+    dx_no_memory(cc->dx_); 
     return _GLSL_ES1_NO_MEMORY;
   }
 }
@@ -187,8 +187,8 @@ postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRA
 postfix-expression: function-call; /* XXX: HANDLE FUNCTION CALLS */
 
 postfix-expression: postfix-expression DOT IDENTIFIER; /* XXX: HANDLE FIELD SELECTION */
-postfix-expression: postfix-expression INC_OP { $$ = sl_expr_alloc_unop(exop_post_inc, &${1}, &$0); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-postfix-expression: postfix-expression DEC_OP { $$ = sl_expr_alloc_unop(exop_post_dec, &${1}, &$0); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+postfix-expression: postfix-expression INC_OP { $$ = sl_expr_alloc_unop(exop_post_inc, &${1}, &$0); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+postfix-expression: postfix-expression DEC_OP { $$ = sl_expr_alloc_unop(exop_post_dec, &${1}, &$0); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 integer-expression: expression  { $$ = $0; $0 = NULL; }
 
@@ -241,8 +241,8 @@ constructor-identifier: MAT4 { $$ =  &cc->tb_.mat4_; }
 constructor-identifier: TYPE_NAME { $$ =  $0; }
 
 unary-expression: postfix-expression  { $$ = $0; $0 = NULL; }
-unary-expression: INC_OP unary-expression { $$ = sl_expr_alloc_unop(exop_pre_inc, &${0}, &$1); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-unary-expression: DEC_OP unary-expression { $$ = sl_expr_alloc_unop(exop_pre_dec, &${0}, &$1); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+unary-expression: INC_OP unary-expression { $$ = sl_expr_alloc_unop(exop_pre_inc, &${0}, &$1); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+unary-expression: DEC_OP unary-expression { $$ = sl_expr_alloc_unop(exop_pre_dec, &${0}, &$1); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 %type unary-operator: expr_op_t
 %constructor $$ = exop_invalid;
@@ -255,7 +255,7 @@ unary-expression: unary-operator unary-expression {
   else {
     $$ = sl_expr_alloc_unop($0, &${0}, &$1);
     if(!$$) {
-      glsl_es1_compiler_no_memory(cc); 
+      dx_no_memory(cc->dx_); 
       return _GLSL_ES1_NO_MEMORY; 
     }
   }
@@ -264,62 +264,62 @@ unary-expression: unary-operator unary-expression {
 unary-operator: PLUS { $$ = exop_invalid; }
 unary-operator: DASH { $$ = exop_negate; }
 unary-operator: BANG { $$ = exop_logical_not; }
-unary-operator: TILDE { glsl_es1_compiler_error_loc(cc, &${0}, "bitwise-not is reserved in GLSL 1"); }
+unary-operator: TILDE { dx_error_loc(cc->dx_, &${0}, "bitwise-not is reserved in GLSL 1"); }
 
 multiplicative-expression: unary-expression  { $$ = $0; $0 = NULL; }
-multiplicative-expression: multiplicative-expression STAR unary-expression { $$ = sl_expr_alloc_binop(exop_multiply, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-multiplicative-expression: multiplicative-expression SLASH unary-expression { $$ = sl_expr_alloc_binop(exop_divide, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-multiplicative-expression: multiplicative-expression PERCENT unary-expression { glsl_es1_compiler_error_loc(cc, &${1}, "modulo is reserved in GLSL 1"); }
+multiplicative-expression: multiplicative-expression STAR unary-expression { $$ = sl_expr_alloc_binop(exop_multiply, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+multiplicative-expression: multiplicative-expression SLASH unary-expression { $$ = sl_expr_alloc_binop(exop_divide, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+multiplicative-expression: multiplicative-expression PERCENT unary-expression { dx_error_loc(cc->dx_, &${1}, "modulo is reserved in GLSL 1"); }
 
 additive-expression: multiplicative-expression  { $$ = $0; $0 = NULL; }
-additive-expression: additive-expression PLUS multiplicative-expression { $$ = sl_expr_alloc_binop(exop_add, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-additive-expression: additive-expression DASH multiplicative-expression { $$ = sl_expr_alloc_binop(exop_subtract, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+additive-expression: additive-expression PLUS multiplicative-expression { $$ = sl_expr_alloc_binop(exop_add, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+additive-expression: additive-expression DASH multiplicative-expression { $$ = sl_expr_alloc_binop(exop_subtract, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 shift-expression: additive-expression  { $$ = $0; $0 = NULL; }
-shift-expression: shift-expression LEFT_OP additive-expression { glsl_es1_compiler_error_loc(cc, &${1}, "left shift is reserved in GLSL 1"); }
-shift-expression: shift-expression RIGHT_OP additive-expression { glsl_es1_compiler_error_loc(cc, &${1}, "right shift is reserved in GLSL 1"); }
+shift-expression: shift-expression LEFT_OP additive-expression { dx_error_loc(cc->dx_, &${1}, "left shift is reserved in GLSL 1"); }
+shift-expression: shift-expression RIGHT_OP additive-expression { dx_error_loc(cc->dx_, &${1}, "right shift is reserved in GLSL 1"); }
 
 relational-expression: shift-expression  { $$ = $0; $0 = NULL; }
-relational-expression: relational-expression LEFT_ANGLE shift-expression { $$ = sl_expr_alloc_binop(exop_lt, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-relational-expression: relational-expression RIGHT_ANGLE shift-expression { $$ = sl_expr_alloc_binop(exop_gt, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-relational-expression: relational-expression LE_OP shift-expression { $$ = sl_expr_alloc_binop(exop_le, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-relational-expression: relational-expression GE_OP shift-expression { $$ = sl_expr_alloc_binop(exop_ge, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+relational-expression: relational-expression LEFT_ANGLE shift-expression { $$ = sl_expr_alloc_binop(exop_lt, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+relational-expression: relational-expression RIGHT_ANGLE shift-expression { $$ = sl_expr_alloc_binop(exop_gt, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+relational-expression: relational-expression LE_OP shift-expression { $$ = sl_expr_alloc_binop(exop_le, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+relational-expression: relational-expression GE_OP shift-expression { $$ = sl_expr_alloc_binop(exop_ge, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 equality-expression: relational-expression  { $$ = $0; $0 = NULL; }
-equality-expression: equality-expression EQ_OP relational-expression { $$ = sl_expr_alloc_binop(exop_eq, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
-equality-expression: equality-expression NE_OP relational-expression { $$ = sl_expr_alloc_binop(exop_ne, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+equality-expression: equality-expression EQ_OP relational-expression { $$ = sl_expr_alloc_binop(exop_eq, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
+equality-expression: equality-expression NE_OP relational-expression { $$ = sl_expr_alloc_binop(exop_ne, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 and-expression: equality-expression  { $$ = $0; $0 = NULL; }
-and-expression: and-expression AMPERSAND equality-expression { glsl_es1_compiler_error_loc(cc, &${1}, "bitwise-and is reserved in GLSL 1"); }
+and-expression: and-expression AMPERSAND equality-expression { dx_error_loc(cc->dx_, &${1}, "bitwise-and is reserved in GLSL 1"); }
 
 exclusive-or-expression: and-expression  { $$ = $0; $0 = NULL; }
-exclusive-or-expression: exclusive-or-expression CARET and-expression { glsl_es1_compiler_error_loc(cc, &${1}, "bitwise-exclusive-or is reserved in GLSL 1"); }
+exclusive-or-expression: exclusive-or-expression CARET and-expression { dx_error_loc(cc->dx_, &${1}, "bitwise-exclusive-or is reserved in GLSL 1"); }
 
 inclusive-or-expression: exclusive-or-expression  { $$ = $0; $0 = NULL; }
-inclusive-or-expression: inclusive-or-expression VERTICAL_BAR exclusive-or-expression { glsl_es1_compiler_error_loc(cc, &${1}, "bitwise-or is reserved in GLSL 1"); }
+inclusive-or-expression: inclusive-or-expression VERTICAL_BAR exclusive-or-expression { dx_error_loc(cc->dx_, &${1}, "bitwise-or is reserved in GLSL 1"); }
 
 logical-and-expression: inclusive-or-expression  { $$ = $0; $0 = NULL; }
-logical-and-expression: logical-and-expression AND_OP inclusive-or-expression { $$ = sl_expr_alloc_binop(exop_logical_and, &${1}, &$0, &$2); if(!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+logical-and-expression: logical-and-expression AND_OP inclusive-or-expression { $$ = sl_expr_alloc_binop(exop_logical_and, &${1}, &$0, &$2); if(!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 logical-xor-expression: logical-and-expression  { $$ = $0; $0 = NULL; }
-logical-xor-expression: logical-xor-expression XOR_OP logical-and-expression { $$ = sl_expr_alloc_binop(exop_logical_xor, &${1}, &$0, &$2); if(!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+logical-xor-expression: logical-xor-expression XOR_OP logical-and-expression { $$ = sl_expr_alloc_binop(exop_logical_xor, &${1}, &$0, &$2); if(!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 logical-or-expression: logical-xor-expression  { $$ = $0; $0 = NULL; }
-logical-or-expression: logical-or-expression OR_OP logical-xor-expression { $$ = sl_expr_alloc_binop(exop_logical_or, &${1}, &$0, &$2); if(!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+logical-or-expression: logical-or-expression OR_OP logical-xor-expression { $$ = sl_expr_alloc_binop(exop_logical_or, &${1}, &$0, &$2); if(!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 conditional-expression: logical-or-expression  { $$ = $0; $0 = NULL; }
 conditional-expression: logical-or-expression QUESTION expression COLON assignment-expression {
   struct situs question_colon;
   situs_init(&question_colon);
   if (situs_concat(&question_colon, &${1})) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     situs_cleanup(&question_colon);
     return _GLSL_ES1_NO_MEMORY;
   }
   $$ = sl_expr_alloc_ternop(exop_logical_or, &question_colon, &$0, &$2, &$4);
   situs_cleanup(&question_colon);
   if (!$$) { 
-    glsl_es1_compiler_no_memory(cc); 
+    dx_no_memory(cc->dx_); 
     return _GLSL_ES1_NO_MEMORY; 
   } 
 }
@@ -335,7 +335,7 @@ assignment-expression: unary-expression assignment-operator assignment-expressio
   else {
     $$ = sl_expr_alloc_binop($1, &${1}, &$0, &$2); 
     if (!$$) { 
-      glsl_es1_compiler_no_memory(cc); 
+      dx_no_memory(cc->dx_); 
       return _GLSL_ES1_NO_MEMORY; 
     }
   }
@@ -344,17 +344,17 @@ assignment-expression: unary-expression assignment-operator assignment-expressio
 assignment-operator: EQUAL { $$ = exop_assign; }
 assignment-operator: MUL_ASSIGN { $$ = exop_mul_assign; }
 assignment-operator: DIV_ASSIGN { $$ = exop_div_assign; }
-assignment-operator: MOD_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "modulo-assignment is reserved in GLSL 1"); }
+assignment-operator: MOD_ASSIGN { dx_error_loc(cc->dx_, &${0}, "modulo-assignment is reserved in GLSL 1"); }
 assignment-operator: ADD_ASSIGN { $$ = exop_add_assign; }
 assignment-operator: SUB_ASSIGN { $$ = exop_sub_assign; }
-assignment-operator: LEFT_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "left-shift-assignment is reserved in GLSL 1"); }
-assignment-operator: RIGHT_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "right-shift-assignment is reserved in GLSL 1"); }
-assignment-operator: AND_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "bitwise-and-assignment is reserved in GLSL 1"); }
-assignment-operator: XOR_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "bitwise-xor-assignment is reserved in GLSL 1"); }
-assignment-operator: OR_ASSIGN { glsl_es1_compiler_error_loc(cc, &${0}, "bitwise-or-assignment is reserved in GLSL 1"); }
+assignment-operator: LEFT_ASSIGN { dx_error_loc(cc->dx_, &${0}, "left-shift-assignment is reserved in GLSL 1"); }
+assignment-operator: RIGHT_ASSIGN { dx_error_loc(cc->dx_, &${0}, "right-shift-assignment is reserved in GLSL 1"); }
+assignment-operator: AND_ASSIGN { dx_error_loc(cc->dx_, &${0}, "bitwise-and-assignment is reserved in GLSL 1"); }
+assignment-operator: XOR_ASSIGN { dx_error_loc(cc->dx_, &${0}, "bitwise-xor-assignment is reserved in GLSL 1"); }
+assignment-operator: OR_ASSIGN { dx_error_loc(cc->dx_, &${0}, "bitwise-or-assignment is reserved in GLSL 1"); }
 
 expression: assignment-expression  { $$ = $0; $0 = NULL; }
-expression: expression COMMA assignment-expression { $$ = sl_expr_alloc_binop(exop_sequence, &${1}, &$0, &$2); if (!$$) { glsl_es1_compiler_no_memory(cc); return _GLSL_ES1_NO_MEMORY; } }
+expression: expression COMMA assignment-expression { $$ = sl_expr_alloc_binop(exop_sequence, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 constant-expression: conditional-expression  { $$ = $0; $0 = NULL; }
 
@@ -366,6 +366,15 @@ function-prototype: function-declarator RIGHT_PAREN {
   /* Function prototype formed in cc->current_function_prototype_ (if no error),
    * do we promote it to the symbol table & current frame? */
   if (cc->current_function_prototype_) {
+
+    /* Convert "int f(void)" to "int f()" - the C style "no arguments" prototype is
+     * permitted but not necessary in GLSL (6.1 p. 54) */
+    struct sl_function *f = cc->current_function_prototype_;
+    if ((f->num_parameters_ == 1) && (f->parameters_[0].type_ == &cc->tb_.void_)) {
+      sl_parameter_cleanup(f->parameters_);
+      f->num_parameters_--;
+    }
+
     /* XXX: Punt on it for now */
     fprintf(stderr, "Function declared:\n");
     fprintf(stderr, "  %s ", cc->current_function_prototype_->return_type_->name_);
@@ -395,7 +404,7 @@ function-header: fully-specified-type function-identifier LEFT_PAREN {
   //struct sl_function *sl_frame_alloc_function(const char *name, const struct situs *loc, struct sl_type *return_type)
   struct sl_function *f = sl_frame_alloc_function($1.name_, &$1.loc_, $0);
   if (!f) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   cc->current_function_prototype_ = f;
@@ -408,7 +417,7 @@ parameter-declarator: type-specifier IDENTIFIER {
   if (cc->current_function_prototype_ && $0) {
     size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, $1, &${ 1 }, $0);
     if (parameter_index == SIZE_MAX) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
   }
@@ -419,12 +428,12 @@ parameter-declarator: type-specifier IDENTIFIER LEFT_BRACKET constant-expression
     struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, $0, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $3, &${ 3 }));
 
     if (!array_type && cc->last_type_specifier_) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
     size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, $1, &${ 1 }, array_type);
     if (parameter_index == SIZE_MAX) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
   }
@@ -435,7 +444,7 @@ parameter-declaration: type-qualifier parameter-qualifier parameter-declarator {
   if (p) {
     struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, p->type_, $0 | $1);
     if (!p->type_) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
   }
@@ -446,7 +455,7 @@ parameter-declaration: parameter-qualifier parameter-declarator {
   if (p) {
     struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, p->type_, $0);
     if (!p->type_) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
   }
@@ -456,12 +465,12 @@ parameter-declaration: type-qualifier parameter-qualifier parameter-type-specifi
   if (cc->current_function_prototype_ && $2) {
     struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, $2, $0 | $1);
     if (!qualified_type) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
     size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, NULL, &${2}, qualified_type);
     if (parameter_index == SIZE_MAX) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
   }
@@ -471,21 +480,21 @@ parameter-declaration: parameter-qualifier parameter-type-specifier {
   if (cc->current_function_prototype_ && $1) {
     struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, $1, $0);
     if (!qualified_type) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
     size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, NULL, &${1}, qualified_type);
     if (parameter_index == SIZE_MAX) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
   }
 }
 
 parameter-qualifier: ;
-parameter-qualifier: IN { $$ = SL_TYPE_QUALIFIER_IN; }
-parameter-qualifier: OUT { $$ = SL_TYPE_QUALIFIER_OUT; }
-parameter-qualifier: INOUT { $$ = SL_TYPE_QUALIFIER_INOUT; }
+parameter-qualifier: IN { $$ = SL_PARAMETER_QUALIFIER_IN; }
+parameter-qualifier: OUT { $$ = SL_PARAMETER_QUALIFIER_OUT; }
+parameter-qualifier: INOUT { $$ = SL_PARAMETER_QUALIFIER_INOUT; }
 
 %type parameter-type-specifier: struct sl_type *
 parameter-type-specifier: type-specifier {
@@ -497,7 +506,7 @@ parameter-type-specifier: type-specifier LEFT_BRACKET constant-expression RIGHT_
     struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, $0, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $2, &${ 2 }));
 
     if (!array_type && cc->last_type_specifier_) {
-      glsl_es1_compiler_no_memory(cc);
+      dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
     $$ = array_type;
@@ -510,12 +519,12 @@ int glsl_es1_declare_variable(struct glsl_es1_compiler *cc, const char *name, co
   struct sym *s = NULL;
   sym_table_result_t str = st_find_or_insert(cc->current_scope_, SK_VARIABLE, name, strlen(name), loc, sizeof(struct sym), &s);
   if (str == STR_NOMEM) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   if (str == STR_DUPLICATE) {
-    glsl_es1_compiler_error_loc(cc, loc, "Error: duplicate identifier \"%s\" declaration", name);
-    glsl_es1_compiler_error_loc(cc, &s->loc_, "See original use of \"%s\"", s->name_);
+    dx_error_loc(cc->dx_, loc, "Error: duplicate identifier \"%s\" declaration", name);
+    dx_error_loc(cc->dx_, &s->loc_, "See original use of \"%s\"", s->name_);
   }
   struct sl_variable *var = sl_frame_alloc_variable(cc->current_frame_, name, loc, typ);
   if (!var) {
@@ -524,7 +533,7 @@ int glsl_es1_declare_variable(struct glsl_es1_compiler *cc, const char *name, co
       sym_cleanup(s);
       free(s);
     }
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   var->symbol_ = s;
@@ -547,7 +556,7 @@ uint64_t glsl_es1_XXX_constant_int_array_size_eval_expr(struct glsl_es1_compiler
     }
   }
   if (invalid_array_size) {
-    glsl_es1_compiler_error_loc(cc, loc, "Error: array size must be a constant integer expression greater than 0");
+    dx_error_loc(cc->dx_, loc, "Error: array size must be a constant integer expression greater than 0");
   }
   return array_size;
 }
@@ -563,7 +572,7 @@ init-declarator-list: init-declarator-list COMMA IDENTIFIER {
 init-declarator-list: init-declarator-list COMMA IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $4, &${ 4 }));
   if (!array_type && cc->last_type_specifier_) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   if (array_type) {
@@ -587,7 +596,7 @@ single-declaration: fully-specified-type IDENTIFIER {
 single-declaration: fully-specified-type IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $3, &${3}));
   if (!array_type && cc->last_type_specifier_) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   if (array_type) {
@@ -619,7 +628,7 @@ fully-specified-type: type-specifier {
 fully-specified-type: type-qualifier type-specifier { 
   struct sl_type *t = sl_type_base_qualified_type(&cc->tb_, $1, $0);
   if (!t && $1) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   $$ = t;
@@ -639,7 +648,7 @@ type-specifier: type-specifier-no-prec {
 type-specifier: precision-qualifier type-specifier-no-prec { 
   struct sl_type *t = sl_type_base_qualified_type(&cc->tb_, $1, $0);
   if (!t && $1) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   $$ = t;
@@ -676,16 +685,16 @@ struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRA
   struct sym *s = NULL;
   sym_table_result_t str = st_find_or_insert(cc->current_scope_, SK_STRUCT, $1, strlen($1), &${1}, sizeof(struct sym), &s);
   if (str == STR_NOMEM) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   if (str == STR_DUPLICATE) {
-    glsl_es1_compiler_error_loc(cc, &${1}, "Error: duplicate identifier \"%s\" declaration", $1);
-    glsl_es1_compiler_error_loc(cc, &s->loc_, "See original use of \"%s\"", s->name_);
+    dx_error_loc(cc->dx_, &${1}, "Error: duplicate identifier \"%s\" declaration", $1);
+    dx_error_loc(cc->dx_, &s->loc_, "See original use of \"%s\"", s->name_);
   }
   struct sl_type *t = sl_type_base_struct_type(&cc->tb_, $1, &${1}, $3);
   if (!t) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   if (str == STR_OK) {
@@ -700,7 +709,7 @@ struct-specifier: STRUCT LEFT_BRACE struct-declaration-list RIGHT_BRACE {
   /* Use "struct" &{0} location for source reference */
   struct sl_type *t = sl_type_base_struct_type(&cc->tb_, NULL, &${0}, $2);
   if (!t) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   t->fields_ = $2; $2 = NULL;
@@ -740,7 +749,7 @@ struct-declarator-list: struct-declarator-list COMMA struct-declarator {
 struct-declarator: IDENTIFIER {
   struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, $0, &${0}, cc->last_type_specifier_);
   if (!tf) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   tf->ident_ = $0; /* tf adopts ownership, prevents malloc/free pair. */
@@ -752,12 +761,12 @@ struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $2, &${ 2 }));
 
   if (!array_type && cc->last_type_specifier_) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, $0, &${0}, array_type);
   if (!tf) {
-    glsl_es1_compiler_no_memory(cc);
+    dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
   tf->ident_ = $0; /* tf adopts ownership, prevents malloc/free pair. */
