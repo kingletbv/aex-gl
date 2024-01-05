@@ -170,6 +170,7 @@
     <ClCompile Include="..\src\glsl_es1_compiler.c" />
     <ClCompile Include="..\src\glsl_es1_tokens.c" />
     <ClCompile Include="..\src\gl_es2_impl.c" />
+    <ClCompile Include="..\src\pp\diags.c" />
     <ClCompile Include="..\src\pp\pp.c" />
     <ClCompile Include="..\src\pp\pp_input_file.c" />
     <ClCompile Include="..\src\pp\pp_macro_table.c" />
@@ -290,6 +291,7 @@
     <ClInclude Include="..\src\glsl_es1_compiler.h" />
     <ClInclude Include="..\src\glsl_es1_tokens.h" />
     <ClInclude Include="..\src\gl_es2_impl.h" />
+    <ClInclude Include="..\src\pp\diags.h" />
     <ClInclude Include="..\src\pp\pp.h" />
     <ClInclude Include="..\src\pp\pp_input_file.h" />
     <ClInclude Include="..\src\pp\pp_macro_table.h" />

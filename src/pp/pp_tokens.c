@@ -106,7 +106,7 @@ struct pptk *pptk_alloc_len(struct preprocessor *pp, struct pptk **pp_chain, con
   }
   if (!tk || !tk->text_) {
     if (tk) free(tk);
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return NULL;
   }
 
@@ -340,7 +340,7 @@ int pptk_perform_macro_expansion(struct preprocessor *pp, struct pptk **pp_chain
     switch (ppme_parse(&macro_expander, next_sym, pp, &token_chain, 1 /* token_chain is entire and final bit of input */, &output_chain, keep_defined)) {
       case _PPME_FINISH:
         if (token_chain) {
-          pp_printf(pp, "Unexpected macro-expander finish: input has not ended.\n");
+          dx_printf(pp->dx_, "Unexpected macro-expander finish: input has not ended.\n");
           goto fail;
         }
         break;
@@ -351,27 +351,27 @@ int pptk_perform_macro_expansion(struct preprocessor *pp, struct pptk **pp_chain
         goto fail;
       case _PPME_FEED_ME:
         assert(0);
-        pp_printf(pp, "Internal error, macro expander not adhering to end of stream");
+        dx_printf(pp->dx_, "Internal error, macro expander not adhering to end of stream");
         goto fail;
       case _PPME_LEXICAL_ERROR:
         assert(0);
-        pp_printf(pp, "Internal error, lexical error on macro expander\n");
+        dx_printf(pp->dx_, "Internal error, lexical error on macro expander\n");
         goto fail;
       case _PPME_OVERFLOW:
-        pp_printf(pp, "Overflow while parsing macro expansions\n");
+        dx_printf(pp->dx_, "Overflow while parsing macro expansions\n");
         goto fail;
       case _PPME_NO_MEMORY:
-        pp_printf(pp, "No memory while parsing macro expansions\n");
+        dx_printf(pp->dx_, "No memory while parsing macro expansions\n");
         goto fail;
       case _PPME_SYNTAX_ERROR:
-        pp_printf(pp, "Syntax error while parsing macro expansions\n");
+        dx_printf(pp->dx_, "Syntax error while parsing macro expansions\n");
         break;
       case _PPME_INTERNAL_ERROR:
-        pp_printf(pp, "Internal error while parsing macro expansions\n");
+        dx_printf(pp->dx_, "Internal error while parsing macro expansions\n");
         goto fail;
       default:
         assert(0);
-        pp_printf(pp, "Unexpected returncode while parsing macro expansions\n");
+        dx_printf(pp->dx_, "Unexpected returncode while parsing macro expansions\n");
         goto fail;
     }
   }
@@ -426,17 +426,17 @@ int pptk_rescan(struct preprocessor *pp, struct pptk *input_chain, struct pptk *
   for (;;) {
     r = pptk_scan(&tokenizer, pp, &output_chain, &input_chain_situs);
     if (r == _PPTK_SYNTAX_ERROR) {
-      pp_printf(pp, "(%d): syntax error in rescan during macro expansion at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
+      dx_printf(pp->dx_, "(%d): syntax error in rescan during macro expansion at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
     }
     else if (r == PPTK_TOKENIZER_HEADERNAME_CHECK) {
       pptk_set_mode(&tokenizer, allow_header_name ? M_PPTK_HEADER_NAME_POSSIBLE : M_PPTK_DEFAULT);
     }
     else if (r == _PPTK_LEXICAL_ERROR) {
-      pp_printf(pp, "(%d): lexical error in rescan during macro expansion at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
+      dx_printf(pp->dx_, "(%d): lexical error in rescan during macro expansion at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
     }
     else if (r == _PPTK_FEED_ME) {
       if (input_chain->next_ == input_chain) {
-        pp_printf(pp, "(%d): Internal error, input requested beyond end in rescan during macro expansion at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
+        dx_printf(pp->dx_, "(%d): Internal error, input requested beyond end in rescan during macro expansion at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
         pptk_free(output_chain);
         pptk_free(input_chain);
         return -1;
@@ -449,7 +449,7 @@ int pptk_rescan(struct preprocessor *pp, struct pptk *input_chain, struct pptk *
       break;
     }
     else {
-      pp_printf(pp, "(%d): Internal error in rescan during macro expansion at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
+      dx_printf(pp->dx_, "(%d): Internal error in rescan during macro expansion at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
       pptk_free(output_chain);
       pptk_free(input_chain);
       return -1;
@@ -488,16 +488,16 @@ int pptk_scan_str(struct preprocessor *pp, const char *text, struct pptk **pp_ou
   for (;;) {
     r = pptk_scan(&tokenizer, pp, &output_chain, &input_chain_situs);
     if (r == _PPTK_SYNTAX_ERROR) {
-      pp_printf(pp, "(%d): syntax error in scan at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
+      dx_printf(pp->dx_, "(%d): syntax error in scan at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
     }
     else if (r == PPTK_TOKENIZER_HEADERNAME_CHECK) {
       pptk_set_mode(&tokenizer, M_PPTK_DEFAULT);
     }
     else if (r == _PPTK_LEXICAL_ERROR) {
-      pp_printf(pp, "(%d): lexical error in scan at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
+      dx_printf(pp->dx_, "(%d): lexical error in scan at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
     }
     else if (r == _PPTK_FEED_ME) {
-      pp_printf(pp, "(%d): Internal error, input requested beyond end in scan at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
+      dx_printf(pp->dx_, "(%d): Internal error, input requested beyond end in scan at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
       pptk_free(output_chain);
       return -1;
     }
@@ -505,7 +505,7 @@ int pptk_scan_str(struct preprocessor *pp, const char *text, struct pptk **pp_ou
       break;
     }
     else {
-      pp_printf(pp, "(%d): Internal error in scan at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
+      dx_printf(pp->dx_, "(%d): Internal error in scan at column %d: \"%s\"\n", pptk_line(&tokenizer), pptk_column(&tokenizer), pptk_text(&tokenizer));
       pptk_free(output_chain);
       return -1;
     }
@@ -529,7 +529,7 @@ char *pptk_to_str(struct preprocessor *pp, struct pptk *chain) {
   }
   char *s = (char *)malloc(size_needed);
   if (!s) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return NULL;
   }
 
@@ -556,7 +556,7 @@ static int pptk_concat(struct preprocessor *pp, struct pptk *left, struct pptk *
   }
 
   if (output_chain && (output_chain->next_ != output_chain)) {
-    pp_printf(pp, "(%d): Warning, token concatenation yields multiple distinct tokens\n", situs_line(&output_chain->situs_));
+    dx_printf(pp->dx_, "(%d): Warning, token concatenation yields multiple distinct tokens\n", situs_line(&output_chain->situs_));
   }
 
   *pp_output_chain = pptk_join(*pp_output_chain, output_chain);
@@ -649,7 +649,7 @@ static struct pptk *pptk_stringize(struct preprocessor *pp, struct pptk *chain) 
   size_t size_needed = 2 /* open and closing doublequotes */ + 1 /* terminator */ + pptk_stringize_to_buf(NULL, chain);
   char *string_lit = (char *)malloc(size_needed);
   if (!string_lit) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return NULL;
   }
   pptk_stringize_to_buf(string_lit + 1 /* skip place for opening doublequote */, chain);
@@ -664,7 +664,7 @@ static struct pptk *pptk_stringize(struct preprocessor *pp, struct pptk *chain) 
   if (tk) {
     do {
       if (situs_concat(&situs, &tk->situs_)) {
-        pp_no_memory(pp);
+        dx_no_memory(pp->dx_);
         situs_cleanup(&situs);
         free(string_lit);
         return NULL;
@@ -678,7 +678,7 @@ static struct pptk *pptk_stringize(struct preprocessor *pp, struct pptk *chain) 
   situs_cleanup(&situs);
   free(string_lit);
   if (!tk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return NULL;
   }
   /* PPTK_STRING_LIT depends on expr with datasection portion existing with the actual data; this logic
@@ -700,7 +700,7 @@ static struct pptk *pptk_make_string_lit(struct preprocessor *pp, const char *da
   size_t size_needed = 2 /* open and closing double quotes */ + 1 /* null terminator */ + pptk_stringify_buf(NULL, data, len);
   char *string_lit = (char *)malloc(size_needed);
   if (!string_lit) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return NULL;
   }
   pptk_stringify_buf(string_lit + 1 /* skip place for opening doublequote */, data, len);
@@ -716,7 +716,7 @@ static struct pptk *pptk_make_string_lit(struct preprocessor *pp, const char *da
   situs_cleanup(&situs);
   free(string_lit);
   if (!tk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return NULL;
   }
   /* PPTK_STRING_LIT depends on expr with datasection portion existing with the actual data; this logic
@@ -746,7 +746,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
     sprintf(line_num_str, "%d", pp->ppme_input_line_);
     struct pptk *intlit = pptk_alloc(pp, NULL, line_num_str, PPTK_INTEGER_LIT, &macro_ident->situs_);
     if (!intlit) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       return -1;
     }
     intlit->v_type_ = PPVT_INT;
@@ -785,12 +785,12 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
   }
 
   if ((num_inst_args > num_args) && !m->is_variadic_) {
-    pp_printf(pp, "too many arguments to macro %s: %zu found, but only %zu expected\n", m->name_, num_inst_args, num_args);
+    dx_printf(pp->dx_, "too many arguments to macro %s: %zu found, but only %zu expected\n", m->name_, num_inst_args, num_args);
     *pp_output_chain = pptk_join(*pp_output_chain, instanced);
     return 0; /* not fatal */
   }
   else if (num_inst_args < num_args) {
-    pp_printf(pp, "insufficient number of arguments to macro %s: %zu found, but %s%zu expected\n", m->name_, num_inst_args, m->is_variadic_ ? "at least " : "", num_args);
+    dx_printf(pp->dx_, "insufficient number of arguments to macro %s: %zu found, but %s%zu expected\n", m->name_, num_inst_args, m->is_variadic_ ? "at least " : "", num_args);
     *pp_output_chain = pptk_join(*pp_output_chain, instanced);
     return 0; /* not fatal */
   }
@@ -843,7 +843,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
                 struct pptk *placemarker = pptk_alloc(pp, &expansion, NULL, PPTK_PLACEMARKER, &insertion);
                 situs_cleanup(&insertion);
                 if (!placemarker) {
-                  pp_no_memory(pp);
+                  dx_no_memory(pp->dx_);
                   pptk_free(expansion);
                   pptk_free(instanced);
                   pptk_free(arg_expanded);
@@ -855,7 +855,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
               /* Macro expansion of argument required *prior* to insertion */
               struct pptk *arg_clone = pptk_clone_trimmed(pp, inst_arg->tokens_);
               if (inst_arg->tokens_ && !arg_clone) {
-                pp_no_memory(pp);
+                dx_no_memory(pp->dx_);
                 pptk_free(expansion);
                 pptk_free(instanced);
                 pptk_free(arg_expanded);
@@ -877,7 +877,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
             if (preceeded_by_hash) {
               struct pptk *stringified = pptk_stringize(pp, expansion);
               if (!stringified) {
-                pp_no_memory(pp);
+                dx_no_memory(pp->dx_);
                 pptk_free(expansion);
                 pptk_free(instanced);
                 pptk_free(arg_expanded);
@@ -905,7 +905,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
                     struct pptk *placemarker = pptk_alloc(pp, &expansion, NULL, PPTK_PLACEMARKER, &insertion);
                     situs_cleanup(&insertion);
                     if (!placemarker) {
-                      pp_no_memory(pp);
+                      dx_no_memory(pp->dx_);
                       pptk_free(expansion);
                       pptk_free(instanced);
                       pptk_free(arg_expanded);
@@ -916,7 +916,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
                 else {
                   struct pptk *arg_clone = pptk_clone(pp, tail->tokens_);
                   if (tail->tokens_ && !arg_clone) {
-                    pp_no_memory(pp);
+                    dx_no_memory(pp->dx_);
                     pptk_free(expansion);
                     pptk_free(instanced);
                     pptk_free(arg_expanded);
@@ -944,7 +944,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
                     situs_init_from_after(&insertion, &(*pp_output_chain)->prev_->situs_, 1 /* comma "," byte length 1 */);
                     if (!pptk_alloc(pp, &expansion, ",", PPTK_COMMA, &insertion)) {
                       situs_cleanup(&insertion);
-                      pp_no_memory(pp);
+                      dx_no_memory(pp->dx_);
                       pptk_free(expansion);
                       pptk_free(instanced);
                       pptk_free(arg_expanded);
@@ -965,7 +965,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
                 situs_init_from_after(&insertion, &id->situs_, 0);
                 struct pptk *placemarker = pptk_alloc(pp, &expansion, NULL, PPTK_PLACEMARKER, &insertion);
                 if (!placemarker) {
-                  pp_no_memory(pp);
+                  dx_no_memory(pp->dx_);
                   pptk_free(expansion);
                   pptk_free(instanced);
                   pptk_free(arg_expanded);
@@ -976,7 +976,7 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
             if (preceeded_by_hash) {
               struct pptk *stringified = pptk_stringize(pp, expansion);
               if (!stringified) {
-                pp_no_memory(pp);
+                dx_no_memory(pp->dx_);
                 pptk_free(expansion);
                 pptk_free(instanced);
                 pptk_free(arg_expanded);
@@ -1022,13 +1022,13 @@ int macro_expand(struct preprocessor *pp, struct pptk *macro_ident, struct macro
   /* Macro replacement list is now in arg_expanded; process ## occurrances (if any) */
   struct pptk *repl_list = NULL;
   if (arg_expanded && (arg_expanded->tok_ == PPTK_HASH_HASH_MARK)) {
-    pp_printf(pp, "Error, ## token at start of macro replacement list\n");
+    dx_printf(pp->dx_, "Error, ## token at start of macro replacement list\n");
     pptk_free(pptk_pop_front(&arg_expanded));
   }
   while (arg_expanded) {
     if ((arg_expanded->next_ != arg_expanded) && (arg_expanded->next_->tok_ == PPTK_HASH_HASH_MARK)) {
       if (arg_expanded->next_->next_ == arg_expanded) {
-        pp_printf(pp, "Error, ## token at end of macro replacement list\n");
+        dx_printf(pp->dx_, "Error, ## token at end of macro replacement list\n");
         repl_list = pptk_join(repl_list, pptk_pop_front(&arg_expanded));
         pptk_free(pptk_pop_front(&arg_expanded)); /* pop the ## */
       }
@@ -1106,7 +1106,7 @@ int ppce_eval_const_expr(struct preprocessor *pp, struct pptk *input_chain, int6
         switch (r) {
           case _PPCE_FINISH:
             if (tk != input_chain) {
-              pp_printf(pp, "Unexpected macro-expander finish: input has not ended.\n");
+              dx_printf(pp->dx_, "Unexpected macro-expander finish: input has not ended.\n");
               goto fail;
             }
             ppce_stack_cleanup(&stack);
@@ -1118,26 +1118,26 @@ int ppce_eval_const_expr(struct preprocessor *pp, struct pptk *input_chain, int6
             goto fail;
           case _PPCE_FEED_ME:
             assert(0);
-            pp_printf(pp, "Internal error, pp const expr evaluator not adhering to end of stream");
+            dx_printf(pp->dx_, "Internal error, pp const expr evaluator not adhering to end of stream");
             goto fail;
           case _PPCE_LEXICAL_ERROR:
             assert(0);
-            pp_printf(pp, "Internal error, lexical error on pp const expr evaluator \n");
+            dx_printf(pp->dx_, "Internal error, lexical error on pp const expr evaluator \n");
             goto fail;
           case _PPCE_OVERFLOW:
-            pp_printf(pp, "Overflow while parsing pp const expr\n");
+            dx_printf(pp->dx_, "Overflow while parsing pp const expr\n");
             goto fail;
           case _PPCE_NO_MEMORY:
             goto fail;
           case _PPCE_SYNTAX_ERROR:
-            pp_printf(pp, "Syntax error while parsing pp const expr\n");
+            dx_printf(pp->dx_, "Syntax error while parsing pp const expr\n");
             break;
           case _PPCE_INTERNAL_ERROR:
-            pp_printf(pp, "Internal error while parsing pp const expr\n");
+            dx_printf(pp->dx_, "Internal error while parsing pp const expr\n");
             goto fail;
           default:
             assert(0);
-            pp_printf(pp, "Unexpected returncode while pp const expr\n");
+            dx_printf(pp->dx_, "Unexpected returncode while pp const expr\n");
             goto fail;
         }
       }

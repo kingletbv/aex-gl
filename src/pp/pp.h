@@ -16,6 +16,11 @@
 #ifndef PP_H
 #define PP_H
 
+#ifndef DIAGS_H_INCLUDED
+#define DIAGS_H_INCLUDED
+#include "diags.h"
+#endif
+
 #ifndef PP_MACRO_TABLE_H_INCLUDED
 #define PP_MACRO_TABLE_H_INCLUDED
 #include "pp_macro_table.h"
@@ -66,10 +71,9 @@ struct pp_filename_buffer {
 };
 
 struct preprocessor {
-  /* Error flags, indicates whether compilation should be aborted,
-   * the fatal_error_ indicates if compilation should be aborted _now_. */
-  int have_error_:1;
-  int fatal_error_:1;
+  /* Diagnostics */
+  struct diags default_dx_;
+  struct diags *dx_; /* default points to default_dx_, but can be overridden by caller to another diags */
 
   /* The macro table; houses all object and function macros; 
    * builtin macros must also have an entry */
@@ -126,15 +130,6 @@ void pp_init(struct preprocessor *pp);
 void pp_cleanup(struct preprocessor *pp);
 
 enum preprocessor_result pp_preprocessor_stage(struct preprocessor *pp);
-
-int pp_printf(struct preprocessor *pp, const char *fmt, ...);
-int pp_error_loc(struct preprocessor *pp, struct situs *sit, const char *fmt, ...);
-int pp_error(struct preprocessor *pp, const char *fmt, ...);
-int pp_fatal_loc(struct preprocessor *pp, struct situs *sit, const char *fmt, ...);
-int pp_fatal(struct preprocessor *pp, const char *fmt, ...);
-int pp_warn_loc(struct preprocessor *pp, struct situs *sit, const char *fmt, ...);
-int pp_warn(struct preprocessor *pp, const char *fmt, ...);
-void pp_no_memory(struct preprocessor *pp);
 
 struct pp_if_section *pp_if_push(struct preprocessor *pp);
 struct pp_input_file *pp_push_input_file(struct preprocessor *pp, const char *filename, size_t aux_data);

@@ -79,14 +79,14 @@ struct pptk;
 
 
 pp-line: hash ws-opt non-directive newline-opt {
-  pp_error_loc(pp, &$0->situs_, "Error, non-directive line ignored");
+  dx_error_loc(pp->dx_, &$0->situs_, "Error, non-directive line ignored");
 }
 
 pp-line: hash if pp-tokens newline-opt {
   struct pp_if_section *parent = pp->if_section_stack_;
   struct pp_if_section *sec = pp_if_push(pp);
   if (!sec) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return _PPLD_NO_MEMORY;
   }
   if (parent && (parent->state_ != PP_IFSS_SELECTED)) {
@@ -119,7 +119,7 @@ pp-line: hash if pp-tokens newline-opt {
 pp-line: hash elif pp-tokens newline-opt {
   /* XXX: Check that the preceeding if section group was not #else as that would be non-sensical */
   if (!pp->if_section_stack_) {
-    pp_error_loc(pp, &$1->situs_, "Error: #elif without preceeding #if/#ifdef/#ifndef block");
+    dx_error_loc(pp->dx_, &$1->situs_, "Error: #elif without preceeding #if/#ifdef/#ifndef block");
   }
   else if (pp->if_section_stack_->state_ == PP_IFSS_NOT_YET_SELECTED) {
     /* Preceeding branch not selected, therefore the #elif may be taken if it evaluates to true */
@@ -157,7 +157,7 @@ pp-line: hash ifdef identifier ws-opt newline-opt {
   struct pp_if_section *parent = pp->if_section_stack_;
   struct pp_if_section *sec = pp_if_push(pp);
   if (!sec) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return _PPLD_NO_MEMORY;
   }
   if (parent && (parent->state_ != PP_IFSS_SELECTED)) {
@@ -179,7 +179,7 @@ pp-line: hash ifndef identifier ws-opt newline-opt  {
   struct pp_if_section *parent = pp->if_section_stack_;
   struct pp_if_section *sec = pp_if_push(pp);
   if (!sec) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return _PPLD_NO_MEMORY;
   }
   if (parent && (parent->state_ != PP_IFSS_SELECTED)) {
@@ -200,7 +200,7 @@ pp-line: hash ifndef identifier ws-opt newline-opt  {
 pp-line: hash else ws-opt newline-opt {
   /* XXX: Check that the preceeding if section group was not #else as that would be non-sensical */
   if (!pp->if_section_stack_) {
-    pp_error_loc(pp, &$1->situs_, "Error: #else without preceeding #if/#ifdef/#ifndef block");
+    dx_error_loc(pp->dx_, &$1->situs_, "Error: #else without preceeding #if/#ifdef/#ifndef block");
   }
   else if (pp->if_section_stack_->state_ == PP_IFSS_NOT_YET_SELECTED) {
     /* Preceeding branch not selected, therefore the #else will be taken */
@@ -217,7 +217,7 @@ pp-line: hash else ws-opt newline-opt {
 
 pp-line: hash endif ws-opt newline-opt {
   if (!pp->if_section_stack_) {
-    pp_error_loc(pp, &$1->situs_, "Error: #endif without preceeding #if/#ifdef/#ifndef block");
+    dx_error_loc(pp->dx_, &$1->situs_, "Error: #endif without preceeding #if/#ifdef/#ifndef block");
   }
   else {
     pp_if_pop(pp);
@@ -242,17 +242,17 @@ pp-line: hash include header-pp-tokens newline-opt {
       }
     }
     if (!$2 || ($2->tok_ != PPTK_HEADER_NAME)) {
-      pp_error_loc(pp, &$1->situs_, "Error: #%s expects header filename", ($1->tok_ == PPTK_EMIT) ? "emit" : "include");
+      dx_error_loc(pp->dx_, &$1->situs_, "Error: #%s expects header filename", ($1->tok_ == PPTK_EMIT) ? "emit" : "include");
     }
     else if ($2->next_ != $2) {
-      pp_error_loc(pp, &$2->next_->situs_, "Error: #%s expects only a single header filename", ($1->tok_ == PPTK_EMIT) ? "emit" : "include");
+      dx_error_loc(pp->dx_, &$2->next_->situs_, "Error: #%s expects only a single header filename", ($1->tok_ == PPTK_EMIT) ? "emit" : "include");
     }
     else {
       size_t headername_len = strlen($2->text_);
       /* Store include file and return control to caller to perform the include */
       char *headername = (char *)malloc(headername_len - 2 + 1);
       if (!headername) {
-        pp_no_memory(pp);
+        dx_no_memory(pp->dx_);
         return _PPLD_NO_MEMORY;
       }
       memcpy(headername, $2->text_ + 1, headername_len - 2);
@@ -273,11 +273,11 @@ pp-line: hash define identifier non-par-open-replacement-list newline-opt {
     struct macro *m = NULL;
     int r = mt_insert(&pp->macro_table_, $2->text_, $2->text_len_, &m);
     if (r == MACRO_TABLE_NOMEM) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
     }
     else if (r == MACRO_TABLE_DUPLICATE) {
       /* XXX: Re-definitions, where the replacement-lists are identical, should be allowed(!) 6.10.3-2 */
-      pp_error_loc(pp, &$2->situs_, "Error: macro \"%s\" is already defined\n", $2->text_);
+      dx_error_loc(pp->dx_, &$2->situs_, "Error: macro \"%s\" is already defined\n", $2->text_);
     }
     else {
       /* Defined macro. */
@@ -297,11 +297,11 @@ pp-line: hash define identifier PAR_OPEN_TOK identifier-list-opt PAR_CLOSE_TOK r
     struct macro *m = NULL;
     int r = mt_insert(&pp->macro_table_, $2->text_, $2->text_len_, &m);
     if (r == MACRO_TABLE_NOMEM) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
     }
     else if (r == MACRO_TABLE_DUPLICATE) {
       /* XXX: Re-definitions, where the replacement-lists are identical, should be allowed(!) 6.10.3-2 */
-      pp_error_loc(pp, &$2->situs_, "Error: macro \"%s\" is already defined\n", $2->text_);
+      dx_error_loc(pp->dx_, &$2->situs_, "Error: macro \"%s\" is already defined\n", $2->text_);
     }
     else {
       /* Defined macro. */
@@ -321,11 +321,11 @@ pp-line: hash define identifier PAR_OPEN_TOK ELLIPSIS par-close replacement-list
     struct macro *m = NULL;
     int r = mt_insert(&pp->macro_table_, $2->text_, $2->text_len_, &m);
     if (r == MACRO_TABLE_NOMEM) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
     }
     else if (r == MACRO_TABLE_DUPLICATE) {
       /* XXX: Re-definitions, where the replacement-lists are identical, should be allowed(!) 6.10.3-2 */
-      pp_error_loc(pp, &$2->situs_, "Error: macro \"%s\" is already defined\n", $2->text_);
+      dx_error_loc(pp->dx_, &$2->situs_, "Error: macro \"%s\" is already defined\n", $2->text_);
     }
     else {
       /* Defined macro. */
@@ -345,11 +345,11 @@ pp-line: hash define identifier PAR_OPEN_TOK identifier-list COMMA ELLIPSIS par-
     struct macro *m = NULL;
     int r = mt_insert(&pp->macro_table_, $2->text_, $2->text_len_, &m);
     if (r == MACRO_TABLE_NOMEM) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
     }
     else if (r == MACRO_TABLE_DUPLICATE) {
       /* XXX: Re-definitions, where the replacement-lists are identical, should be allowed(!) 6.10.3-2 */
-      pp_error_loc(pp, &$2->situs_, "Error: macro \"%s\" is already defined\n", $2->text_);
+      dx_error_loc(pp->dx_, &$2->situs_, "Error: macro \"%s\" is already defined\n", $2->text_);
     }
     else {
       /* Defined macro. */
@@ -369,7 +369,7 @@ pp-line: hash undef identifier ws-opt newline-opt {
     struct macro *m = mt_find(&pp->macro_table_, $2->text_, $2->text_len_);
 
     if (!m) {
-      pp_error_loc(pp, &$2->situs_, "Error: macro \"%s\" does not exist\n", $2->text_);
+      dx_error_loc(pp->dx_, &$2->situs_, "Error: macro \"%s\" does not exist\n", $2->text_);
     }
     else {
       mt_remove_macro(&pp->macro_table_, m);
@@ -383,7 +383,7 @@ pp-line: hash error-nt pp-tokens-opt newline-opt {
   if (!pp->if_section_stack_ || pp->if_section_stack_->state_ == PP_IFSS_SELECTED) {
     char *msg = pptk_to_str(pp, $2);
     if (msg) {
-      pp_error_loc(pp, &$1->situs_, "Error: %s", msg);
+      dx_error_loc(pp->dx_, &$1->situs_, "Error: %s", msg);
       free(msg);
     }
   }

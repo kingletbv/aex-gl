@@ -178,7 +178,7 @@ mul-exp: mul-exp PERCENT cast-exp {
     divzero = !$2.v_.i_;
   }
   if (divzero) {
-    pp_error_loc(pp, &$1->situs_, "Error during preprocessor constant expression evaluation: division by zero\n");
+    dx_error_loc(pp->dx_, &$1->situs_, "Error during preprocessor constant expression evaluation: division by zero\n");
     $$.v_.u_ = 0;
   }
 }
@@ -199,7 +199,7 @@ mul-exp: mul-exp SLASH cast-exp {
     divzero = !$2.v_.i_;
   }
   if (divzero) {
-    pp_error_loc(pp, &$1->situs_, "Error during preprocessor constant expression evaluation: division by zero\n");
+    dx_error_loc(pp->dx_, &$1->situs_, "Error during preprocessor constant expression evaluation: division by zero\n");
     $$.v_.u_ = 0;
   }
 }
@@ -259,7 +259,7 @@ static int ppce_int_const_expr_to_value(struct preprocessor *pp, struct ppce_val
       v->v_.u_ = tk->v_.u64_;
       break;
     default:
-      pp_fatal_loc(pp, &tk->situs_, "Error during preprocessor constant expression evaluation: unable to determine integer literal type\n");
+      dx_fatal_loc(pp->dx_, &tk->situs_, "Error during preprocessor constant expression evaluation: unable to determine integer literal type\n");
       return -1;
   }
   return 0;

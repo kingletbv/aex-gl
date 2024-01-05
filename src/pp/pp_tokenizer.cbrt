@@ -559,7 +559,7 @@ $: {
     char suffix = $len ? $text[$len-1] : '\0';
     struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_FLOAT_LIT, &$);
     if (!tk) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       return _PPTK_NO_MEMORY;
     }
     if ((suffix == 'f') || (suffix == 'F')) {
@@ -582,7 +582,7 @@ $: {
     char suffix = $len ? $text[$len-1] : '\0';
     struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_FLOAT_LIT, &$);
     if (!tk) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       return _PPTK_NO_MEMORY;
     }
     if ((suffix == 'f') || (suffix == 'F')) {
@@ -606,7 +606,7 @@ $: {
     /* we accept possible over-allocation from escape sequences. */
     void *blob = malloc($len + 1 - 2);
     if (!blob) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       return _PPTK_NO_MEMORY;
     }
     p = (char *)blob;
@@ -621,7 +621,7 @@ $: {
 
     struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_STRING_LIT, &$);
     if (!tk) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       free(blob);
       return _PPTK_NO_MEMORY;
     }
@@ -636,7 +636,7 @@ $: {
     /* we accept possible over-allocation from escape sequences. */
     void *blob = malloc(sizeof(uint16_t) * ($len + 1 - 2));
     if (!blob) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       return _PPTK_NO_MEMORY;
     }
     p = (uint16_t *)blob;
@@ -651,7 +651,7 @@ $: {
 
     struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_STRING_LIT, &$);
     if (!tk) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       free(blob);
       return _PPTK_NO_MEMORY;
     }
@@ -668,7 +668,7 @@ $: {
     while (c != (unsigned char *)($text + $len - 1)) {
       int val;
       if (char_count == (pp->bits_per_int_ / 8)) {
-        pp_error_loc(pp, &$, "too many characters in constant");
+        dx_error_loc(pp->dx_, &$, "too many characters in constant");
         break;
       }
       c += sch_read_char_value(pp, c, &val, 0xFF, &$, "character");
@@ -677,7 +677,7 @@ $: {
     }
     struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_CHAR_LIT, &$);
     if (!tk) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       return _PPTK_NO_MEMORY;
     }
 
@@ -693,7 +693,7 @@ $: {
     while (c != (unsigned char *)($text + $len - 1)) {
       int val;
       if (char_count == 1) {
-        pp_error_loc(pp, &$, "characters beyond first ignored in wide character constant");
+        dx_error_loc(pp->dx_, &$, "characters beyond first ignored in wide character constant");
         break;
       }
 
@@ -704,7 +704,7 @@ $: {
 
     struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_CHAR_LIT, &$);
     if (!tk) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       return _PPTK_NO_MEMORY;
     }
 

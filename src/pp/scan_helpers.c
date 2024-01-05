@@ -64,14 +64,14 @@ int sch_parse_decimal(struct preprocessor *pp, uint64_t *pval, const char *text,
   for (n = 0; n < len; ++n) {
     uint64_t next_digit = text[n] - '0';
     if (val >(UINT64_MAX / 10)) {
-      pp_error_loc(pp, loc, "Overflow on integer");
+      dx_error_loc(pp->dx_, loc, "Overflow on integer");
       val = 0;
       return -1;
     }
     val = val * 10;
     val += next_digit;
     if (val < next_digit) {
-      pp_error_loc(pp, loc, "Overflow on integer");
+      dx_error_loc(pp->dx_, loc, "Overflow on integer");
       val = 0;
       return -1;
     }
@@ -87,14 +87,14 @@ int sch_parse_octal(struct preprocessor *pp, uint64_t *pval, const char *text, s
   for (n = 1 /* leading 0 */; n < len; ++n) {
     uint64_t next_digit = text[n] - '0';
     if (val >(UINT64_MAX / 8)) {
-      pp_error_loc(pp, loc, "Overflow on integer");
+      dx_error_loc(pp->dx_, loc, "Overflow on integer");
       val = 0;
       return -1;
     }
     val = val * 8;
     val += next_digit;
     if (val < next_digit) {
-      pp_error_loc(pp, loc, "Overflow on integer");
+      dx_error_loc(pp->dx_, loc, "Overflow on integer");
       val = 0;
       return -1;
     }
@@ -119,14 +119,14 @@ int sch_parse_hexadecimal(struct preprocessor *pp, uint64_t *pval, const char *t
     }
 
     if (val > (UINT64_MAX / 16)) {
-      pp_error_loc(pp, loc, "Overflow on integer");
+      dx_error_loc(pp->dx_, loc, "Overflow on integer");
       val = 0;
       return -1;
     }
     val = val * 16;
     val += next_digit;
     if (val < next_digit) {
-      pp_error_loc(pp, loc, "Overflow on integer");
+      dx_error_loc(pp->dx_, loc, "Overflow on integer");
       val = 0;
       return -1;
     }
@@ -143,14 +143,14 @@ int sch_parse_binary(struct preprocessor *pp, uint64_t *pval, const char *text, 
     next_digit = text[n] - '0';
 
     if (val >(UINT64_MAX / 2)) {
-      pp_error_loc(pp, loc, "Overflow on integer");
+      dx_error_loc(pp->dx_, loc, "Overflow on integer");
       val = 0;
       return -1;
     }
     val = val * 2;
     val += next_digit;
     if (val < next_digit) {
-      pp_error_loc(pp, loc, "Overflow on integer");
+      dx_error_loc(pp->dx_, loc, "Overflow on integer");
       val = 0;
       return -1;
     }
@@ -187,7 +187,7 @@ static void sch_process_dec_none(struct preprocessor *pp, uint64_t val, enum pp_
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -197,7 +197,7 @@ static void sch_process_dec_none(struct preprocessor *pp, uint64_t val, enum pp_
 void sch_process_pptk_dec_none(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_dec_none(pp, val, &(*pptk)->v_type_, loc);
@@ -227,7 +227,7 @@ static void sch_process_dec_U(struct preprocessor *pp, uint64_t val, enum pp_val
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -237,7 +237,7 @@ static void sch_process_dec_U(struct preprocessor *pp, uint64_t val, enum pp_val
 void sch_process_pptk_dec_U(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_dec_U(pp, val, &(*pptk)->v_type_, loc);
@@ -270,7 +270,7 @@ static void sch_process_dec_L(struct preprocessor *pp, uint64_t val, enum pp_val
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -280,7 +280,7 @@ static void sch_process_dec_L(struct preprocessor *pp, uint64_t val, enum pp_val
 void sch_process_pptk_dec_L(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_dec_L(pp, val, &(*pptk)->v_type_, loc);
@@ -309,7 +309,7 @@ static void sch_process_dec_UL(struct preprocessor *pp, uint64_t val, enum pp_va
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -319,7 +319,7 @@ static void sch_process_dec_UL(struct preprocessor *pp, uint64_t val, enum pp_va
 void sch_process_pptk_dec_UL(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_dec_UL(pp, val, &(*pptk)->v_type_, loc);
@@ -342,7 +342,7 @@ static void sch_process_dec_LL(struct preprocessor *pp, uint64_t val, enum pp_va
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_signed;  
   }
 
@@ -352,7 +352,7 @@ static void sch_process_dec_LL(struct preprocessor *pp, uint64_t val, enum pp_va
 void sch_process_pptk_dec_LL(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_dec_LL(pp, val, &(*pptk)->v_type_, loc);
@@ -380,7 +380,7 @@ static void sch_process_dec_ULL(struct preprocessor *pp, uint64_t val, enum pp_v
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -390,7 +390,7 @@ static void sch_process_dec_ULL(struct preprocessor *pp, uint64_t val, enum pp_v
 void sch_process_pptk_dec_ULL(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_dec_ULL(pp, val, &(*pptk)->v_type_, loc);
@@ -426,7 +426,7 @@ static void sch_process_ohb_none(struct preprocessor *pp, uint64_t val, enum pp_
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -436,7 +436,7 @@ static void sch_process_ohb_none(struct preprocessor *pp, uint64_t val, enum pp_
 void sch_process_pptk_ohb_none(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_ohb_none(pp, val, &(*pptk)->v_type_, loc);
@@ -466,7 +466,7 @@ static void sch_process_ohb_U(struct preprocessor *pp, uint64_t val, enum pp_val
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -476,7 +476,7 @@ static void sch_process_ohb_U(struct preprocessor *pp, uint64_t val, enum pp_val
 void sch_process_pptk_ohb_U(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_ohb_U(pp, val, &(*pptk)->v_type_, loc);
@@ -509,7 +509,7 @@ static void sch_process_ohb_L(struct preprocessor *pp, uint64_t val, enum pp_val
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -519,7 +519,7 @@ static void sch_process_ohb_L(struct preprocessor *pp, uint64_t val, enum pp_val
 void sch_process_pptk_ohb_L(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_ohb_L(pp, val, &(*pptk)->v_type_, loc);
@@ -548,7 +548,7 @@ static void sch_process_ohb_UL(struct preprocessor *pp, uint64_t val, enum pp_va
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -558,7 +558,7 @@ static void sch_process_ohb_UL(struct preprocessor *pp, uint64_t val, enum pp_va
 void sch_process_pptk_ohb_UL(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_ohb_UL(pp, val, &(*pptk)->v_type_, loc);
@@ -590,7 +590,7 @@ static void sch_process_ohb_LL(struct preprocessor *pp, uint64_t val, enum pp_va
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -600,7 +600,7 @@ static void sch_process_ohb_LL(struct preprocessor *pp, uint64_t val, enum pp_va
 void sch_process_pptk_ohb_LL(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_ohb_LL(pp, val, &(*pptk)->v_type_, loc);
@@ -628,7 +628,7 @@ static void sch_process_ohb_ULL(struct preprocessor *pp, uint64_t val, enum pp_v
   }
 
   if (vt == PPVT_NO_VALUE) {
-    pp_error_loc(pp, loc, "Overflow on integer, value truncated");
+    dx_error_loc(pp->dx_, loc, "Overflow on integer, value truncated");
     vt = bits_to_vt[sizeof(bits_to_vt) / sizeof(bits_to_vt[0]) - 1].vt_unsigned;
   }
 
@@ -638,7 +638,7 @@ static void sch_process_ohb_ULL(struct preprocessor *pp, uint64_t val, enum pp_v
 void sch_process_pptk_ohb_ULL(struct preprocessor *pp, struct pptk **pp_chain, const char *text, uint64_t val, struct pptk **pptk, struct situs *loc) {
   *pptk = pptk_alloc(pp, pp_chain, text, PPTK_INTEGER_LIT, loc);
   if (!*pptk) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return;
   }
   sch_process_ohb_ULL(pp, val, &(*pptk)->v_type_, loc);
@@ -693,7 +693,7 @@ int sch_read_char_value(struct preprocessor *pp, const char *lit_pos, int *val, 
   const unsigned char *c = (const unsigned char *)lit_pos;
   if (*c != '\\') {
     if (*c == '\n') {
-      pp_error_loc(pp, loc, "Newline in %s constant", kind);
+      dx_error_loc(pp->dx_, loc, "Newline in %s constant", kind);
     }
     *val = *c;
     return 1;
@@ -721,7 +721,7 @@ int sch_read_char_value(struct preprocessor *pp, const char *lit_pos, int *val, 
     case '7':
       num_digits = sch_read_oct_esc_value(c + 1, &num);
       if ((!num_digits) || (num > max_char)) {
-        pp_error_loc(pp, loc, "Invalid octal escape sequence");
+        dx_error_loc(pp->dx_, loc, "Invalid octal escape sequence");
         *val = *c;
         return 1;
       }
@@ -733,7 +733,7 @@ int sch_read_char_value(struct preprocessor *pp, const char *lit_pos, int *val, 
     case 'x':
       num_digits = sch_read_hex_esc_value(c + 1, &num);
       if ((!num_digits) || (num > max_char)) {
-        pp_error_loc(pp, loc, "Invalid hex escape sequence");
+        dx_error_loc(pp->dx_, loc, "Invalid hex escape sequence");
         *val = *c;
         return 1;
       }
@@ -743,7 +743,7 @@ int sch_read_char_value(struct preprocessor *pp, const char *lit_pos, int *val, 
       }
       break;
     default:
-      pp_error_loc(pp, loc, "Invalid escape sequence \"\\%c\"\n", c[1]);
+      dx_error_loc(pp->dx_, loc, "Invalid escape sequence \"\\%c\"\n", c[1]);
       *val = *c;
       return 1;
 

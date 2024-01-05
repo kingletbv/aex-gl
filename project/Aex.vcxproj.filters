@@ -34,6 +34,9 @@
     <ClCompile Include="..\src\sl_expr_temp.c" />
     <ClCompile Include="..\src\sl_expr.c" />
     <ClCompile Include="..\src\sl_frame.c" />
+    <ClCompile Include="..\src\pp\diags.c">
+      <Filter>pp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -74,6 +77,9 @@
     <ClInclude Include="..\src\sl_expr_temp.h" />
     <ClInclude Include="..\src\sl_expr.h" />
     <ClInclude Include="..\src\sl_frame.h" />
+    <ClInclude Include="..\src\pp\diags.h">
+      <Filter>pp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">

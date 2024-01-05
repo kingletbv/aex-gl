@@ -116,8 +116,8 @@ static void pp_pop_input_file(struct preprocessor *pp) {
 }
 
 void pp_init(struct preprocessor *pp) {
-  pp->have_error_ = 0;
-  pp->fatal_error_ = 0;
+  dx_diags_init(&pp->default_dx_);
+  pp->dx_ = &pp->default_dx_; /* caller may set this somewhere else */
 
   mt_init(&pp->macro_table_);
   pp->if_section_stack_ = NULL;
@@ -176,6 +176,8 @@ void pp_cleanup(struct preprocessor *pp) {
   if (pp->include_file_arg_) {
     free(pp->include_file_arg_);
   }
+
+  dx_diags_cleanup(&pp->default_dx_);
 }
 
 struct pp_if_section *pp_if_push(struct preprocessor *pp) {
@@ -203,7 +205,7 @@ int pp_concat_sub_output_b(struct preprocessor *pp, struct situs *output_situs, 
   if (buf_size_needed > *output_buf_size) {
     char *newbuf = (char *)realloc(*output_buf, buf_size_needed + 1);
     if (!newbuf) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       return -1;
     }
     *output_buf = newbuf;
@@ -214,7 +216,7 @@ int pp_concat_sub_output_b(struct preprocessor *pp, struct situs *output_situs, 
   struct situs substitution;
   situs_init(&substitution);
   if (situs_clone(&substitution, span_situs)) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return -1;
   }
 
@@ -229,7 +231,7 @@ int pp_concat_sub_output_b(struct preprocessor *pp, struct situs *output_situs, 
   sss[0].num_bytes_ = span_text_len;
   if (situs_concat(output_situs, &substitution)) {
     situs_cleanup(&substitution);
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return -1;
   }
   situs_cleanup(&substitution);
@@ -247,7 +249,7 @@ int pp_concat_output_b(struct preprocessor *pp, struct situs *output_situs, char
   if (buf_size_needed > *output_buf_size) {
     char *newbuf = (char *)realloc(*output_buf, buf_size_needed + 1);
     if (!newbuf) {
-      pp_no_memory(pp);
+      dx_no_memory(pp->dx_);
       return -1;
     }
     *output_buf = newbuf;
@@ -256,7 +258,7 @@ int pp_concat_output_b(struct preprocessor *pp, struct situs *output_situs, char
   memcpy((*output_buf) + *output_pos, span_text, span_text_len);
   (*output_buf)[(*output_pos) + span_text_len] = '\0';
   if (situs_concat(output_situs, span_situs)) {
-    pp_no_memory(pp);
+    dx_no_memory(pp->dx_);
     return -1;
   }
   (*output_pos) += span_text_len;
@@ -288,99 +290,6 @@ static int pp_stderr_vprintf_handler(void *baton, const char *file, int line_num
   r = vfprintf(stderr, fmt, args);
 
   return r < 0;
-}
-
-int pp_printf(struct preprocessor *pp, const char *fmt, ...) {
-  int r;
-  va_list args;
-  va_start(args, fmt);
-  r = pp->vprintf_handler(pp->vprintf_baton_, NULL, 0, fmt, args);
-  va_end(args);
-  return r;
-}
-
-int pp_error_loc(struct preprocessor *pp, struct situs *sit, const char *fmt, ...) {
-  int r;
-  va_list args;
-  // Duplicate fmt to append newline.
-  size_t fmt_len = strlen(fmt);
-  char *dup_fmt = malloc(fmt_len + 2);
-  if (!dup_fmt) {
-    pp_no_memory(pp);
-    return -1;
-  }
-  memcpy(dup_fmt, fmt, fmt_len);
-  dup_fmt[fmt_len] = '\n';
-  dup_fmt[fmt_len + 1] = '\0';
-  pp->have_error_ = 1;
-  va_start(args, fmt);
-  r = pp->vprintf_handler(pp->vprintf_baton_, situs_filename(sit), situs_line(sit), dup_fmt, args);
-  va_end(args);
-  free(dup_fmt);
-  return r;
-}
-
-int pp_error(struct preprocessor *pp, const char *fmt, ...) {
-  int r;
-  va_list args;
-  pp->have_error_ = 1;
-  va_start(args, fmt);
-  r = pp->vprintf_handler(pp->vprintf_baton_, pp->ppme_input_file_, pp->ppme_input_line_, fmt, args);
-  va_end(args);
-  return r;
-}
-
-int pp_fatal_loc(struct preprocessor *pp, struct situs *sit, const char *fmt, ...) {
-  int r;
-  va_list args;
-  pp->have_error_ = pp->fatal_error_ = 1;
-  va_start(args, fmt);
-  r = pp->vprintf_handler(pp->vprintf_baton_, situs_filename(sit), situs_line(sit), fmt, args);
-  va_end(args);
-  return r;
-}
-
-int pp_fatal(struct preprocessor *pp, const char *fmt, ...) {
-  int r;
-  va_list args;
-  pp->have_error_ = pp->fatal_error_ = 1;
-  va_start(args, fmt);
-  r = pp->vprintf_handler(pp->vprintf_baton_, pp->ppme_input_file_, pp->ppme_input_line_, fmt, args);
-  va_end(args);
-  return r;
-}
-
-int pp_warn_loc(struct preprocessor *pp, struct situs *sit, const char *fmt, ...) {
-  int r;
-  va_list args;
-  // Duplicate fmt to append newline.
-  size_t fmt_len = strlen(fmt);
-  char *dup_fmt = malloc(fmt_len + 2);
-  if (!dup_fmt) {
-    pp_no_memory(pp);
-    return -1;
-  }
-  memcpy(dup_fmt, fmt, fmt_len);
-  dup_fmt[fmt_len] = '\n';
-  dup_fmt[fmt_len + 1] = '\0';
-  va_start(args, fmt);
-  r = pp->vprintf_handler(pp->vprintf_baton_, situs_filename(sit), situs_line(sit), dup_fmt, args);
-  va_end(args);
-  free(dup_fmt);
-  return r;
-}
-
-int pp_warn(struct preprocessor *pp, const char *fmt, ...) {
-  int r;
-  va_list args;
-  va_start(args, fmt);
-  r = pp->vprintf_handler(pp->vprintf_baton_, pp->ppme_input_file_, pp->ppme_input_line_, fmt, args);
-  va_end(args);
-  return r;
-}
-
-void pp_no_memory(struct preprocessor *pp) {
-  pp_fatal(pp, "No memory\n");
 }
 
 enum preprocessor_result pp_preprocessor_stage(struct preprocessor *pp) {
@@ -427,11 +336,11 @@ macro_expander:
 
       case _PPME_SYNTAX_ERROR:
         if (pp->ppme_input_) {
-          pp_error_loc(pp, &pp->ppme_input_->situs_, "syntax error: \"%s\"\n", pp->ppme_input_->text_);
+          dx_error_loc(pp->dx_, &pp->ppme_input_->situs_, "syntax error: \"%s\"\n", pp->ppme_input_->text_);
         }
         else {
-          pp_printf(pp, "%s(%d): syntax error at end of file\n", pp->ppme_input_file_, pp->ppme_input_line_);
-          pp->have_error_ = 1;
+          dx_printf(pp->dx_, "%s(%d): syntax error at end of file\n", pp->ppme_input_file_, pp->ppme_input_line_);
+          pp->dx_->have_error_ = 1;
         }
         /* keep going */
         goto macro_expander;
@@ -444,11 +353,11 @@ macro_expander:
       case _PPME_INTERNAL_ERROR:
       default:
         if (pp->ppme_input_) {
-          pp_error_loc(pp, &pp->ppme_input_->situs_, "internal error (%d) from ppme_parse: \"%s\"\n", r, pp->ppme_input_->text_);
+          dx_error_loc(pp->dx_, &pp->ppme_input_->situs_, "internal error (%d) from ppme_parse: \"%s\"\n", r, pp->ppme_input_->text_);
         }
         else {
-          pp_printf(pp, "%s(%d): internal error (%d) from ppme_parse at end of file\n", pp->ppme_input_file_, pp->ppme_input_line_, r);
-          pp->have_error_ = 1;
+          dx_printf(pp->dx_, "%s(%d): internal error (%d) from ppme_parse at end of file\n", pp->ppme_input_file_, pp->ppme_input_line_, r);
+          pp->dx_->have_error_ = 1;
         }
         return PPR_FAILED;
     }
@@ -510,11 +419,11 @@ line_directives:
           goto macro_expander;
         case _PPLD_SYNTAX_ERROR:
           if (pp->ppld_input_) {
-            pp_error_loc(pp, &pp->ppld_input_->situs_, "syntax error: \"%s\"\n", pp->ppld_input_->text_);
+            dx_error_loc(pp->dx_, &pp->ppld_input_->situs_, "syntax error: \"%s\"\n", pp->ppld_input_->text_);
           }
           else {
-            pp_printf(pp, "%s(%d): syntax error at end of file\n", pp->input_stack_->ppld_input_line_filename_, pp->input_stack_->ppld_input_line_);
-            pp->have_error_ = 1;
+            dx_printf(pp->dx_, "%s(%d): syntax error at end of file\n", pp->input_stack_->ppld_input_line_filename_, pp->input_stack_->ppld_input_line_);
+            pp->dx_->have_error_ = 1;
           }
           break;
         case _PPLD_MATCH:
@@ -536,19 +445,19 @@ line_directives:
           }
           goto tokenizer;
         case _PPLD_OVERFLOW:
-          pp_printf(pp, "Overflow while parsing line directives\n");
-          pp->have_error_ = 1;
+          dx_printf(pp->dx_, "Overflow while parsing line directives\n");
+          pp->dx_->have_error_ = 1;
           return PPR_FAILED;
         case _PPLD_NO_MEMORY:
-          pp_printf(pp, "No memory while parsing line directives\n");
-          pp->have_error_ = 1;
+          dx_printf(pp->dx_, "No memory while parsing line directives\n");
+          pp->dx_->have_error_ = 1;
           return PPR_FAILED;
         case _PPLD_INTERNAL_ERROR:
-          pp_printf(pp, "Internal error while parsing line directives\n");
-          pp->have_error_ = 1;
+          dx_printf(pp->dx_, "Internal error while parsing line directives\n");
+          pp->dx_->have_error_ = 1;
           return PPR_FAILED;
         default:
-          pp_printf(pp, "Unexpected returncode while parsing line directives\n");
+          dx_printf(pp->dx_, "Unexpected returncode while parsing line directives\n");
           return PPR_FAILED;
       }
     }
@@ -607,21 +516,21 @@ tokenizer:;
       case _PPTK_SYNTAX_ERROR: {
         struct situs *situs = (struct situs *)pptk_token_common_data(&pp->input_stack_->pptk_);
         if (situs) {
-          pp_error_loc(pp, situs, "syntax error: \"%s\"\n", pptk_text(&pp->input_stack_->pptk_));
+          dx_error_loc(pp->dx_, situs, "syntax error: \"%s\"\n", pptk_text(&pp->input_stack_->pptk_));
         }
         else {
-          pp_printf(pp, "%s(%d): syntax error at column %d: \"%s\"\n", pp->input_stack_->pptk_input_line_filename_, pptk_line(&pp->input_stack_->pptk_), pptk_column(&pp->input_stack_->pptk_), pptk_text(&pp->input_stack_->pptk_));
-          pp->have_error_ = 1;
+          dx_printf(pp->dx_, "%s(%d): syntax error at column %d: \"%s\"\n", pp->input_stack_->pptk_input_line_filename_, pptk_line(&pp->input_stack_->pptk_), pptk_column(&pp->input_stack_->pptk_), pptk_text(&pp->input_stack_->pptk_));
+          pp->dx_->have_error_ = 1;
         }
         break;
       }
       case _PPTK_LEXICAL_ERROR:
-        pp_printf(pp, "%s(%d): lexical error at column %d: \"%s\"\n", pp->input_stack_->pptk_input_line_filename_, pptk_line(&pp->input_stack_->pptk_), pptk_column(&pp->input_stack_->pptk_), pptk_text(&pp->input_stack_->pptk_));
-        pp->have_error_ = 1;
+        dx_printf(pp->dx_, "%s(%d): lexical error at column %d: \"%s\"\n", pp->input_stack_->pptk_input_line_filename_, pptk_line(&pp->input_stack_->pptk_), pptk_column(&pp->input_stack_->pptk_), pptk_text(&pp->input_stack_->pptk_));
+        pp->dx_->have_error_ = 1;
         break;
       case _PPTK_INTERNAL_ERROR:
-        pp_printf(pp, "%s(%d): internal error at column %d: \"%s\"\n", pp->input_stack_->pptk_input_line_filename_, pptk_line(&pp->input_stack_->pptk_), pptk_column(&pp->input_stack_->pptk_), pptk_text(&pp->input_stack_->pptk_));
-        pp->have_error_ = 1;
+        dx_printf(pp->dx_, "%s(%d): internal error at column %d: \"%s\"\n", pp->input_stack_->pptk_input_line_filename_, pptk_line(&pp->input_stack_->pptk_), pptk_column(&pp->input_stack_->pptk_), pptk_text(&pp->input_stack_->pptk_));
+        pp->dx_->have_error_ = 1;
         break;
       case PPTK_TOKENIZER_HEADERNAME_CHECK:
         /* Scanner thinks we should check if a headername is acceptable, this depends on whether the line directive parser can handle it. */
@@ -676,21 +585,21 @@ line_continuations:;
       case _PPLC_SYNTAX_ERROR: {
         struct situs *situs = (struct situs *)pplc_token_common_data(&pp->input_stack_->pplc_);
         if (situs) {
-          pp_error_loc(pp, situs, "syntax error: \"%s\"\n", pplc_text(&pp->input_stack_->pplc_));
+          dx_error_loc(pp->dx_, situs, "syntax error: \"%s\"\n", pplc_text(&pp->input_stack_->pplc_));
         }
         else {
-          pp_printf(pp, "%s(%d): syntax error at column %d: \"%s\"\n", pp->input_stack_->ppld_input_line_filename_, pplc_line(&pp->input_stack_->pplc_), pplc_column(&pp->input_stack_->pplc_), pplc_text(&pp->input_stack_->pplc_));
-          pp->have_error_ = 1;
+          dx_printf(pp->dx_, "%s(%d): syntax error at column %d: \"%s\"\n", pp->input_stack_->ppld_input_line_filename_, pplc_line(&pp->input_stack_->pplc_), pplc_column(&pp->input_stack_->pplc_), pplc_text(&pp->input_stack_->pplc_));
+          pp->dx_->have_error_ = 1;
         }
         break;
       }
       case _PPLC_LEXICAL_ERROR:
-        pp_printf(pp, "(%d): lexical error at column %d: \"%s\"\n", pplc_line(&pp->input_stack_->pplc_), pplc_column(&pp->input_stack_->pplc_), pplc_text(&pp->input_stack_->pplc_));
-        pp->have_error_ = 1;
+        dx_printf(pp->dx_, "(%d): lexical error at column %d: \"%s\"\n", pplc_line(&pp->input_stack_->pplc_), pplc_column(&pp->input_stack_->pplc_), pplc_text(&pp->input_stack_->pplc_));
+        pp->dx_->have_error_ = 1;
         break;
       case _PPLC_INTERNAL_ERROR:
-        pp_printf(pp, "(%d): internal error at column %d: \"%s\"\n", pplc_line(&pp->input_stack_->pplc_), pplc_column(&pp->input_stack_->pplc_), pplc_text(&pp->input_stack_->pplc_));
-        pp->have_error_ = 1;
+        dx_printf(pp->dx_, "(%d): internal error at column %d: \"%s\"\n", pplc_line(&pp->input_stack_->pplc_), pplc_column(&pp->input_stack_->pplc_), pplc_text(&pp->input_stack_->pplc_));
+        pp->dx_->have_error_ = 1;
         break;
       case _PPLC_FEED_ME:
         break;
@@ -719,21 +628,21 @@ trigraphs:;
       case _PPTG_SYNTAX_ERROR: {
         struct situs *situs = (struct situs *)pptg_token_common_data(&pp->input_stack_->pptg_);
         if (situs) {
-          pp_error_loc(pp, situs, "syntax error: \"%s\"\n", pptg_text(&pp->input_stack_->pptg_));
+          dx_error_loc(pp->dx_, situs, "syntax error: \"%s\"\n", pptg_text(&pp->input_stack_->pptg_));
         }
         else {
-          pp_printf(pp, "%s(%d): syntax error at column %d: \"%s\"\n", pp->input_stack_->ppld_input_line_filename_, pptg_line(&pp->input_stack_->pptg_), pptg_column(&pp->input_stack_->pptg_), pptg_text(&pp->input_stack_->pptg_));
-          pp->have_error_ = 1;
+          dx_printf(pp->dx_, "%s(%d): syntax error at column %d: \"%s\"\n", pp->input_stack_->ppld_input_line_filename_, pptg_line(&pp->input_stack_->pptg_), pptg_column(&pp->input_stack_->pptg_), pptg_text(&pp->input_stack_->pptg_));
+          pp->dx_->have_error_ = 1;
         }
         break;
       }
       case _PPTG_LEXICAL_ERROR:
-        pp_printf(pp, "(%d): lexical error at column %d: \"%s\"\n", pptg_line(&pp->input_stack_->pptg_), pptg_column(&pp->input_stack_->pptg_), pptg_text(&pp->input_stack_->pptg_));
-        pp->have_error_ = 1;
+        dx_printf(pp->dx_, "(%d): lexical error at column %d: \"%s\"\n", pptg_line(&pp->input_stack_->pptg_), pptg_column(&pp->input_stack_->pptg_), pptg_text(&pp->input_stack_->pptg_));
+        pp->dx_->have_error_ = 1;
         break;
       case _PPTG_INTERNAL_ERROR:
-        pp_printf(pp, "(%d): internal error at column %d: \"%s\"\n", pptg_line(&pp->input_stack_->pptg_), pptg_column(&pp->input_stack_->pptg_), pptg_text(&pp->input_stack_->pptg_));
-        pp->have_error_ = 1;
+        dx_printf(pp->dx_, "(%d): internal error at column %d: \"%s\"\n", pptg_line(&pp->input_stack_->pptg_), pptg_column(&pp->input_stack_->pptg_), pptg_text(&pp->input_stack_->pptg_));
+        pp->dx_->have_error_ = 1;
         break;
       case _PPTG_FEED_ME:
         break;
