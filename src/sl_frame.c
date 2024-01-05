@@ -23,6 +23,16 @@
 #include <string.h>
 #endif
 
+#ifndef DIAGS_H_INCLUDED
+#define DIAGS_H_INCLUDED
+#include "pp/diags.h"
+#endif
+
+#ifndef SL_TYPES_H_INCLUDED
+#define SL_TYPES_H_INCLUDED
+#include "sl_types.h"
+#endif
+
 #ifndef SL_FRAME_H_INCLUDED
 #define SL_FRAME_H_INCLUDED
 #include "sl_frame.h"
@@ -112,6 +122,8 @@ struct sl_function *sl_frame_alloc_function(const char *name, const struct situs
   if (!f) return NULL;
   f->name_ = NULL;
   situs_init(&f->location_);
+  f->overload_chain_ = f;
+  f->chain_ = f;
   f->return_type_ = return_type;
   f->num_parameters_ = 0;
   f->num_parameters_allocated_ = 0;
@@ -181,3 +193,104 @@ size_t sl_function_append_parameter(struct sl_function *f, const char *name, con
   f->num_parameters_++;
   return f->num_parameters_ - 1;
 }
+
+int sl_function_post_process_parameters(struct sl_type_base *tb, struct sl_function *f) {
+  /* Convert "int f(void)" to "int f()" - the C style "no arguments" prototype is
+    * permitted but not necessary in GLSL (6.1 p. 54) */
+  if ((f->num_parameters_ == 1) && (f->parameters_[0].type_ == &tb->void_)) {
+    sl_parameter_cleanup(f->parameters_);
+    f->num_parameters_--;
+  }
+  return 0;
+}
+
+int sl_function_match(struct sl_function *fa, struct sl_function *fb) {
+  if (fa->num_parameters_ != fb->num_parameters_) {
+    return 0;
+  }
+  size_t n;
+  for (n = 0; n < fa->num_parameters_; ++n) {
+    struct sl_parameter *pa = fa->parameters_ + n;
+    struct sl_parameter *pb = fb->parameters_ + n;
+    struct sl_type *ta = sl_type_unqualified(pa->type_);
+    struct sl_type *tb = sl_type_unqualified(pb->type_);
+    if (pa->type_ != pb->type_) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+int sl_function_match_validation(struct diags *dx, struct sl_function *fnew, struct sl_function *fexisting) {
+  if (!sl_function_match(fnew, fexisting)) {
+    /* Functions don't match */
+    dx_error_loc(dx, &fnew->location_, "function \"%s\" does not match previous declaration (see line %d)", fnew->name_, situs_line(&fexisting->location_));
+
+    return -1;
+  }
+
+  /* Functions match, they should not have different parameter (in/out/inout) qualifiers */
+  size_t n;
+  for (n = 0; n < fnew->num_parameters_; ++n) {
+    struct sl_parameter *pnew = fnew->parameters_ + n;
+    struct sl_parameter *pexisting = fexisting->parameters_ + n;
+    int qualifiers_new = sl_type_qualifiers(pnew->type_);
+    int qualifiers_existing = sl_type_qualifiers(pexisting->type_);
+    if ((qualifiers_new ^ qualifiers_existing) & SL_PARAMETER_QUALIFIER_MASK) {
+      dx_error_loc(dx, &pnew->location_, "parameter \"%s\" of function \"%s\" does not match previous declaration (see line %d)", pnew->name_, fnew->name_, situs_line(&pexisting->location_));
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
+void sl_function_search(struct sym_table *current_scope, struct sl_function *f, 
+                        struct sym_table **ppst_found_at, struct sym **ppsym_found_at, struct sl_function **ppfunc_found) {
+  struct sym_table *st;
+
+  if (ppst_found_at) *ppst_found_at = NULL;
+  if (ppsym_found_at) *ppsym_found_at = NULL;
+  if (ppfunc_found) *ppfunc_found = NULL;
+
+  if (!f->name_) {
+    /* Anonymous functions can never be found */
+    return;
+  }
+
+  size_t name_len = strlen(f->name_);
+  for (st = current_scope; st; st = st->parent_) {
+    struct sym *s = st_find(st, f->name_, name_len);
+    if (s) {
+      if (s->kind_ == SK_FUNCTION) {
+        struct sl_function *cf = s->v_.function_;
+        if (cf) {
+          do {
+            cf = cf->overload_chain_;
+
+            if (sl_function_match(f, cf)) {
+              /* Found a match */
+              if (ppst_found_at) *ppst_found_at = st;
+              if (ppsym_found_at) *ppsym_found_at = s;
+              if (ppfunc_found) *ppfunc_found = cf;
+              return;
+            }
+
+          } while (cf != s->v_.function_);
+        }
+      }
+      else {
+        /* Not a function, but its presence occludes our vision of
+         * any functions lower than this. */
+        if (ppst_found_at) *ppst_found_at = st;
+        if (ppsym_found_at) *ppsym_found_at = s;
+        if (ppfunc_found) *ppfunc_found = NULL;
+        return;
+      }
+    }
+  }
+
+  /* Not found */
+}
+

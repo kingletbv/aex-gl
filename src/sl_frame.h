@@ -87,7 +87,11 @@ struct sl_function {
    * If a function is first declared and then defined, this situs is updated
    * to the location of the definition. */
   struct situs location_;
-       
+
+  /* Next in tail cyclic chain for all functions per sym (there can be
+   * multiple, overloaded, functions of the same sym.) */
+  struct sl_function *overload_chain_;
+
   /* Next in tail cyclic chain of all functions for a frame.
    * (sl_frame::functions_). */
   struct sl_function *chain_;
@@ -132,6 +136,41 @@ void sl_frame_free_function(struct sl_function *f);
 /* Appends a parameter to a function, returns the index to it; if an error occurs, SIZE_MAX
  * is returned instead. */
 size_t sl_function_append_parameter(struct sl_function *f, const char *name, const struct situs *loc, struct sl_type *type);
+
+/* Post-process function parameters. Primarily this involves converting a C-style single 
+ * void argument into a 0-argument function, e.g. "int x(void);" becomes "int x();".
+ * Returns 0 upon success, non-zero upon error. */
+int sl_function_post_process_parameters(struct sl_type_base *tb, struct sl_function *f);
+
+/* Returns 1 if the two function prototypes match, 0 if not.
+ * Note that a function match does not mean the match is valid, e.g.
+ * int foo(in int a);
+ * int foo(out int a);
+ * These functions match, but the match is not valid (and so should result in an error), use
+ * sl_function_match_validation() to check for this. */
+int sl_function_match(struct sl_function *fa, struct sl_function *fb);
+
+int sl_function_match_validation(struct diags *dx, struct sl_function *fnew, struct sl_function *fexisting);
+
+/* Search the current_scope and its parents (in order) for the first function that matches f.
+ * current_scope is the sym_table (scope) to begin the search at.
+ * f is the function to be searched for.
+ * ppst_found_at points to the pointer where the pointer to the sym_table where the function was found at will be stored,
+ *               or NULL if no such pointer is to be stored.
+ * ppsym_found_at points to the pointer where the pointer to the sym where the function was found at will be stored,
+ *                or NULL if no such pointer is to be stored.
+ * ppfunc_found points to the pointer where the pointer to the function that was found will be stored,
+ *              or NULL if no such pointer is to be stored.
+ * If a function is found, it will be stored in *ppfunc_found.
+ * If no function is found, but some other symbol is found, then *ppsym_found_at will be set to the symbol and
+ * *ppfunc_found to NULL.
+ * If no function is found, and no other symbol is found, then *ppsym_found_at and *ppfunc_found will be set to NULL.
+ */
+void sl_function_search(struct sym_table *current_scope, struct sl_function *f,
+                        struct sym_table **ppst_found_at, struct sym **ppsym_found_at, struct sl_function **ppfunc_found);
+
+
+void sl_parameter_cleanup(struct sl_parameter *p);
 
 #ifdef __cplusplus
 } /* extern "C" */

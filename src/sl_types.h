@@ -40,9 +40,11 @@ extern "C" {
 #define SL_TYPE_QUALIFIER_HIGH_PRECISION   0x20
 #define SL_TYPE_QUALIFIER_MEDIUM_PRECISION 0x40
 #define SL_TYPE_QUALIFIER_LOW_PRECISION    0x80
-#define SL_TYPE_QUALIFIER_IN               0x100
-#define SL_TYPE_QUALIFIER_OUT              0x200
-#define SL_TYPE_QUALIFIER_INOUT            0x400
+#define SL_PARAMETER_QUALIFIER_IN          0x100
+#define SL_PARAMETER_QUALIFIER_OUT         0x200
+#define SL_PARAMETER_QUALIFIER_INOUT       0x400
+
+#define SL_PARAMETER_QUALIFIER_MASK        (SL_PARAMETER_QUALIFIER_IN | SL_PARAMETER_QUALIFIER_OUT | SL_PARAMETER_QUALIFIER_INOUT)
 
 typedef enum sl_type_kind {
   sltk_invalid,
@@ -204,6 +206,8 @@ void sl_type_field_free_chain(struct sl_type_field *chain);
 
 /* Returns the type with any qualifiers removed */
 struct sl_type *sl_type_unqualified(struct sl_type *t);
+
+#define sl_type_qualifiers(t) (((t)->kind_) == sltk_qualifier ? (t)->qualifiers_ : 0)
 
 #ifdef __cplusplus
 } /* extern "C" */

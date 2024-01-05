@@ -77,7 +77,9 @@ struct sym {
   union {
     struct sl_type *type_;          /* valid for SK_STRUCT */
     struct sl_variable *variable_;  /* valid for SK_VARIABLE */
-    struct sl_function *function_;  /* valid for SK_FUNCTION */
+    struct sl_function *function_;  /* valid for SK_FUNCTION, this is a tail cyclic chain of
+                                     * overloaded functions within the same scope. Links are 
+                                     * through sl_function::overload_chain_ */
   } v_;
 };
 
