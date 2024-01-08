@@ -167,6 +167,7 @@
     <ClCompile Include="..\src\blend.c" />
     <ClCompile Include="..\src\clipping_stage.c" />
     <ClCompile Include="..\src\fragment_buffer.c" />
+    <ClCompile Include="..\src\glsl_es1_assist.c" />
     <ClCompile Include="..\src\glsl_es1_compiler.c" />
     <ClCompile Include="..\src\glsl_es1_tokens.c" />
     <ClCompile Include="..\src\gl_es2_impl.c" />
@@ -288,6 +289,7 @@
     <ClInclude Include="..\src\blend.h" />
     <ClInclude Include="..\src\clipping_stage.h" />
     <ClInclude Include="..\src\fragment_buffer.h" />
+    <ClInclude Include="..\src\glsl_es1_assist.h" />
     <ClInclude Include="..\src\glsl_es1_compiler.h" />
     <ClInclude Include="..\src\glsl_es1_tokens.h" />
     <ClInclude Include="..\src\gl_es2_impl.h" />

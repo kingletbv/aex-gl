@@ -57,6 +57,11 @@
 #include "sl_frame.h"
 #endif
 
+#ifndef GLSL_ES1_ASSIST_H_INCLUDED
+#define GLSL_ES1_ASSIST_H_INCLUDED
+#include "glsl_es1_assist.h"
+#endif
+
 %grammar%
 
 %prefix glsl_es1_
@@ -192,18 +197,58 @@ postfix-expression: postfix-expression DEC_OP { $$ = sl_expr_alloc_unop(exop_pos
 
 integer-expression: expression  { $$ = $0; $0 = NULL; }
 
-function-call: function-call-generic;
+%type function-call-header function-call-header-with-parameters \
+      function-call-header-no-parameters function-call-generic: struct glsl_es1_function_call 
+%constructor glsl_es1_function_call_init(&$$);
+%move glsl_es1_function_call_move(&$$, &$0);
+%destructor glsl_es1_function_call_cleanup(&$$);
 
-function-call-generic: function-call-header-with-parameters RIGHT_PAREN;
-function-call-generic: function-call-header-no-parameters RIGHT_PAREN;
+function-call: function-call-generic {
+  if ($0.constructor_type_) {
+    /* Handle constructor logic */
+    // XXX: 
+  }
+  else if ($0.name_) {
+    /* Resolve function name in symbol table */
+    // XXX: 
+  }
+  else {
+    /* An error occurred, already reported on, ignore up. */
+  }
+}
 
-function-call-header-no-parameters: function-call-header VOID;
-function-call-header-no-parameters: function-call-header;
+function-call-generic: function-call-header-with-parameters RIGHT_PAREN {
+  glsl_es1_function_call_move(&$$, &$0); 
+}
+function-call-generic: function-call-header-no-parameters RIGHT_PAREN {
+  glsl_es1_function_call_move(&$$, &$0);
+}
 
-function-call-header-with-parameters: function-call-header assignment-expression;
-function-call-header-with-parameters: function-call-header-with-parameters COMMA assignment-expression;
+function-call-header-no-parameters: function-call-header VOID {
+  glsl_es1_function_call_move(&$$, &$0);
+}
 
-function-call-header: function-identifier LEFT_PAREN;
+function-call-header-no-parameters: function-call-header {
+  glsl_es1_function_call_move(&$$, &$0); 
+}
+
+function-call-header-with-parameters: function-call-header assignment-expression {
+  glsl_es1_function_call_move(&$$, &$0);
+  if (glsl_es1_function_call_append_parameter(&$$, $1)) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $1 = NULL;
+}
+
+function-call-header-with-parameters: function-call-header-with-parameters COMMA assignment-expression {
+  glsl_es1_function_call_move(&$$, &$0);
+  if (glsl_es1_function_call_append_parameter(&$$, $2)) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $2 = NULL;
+}
 
 %type function-identifier: struct { char *name_; struct situs loc_; struct sl_type *constructor_type_; }
 %constructor $$.name_ = NULL; situs_init(&$$.loc_); $$.constructor_type_ = NULL;
@@ -212,6 +257,17 @@ function-call-header: function-identifier LEFT_PAREN;
       $$.constructor_type_ = $0.constructor_type_; $0.constructor_type_ = NULL;
 %destructor if ($$.name_) free($$.name_); \
             situs_cleanup(&$$.loc_);
+
+function-call-header: function-identifier LEFT_PAREN {
+  $$.name_ = $0.name_;
+  $0.name_ = NULL;
+  if (situs_clone(&$$.loc_, &$0.loc_)) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$.constructor_type_ = $0.constructor_type_;
+  $0.constructor_type_ = NULL;
+}
 
 %type constructor-identifier: struct sl_type *
 function-identifier: constructor-identifier {
