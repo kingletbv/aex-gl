@@ -31,6 +31,16 @@
 #include "sl_expr_temp.h"
 #endif
 
+#ifndef SL_FRAME_H_INCLUDED
+#define SL_FRAME_H_INCLUDED
+#include "sl_frame.h"
+#endif
+
+#ifndef SL_TYPES_H_INCLUDED
+#define SL_TYPES_H_INCLUDED
+#include "sl_types.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -94,19 +104,29 @@ struct sl_expr {
   struct sl_expr_temp literal_value_;
 
   /* exop_component_selection */
+  int num_components_;
   uint8_t component_selection_[4];
 
   /* exop_field_selection */
   struct sl_type_field *field_selection_;
 
+  /* exop_function_call - the function called */
+  struct sl_function *function_;
+
   /* exop_constructor, the type constructed */
   struct sl_type *constructor_type_;
+
+  /* exop_variable, the variable */
+  struct sl_variable *variable_;
 
 };
 
 void sl_expr_init(struct sl_expr *x);
 void sl_expr_cleanup(struct sl_expr *x);
 void sl_expr_free(struct sl_expr *x);
+
+struct sl_type *sl_expr_type(struct sl_type_base *tb, struct sl_expr *x);
+
 struct sl_expr *sl_expr_alloc_float_lit(float f, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_int_lit(int64_t i, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_bool_lit(int b, const struct situs *loc);

@@ -33,6 +33,47 @@
 #include "sl_types.h"
 #endif
 
+struct sl_type *sl_expr_temp_type(struct sl_type_base *tb, const struct sl_expr_temp *slet) {
+  switch (slet->kind_) {
+    case sletk_void:
+      return &tb->void_;
+    case sletk_array:
+    case sletk_struct:
+      return slet->v_.comp_.struct_or_array_type_;
+    case sletk_float:
+      return &tb->float_;
+    case sletk_int:
+      return &tb->int_;
+    case sletk_bool:
+      return &tb->bool_;
+    case sletk_vec2:
+      return &tb->vec2_;
+    case sletk_vec3:
+      return &tb->vec3_;
+    case sletk_vec4:
+      return &tb->vec4_;
+    case sletk_bvec2:
+      return &tb->bvec2_;
+    case sletk_bvec3:
+      return &tb->bvec3_;
+    case sletk_bvec4:
+      return &tb->bvec4_;
+    case sletk_ivec2:
+      return &tb->ivec2_;
+    case sletk_ivec3:
+      return &tb->ivec3_;
+    case sletk_ivec4:
+      return &tb->ivec4_;
+    case sletk_mat2:
+      return &tb->mat2_;
+    case sletk_mat3:
+      return &tb->mat3_;
+    case sletk_mat4:
+      return &tb->mat4_;
+  }
+  return NULL;
+}
+
 void sl_expr_temp_init_void(struct sl_expr_temp *slet) {
   slet->kind_ = sletk_void;
 }

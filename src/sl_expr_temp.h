@@ -75,6 +75,8 @@ struct sl_expr_temp {
   } v_;
 };
 
+struct sl_type *sl_expr_temp_type(struct sl_type_base *tb, const struct sl_expr_temp *slet);
+
 void sl_expr_temp_init_void(struct sl_expr_temp *slet);
 void sl_expr_temp_init_float(struct sl_expr_temp *slet, float f);
 void sl_expr_temp_init_int(struct sl_expr_temp *slet, int64_t i);
