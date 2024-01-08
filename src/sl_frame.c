@@ -222,6 +222,24 @@ int sl_function_match(struct sl_function *fa, struct sl_function *fb) {
   return 1;
 }
 
+int sl_function_match_parameter_types(struct sl_function *f, size_t num_parameters, struct sl_type **parameter_types) {
+  if (f->num_parameters_ != num_parameters) {
+    return 0;
+  }
+  size_t n;
+  for (n = 0; n < f->num_parameters_; ++n) {
+    struct sl_parameter *p = f->parameters_ + n;
+    struct sl_type *t = sl_type_unqualified(p->type_);
+    struct sl_type *param_type = parameter_types[n];
+    param_type = sl_type_unqualified(param_type);
+    if (t != param_type) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
 int sl_function_match_validation(struct diags *dx, struct sl_function *fnew, struct sl_function *fexisting) {
   if (!sl_function_match(fnew, fexisting)) {
     /* Functions don't match */
@@ -249,6 +267,7 @@ int sl_function_match_validation(struct diags *dx, struct sl_function *fnew, str
 void sl_function_search(struct sym_table *current_scope, struct sl_function *f, 
                         struct sym_table **ppst_found_at, struct sym **ppsym_found_at, struct sl_function **ppfunc_found) {
   struct sym_table *st;
+  /* bug ? also check/fix sl_function_call_search() below */
 
   if (ppst_found_at) *ppst_found_at = NULL;
   if (ppsym_found_at) *ppsym_found_at = NULL;
@@ -294,3 +313,53 @@ void sl_function_search(struct sym_table *current_scope, struct sl_function *f,
   /* Not found */
 }
 
+void sl_function_call_search(struct sym_table *current_scope, const char *name, size_t num_params, struct sl_type **param_types,
+                             struct sym_table **ppst_found_at, struct sym **ppsym_found_at, struct sl_function **ppfunc_found) {
+  /* bug ? also check/fix sl_function_search() above */
+  struct sym_table *st;
+  /* very similar to sl_function_search, but from the perspective of a function call (so we have the types of the parameters,
+   * and nothing else. */
+
+  if (ppst_found_at) *ppst_found_at = NULL;
+  if (ppsym_found_at) *ppsym_found_at = NULL;
+  if (ppfunc_found) *ppfunc_found = NULL;
+
+  if (!name) {
+    /* Anonymous functions can never be found */
+    return;
+  }
+
+  size_t name_len = strlen(name);
+  for (st = current_scope; st; st = st->parent_) {
+    struct sym *s = st_find(st, name, name_len);
+    if (s) {
+      if (s->kind_ == SK_FUNCTION) {
+        struct sl_function *cf = s->v_.function_;
+        if (cf) {
+          do {
+            cf = cf->overload_chain_;
+
+            if (sl_function_match_parameter_types(cf, num_params, param_types)) {
+              /* Found a match */
+              if (ppst_found_at) *ppst_found_at = st;
+              if (ppsym_found_at) *ppsym_found_at = s;
+              if (ppfunc_found) *ppfunc_found = cf;
+              return;
+            }
+
+          } while (cf != s->v_.function_);
+        }
+      }
+      else {
+        /* Not a function, but its presence occludes our vision of
+         * any functions lower than this. */
+        if (ppst_found_at) *ppst_found_at = st;
+        if (ppsym_found_at) *ppsym_found_at = s;
+        if (ppfunc_found) *ppfunc_found = NULL;
+        return;
+      }
+    }
+  }
+
+  /* Not found */
+}

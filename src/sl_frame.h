@@ -169,6 +169,25 @@ int sl_function_match_validation(struct diags *dx, struct sl_function *fnew, str
 void sl_function_search(struct sym_table *current_scope, struct sl_function *f,
                         struct sym_table **ppst_found_at, struct sym **ppsym_found_at, struct sl_function **ppfunc_found);
 
+/* Search the current_scope and its parents (in order) for the first function that matches the name and parameters.
+ * current_scope is the sym_table (scope) to begin the search at.
+ * name is the name of the function to be searched for.
+ * num_params is the number of parameters to the function.
+ * param_types is an array of num_params types, which are the types of the parameters to the function.
+ * ppst_found_at points to the pointer where the pointer to the sym_table where the function was found at will be stored,
+ *               or NULL if no such pointer is to be stored.
+ * ppsym_found_at points to the pointer where the pointer to the sym where the function was found at will be stored,
+ *                or NULL if no such pointer is to be stored.
+ * ppfunc_found points to the pointer where the pointer to the function that was found will be stored,
+ *              or NULL if no such pointer is to be stored.
+ * If a function is found, it will be stored in *ppfunc_found.
+ * If no function is found, but some other symbol is found, then *ppsym_found_at will be set to the symbol and
+ * *ppfunc_found to NULL.
+ * If no function is found, and no other symbol is found, then *ppsym_found_at and *ppfunc_found will be set to NULL.
+ */
+void sl_function_call_search(struct sym_table *current_scope, const char *name, size_t num_params, struct sl_type **param_types,
+                             struct sym_table **ppst_found_at, struct sym **ppsym_found_at, struct sl_function **ppfunc_found);
+
 
 void sl_parameter_cleanup(struct sl_parameter *p);
 

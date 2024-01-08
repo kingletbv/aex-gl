@@ -147,7 +147,7 @@ $: {
 
 variable-identifier: IDENTIFIER;
 
-%type primary-expression postfix-expression integer-expression unary-expression multiplicative-expression additive-expression shift-expression \
+%type primary-expression postfix-expression function-call integer-expression unary-expression multiplicative-expression additive-expression shift-expression \
       relational-expression equality-expression and-expression exclusive-or-expression inclusive-or-expression logical-and-expression logical-xor-expression \
       logical-or-expression conditional-expression assignment-expression expression constant-expression: struct sl_expr *
 %constructor $$ = NULL;
@@ -204,17 +204,7 @@ integer-expression: expression  { $$ = $0; $0 = NULL; }
 %destructor glsl_es1_function_call_cleanup(&$$);
 
 function-call: function-call-generic {
-  if ($0.constructor_type_) {
-    /* Handle constructor logic */
-    // XXX: 
-  }
-  else if ($0.name_) {
-    /* Resolve function name in symbol table */
-    // XXX: 
-  }
-  else {
-    /* An error occurred, already reported on, ignore up. */
-  }
+  $$ = glsl_es1_function_call_realize(cc->dx_, cc->current_scope_, &cc->tb_, &$0);
 }
 
 function-call-generic: function-call-header-with-parameters RIGHT_PAREN {
@@ -234,7 +224,7 @@ function-call-header-no-parameters: function-call-header {
 
 function-call-header-with-parameters: function-call-header assignment-expression {
   glsl_es1_function_call_move(&$$, &$0);
-  if (glsl_es1_function_call_append_parameter(&$$, $1)) {
+  if (glsl_es1_function_call_append_parameter(&$$, $1, &${1})) {
     dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }
@@ -243,7 +233,7 @@ function-call-header-with-parameters: function-call-header assignment-expression
 
 function-call-header-with-parameters: function-call-header-with-parameters COMMA assignment-expression {
   glsl_es1_function_call_move(&$$, &$0);
-  if (glsl_es1_function_call_append_parameter(&$$, $2)) {
+  if (glsl_es1_function_call_append_parameter(&$$, $2, &${2})) {
     dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
   }

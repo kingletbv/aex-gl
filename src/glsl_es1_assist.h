@@ -23,6 +23,12 @@ extern "C" {
 #endif
 
 struct sl_expr;
+struct situs;
+
+struct glsl_es1_function_call_parameter {
+  struct sl_expr *expr_;
+  struct situs loc_;
+};
 
 struct glsl_es1_function_call {
   char *name_;
@@ -30,13 +36,14 @@ struct glsl_es1_function_call {
   struct sl_type *constructor_type_;
   size_t num_parameters_;
   size_t num_parameters_allocated_;
-  struct sl_expr **parameters_;
+  struct glsl_es1_function_call_parameter *parameters_;
 };
 
 void glsl_es1_function_call_init(struct glsl_es1_function_call *fc);
 void glsl_es1_function_call_move(struct glsl_es1_function_call *dst, struct glsl_es1_function_call *src);
 void glsl_es1_function_call_cleanup(struct glsl_es1_function_call *fc);
-int glsl_es1_function_call_append_parameter(struct glsl_es1_function_call *fc, struct sl_expr *expr);
+int glsl_es1_function_call_append_parameter(struct glsl_es1_function_call *fc, struct sl_expr *param_expr, const struct situs *param_loc);
+struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_table *st, struct sl_type_base *tb, struct glsl_es1_function_call *fs);
 
 #ifdef __cplusplus
 } /* extern "C" */

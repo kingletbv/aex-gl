@@ -118,7 +118,6 @@ struct sl_expr {
 
   /* exop_variable, the variable */
   struct sl_variable *variable_;
-
 };
 
 void sl_expr_init(struct sl_expr *x);
@@ -130,6 +129,7 @@ struct sl_type *sl_expr_type(struct sl_type_base *tb, struct sl_expr *x);
 struct sl_expr *sl_expr_alloc_float_lit(float f, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_int_lit(int64_t i, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_bool_lit(int b, const struct situs *loc);
+struct sl_expr *sl_expr_alloc_function_call(struct sl_function *f, const struct situs *loc, struct sl_expr **pexpr, size_t pexpr_stride);
 
 /* Allocate a unary operator expression, op and loc are operator and situs location of the
  * expression. The opd is a pointer to the pointer of the operand. If the function succeeds,
