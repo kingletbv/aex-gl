@@ -23,6 +23,11 @@
 #include "pp/situs.h"
 #endif
 
+#ifndef ASSERT_H_INCLUDED
+#define ASSERT_H_INCLUDED
+#include <assert.h>
+#endif
+
 #ifndef DIAGS_H_INCLUDED
 #define DIAGS_H_INCLUDED
 #include "pp/diags.h"
@@ -108,12 +113,377 @@ int glsl_es1_function_call_append_parameter(struct glsl_es1_function_call *fc, s
   return 0;
 }
 
+static int glsl_es1_sl_type_num_components(struct sl_type *t) {
+  switch (t->kind_) {
+    case sltk_float:
+    case sltk_int:
+    case sltk_bool:
+      return 1;
+    case sltk_vec2:
+    case sltk_ivec2:
+    case sltk_bvec2:
+      return 2;
+    case sltk_vec3:
+    case sltk_ivec3:
+    case sltk_bvec3:
+      return 3;
+    case sltk_vec4:
+    case sltk_ivec4:
+    case sltk_bvec4:
+      return 4;
+    case sltk_mat2:
+      return 4;
+    case sltk_mat3:
+      return 9;
+    case sltk_mat4:
+      return 16;
+  }
+  return 0;
+}
+
+static sl_type_kind_t glsl_es1_sl_type_scalar_kind(struct sl_type *t) {
+  switch (t->kind_) {
+    case sltk_float:
+    case sltk_vec2:
+    case sltk_vec3:
+    case sltk_vec4:
+    case sltk_mat2:
+    case sltk_mat3:
+    case sltk_mat4:
+      return sltk_float;
+    case sltk_int:
+    case sltk_ivec2:
+    case sltk_ivec3:
+    case sltk_ivec4:
+      return sltk_int;
+    case sltk_bool:
+    case sltk_bvec2:
+    case sltk_bvec3:
+    case sltk_bvec4:
+      return sltk_bool;
+  }
+  return sltk_invalid;
+}
+
+static sl_component_conversion_t glsl_es1_sl_type_component_conversion(struct sl_type *from, struct sl_type *to) {
+  sl_type_kind_t from_scalar = glsl_es1_sl_type_scalar_kind(from);
+  sl_type_kind_t to_scalar = glsl_es1_sl_type_scalar_kind(to);
+  switch (from_scalar) {
+    case sltk_float:
+      switch (to_scalar) {
+        case sltk_float:
+          return slcc_float_to_float;
+        case sltk_int:
+          return slcc_float_to_int;
+        case sltk_bool:
+          return slcc_float_to_bool;
+      }
+      break;
+    case sltk_int:
+      switch (to_scalar) {
+        case sltk_float:
+          return slcc_int_to_float;
+        case sltk_int:
+          return slcc_int_to_int;
+        case sltk_bool:
+          return slcc_int_to_bool;
+      }
+      break;
+    case sltk_bool:
+      switch (to_scalar) {
+        case sltk_float:
+          return slcc_bool_to_float;
+        case sltk_int:
+          return slcc_bool_to_int;
+        case sltk_bool:
+          return slcc_bool_to_bool;
+      }
+      break;
+  }
+  return slcc_invalid;
+}
+
 struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_table *st, struct sl_type_base *tb, struct glsl_es1_function_call *fs) {
   if (fs->constructor_type_) {
     /* Constructor call. */
-    /* XXX: Do this */
-    dx_error_loc(dx, &fs->loc_, "XXX: Constructor \"%s\" not implemented %s(%d)", fs->name_, __FILE__, __LINE__);
-    return NULL;
+    sl_type_kind_t scalar_kind = sltk_invalid;
+    struct sl_type *t = sl_type_unqualified(fs->constructor_type_);
+    int row, col;
+    int num_target_components = 0;
+    struct sl_component_selection swizzle[16]; /* 4x4 matrix is the largest type we support */
+    
+    scalar_kind = glsl_es1_sl_type_scalar_kind(t);
+    sl_component_conversion_t constant_conv = slcc_invalid;
+    switch (scalar_kind) {
+      case sltk_float:
+        constant_conv = slcc_float_to_float;
+        break;
+      case sltk_int:
+        constant_conv = slcc_int_to_int;
+        break;
+      case sltk_bool:
+        constant_conv = slcc_bool_to_bool;
+        break;
+    }
+
+    /* Set swizzle to known value (the constant (param=-1) 0 (component=0)) */
+    for (row = 0; row < 4; ++row) {
+      for (col = 0; col < 4; ++col) {
+        swizzle[col * 4 + row].conversion_ = constant_conv;
+        swizzle[col * 4 + row].parameter_index_ = -1;
+        swizzle[col * 4 + row].component_index_ = 0;
+      }
+    }
+
+    struct sl_type *t_first_param = NULL;
+    if (!fs->num_parameters_) {
+      dx_error_loc(dx, &fs->loc_, "Constructor \"%s\" expects one or more parameters, got 0", t->name_);
+      return NULL;
+    }
+    t_first_param = sl_expr_type(tb, fs->parameters_[0].expr_);
+    if (!t_first_param) {
+      /* No type, assume this was an issue that's already reported. */
+      return NULL;
+    }
+
+    if ((fs->num_parameters_ == 1) &&
+        ((t->kind_ == sltk_mat2 || t->kind_ == sltk_mat3 || t->kind_ == sltk_mat4)) &&
+        ((t_first_param->kind_ == sltk_mat2 || t_first_param->kind_ == sltk_mat3 || t_first_param->kind_ == sltk_mat4)) ) {
+      /* Matrix constructor from 1 matrix; this is a special case.. */
+      /* Any components not explicitly set are set to the identity matrix. */
+      for (col = 0; col < 4; ++col) {
+        for (row = 0; row < 4; ++row) {
+          swizzle[col * 4 + row].conversion_ = slcc_float_to_float;
+          swizzle[col * 4 + row].parameter_index_ = -1;
+          swizzle[col * 4 + row].component_index_ = col == row ? 1 : 0;
+        }
+      }
+      switch (t->kind_) {
+        case sltk_mat2: {
+          switch (t_first_param->kind_) {
+            case sltk_mat2:
+              for (col = 0; col < 2; ++col) {
+                for (row = 0; row < 2; ++row) {
+                  swizzle[col * 2 + row].parameter_index_ = 0;
+                  swizzle[col * 2 + row].component_index_ = col * 2 + row;
+                }
+              }
+              break;
+            case sltk_mat3:
+              for (col = 0; col < 2; ++col) {
+                for (row = 0; row < 2; ++row) {
+                  swizzle[col * 2 + row].parameter_index_ = 0;
+                  swizzle[col * 2 + row].component_index_ = col * 3 + row;
+                }
+              }
+              break;
+            case sltk_mat4:
+              for (col = 0; col < 2; ++col) {
+                for (row = 0; row < 2; ++row) {
+                  swizzle[col * 2 + row].parameter_index_ = 0;
+                  swizzle[col * 2 + row].component_index_ = col * 4 + row;
+                }
+              }
+              break;
+          }
+          break;
+        }
+        case sltk_mat3:
+          switch (t_first_param->kind_) {
+            case sltk_mat2:
+              for (col = 0; col < 2; ++col) {
+                for (row = 0; row < 2; ++row) {
+                  swizzle[col * 3 + row].parameter_index_ = 0;
+                  swizzle[col * 3 + row].component_index_ = col * 2 + row;
+                }
+              }
+              break;
+            case sltk_mat3:
+              for (col = 0; col < 3; ++col) {
+                for (row = 0; row < 3; ++row) {
+                  swizzle[col * 3 + row].parameter_index_ = 0;
+                  swizzle[col * 3 + row].component_index_ = col * 3 + row;
+                }
+              }
+              break;
+            case sltk_mat4:
+              for (col = 0; col < 3; ++col) {
+                for (row = 0; row < 3; ++row) {
+                  swizzle[col * 3 + row].parameter_index_ = 0;
+                  swizzle[col * 3 + row].component_index_ = col * 4 + row;
+                }
+              }
+              break;
+          }
+          break;
+        case sltk_mat4:
+          switch (t_first_param->kind_) {
+            case sltk_mat2:
+              for (col = 0; col < 2; ++col) {
+                for (row = 0; row < 2; ++row) {
+                  swizzle[col * 4 + row].parameter_index_ = 0;
+                  swizzle[col * 4 + row].component_index_ = col * 2 + row;
+                }
+              }
+              break;
+            case sltk_mat3:
+              for (col = 0; col < 3; ++col) {
+                for (row = 0; row < 3; ++row) {
+                  swizzle[col * 4 + row].parameter_index_ = 0;
+                  swizzle[col * 4 + row].component_index_ = col * 3 + row;
+                }
+              }
+              break;
+            case sltk_mat4:
+              for (col = 0; col < 4; ++col) {
+                for (row = 0; row < 4; ++row) {
+                  swizzle[col * 4 + row].parameter_index_ = 0;
+                  swizzle[col * 4 + row].component_index_ = col * 4 + row;
+                }
+              }
+              break;
+          }
+          break;
+      }
+    }
+    else {
+      /* Not matrix-to-matrix constructor, but scalar-to-vector or component-wise constructor */
+
+      num_target_components = glsl_es1_sl_type_num_components(t);
+      int num_src_components = 0;
+      int n;
+      for (n = 0; n < fs->num_parameters_; ++n) {
+        struct sl_type *pt = sl_expr_type(tb, fs->parameters_[n].expr_);
+        if (!pt) {
+          /* No type, assume this was an issue that's already reported. */
+          return NULL;
+        }
+        int num_param_components = glsl_es1_sl_type_num_components(pt);
+        if (!num_param_components) {
+          dx_error_loc(dx, &fs->parameters_[n].loc_, "Invalid parameter for constructor, it has no components");
+          return NULL;
+        }
+        num_src_components += num_param_components;
+      }
+
+      if (num_src_components == 1) {
+        struct sl_type *pt = sl_expr_type(tb, fs->parameters_->expr_);
+        sl_component_conversion_t conv = glsl_es1_sl_type_component_conversion(pt, t);
+        /* This also implies only 1 parameter as parameters with 0
+         * components are an error */
+        struct glsl_es1_function_call_parameter *p = fs->parameters_;
+        switch (t->kind_) {
+          case sltk_float:
+          case sltk_int:
+          case sltk_bool:
+            /* Initialize scalar from scalar. */
+            swizzle[0].conversion_ = conv;
+            swizzle[0].parameter_index_ = 0;
+            swizzle[0].component_index_ = 0;
+            break;
+          case sltk_vec2:
+          case sltk_vec3:
+          case sltk_vec4:
+          case sltk_ivec2:
+          case sltk_ivec3:
+          case sltk_ivec4:
+          case sltk_bvec2:
+          case sltk_bvec3:
+          case sltk_bvec4: {
+            /* Initialize each component with the scalar. */
+            int n;
+            for (n = 0; n < num_target_components; ++n) {
+              swizzle[n].conversion_ = conv;
+              swizzle[n].parameter_index_ = 0;
+              swizzle[n].component_index_ = 0;
+            }
+            break;
+          }
+          /* Initialize matrix diagonal from scalar. */
+          case sltk_mat2:
+            swizzle[0].conversion_ = conv;
+            swizzle[0].parameter_index_ = 0;
+            swizzle[0].component_index_ = 0;
+            swizzle[3].conversion_ = conv;
+            swizzle[3].parameter_index_ = 0;
+            swizzle[3].component_index_ = 0;
+            break;
+          case sltk_mat3:
+            /* Initialize matrix diagonal from scalar. */
+            swizzle[0].conversion_ = conv;
+            swizzle[0].parameter_index_ = 0;
+            swizzle[0].component_index_ = 0;
+            swizzle[4].conversion_ = conv;
+            swizzle[4].parameter_index_ = 0;
+            swizzle[4].component_index_ = 0;
+            swizzle[8].conversion_ = conv;
+            swizzle[8].parameter_index_ = 0;
+            swizzle[8].component_index_ = 0;
+            break;
+          case sltk_mat4:
+            /* Initialize matrix diagonal from scalar. */
+            swizzle[0].conversion_ = conv;
+            swizzle[0].parameter_index_ = 0;
+            swizzle[0].component_index_ = 0;
+            swizzle[5].conversion_ = conv;
+            swizzle[5].parameter_index_ = 0;
+            swizzle[5].component_index_ = 0;
+            swizzle[10].conversion_ = conv;
+            swizzle[10].parameter_index_ = 0;
+            swizzle[10].component_index_ = 0;
+            swizzle[15].conversion_ = conv;
+            swizzle[15].parameter_index_ = 0;
+            swizzle[15].component_index_ = 0;
+            break;
+        }
+        // DONE
+      }
+      else if (num_target_components == num_src_components) {
+        // Spread parameters over components
+        int current_component = 0;
+        for (n = 0; n < fs->num_parameters_; ++n) {
+          // Note that we already checked that the parameter has components
+          struct sl_type *pt = sl_expr_type(tb, fs->parameters_[n].expr_);
+          sl_component_conversion_t conv = glsl_es1_sl_type_component_conversion(pt, t);
+          int num_param_components = glsl_es1_sl_type_num_components(pt);
+          int param_comp;
+          for (param_comp = 0; param_comp < num_param_components; ++param_comp) {
+            swizzle[current_component].conversion_ = conv;
+            swizzle[current_component].parameter_index_ = n;
+            swizzle[current_component].component_index_ = param_comp;
+            ++current_component;
+          }
+        }
+        assert(current_component == num_target_components);
+
+        // DONE
+      }
+      else {
+        dx_error_loc(dx, &fs->loc_, "Constructor \"%s\" expects %d components, got %d", t->name_, num_target_components, num_src_components);
+        return NULL;
+      }
+    }
+    /* Create a new expression corresponding to the constructor we just formed. */
+    struct sl_expr *constr_expr = sl_expr_alloc_constructor(t, &fs->loc_, fs->num_parameters_, &fs->parameters_->expr_, sizeof(*fs->parameters_));
+
+    if (!constr_expr) {
+      /* No memory. */
+      dx_no_memory(dx);
+      return NULL;
+    }
+
+    /* Copy over the swizzle */
+    size_t n;
+    assert(sizeof(swizzle) == sizeof(constr_expr->swizzle_));
+    for (n = 0; n < sizeof(swizzle) / sizeof(*swizzle); ++n) {
+      constr_expr->swizzle_[n] = swizzle[n];
+    }
+
+    for (n = 0; n < fs->num_parameters_; ++n) {
+      fs->parameters_[n].expr_ = NULL; /* Ownership transferred to function_expr */
+    }
+
+    return constr_expr;
   }
   else {
     /* Regular function call. */
@@ -185,7 +555,6 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
     }
 
     for (n = 0; n < func_found->num_parameters_; ++n) {
-      function_expr->children_[n] = fs->parameters_[n].expr_;
       fs->parameters_[n].expr_ = NULL; /* Ownership transferred to function_expr */
     }
 

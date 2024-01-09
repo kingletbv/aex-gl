@@ -419,6 +419,24 @@ struct sl_expr *sl_expr_alloc_function_call(struct sl_function *f, const struct 
   return x;
 }
 
+struct sl_expr *sl_expr_alloc_constructor(struct sl_type *t, const struct situs *loc, size_t num_params, struct sl_expr **pexpr, size_t pexpr_stride) {
+  struct sl_expr *x = sl_expr_alloc(exop_constructor, loc);
+  if (!x) return NULL;
+  x->constructor_type_ = t;
+  x->num_children_ = num_params;
+  x->children_ = (struct sl_expr **)malloc(sizeof(struct sl_expr *) * x->num_children_);
+  if (!x->children_) {
+    sl_expr_free(x);
+    return NULL;
+  }
+  size_t n;
+  for (n = 0; n < x->num_children_; ++n) {
+    x->children_[n] = *pexpr;
+    pexpr = (struct sl_expr **)(((char *)pexpr) + pexpr_stride);
+  }
+  return x;
+}
+
 struct sl_expr *sl_expr_alloc_unop(expr_op_t op,const struct situs *loc, struct sl_expr **opd) {
   struct sl_expr *x = sl_expr_alloc(op,loc);
   if(!x) return NULL;

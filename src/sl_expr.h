@@ -93,6 +93,37 @@ typedef enum expr_op {
   exop_conditional  // ternary ?: operator
 } expr_op_t;
 
+typedef enum sl_component_conversion {
+  slcc_invalid,
+  slcc_float_to_float,
+  slcc_float_to_int,
+  slcc_float_to_bool,
+  slcc_int_to_float,
+  slcc_int_to_int,
+  slcc_int_to_bool,
+  slcc_bool_to_float,
+  slcc_bool_to_int,
+  slcc_bool_to_bool
+} sl_component_conversion_t;
+
+struct sl_component_selection {
+  /* Determines the conversion to be applied to the component from
+   * its source to its destination. */
+  sl_component_conversion_t conversion_;
+
+  /* Index of the parameter to select this component from
+   * If -1, then this component is to be a constant value. */
+  int8_t parameter_index_;
+
+  /* Index of the component to select from the parameter.
+   * If the parameter_index_ is -1, then the component_index_
+   * intends to select a constant value.
+   * 0: Select 0., 0, or false, for int, float and bool respectively. 
+   * 1: Select 1., 1, or true, for int, float and bool respectively.
+   */
+  uint8_t component_index_;
+};
+
 struct sl_expr {
   expr_op_t op_;
   struct situs op_loc_;
@@ -106,6 +137,15 @@ struct sl_expr {
   /* exop_component_selection */
   int num_components_;
   uint8_t component_selection_[4];
+
+  /* expr_constructor
+   * For each target component, specifies the origin as an index into
+   * children_ (parameter_index_) and the component of the datatype (0
+   * for scalars, vectors like you'd expect (xyzw) and column-major for
+   * matrices.)
+   * Note that this can be computed from the children_ and the 
+   * constructor_type_*/
+  struct sl_component_selection swizzle_[16];
 
   /* exop_field_selection */
   struct sl_type_field *field_selection_;
@@ -130,6 +170,7 @@ struct sl_expr *sl_expr_alloc_float_lit(float f, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_int_lit(int64_t i, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_bool_lit(int b, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_function_call(struct sl_function *f, const struct situs *loc, struct sl_expr **pexpr, size_t pexpr_stride);
+struct sl_expr *sl_expr_alloc_constructor(struct sl_type *t, const struct situs *loc, size_t num_params, struct sl_expr **pexpr, size_t pexpr_stride);
 
 /* Allocate a unary operator expression, op and loc are operator and situs location of the
  * expression. The opd is a pointer to the pointer of the operand. If the function succeeds,
