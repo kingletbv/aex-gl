@@ -457,20 +457,6 @@ declaration: function-prototype SEMICOLON {
   struct sl_function *f;
   f = $0;
 
-  fprintf(stderr, "Function declared:\n");
-  fprintf(stderr, "  %s ", f->return_type_->name_);
-  fprintf(stderr, "%s(", f->name_);
-  size_t n;
-  for (n = 0; n < f->num_parameters_; ++n) {
-    struct sl_parameter *p = f->parameters_ + n;
-    fprintf(stderr, "%s", n ? ", " : "");
-
-    if (p->type_->name_) {
-      fprintf(stderr, "%s", p->type_->name_);
-    }
-  }
-  fprintf(stderr, ")\n");
-
   if (f) {
     /* Find matching function */
     struct sl_function *existing_fn = NULL;
@@ -533,7 +519,9 @@ function-prototype: function-declarator RIGHT_PAREN {
     cc->current_function_prototype_ = NULL;
   }
 }
-
+/* Note that function-declarator and function-header-with-parameters don't need to do much because all the
+ * work is done in function-header and parameter-declaration. The former sets cc->current_function_prototype_
+ * and the latter appends parameters to it. */
 function-declarator: function-header;
 function-declarator: function-header-with-parameters;
 
