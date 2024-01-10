@@ -23,6 +23,11 @@
 #include <limits.h>
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
 #ifndef SL_EXPR_TEMP_H_INCLUDED
 #define SL_EXPR_TEMP_H_INCLUDED
 #include "sl_expr_temp.h"
@@ -367,4 +372,45 @@ void sl_expr_temp_cleanup(struct sl_expr_temp *slet) {
       break;
     }
   }
+}
+
+int sl_expr_temp_copy(struct sl_expr_temp *dst, const struct sl_expr_temp *src) {
+  int r;
+  if ((src->kind_ == sletk_struct) || (src->kind_ == sletk_array)) {
+    /* need to copy elements */
+    size_t index;
+
+    struct sl_expr_temp *elms;
+    elms = (struct sl_expr_temp *)malloc(sizeof(struct sl_expr_temp) * src->v_.comp_.num_elements_);
+    if (!elms) {
+      /* no mem */
+      return -1;
+    }
+
+    for (index = 0; index < src->v_.comp_.num_elements_; ++index) {
+      r = sl_expr_temp_copy(elms + index, src->v_.comp_.elements_ + index);
+      if (r) {
+        /* failed to copy; need to reverse steps */
+        while (index) {
+          --index;
+          sl_expr_temp_cleanup(elms + index);
+        }
+        free(elms);
+
+        return -1;
+      }
+    }
+
+    sl_expr_temp_cleanup(dst);
+    dst->v_.comp_.num_elements_ = src->v_.comp_.num_elements_;
+    dst->v_.comp_.struct_or_array_type_ = src->v_.comp_.struct_or_array_type_;
+    dst->v_.comp_.elements_ = elms;
+
+    return 0;
+  }
+  /* Simple copy will do */
+  sl_expr_temp_cleanup(dst);
+  memcpy(dst, src, sizeof(*dst));
+
+  return 0;
 }

@@ -110,6 +110,9 @@ int sl_expr_temp_init(struct sl_expr_temp *slet, struct sl_type *t);
 
 void sl_expr_temp_cleanup(struct sl_expr_temp *slet);
 
+/* Returns 0 upon success or -1 upon memory error or integer overflow. */
+int sl_expr_temp_copy(struct sl_expr_temp *dst, const struct sl_expr_temp *src);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
