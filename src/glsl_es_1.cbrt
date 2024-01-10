@@ -27,6 +27,11 @@
 #include <string.h>
 #endif
 
+#ifndef ASSERT_H_INCLUDED
+#define ASSERT_H_INCLUDED
+#include <assert.h>
+#endif
+
 #ifndef GLSL_ES_1_H_INCLUDED
 #define GLSL_ES_1_H_INCLUDED
 #include "glsl_es_1.h"
@@ -86,7 +91,7 @@
 %token OTHER /* used for tokens we don't recognize for GLSL; will always create a syntax error. */
 %token WHITESPACE /* used for whitespace; will always be ignored (not used inside grammar itself.) */
 
-%nt variable-identifier primary-expression postfix-expression integer-expression function-call
+%nt primary-expression postfix-expression integer-expression function-call
 %nt function-call-generic function-call-header-no-parameters function-call-header-with-parameters
 %nt function-call-header function-identifier constructor-identifier
 %nt unary-expression unary-operator multiplicative-expression additive-expression shift-expression
@@ -145,8 +150,6 @@ $: {
 %move $$ = $0;
 %token_action $$ = input_chain->v_.type_;
 
-variable-identifier: IDENTIFIER;
-
 %type primary-expression postfix-expression function-call integer-expression unary-expression multiplicative-expression additive-expression shift-expression \
       relational-expression equality-expression and-expression exclusive-or-expression inclusive-or-expression logical-and-expression logical-xor-expression \
       logical-or-expression conditional-expression assignment-expression expression constant-expression: struct sl_expr *
@@ -166,7 +169,36 @@ variable-identifier: IDENTIFIER;
 %constructor $$ = 0;
 %token_action $$ = !!input_chain->v_.u64_;
 
-primary-expression: variable-identifier;
+primary-expression: IDENTIFIER {
+  /* variable */
+  struct sym *s = NULL;
+  struct sym_table *scope = cc->current_scope_;
+  struct sl_variable *var = NULL;
+  do {
+    s = st_find(scope, $0, strlen($0));
+    if (!s) {
+      scope = scope->parent_;
+    }
+  } while (!s && scope);
+  if (s) {
+    if (s->kind_ == SK_VARIABLE) {
+      var = s->v_.variable_;
+      assert(var);
+      $$ = sl_expr_alloc_variable(var, &${0});
+      if (!$$) {
+        dx_no_memory(cc->dx_);
+        return _GLSL_ES1_NO_MEMORY;
+      }
+    }
+    else {
+      dx_error_loc(cc->dx_, &${0}, "Error: identifier \"%s\" is not a variable", $0);
+    }
+  }
+  else {
+    dx_error_loc(cc->dx_, &${0}, "Error: identifier \"%s\" not declared", $0);
+  }
+}
+
 primary-expression: INTCONSTANT   { $$ = sl_expr_alloc_int_lit($0, &${0});   if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 primary-expression: FLOATCONSTANT { $$ = sl_expr_alloc_float_lit($0, &${0}); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 primary-expression: BOOLCONSTANT  { $$ = sl_expr_alloc_bool_lit($0, &${0});  if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
@@ -189,7 +221,7 @@ postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRA
   }
 }
 
-postfix-expression: function-call; /* XXX: HANDLE FUNCTION CALLS */
+postfix-expression: function-call { $$ = $0; $0 = NULL; }
 
 postfix-expression: postfix-expression DOT IDENTIFIER; /* XXX: HANDLE FIELD SELECTION */
 postfix-expression: postfix-expression INC_OP { $$ = sl_expr_alloc_unop(exop_post_inc, &${1}, &$0); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
@@ -641,6 +673,7 @@ int glsl_es1_declare_variable(struct glsl_es1_compiler *cc, const char *name, co
     return _GLSL_ES1_NO_MEMORY;
   }
   var->symbol_ = s;
+  s->v_.variable_ = var;
   if (ppvar) *ppvar = var;
   return 0; /* 0 = good */
 }

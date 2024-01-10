@@ -40,6 +40,7 @@ void sl_expr_init(struct sl_expr *x) {
   x->num_children_ = 0;
   x->children_ = NULL;
   sl_expr_temp_init_void(&x->literal_value_);
+  x->num_components_ = 0;
   memset(x->component_selection_, 0, sizeof(x->component_selection_));
   x->field_selection_ = NULL;
   x->function_ = NULL;
@@ -434,6 +435,13 @@ struct sl_expr *sl_expr_alloc_constructor(struct sl_type *t, const struct situs 
     x->children_[n] = *pexpr;
     pexpr = (struct sl_expr **)(((char *)pexpr) + pexpr_stride);
   }
+  return x;
+}
+
+struct sl_expr *sl_expr_alloc_variable(struct sl_variable *v, const struct situs *loc) {
+  struct sl_expr *x = sl_expr_alloc(exop_variable, loc);
+  if (!x) return NULL;
+  x->variable_ = v;
   return x;
 }
 

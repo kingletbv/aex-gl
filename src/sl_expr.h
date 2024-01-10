@@ -171,6 +171,7 @@ struct sl_expr *sl_expr_alloc_int_lit(int64_t i, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_bool_lit(int b, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_function_call(struct sl_function *f, const struct situs *loc, struct sl_expr **pexpr, size_t pexpr_stride);
 struct sl_expr *sl_expr_alloc_constructor(struct sl_type *t, const struct situs *loc, size_t num_params, struct sl_expr **pexpr, size_t pexpr_stride);
+struct sl_expr *sl_expr_alloc_variable(struct sl_variable *v, const struct situs *loc);
 
 /* Allocate a unary operator expression, op and loc are operator and situs location of the
  * expression. The opd is a pointer to the pointer of the operand. If the function succeeds,
