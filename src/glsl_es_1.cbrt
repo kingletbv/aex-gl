@@ -223,7 +223,11 @@ postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRA
 
 postfix-expression: function-call { $$ = $0; $0 = NULL; }
 
-postfix-expression: postfix-expression DOT IDENTIFIER; /* XXX: HANDLE FIELD SELECTION */
+postfix-expression: postfix-expression DOT IDENTIFIER {
+  $$ = glsl_es1_field_or_swizzle_selection(cc->dx_, &cc->tb_, $0, $2, &${2});
+  if ($$) $0 = NULL; /* Ownership of $0 is transferred to $$ */
+}
+
 postfix-expression: postfix-expression INC_OP { $$ = sl_expr_alloc_unop(exop_post_inc, &${1}, &$0); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 postfix-expression: postfix-expression DEC_OP { $$ = sl_expr_alloc_unop(exop_post_dec, &${1}, &$0); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 

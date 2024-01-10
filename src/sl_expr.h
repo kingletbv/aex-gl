@@ -134,11 +134,13 @@ struct sl_expr {
   /* exop_literal */
   struct sl_expr_temp literal_value_;
 
-  /* exop_component_selection */
+  /* exop_component_selection; each component_selection_[] contains
+   * the ASCII letter of the component (e.g. x,y,z,w,r,g,b,a,s,t,p or q) */
   int num_components_;
-  uint8_t component_selection_[4];
+  char component_selection_[4];
 
   /* expr_constructor
+   * exop_component_selection
    * For each target component, specifies the origin as an index into
    * children_ (parameter_index_) and the component of the datatype (0
    * for scalars, vectors like you'd expect (xyzw) and column-major for
@@ -172,6 +174,8 @@ struct sl_expr *sl_expr_alloc_bool_lit(int b, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_function_call(struct sl_function *f, const struct situs *loc, struct sl_expr **pexpr, size_t pexpr_stride);
 struct sl_expr *sl_expr_alloc_constructor(struct sl_type *t, const struct situs *loc, size_t num_params, struct sl_expr **pexpr, size_t pexpr_stride);
 struct sl_expr *sl_expr_alloc_variable(struct sl_variable *v, const struct situs *loc);
+struct sl_expr *sl_expr_alloc_swizzle_selection(struct sl_expr *x, size_t num_tgt_components, uint8_t *component_selection, const struct situs *field_loc);
+struct sl_expr *sl_expr_alloc_field_selection(struct sl_expr *x, struct sl_type_field *field, const struct situs *field_loc);
 
 /* Allocate a unary operator expression, op and loc are operator and situs location of the
  * expression. The opd is a pointer to the pointer of the operand. If the function succeeds,

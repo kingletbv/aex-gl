@@ -445,6 +445,35 @@ struct sl_expr *sl_expr_alloc_variable(struct sl_variable *v, const struct situs
   return x;
 }
 
+struct sl_expr *sl_expr_alloc_swizzle_selection(struct sl_expr *vec_expr, size_t num_tgt_components, uint8_t *component_selection, const struct situs *field_loc) {
+  struct sl_expr *x = sl_expr_alloc(exop_component_selection, field_loc);
+  if (!x) return NULL;
+  x->num_children_ = 1;
+  x->children_ = (struct sl_expr **)malloc(sizeof(struct sl_expr *));
+  if (!x->children_) {
+    sl_expr_free(x);
+    return NULL;
+  }
+  x->children_[0] = vec_expr;
+  x->num_components_ = (int)num_tgt_components;
+  memcpy(x->component_selection_, component_selection, num_tgt_components);
+  return x;
+}
+
+struct sl_expr *sl_expr_alloc_field_selection(struct sl_expr *expr, struct sl_type_field *field, const struct situs *field_loc) {
+  struct sl_expr *x = sl_expr_alloc(exop_field_selection, field_loc);
+  if (!x) return NULL;
+  x->num_children_ = 1;
+  x->children_ = (struct sl_expr **)malloc(sizeof(struct sl_expr *));
+  if (!x->children_) {
+    sl_expr_free(x);
+    return NULL;
+  }
+  x->children_[0] = expr;
+  x->field_selection_ = field;
+  return x;
+}
+
 struct sl_expr *sl_expr_alloc_unop(expr_op_t op,const struct situs *loc, struct sl_expr **opd) {
   struct sl_expr *x = sl_expr_alloc(op,loc);
   if(!x) return NULL;

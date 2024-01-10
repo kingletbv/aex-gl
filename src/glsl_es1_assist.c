@@ -18,6 +18,11 @@
 #include <stdlib.h>
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
 #ifndef SITUS_H_INCLUDED
 #define SITUS_H_INCLUDED
 #include "pp/situs.h"
@@ -52,6 +57,19 @@
 #define GLSL_ES1_ASSIST_H_INCLUDED
 #include "glsl_es1_assist.h"
 #endif
+
+/* Index by uint8, returns a uint8 of which the high nibble is the
+ * name set and the low nibble is the component index.
+ * You can't mix name sets, for instance:
+ * vec2 v2;
+ * v2.ry; // r is from set 1, y is from set 2, this is illegal
+ * hence we identify the set here.
+ */
+static uint8_t g_swizzle_map[256] ={
+  ['r'] = 0x10,['g'] = 0x11,['b'] = 0x12,['a'] = 0x13,
+  ['x'] = 0x20,['y'] = 0x21,['z'] = 0x22,['w'] = 0x23,
+  ['s'] = 0x30,['t'] = 0x31,['p'] = 0x32,['q'] = 0x33
+};
 
 void glsl_es1_function_call_init(struct glsl_es1_function_call *fc) {
   fc->name_ = NULL;
@@ -201,6 +219,142 @@ static sl_component_conversion_t glsl_es1_sl_type_component_conversion(struct sl
       break;
   }
   return slcc_invalid;
+}
+
+struct sl_expr *glsl_es1_field_or_swizzle_selection(struct diags *dx, struct sl_type_base *tb, struct sl_expr *x, char *field_id, const struct situs *field_loc) {
+  if (!x) return NULL; /* pass-through errors */
+  struct sl_type *t = sl_expr_type(tb, x);
+  if (!t) {
+    /* Failed to determine type, assume this error is already reported. */
+    return NULL;
+  }
+  t = sl_type_unqualified(t);
+  if (t->kind_ == sltk_struct) {
+    /* Look for a matching field */
+    struct sl_type_field *tf;
+    tf = t->fields_;
+    if (tf) {
+      do {
+        tf = tf->chain_;
+
+        if (!strcmp(tf->ident_, field_id)) {
+          /* Found a match */
+          struct sl_expr *field_expr = sl_expr_alloc_field_selection(x, tf, field_loc);
+          if (!field_expr) {
+            dx_no_memory(dx);
+            return NULL;
+          }
+          return field_expr;
+        }
+      } while (tf != t->fields_);
+    }
+
+    /* No match, report as error */
+    dx_error_loc(dx, field_loc, "No field named \"%s\" in struct \"%s\", see line %d", field_id, t->name_, situs_line(&t->tag_loc_));
+    return NULL;
+  }
+  else if ((t->kind_ == sletk_vec2) || (t->kind_ == sletk_vec3) || (t->kind_ == sletk_vec4) ||
+           (t->kind_ == sletk_ivec2) || (t->kind_ == sletk_ivec3) || (t->kind_ == sletk_ivec4) ||
+           (t->kind_ == sletk_bvec2) || (t->kind_ == sletk_bvec3) || (t->kind_ == sletk_bvec4)) {
+    /* Look for a matching swizzle */
+    int num_src_components = glsl_es1_sl_type_num_components(t);
+    size_t num_tgt_components = strlen(field_id);
+    if (num_tgt_components > 4) {
+      dx_error_loc(dx, field_loc, "Too many vector components for swizzle \"%s\"", field_id);
+      return NULL;
+    }
+
+    size_t n;
+    int name_set = 0;
+    char component_selection[4] = {0};
+    /* While vec4 is the largest type we support, we want to initialize the entire swizzle
+     * field in sl_expr. */
+    struct sl_component_selection swizzle_table[16] = { 0 };
+
+    sl_type_kind_t scalar_kind = glsl_es1_sl_type_scalar_kind(t);
+    sl_component_conversion_t component_noconv = slcc_invalid;
+    switch (scalar_kind) {
+      case sltk_float:
+        component_noconv = slcc_float_to_float;
+        break;
+      case sltk_int:
+        component_noconv = slcc_int_to_int;
+        break;
+      case sltk_bool:
+        component_noconv = slcc_bool_to_bool;
+        break;
+    }
+
+    for (n = 0; n < num_tgt_components; ++n) {
+      /* Determine the digit location of the component; this is needed if we report any error on it. */
+      struct situs cut_field;
+      struct situs digit_loc;
+      situs_init(&cut_field);
+      situs_init(&digit_loc);
+      if (situs_clone(&cut_field, field_loc) ||
+          situs_skip(&cut_field, n, field_id) ||
+          situs_move_range(&digit_loc, &cut_field, 1, field_id+n)) {
+        situs_cleanup(&cut_field);
+        situs_cleanup(&digit_loc);
+        dx_no_memory(dx);
+        return NULL;
+      }
+
+      uint8_t swizzle = g_swizzle_map[(uint8_t)field_id[n]];
+
+      if (!swizzle) {
+        dx_error_loc(dx, &digit_loc, "Invalid component \"%c\", see line %d", field_id[n]);
+
+        situs_cleanup(&cut_field);
+        situs_cleanup(&digit_loc);
+
+        return NULL;
+      }
+      else if ((swizzle & 0xF) >= num_src_components) {
+        dx_error_loc(dx, &digit_loc, "Type %s is not large enough for component \"%c\", see line %d", t->name_, field_id[n]);
+
+        situs_cleanup(&cut_field);
+        situs_cleanup(&digit_loc);
+
+        return NULL;
+      }
+
+      if (!name_set) {
+        name_set = swizzle & 0xF0;
+      }
+      else if (name_set != (swizzle & 0xF0)) {
+        dx_error_loc(dx, &digit_loc, "Cannot mix component sets");
+
+        situs_cleanup(&cut_field);
+        situs_cleanup(&digit_loc);
+
+        return NULL;
+      }
+
+      component_selection[n] = (uint8_t)field_id[n];
+      swizzle_table[n].conversion_ = component_noconv;
+      swizzle_table[n].parameter_index_ = 0;
+      swizzle_table[n].component_index_ = swizzle & 0xF;
+    }
+
+    struct sl_expr *expr = sl_expr_alloc_swizzle_selection(x, num_tgt_components, component_selection, field_loc);
+    if (!expr) {
+      dx_no_memory(dx);
+      return NULL;
+    }
+
+    /* Copy over the swizzle */
+    assert(sizeof(swizzle_table) == sizeof(expr->swizzle_));
+    for (n = 0; n < sizeof(swizzle_table) / sizeof(*swizzle_table); ++n) {
+      expr->swizzle_[n] = swizzle_table[n];
+    }
+
+    return expr;
+  }
+  else {
+    dx_error_loc(dx, field_loc, "Cannot select field or swizzle components from type \"%s\"", t->name_);
+    return NULL;
+  }
 }
 
 struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_table *st, struct sl_type_base *tb, struct glsl_es1_function_call *fs) {
