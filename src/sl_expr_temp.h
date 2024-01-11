@@ -113,6 +113,22 @@ void sl_expr_temp_cleanup(struct sl_expr_temp *slet);
 /* Returns 0 upon success or -1 upon memory error or integer overflow. */
 int sl_expr_temp_copy(struct sl_expr_temp *dst, const struct sl_expr_temp *src);
 
+/* Returns 0 upon success or -1 upon memory error or integer overflow. */
+int sl_expr_temp_negate(struct sl_expr_temp *dst, const struct sl_expr_temp *src);
+int sl_expr_temp_logical_not(struct sl_expr_temp *dst, const struct sl_expr_temp *src);
+int sl_expr_temp_add(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_sub(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_div(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_mul(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+
+int sl_expr_temp_lt(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_le(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_gt(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_ge(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_eq(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_ne(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

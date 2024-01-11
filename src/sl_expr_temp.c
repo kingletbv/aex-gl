@@ -414,3 +414,1034 @@ int sl_expr_temp_copy(struct sl_expr_temp *dst, const struct sl_expr_temp *src) 
 
   return 0;
 }
+
+int sl_expr_temp_negate(struct sl_expr_temp *dst, const struct sl_expr_temp *src) {
+  struct sl_expr_temp tmp;
+  switch (src->kind_) {
+    case sletk_float:
+      sl_expr_temp_init_float(&tmp, -src->v_.f_);
+      break;
+    case sletk_int:
+      sl_expr_temp_init_int(&tmp, -src->v_.i_);
+      break;
+    case sletk_vec2:
+      sl_expr_temp_init_vec2(&tmp, -src->v_.v_[0], -src->v_.v_[1]);
+      break;
+    case sletk_vec3:
+      sl_expr_temp_init_vec3(&tmp, -src->v_.v_[0], -src->v_.v_[1], -src->v_.v_[2]);
+      break;
+    case sletk_vec4:
+      sl_expr_temp_init_vec4(&tmp, -src->v_.v_[0], -src->v_.v_[1], -src->v_.v_[2], -src->v_.v_[3]);
+      break;
+    case sletk_ivec2:
+      sl_expr_temp_init_ivec2(&tmp, -src->v_.iv_[0], -src->v_.iv_[1]);
+      break;
+    case sletk_ivec3:
+      sl_expr_temp_init_ivec3(&tmp, -src->v_.iv_[0], -src->v_.iv_[1], -src->v_.iv_[2]);
+      break;
+    case sletk_ivec4:
+      sl_expr_temp_init_ivec4(&tmp, -src->v_.iv_[0], -src->v_.iv_[1], -src->v_.iv_[2], -src->v_.iv_[3]);
+      break;
+    case sletk_mat2:
+      sl_expr_temp_init_mat2(&tmp, -src->v_.m_[0], -src->v_.m_[1],
+                                   -src->v_.m_[2], -src->v_.m_[3]);
+      break;
+    case sletk_mat3:
+      sl_expr_temp_init_mat3(&tmp, -src->v_.m_[0], -src->v_.m_[1], -src->v_.m_[2],
+                                   -src->v_.m_[3], -src->v_.m_[4], -src->v_.m_[5],
+                                   -src->v_.m_[6], -src->v_.m_[7], -src->v_.m_[8]);
+      break;
+    case sletk_mat4:
+      sl_expr_temp_init_mat4(&tmp, -src->v_.m_[0], -src->v_.m_[1], -src->v_.m_[2], -src->v_.m_[3],
+                                   -src->v_.m_[4], -src->v_.m_[5], -src->v_.m_[6], -src->v_.m_[7],
+                                   -src->v_.m_[8], -src->v_.m_[9], -src->v_.m_[10], -src->v_.m_[11],
+                                   -src->v_.m_[12], -src->v_.m_[13], -src->v_.m_[14], -src->v_.m_[15]);
+      break;
+    default:
+      return -1;
+      break;
+  }
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+}
+
+int sl_expr_temp_logical_not(struct sl_expr_temp *dst, const struct sl_expr_temp *src) {
+  struct sl_expr_temp tmp;
+  switch (src->kind_) {
+    case sletk_bool:
+      sl_expr_temp_init_bool(&tmp, !src->v_.b_);
+      break;
+    case sletk_bvec2:
+      sl_expr_temp_init_bvec2(&tmp, !src->v_.bv_[0], !src->v_.bv_[1]);
+      break;
+    case sletk_bvec3:
+      sl_expr_temp_init_bvec3(&tmp, !src->v_.bv_[0], !src->v_.bv_[1], !src->v_.bv_[2]);
+      break;
+    case sletk_bvec4:
+      sl_expr_temp_init_bvec4(&tmp, !src->v_.bv_[0], !src->v_.bv_[1], !src->v_.bv_[2], !src->v_.bv_[3]);
+      break;
+    default:
+      return -1;
+      break;
+  }
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+}
+
+int sl_expr_temp_add(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  /* note: we could simplify the code by first checking left and right's kind_ and making sure the "lower" kind_
+   * goes before the higher (swapping) - but we don't, so the code that appears here is very similar to the code
+   * that appears in other, non-commutative, binary operators. */
+  struct sl_expr_temp tmp;
+  if (left->kind_ == right->kind_) {
+    switch (left->kind_) {
+      case sletk_float:
+        sl_expr_temp_init_float(&tmp, left->v_.f_ + right->v_.f_);
+        break;
+      case sletk_int:
+        sl_expr_temp_init_int(&tmp, left->v_.i_ + right->v_.i_);
+        break;
+      case sletk_vec2:
+        sl_expr_temp_init_vec2(&tmp, left->v_.v_[0] + right->v_.v_[0], 
+                                     left->v_.v_[1] + right->v_.v_[1]);
+        break;
+      case sletk_vec3:
+        sl_expr_temp_init_vec3(&tmp, left->v_.v_[0] + right->v_.v_[0], 
+                                     left->v_.v_[1] + right->v_.v_[1], 
+                                     left->v_.v_[2] + right->v_.v_[2]);
+        break;
+      case sletk_vec4:
+        sl_expr_temp_init_vec4(&tmp, left->v_.v_[0] + right->v_.v_[0], 
+                                     left->v_.v_[1] + right->v_.v_[1], 
+                                     left->v_.v_[2] + right->v_.v_[2], 
+                                     left->v_.v_[3] + right->v_.v_[3]);
+        break;
+      case sletk_ivec2:
+        sl_expr_temp_init_ivec2(&tmp, left->v_.iv_[0] + right->v_.iv_[0], 
+                                      left->v_.iv_[1] + right->v_.iv_[1]);
+        break;
+      case sletk_ivec3:
+        sl_expr_temp_init_ivec3(&tmp, left->v_.iv_[0] + right->v_.iv_[0], 
+                                      left->v_.iv_[1] + right->v_.iv_[1], 
+                                      left->v_.iv_[2] + right->v_.iv_[2]);
+        break;
+      case sletk_ivec4:
+        sl_expr_temp_init_ivec4(&tmp, left->v_.iv_[0] + right->v_.iv_[0], 
+                                      left->v_.iv_[1] + right->v_.iv_[1], 
+                                      left->v_.iv_[2] + right->v_.iv_[2], 
+                                      left->v_.iv_[3] + right->v_.iv_[3]);
+        break;
+      case sletk_mat2:
+        sl_expr_temp_init_mat2(&tmp, left->v_.m_[0] + right->v_.m_[0], left->v_.m_[1] + right->v_.m_[1], 
+                                     left->v_.m_[2] + right->v_.m_[2], left->v_.m_[3] + right->v_.m_[3]);
+        break;
+      case sletk_mat3:
+        sl_expr_temp_init_mat3(&tmp, left->v_.m_[0] + right->v_.m_[0], left->v_.m_[1] + right->v_.m_[1], left->v_.m_[2] + right->v_.m_[2], 
+                                     left->v_.m_[3] + right->v_.m_[3], left->v_.m_[4] + right->v_.m_[4], left->v_.m_[5] + right->v_.m_[5], 
+                                     left->v_.m_[6] + right->v_.m_[6], left->v_.m_[7] + right->v_.m_[7], left->v_.m_[8] + right->v_.m_[8]);
+        break;
+      case sletk_mat4:
+        sl_expr_temp_init_mat4(&tmp, left->v_.m_[0] + right->v_.m_[0], left->v_.m_[1] + right->v_.m_[1], left->v_.m_[2] + right->v_.m_[2], left->v_.m_[3] + right->v_.m_[3], 
+                                     left->v_.m_[4] + right->v_.m_[4], left->v_.m_[5] + right->v_.m_[5], left->v_.m_[6] + right->v_.m_[6], left->v_.m_[7] + right->v_.m_[7], 
+                                     left->v_.m_[8] + right->v_.m_[8], left->v_.m_[9] + right->v_.m_[9], left->v_.m_[10] + right->v_.m_[10], left->v_.m_[11] + right->v_.m_[11], 
+                                     left->v_.m_[12] + right->v_.m_[12], left->v_.m_[13] + right->v_.m_[13], left->v_.m_[14] + right->v_.m_[14], left->v_.m_[15] + right->v_.m_[15]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if (left->kind_ == sletk_float) {
+    switch (right->kind_) {
+      case sletk_vec2:
+        sl_expr_temp_init_vec2(&tmp, left->v_.f_ + right->v_.v_[0], 
+                                     left->v_.f_ + right->v_.v_[1]);
+        break;
+      case sletk_vec3:
+        sl_expr_temp_init_vec3(&tmp, left->v_.f_+ right->v_.v_[0], 
+                                     left->v_.f_ + right->v_.v_[1], 
+                                     left->v_.f_ + right->v_.v_[2]);
+        break;
+      case sletk_vec4:
+        sl_expr_temp_init_vec4(&tmp, left->v_.f_ + right->v_.v_[0], 
+                                     left->v_.f_ + right->v_.v_[1], 
+                                     left->v_.f_ + right->v_.v_[2], 
+                                     left->v_.f_ + right->v_.v_[3]);
+        break;
+      case sletk_mat2:
+        sl_expr_temp_init_mat2(&tmp, left->v_.f_ + right->v_.m_[0], left->v_.f_ + right->v_.m_[1], 
+                                     left->v_.f_ + right->v_.m_[2], left->v_.f_ + right->v_.m_[3]);
+        break;
+      case sletk_mat3:
+        sl_expr_temp_init_mat3(&tmp, left->v_.f_ + right->v_.m_[0], left->v_.f_ + right->v_.m_[1], left->v_.f_ + right->v_.m_[2], 
+                                     left->v_.f_ + right->v_.m_[3], left->v_.f_ + right->v_.m_[4], left->v_.f_ + right->v_.m_[5], 
+                                     left->v_.f_ + right->v_.m_[6], left->v_.f_ + right->v_.m_[7], left->v_.f_ + right->v_.m_[8]);
+        break;
+      case sletk_mat4:
+        sl_expr_temp_init_mat4(&tmp, left->v_.f_ + right->v_.m_[0], left->v_.f_ + right->v_.m_[1], left->v_.f_ + right->v_.m_[2], left->v_.f_ + right->v_.m_[3], 
+                                     left->v_.f_ + right->v_.m_[4], left->v_.f_ + right->v_.m_[5], left->v_.f_ + right->v_.m_[6], left->v_.f_ + right->v_.m_[7], 
+                                     left->v_.f_ + right->v_.m_[8], left->v_.f_ + right->v_.m_[9], left->v_.f_ + right->v_.m_[10], left->v_.f_ + right->v_.m_[11], 
+                                     left->v_.f_ + right->v_.m_[12], left->v_.f_ + right->v_.m_[13], left->v_.f_ + right->v_.m_[14], left->v_.f_ + right->v_.m_[15]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if (left->kind_ == sletk_int) {
+    switch (right->kind_) {
+      case sletk_ivec2:
+        sl_expr_temp_init_ivec2(&tmp, left->v_.i_ + right->v_.iv_[0], 
+                                      left->v_.i_ + right->v_.iv_[1]);
+        break;
+      case sletk_ivec3:
+        sl_expr_temp_init_ivec3(&tmp, left->v_.i_ + right->v_.iv_[0], 
+                                      left->v_.i_ + right->v_.iv_[1], 
+                                      left->v_.i_ + right->v_.iv_[2]);
+        break;
+      case sletk_ivec4:
+        sl_expr_temp_init_ivec4(&tmp, left->v_.i_ + right->v_.iv_[0], 
+                                      left->v_.i_ + right->v_.iv_[1], 
+                                      left->v_.i_ + right->v_.iv_[2], 
+                                      left->v_.i_ + right->v_.iv_[3]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if ((left->kind_ == sletk_vec2) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec2(&tmp, left->v_.v_[0] + right->v_.f_, 
+                                 left->v_.v_[1] + right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_vec3) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec3(&tmp, left->v_.v_[0] + right->v_.f_, 
+                                 left->v_.v_[1] + right->v_.f_, 
+                                 left->v_.v_[2] + right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_vec4) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec4(&tmp, left->v_.v_[0] + right->v_.f_, 
+                                 left->v_.v_[1] + right->v_.f_, 
+                                 left->v_.v_[2] + right->v_.f_, 
+                                 left->v_.v_[3] + right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_ivec2) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec2(&tmp, left->v_.iv_[0] + right->v_.i_,
+                                  left->v_.iv_[1] + right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_ivec3) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec3(&tmp, left->v_.iv_[0] + right->v_.i_,
+                                  left->v_.iv_[1] + right->v_.i_,
+                                  left->v_.iv_[2] + right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_ivec4) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec4(&tmp, left->v_.iv_[0] + right->v_.i_,
+                                  left->v_.iv_[1] + right->v_.i_,
+                                  left->v_.iv_[2] + right->v_.i_,
+                                  left->v_.iv_[3] + right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_mat2) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat2(&tmp, left->v_.m_[0] + right->v_.f_, left->v_.m_[1] + right->v_.f_,
+                                 left->v_.m_[2] + right->v_.f_, left->v_.m_[3] + right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_mat3) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat3(&tmp, left->v_.m_[0] + right->v_.f_, left->v_.m_[1] + right->v_.f_, left->v_.m_[2] + right->v_.f_,
+                                 left->v_.m_[3] + right->v_.f_, left->v_.m_[4] + right->v_.f_, left->v_.m_[5] + right->v_.f_,
+                                 left->v_.m_[6] + right->v_.f_, left->v_.m_[7] + right->v_.f_, left->v_.m_[8] + right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_mat4) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat4(&tmp, left->v_.m_[0] + right->v_.f_, left->v_.m_[1] + right->v_.f_, left->v_.m_[2] + right->v_.f_, left->v_.m_[3] + right->v_.f_,
+                                 left->v_.m_[4] + right->v_.f_, left->v_.m_[5] + right->v_.f_, left->v_.m_[6] + right->v_.f_, left->v_.m_[7] + right->v_.f_,
+                                 left->v_.m_[8] + right->v_.f_, left->v_.m_[9] + right->v_.f_, left->v_.m_[10] + right->v_.f_, left->v_.m_[11] + right->v_.f_,
+                                 left->v_.m_[12] + right->v_.f_, left->v_.m_[13] + right->v_.f_, left->v_.m_[14] + right->v_.f_, left->v_.m_[15] + right->v_.f_);
+  }
+  else {
+    return -1;
+  }
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+}
+
+int sl_expr_temp_sub(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  if (left->kind_ == right->kind_) {
+    switch (left->kind_) {
+      case sletk_float:
+        sl_expr_temp_init_float(&tmp, left->v_.f_ - right->v_.f_);
+        break;
+      case sletk_int:
+        sl_expr_temp_init_int(&tmp, left->v_.i_ - right->v_.i_);
+        break;
+      case sletk_vec2:
+        sl_expr_temp_init_vec2(&tmp, left->v_.v_[0] - right->v_.v_[0], 
+                                     left->v_.v_[1] - right->v_.v_[1]);
+        break;
+      case sletk_vec3:
+        sl_expr_temp_init_vec3(&tmp, left->v_.v_[0] - right->v_.v_[0], 
+                                     left->v_.v_[1] - right->v_.v_[1], 
+                                     left->v_.v_[2] - right->v_.v_[2]);
+        break;
+      case sletk_vec4:
+        sl_expr_temp_init_vec4(&tmp, left->v_.v_[0] - right->v_.v_[0], 
+                                     left->v_.v_[1] - right->v_.v_[1], 
+                                     left->v_.v_[2] - right->v_.v_[2], 
+                                     left->v_.v_[3] - right->v_.v_[3]);
+        break;
+      case sletk_ivec2:
+        sl_expr_temp_init_ivec2(&tmp, left->v_.iv_[0] - right->v_.iv_[0], 
+                                      left->v_.iv_[1] - right->v_.iv_[1]);
+        break;
+      case sletk_ivec3:
+        sl_expr_temp_init_ivec3(&tmp, left->v_.iv_[0] - right->v_.iv_[0], 
+                                      left->v_.iv_[1] - right->v_.iv_[1], 
+                                      left->v_.iv_[2] - right->v_.iv_[2]);
+        break;
+      case sletk_ivec4:
+        sl_expr_temp_init_ivec4(&tmp, left->v_.iv_[0] - right->v_.iv_[0], 
+                                      left->v_.iv_[1] - right->v_.iv_[1], 
+                                      left->v_.iv_[2] - right->v_.iv_[2], 
+                                      left->v_.iv_[3] - right->v_.iv_[3]);
+        break;
+      case sletk_mat2:
+        sl_expr_temp_init_mat2(&tmp, left->v_.m_[0] - right->v_.m_[0], left->v_.m_[1] - right->v_.m_[1], 
+                                     left->v_.m_[2] - right->v_.m_[2], left->v_.m_[3] - right->v_.m_[3]);
+        break;
+      case sletk_mat3:
+        sl_expr_temp_init_mat3(&tmp, left->v_.m_[0] - right->v_.m_[0], left->v_.m_[1] - right->v_.m_[1], left->v_.m_[2] - right->v_.m_[2], 
+                                     left->v_.m_[3] - right->v_.m_[3], left->v_.m_[4] - right->v_.m_[4], left->v_.m_[5] - right->v_.m_[5], 
+                                     left->v_.m_[6] - right->v_.m_[6], left->v_.m_[7] - right->v_.m_[7], left->v_.m_[8] - right->v_.m_[8]);
+        break;
+      case sletk_mat4:
+        sl_expr_temp_init_mat4(&tmp, left->v_.m_[0] - right->v_.m_[0], left->v_.m_[1] - right->v_.m_[1], left->v_.m_[2] - right->v_.m_[2], left->v_.m_[3] - right->v_.m_[3], 
+                                     left->v_.m_[4] - right->v_.m_[4], left->v_.m_[5] - right->v_.m_[5], left->v_.m_[6] - right->v_.m_[6], left->v_.m_[7] - right->v_.m_[7], 
+                                     left->v_.m_[8] - right->v_.m_[8], left->v_.m_[9] - right->v_.m_[9], left->v_.m_[10] - right->v_.m_[10], left->v_.m_[11] - right->v_.m_[11], 
+                                     left->v_.m_[12] - right->v_.m_[12], left->v_.m_[13] - right->v_.m_[13], left->v_.m_[14] - right->v_.m_[14], left->v_.m_[15] - right->v_.m_[15]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if (left->kind_ == sletk_float) {
+    switch (right->kind_) {
+      case sletk_vec2:
+        sl_expr_temp_init_vec2(&tmp, left->v_.f_ - right->v_.v_[0], 
+                                     left->v_.f_ - right->v_.v_[1]);
+        break;
+      case sletk_vec3:
+        sl_expr_temp_init_vec3(&tmp, left->v_.f_- right->v_.v_[0], 
+                                     left->v_.f_ - right->v_.v_[1], 
+                                     left->v_.f_ - right->v_.v_[2]);
+        break;
+      case sletk_vec4:
+        sl_expr_temp_init_vec4(&tmp, left->v_.f_ - right->v_.v_[0], 
+                                     left->v_.f_ - right->v_.v_[1], 
+                                     left->v_.f_ - right->v_.v_[2], 
+                                     left->v_.f_ - right->v_.v_[3]);
+        break;
+      case sletk_mat2:
+        sl_expr_temp_init_mat2(&tmp, left->v_.f_ - right->v_.m_[0], left->v_.f_ - right->v_.m_[1], 
+                                     left->v_.f_ - right->v_.m_[2], left->v_.f_ - right->v_.m_[3]);
+        break;
+      case sletk_mat3:
+        sl_expr_temp_init_mat3(&tmp, left->v_.f_ - right->v_.m_[0], left->v_.f_ - right->v_.m_[1], left->v_.f_ - right->v_.m_[2], 
+                                     left->v_.f_ - right->v_.m_[3], left->v_.f_ - right->v_.m_[4], left->v_.f_ - right->v_.m_[5], 
+                                     left->v_.f_ - right->v_.m_[6], left->v_.f_ - right->v_.m_[7], left->v_.f_ - right->v_.m_[8]);
+        break;
+      case sletk_mat4:
+        sl_expr_temp_init_mat4(&tmp, left->v_.f_ - right->v_.m_[0], left->v_.f_ - right->v_.m_[1], left->v_.f_ - right->v_.m_[2], left->v_.f_ - right->v_.m_[3], 
+                                     left->v_.f_ - right->v_.m_[4], left->v_.f_ - right->v_.m_[5], left->v_.f_ - right->v_.m_[6], left->v_.f_ - right->v_.m_[7], 
+                                     left->v_.f_ - right->v_.m_[8], left->v_.f_ - right->v_.m_[9], left->v_.f_ - right->v_.m_[10], left->v_.f_ - right->v_.m_[11], 
+                                     left->v_.f_ - right->v_.m_[12], left->v_.f_ - right->v_.m_[13], left->v_.f_ - right->v_.m_[14], left->v_.f_ - right->v_.m_[15]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if (left->kind_ == sletk_int) {
+    switch (right->kind_) {
+      case sletk_ivec2:
+        sl_expr_temp_init_ivec2(&tmp, left->v_.i_ - right->v_.iv_[0], 
+                                      left->v_.i_ - right->v_.iv_[1]);
+        break;
+      case sletk_ivec3:
+        sl_expr_temp_init_ivec3(&tmp, left->v_.i_ - right->v_.iv_[0], 
+                                      left->v_.i_ - right->v_.iv_[1], 
+                                      left->v_.i_ - right->v_.iv_[2]);
+        break;
+      case sletk_ivec4:
+        sl_expr_temp_init_ivec4(&tmp, left->v_.i_ - right->v_.iv_[0], 
+                                      left->v_.i_ - right->v_.iv_[1], 
+                                      left->v_.i_ - right->v_.iv_[2], 
+                                      left->v_.i_ - right->v_.iv_[3]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if ((left->kind_ == sletk_vec2) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec2(&tmp, left->v_.v_[0] - right->v_.f_, 
+                                 left->v_.v_[1] - right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_vec3) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec3(&tmp, left->v_.v_[0] - right->v_.f_, 
+                                 left->v_.v_[1] - right->v_.f_, 
+                                 left->v_.v_[2] - right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_vec4) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec4(&tmp, left->v_.v_[0] - right->v_.f_, 
+                                 left->v_.v_[1] - right->v_.f_, 
+                                 left->v_.v_[2] - right->v_.f_, 
+                                 left->v_.v_[3] - right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_ivec2) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec2(&tmp, left->v_.iv_[0] - right->v_.i_,
+                                  left->v_.iv_[1] - right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_ivec3) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec3(&tmp, left->v_.iv_[0] - right->v_.i_,
+                                  left->v_.iv_[1] - right->v_.i_,
+                                  left->v_.iv_[2] - right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_ivec4) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec4(&tmp, left->v_.iv_[0] - right->v_.i_,
+                                  left->v_.iv_[1] - right->v_.i_,
+                                  left->v_.iv_[2] - right->v_.i_,
+                                  left->v_.iv_[3] - right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_mat2) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat2(&tmp, left->v_.m_[0] - right->v_.f_, left->v_.m_[1] - right->v_.f_,
+                                 left->v_.m_[2] - right->v_.f_, left->v_.m_[3] - right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_mat3) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat3(&tmp, left->v_.m_[0] - right->v_.f_, left->v_.m_[1] - right->v_.f_, left->v_.m_[2] - right->v_.f_,
+                                 left->v_.m_[3] - right->v_.f_, left->v_.m_[4] - right->v_.f_, left->v_.m_[5] - right->v_.f_,
+                                 left->v_.m_[6] - right->v_.f_, left->v_.m_[7] - right->v_.f_, left->v_.m_[8] - right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_mat4) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat4(&tmp, left->v_.m_[0] - right->v_.f_, left->v_.m_[1] - right->v_.f_, left->v_.m_[2] - right->v_.f_, left->v_.m_[3] - right->v_.f_,
+                                 left->v_.m_[4] - right->v_.f_, left->v_.m_[5] - right->v_.f_, left->v_.m_[6] - right->v_.f_, left->v_.m_[7] - right->v_.f_,
+                                 left->v_.m_[8] - right->v_.f_, left->v_.m_[9] - right->v_.f_, left->v_.m_[10] - right->v_.f_, left->v_.m_[11] - right->v_.f_,
+                                 left->v_.m_[12] - right->v_.f_, left->v_.m_[13] - right->v_.f_, left->v_.m_[14] - right->v_.f_, left->v_.m_[15] - right->v_.f_);
+  }
+  else {
+    return -1;
+  }
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+}
+
+int sl_expr_temp_div(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  if (left->kind_ == right->kind_) {
+    switch (left->kind_) {
+      case sletk_float:
+        sl_expr_temp_init_float(&tmp, left->v_.f_ / right->v_.f_);
+        break;
+      case sletk_int:
+        sl_expr_temp_init_int(&tmp, left->v_.i_ / right->v_.i_);
+        break;
+      case sletk_vec2:
+        sl_expr_temp_init_vec2(&tmp, left->v_.v_[0] / right->v_.v_[0], 
+                                     left->v_.v_[1] / right->v_.v_[1]);
+        break;
+      case sletk_vec3:
+        sl_expr_temp_init_vec3(&tmp, left->v_.v_[0] / right->v_.v_[0], 
+                                     left->v_.v_[1] / right->v_.v_[1], 
+                                     left->v_.v_[2] / right->v_.v_[2]);
+        break;
+      case sletk_vec4:
+        sl_expr_temp_init_vec4(&tmp, left->v_.v_[0] / right->v_.v_[0], 
+                                     left->v_.v_[1] / right->v_.v_[1], 
+                                     left->v_.v_[2] / right->v_.v_[2], 
+                                     left->v_.v_[3] / right->v_.v_[3]);
+        break;
+      case sletk_ivec2:
+        sl_expr_temp_init_ivec2(&tmp, left->v_.iv_[0] / right->v_.iv_[0], 
+                                      left->v_.iv_[1] / right->v_.iv_[1]);
+        break;
+      case sletk_ivec3:
+        sl_expr_temp_init_ivec3(&tmp, left->v_.iv_[0] / right->v_.iv_[0], 
+                                      left->v_.iv_[1] / right->v_.iv_[1], 
+                                      left->v_.iv_[2] / right->v_.iv_[2]);
+        break;
+      case sletk_ivec4:
+        sl_expr_temp_init_ivec4(&tmp, left->v_.iv_[0] / right->v_.iv_[0], 
+                                      left->v_.iv_[1] / right->v_.iv_[1], 
+                                      left->v_.iv_[2] / right->v_.iv_[2], 
+                                      left->v_.iv_[3] / right->v_.iv_[3]);
+        break;
+      case sletk_mat2:
+        sl_expr_temp_init_mat2(&tmp, left->v_.m_[0] / right->v_.m_[0], left->v_.m_[1] / right->v_.m_[1], 
+                                     left->v_.m_[2] / right->v_.m_[2], left->v_.m_[3] / right->v_.m_[3]);
+        break;
+      case sletk_mat3:
+        sl_expr_temp_init_mat3(&tmp, left->v_.m_[0] / right->v_.m_[0], left->v_.m_[1] / right->v_.m_[1], left->v_.m_[2] / right->v_.m_[2], 
+                                     left->v_.m_[3] / right->v_.m_[3], left->v_.m_[4] / right->v_.m_[4], left->v_.m_[5] / right->v_.m_[5], 
+                                     left->v_.m_[6] / right->v_.m_[6], left->v_.m_[7] / right->v_.m_[7], left->v_.m_[8] / right->v_.m_[8]);
+        break;
+      case sletk_mat4:
+        sl_expr_temp_init_mat4(&tmp, left->v_.m_[0] / right->v_.m_[0], left->v_.m_[1] / right->v_.m_[1], left->v_.m_[2] / right->v_.m_[2], left->v_.m_[3] / right->v_.m_[3], 
+                                     left->v_.m_[4] / right->v_.m_[4], left->v_.m_[5] / right->v_.m_[5], left->v_.m_[6] / right->v_.m_[6], left->v_.m_[7] / right->v_.m_[7], 
+                                     left->v_.m_[8] / right->v_.m_[8], left->v_.m_[9] / right->v_.m_[9], left->v_.m_[10] / right->v_.m_[10], left->v_.m_[11] / right->v_.m_[11], 
+                                     left->v_.m_[12] / right->v_.m_[12], left->v_.m_[13] / right->v_.m_[13], left->v_.m_[14] / right->v_.m_[14], left->v_.m_[15] / right->v_.m_[15]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if (left->kind_ == sletk_float) {
+    switch (right->kind_) {
+      case sletk_vec2:
+        sl_expr_temp_init_vec2(&tmp, left->v_.f_ / right->v_.v_[0], 
+                                     left->v_.f_ / right->v_.v_[1]);
+        break;
+      case sletk_vec3:
+        sl_expr_temp_init_vec3(&tmp, left->v_.f_ / right->v_.v_[0], 
+                                     left->v_.f_ / right->v_.v_[1], 
+                                     left->v_.f_ / right->v_.v_[2]);
+        break;
+      case sletk_vec4:
+        sl_expr_temp_init_vec4(&tmp, left->v_.f_ / right->v_.v_[0], 
+                                     left->v_.f_ / right->v_.v_[1], 
+                                     left->v_.f_ / right->v_.v_[2], 
+                                     left->v_.f_ / right->v_.v_[3]);
+        break;
+      case sletk_mat2:
+        sl_expr_temp_init_mat2(&tmp, left->v_.f_ / right->v_.m_[0], left->v_.f_ / right->v_.m_[1], 
+                                     left->v_.f_ / right->v_.m_[2], left->v_.f_ / right->v_.m_[3]);
+        break;
+      case sletk_mat3:
+        sl_expr_temp_init_mat3(&tmp, left->v_.f_ / right->v_.m_[0], left->v_.f_ / right->v_.m_[1], left->v_.f_ / right->v_.m_[2], 
+                                     left->v_.f_ / right->v_.m_[3], left->v_.f_ / right->v_.m_[4], left->v_.f_ / right->v_.m_[5], 
+                                     left->v_.f_ / right->v_.m_[6], left->v_.f_ / right->v_.m_[7], left->v_.f_ / right->v_.m_[8]);
+        break;
+      case sletk_mat4:
+        sl_expr_temp_init_mat4(&tmp, left->v_.f_ / right->v_.m_[0], left->v_.f_ / right->v_.m_[1], left->v_.f_ / right->v_.m_[2], left->v_.f_ / right->v_.m_[3], 
+                                     left->v_.f_ / right->v_.m_[4], left->v_.f_ / right->v_.m_[5], left->v_.f_ / right->v_.m_[6], left->v_.f_ / right->v_.m_[7], 
+                                     left->v_.f_ / right->v_.m_[8], left->v_.f_ / right->v_.m_[9], left->v_.f_ / right->v_.m_[10], left->v_.f_ / right->v_.m_[11], 
+                                     left->v_.f_ / right->v_.m_[12], left->v_.f_ / right->v_.m_[13], left->v_.f_ / right->v_.m_[14], left->v_.f_ / right->v_.m_[15]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if (left->kind_ == sletk_int) {
+    switch (right->kind_) {
+      case sletk_ivec2:
+        sl_expr_temp_init_ivec2(&tmp, left->v_.i_ / right->v_.iv_[0], 
+                                      left->v_.i_ / right->v_.iv_[1]);
+        break;
+      case sletk_ivec3:
+        sl_expr_temp_init_ivec3(&tmp, left->v_.i_ / right->v_.iv_[0], 
+                                      left->v_.i_ / right->v_.iv_[1], 
+                                      left->v_.i_ / right->v_.iv_[2]);
+        break;
+      case sletk_ivec4:
+        sl_expr_temp_init_ivec4(&tmp, left->v_.i_ / right->v_.iv_[0], 
+                                      left->v_.i_ / right->v_.iv_[1], 
+                                      left->v_.i_ / right->v_.iv_[2], 
+                                      left->v_.i_ / right->v_.iv_[3]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if ((left->kind_ == sletk_vec2) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec2(&tmp, left->v_.v_[0] / right->v_.f_, 
+                                 left->v_.v_[1] / right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_vec3) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec3(&tmp, left->v_.v_[0] / right->v_.f_, 
+                                 left->v_.v_[1] / right->v_.f_, 
+                                 left->v_.v_[2] / right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_vec4) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec4(&tmp, left->v_.v_[0] / right->v_.f_, 
+                                 left->v_.v_[1] / right->v_.f_, 
+                                 left->v_.v_[2] / right->v_.f_, 
+                                 left->v_.v_[3] / right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_ivec2) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec2(&tmp, left->v_.iv_[0] / right->v_.i_,
+                                  left->v_.iv_[1] / right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_ivec3) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec3(&tmp, left->v_.iv_[0] / right->v_.i_,
+                                  left->v_.iv_[1] / right->v_.i_,
+                                  left->v_.iv_[2] / right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_ivec4) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec4(&tmp, left->v_.iv_[0] / right->v_.i_,
+                                  left->v_.iv_[1] / right->v_.i_,
+                                  left->v_.iv_[2] / right->v_.i_,
+                                  left->v_.iv_[3] / right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_mat2) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat2(&tmp, left->v_.m_[0] / right->v_.f_, left->v_.m_[1] / right->v_.f_,
+                                 left->v_.m_[2] / right->v_.f_, left->v_.m_[3] / right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_mat3) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat3(&tmp, left->v_.m_[0] / right->v_.f_, left->v_.m_[1] / right->v_.f_, left->v_.m_[2] / right->v_.f_,
+                                 left->v_.m_[3] / right->v_.f_, left->v_.m_[4] / right->v_.f_, left->v_.m_[5] / right->v_.f_,
+                                 left->v_.m_[6] / right->v_.f_, left->v_.m_[7] / right->v_.f_, left->v_.m_[8] / right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_mat4) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat4(&tmp, left->v_.m_[0] / right->v_.f_, left->v_.m_[1] / right->v_.f_, left->v_.m_[2] / right->v_.f_, left->v_.m_[3] / right->v_.f_,
+                                 left->v_.m_[4] / right->v_.f_, left->v_.m_[5] / right->v_.f_, left->v_.m_[6] / right->v_.f_, left->v_.m_[7] / right->v_.f_,
+                                 left->v_.m_[8] / right->v_.f_, left->v_.m_[9] / right->v_.f_, left->v_.m_[10] / right->v_.f_, left->v_.m_[11] / right->v_.f_,
+                                 left->v_.m_[12] / right->v_.f_, left->v_.m_[13] / right->v_.f_, left->v_.m_[14] / right->v_.f_, left->v_.m_[15] / right->v_.f_);
+  }
+  else {
+    return -1;
+  }
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+}
+
+int sl_expr_temp_mul(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  float m[16];
+  int row, col;
+  if (left->kind_ == right->kind_) {
+    switch (left->kind_) {
+      case sletk_float:
+        sl_expr_temp_init_float(&tmp, left->v_.f_ * right->v_.f_);
+        break;
+      case sletk_int:
+        sl_expr_temp_init_int(&tmp, left->v_.i_ * right->v_.i_);
+        break;
+      case sletk_vec2:
+        sl_expr_temp_init_vec2(&tmp, left->v_.v_[0] * right->v_.v_[0], 
+                                     left->v_.v_[1] * right->v_.v_[1]);
+        break;
+      case sletk_vec3:
+        sl_expr_temp_init_vec3(&tmp, left->v_.v_[0] * right->v_.v_[0], 
+                                     left->v_.v_[1] * right->v_.v_[1], 
+                                     left->v_.v_[2] * right->v_.v_[2]);
+        break;
+      case sletk_vec4:
+        sl_expr_temp_init_vec4(&tmp, left->v_.v_[0] * right->v_.v_[0], 
+                                     left->v_.v_[1] * right->v_.v_[1], 
+                                     left->v_.v_[2] * right->v_.v_[2], 
+                                     left->v_.v_[3] * right->v_.v_[3]);
+        break;
+      case sletk_ivec2:
+        sl_expr_temp_init_ivec2(&tmp, left->v_.iv_[0] * right->v_.iv_[0], 
+                                      left->v_.iv_[1] * right->v_.iv_[1]);
+        break;
+      case sletk_ivec3:
+        sl_expr_temp_init_ivec3(&tmp, left->v_.iv_[0] * right->v_.iv_[0], 
+                                      left->v_.iv_[1] * right->v_.iv_[1], 
+                                      left->v_.iv_[2] * right->v_.iv_[2]);
+        break;
+      case sletk_ivec4:
+        sl_expr_temp_init_ivec4(&tmp, left->v_.iv_[0] * right->v_.iv_[0], 
+                                      left->v_.iv_[1] * right->v_.iv_[1], 
+                                      left->v_.iv_[2] * right->v_.iv_[2], 
+                                      left->v_.iv_[3] * right->v_.iv_[3]);
+        break;
+      case sletk_mat2:
+        for (col = 0; col < 2; ++col) {
+          for (row = 0; row < 2; ++row) {
+            m[col * 2 + row] = left->v_.m_[row + 0] * right->v_.m_[col * 2 + 0] +
+                               left->v_.m_[row + 2] * right->v_.m_[col * 2 + 1];
+          }
+        }
+        sl_expr_temp_init_mat2(&tmp, m[0], m[1], m[2], m[3]);
+        break;
+      case sletk_mat3:
+        for (col = 0; col < 3; ++col) {
+          for (row = 0; row < 3; ++row) {
+            m[col * 3 + row] = left->v_.m_[row + 0] * right->v_.m_[col * 3 + 0] +
+                               left->v_.m_[row + 3] * right->v_.m_[col * 3 + 1] +
+                               left->v_.m_[row + 6] * right->v_.m_[col * 3 + 2];
+          }
+        }
+        sl_expr_temp_init_mat3(&tmp, m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]);
+        break;
+      case sletk_mat4:
+        for (col = 0; col < 3; ++col) {
+          for (row = 0; row < 3; ++row) {
+            m[col * 4 + row] = left->v_.m_[row + 0] * right->v_.m_[col * 4 + 0] +
+                               left->v_.m_[row + 4] * right->v_.m_[col * 4 + 1] +
+                               left->v_.m_[row + 8] * right->v_.m_[col * 4 + 2] +
+                               left->v_.m_[row + 12] * right->v_.m_[col * 4 + 3];
+          }
+        }
+        sl_expr_temp_init_mat4(&tmp, m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if (left->kind_ == sletk_float) {
+    switch (right->kind_) {
+      case sletk_vec2:
+        sl_expr_temp_init_vec2(&tmp, left->v_.f_ * right->v_.v_[0], 
+                                     left->v_.f_ * right->v_.v_[1]);
+        break;
+      case sletk_vec3:
+        sl_expr_temp_init_vec3(&tmp, left->v_.f_ * right->v_.v_[0], 
+                                     left->v_.f_ * right->v_.v_[1], 
+                                     left->v_.f_ * right->v_.v_[2]);
+        break;
+      case sletk_vec4:
+        sl_expr_temp_init_vec4(&tmp, left->v_.f_ * right->v_.v_[0], 
+                                     left->v_.f_ * right->v_.v_[1], 
+                                     left->v_.f_ * right->v_.v_[2], 
+                                     left->v_.f_ * right->v_.v_[3]);
+        break;
+      case sletk_mat2:
+        sl_expr_temp_init_mat2(&tmp, left->v_.f_ * right->v_.m_[0], left->v_.f_ * right->v_.m_[1], 
+                                     left->v_.f_ * right->v_.m_[2], left->v_.f_ * right->v_.m_[3]);
+        break;
+      case sletk_mat3:
+        sl_expr_temp_init_mat3(&tmp, left->v_.f_ * right->v_.m_[0], left->v_.f_ * right->v_.m_[1], left->v_.f_ * right->v_.m_[2], 
+                                     left->v_.f_ * right->v_.m_[3], left->v_.f_ * right->v_.m_[4], left->v_.f_ * right->v_.m_[5], 
+                                     left->v_.f_ * right->v_.m_[6], left->v_.f_ * right->v_.m_[7], left->v_.f_ * right->v_.m_[8]);
+        break;
+      case sletk_mat4:
+        sl_expr_temp_init_mat4(&tmp, left->v_.f_ * right->v_.m_[0], left->v_.f_ * right->v_.m_[1], left->v_.f_ * right->v_.m_[2], left->v_.f_ * right->v_.m_[3], 
+                                     left->v_.f_ * right->v_.m_[4], left->v_.f_ * right->v_.m_[5], left->v_.f_ * right->v_.m_[6], left->v_.f_ * right->v_.m_[7], 
+                                     left->v_.f_ * right->v_.m_[8], left->v_.f_ * right->v_.m_[9], left->v_.f_ * right->v_.m_[10], left->v_.f_ * right->v_.m_[11], 
+                                     left->v_.f_ * right->v_.m_[12], left->v_.f_ * right->v_.m_[13], left->v_.f_ * right->v_.m_[14], left->v_.f_ * right->v_.m_[15]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if (left->kind_ == sletk_int) {
+    switch (right->kind_) {
+      case sletk_ivec2:
+        sl_expr_temp_init_ivec2(&tmp, left->v_.i_ * right->v_.iv_[0], 
+                                      left->v_.i_ * right->v_.iv_[1]);
+        break;
+      case sletk_ivec3:
+        sl_expr_temp_init_ivec3(&tmp, left->v_.i_ * right->v_.iv_[0], 
+                                      left->v_.i_ * right->v_.iv_[1], 
+                                      left->v_.i_ * right->v_.iv_[2]);
+        break;
+      case sletk_ivec4:
+        sl_expr_temp_init_ivec4(&tmp, left->v_.i_ * right->v_.iv_[0], 
+                                      left->v_.i_ * right->v_.iv_[1], 
+                                      left->v_.i_ * right->v_.iv_[2], 
+                                      left->v_.i_ * right->v_.iv_[3]);
+        break;
+      default:
+        return -1;
+    }
+  }
+  else if ((left->kind_ == sletk_vec2) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec2(&tmp, left->v_.v_[0] * right->v_.f_, 
+                                 left->v_.v_[1] * right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_vec2) && (right->kind_ == sletk_mat2)) {
+    m[0] = left->v_.v_[0] * right->v_.m_[0] + left->v_.v_[1] * right->v_.m_[1];
+    m[1] = left->v_.v_[0] * right->v_.m_[2] + left->v_.v_[1] * right->v_.m_[3];
+    sl_expr_temp_init_vec2(&tmp, m[0], m[1]);
+  }
+  else if ((left->kind_ == sletk_vec3) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec3(&tmp, left->v_.v_[0] * right->v_.f_, 
+                                 left->v_.v_[1] * right->v_.f_, 
+                                 left->v_.v_[2] * right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_vec3) && (right->kind_ == sletk_mat3)) {
+    m[0] = left->v_.v_[0] * right->v_.m_[0] + left->v_.v_[1] * right->v_.m_[1] + left->v_.v_[2] * right->v_.m_[2];
+    m[1] = left->v_.v_[0] * right->v_.m_[3] + left->v_.v_[1] * right->v_.m_[4] + left->v_.v_[2] * right->v_.m_[5];
+    m[2] = left->v_.v_[0] * right->v_.m_[6] + left->v_.v_[1] * right->v_.m_[7] + left->v_.v_[2] * right->v_.m_[8];
+    sl_expr_temp_init_vec3(&tmp, m[0], m[1], m[2]);
+  }
+  else if ((left->kind_ == sletk_vec4) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_vec4(&tmp, left->v_.v_[0] * right->v_.f_, 
+                                 left->v_.v_[1] * right->v_.f_, 
+                                 left->v_.v_[2] * right->v_.f_, 
+                                 left->v_.v_[3] * right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_vec4) && (right->kind_ == sletk_mat4)) {
+    m[0] = left->v_.v_[0] * right->v_.m_[0]  + left->v_.v_[1] * right->v_.m_[1]  + left->v_.v_[2] * right->v_.m_[2]  + left->v_.v_[3] * right->v_.m_[3];
+    m[1] = left->v_.v_[0] * right->v_.m_[4]  + left->v_.v_[1] * right->v_.m_[5]  + left->v_.v_[2] * right->v_.m_[6]  + left->v_.v_[3] * right->v_.m_[7];
+    m[2] = left->v_.v_[0] * right->v_.m_[8]  + left->v_.v_[1] * right->v_.m_[9]  + left->v_.v_[2] * right->v_.m_[10] + left->v_.v_[3] * right->v_.m_[11];
+    m[3] = left->v_.v_[0] * right->v_.m_[12] + left->v_.v_[1] * right->v_.m_[13] + left->v_.v_[2] * right->v_.m_[14] + left->v_.v_[3] * right->v_.m_[15];
+    sl_expr_temp_init_vec4(&tmp, m[0], m[1], m[2], m[3]);
+  }
+  else if ((left->kind_ == sletk_ivec2) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec2(&tmp, left->v_.iv_[0] * right->v_.i_,
+                                  left->v_.iv_[1] * right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_ivec3) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec3(&tmp, left->v_.iv_[0] * right->v_.i_,
+                                  left->v_.iv_[1] * right->v_.i_,
+                                  left->v_.iv_[2] * right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_ivec4) && (right->kind_ == sletk_int)) {
+    sl_expr_temp_init_ivec4(&tmp, left->v_.iv_[0] * right->v_.i_,
+                                  left->v_.iv_[1] * right->v_.i_,
+                                  left->v_.iv_[2] * right->v_.i_,
+                                  left->v_.iv_[3] * right->v_.i_);
+  }
+  else if ((left->kind_ == sletk_mat2) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat2(&tmp, left->v_.m_[0] * right->v_.f_, left->v_.m_[1] * right->v_.f_,
+                                 left->v_.m_[2] * right->v_.f_, left->v_.m_[3] * right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_mat2) && (right->kind_ == sletk_vec2)) {
+    m[0] = left->v_.m_[0] * right->v_.v_[0] + left->v_.m_[2] * right->v_.v_[1];
+    m[1] = left->v_.m_[1] * right->v_.v_[0] + left->v_.m_[3] * right->v_.v_[1];
+    sl_expr_temp_init_vec2(&tmp, m[0], m[1]);
+  }
+  else if ((left->kind_ == sletk_mat3) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat3(&tmp, left->v_.m_[0] * right->v_.f_, left->v_.m_[1] * right->v_.f_, left->v_.m_[2] * right->v_.f_,
+                                 left->v_.m_[3] * right->v_.f_, left->v_.m_[4] * right->v_.f_, left->v_.m_[5] * right->v_.f_,
+                                 left->v_.m_[6] * right->v_.f_, left->v_.m_[7] * right->v_.f_, left->v_.m_[8] * right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_mat3) && (right->kind_ == sletk_vec3)) {
+    m[0] = left->v_.m_[0] * right->v_.v_[0] + left->v_.m_[3] * right->v_.v_[1] + left->v_.m_[6] * right->v_.v_[2];
+    m[1] = left->v_.m_[1] * right->v_.v_[0] + left->v_.m_[4] * right->v_.v_[1] + left->v_.m_[7] * right->v_.v_[2];
+    m[2] = left->v_.m_[2] * right->v_.v_[0] + left->v_.m_[5] * right->v_.v_[1] + left->v_.m_[8] * right->v_.v_[2];
+    sl_expr_temp_init_vec3(&tmp, m[0], m[1], m[2]);
+  }
+  else if ((left->kind_ == sletk_mat4) && (right->kind_ == sletk_float)) {
+    sl_expr_temp_init_mat4(&tmp, left->v_.m_[0] * right->v_.f_, left->v_.m_[1] * right->v_.f_, left->v_.m_[2] * right->v_.f_, left->v_.m_[3] * right->v_.f_,
+                                 left->v_.m_[4] * right->v_.f_, left->v_.m_[5] * right->v_.f_, left->v_.m_[6] * right->v_.f_, left->v_.m_[7] * right->v_.f_,
+                                 left->v_.m_[8] * right->v_.f_, left->v_.m_[9] * right->v_.f_, left->v_.m_[10] * right->v_.f_, left->v_.m_[11] * right->v_.f_,
+                                 left->v_.m_[12] * right->v_.f_, left->v_.m_[13] * right->v_.f_, left->v_.m_[14] * right->v_.f_, left->v_.m_[15] * right->v_.f_);
+  }
+  else if ((left->kind_ == sletk_mat4) && (right->kind_ == sletk_vec4)) {
+    m[0] = left->v_.m_[0] * right->v_.v_[0] + left->v_.m_[4] * right->v_.v_[1] + left->v_.m_[8] * right->v_.v_[2] + left->v_.m_[12] * right->v_.v_[3];
+    m[1] = left->v_.m_[1] * right->v_.v_[0] + left->v_.m_[5] * right->v_.v_[1] + left->v_.m_[9] * right->v_.v_[2] + left->v_.m_[13] * right->v_.v_[3];
+    m[2] = left->v_.m_[2] * right->v_.v_[0] + left->v_.m_[6] * right->v_.v_[1] + left->v_.m_[10] * right->v_.v_[2] + left->v_.m_[14] * right->v_.v_[3];
+    m[3] = left->v_.m_[3] * right->v_.v_[0] + left->v_.m_[7] * right->v_.v_[1] + left->v_.m_[11] * right->v_.v_[2] + left->v_.m_[15] * right->v_.v_[3];
+    sl_expr_temp_init_vec4(&tmp, m[0], m[1], m[2], m[3]);
+  }
+  else {
+    return -1;
+  }
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+}
+
+int sl_expr_temp_lt(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  if (left->kind_ != right->kind_) return -1;
+  if (left->kind_ == sletk_float) {
+    sl_expr_temp_init_bool(&tmp, left->v_.f_ < right->v_.f_);
+  }
+  else if (left->kind_ == sletk_int) {
+    sl_expr_temp_init_bool(&tmp, left->v_.i_ < right->v_.i_);
+  }
+  else {
+    return -1;
+  }
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+
+}
+
+int sl_expr_temp_le(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  if (left->kind_ != right->kind_) return -1;
+  if (left->kind_ == sletk_float) {
+    sl_expr_temp_init_bool(&tmp, left->v_.f_ <= right->v_.f_);
+  }
+  else if (left->kind_ == sletk_int) {
+    sl_expr_temp_init_bool(&tmp, left->v_.i_ <= right->v_.i_);
+  }
+  else {
+    return -1;
+  }
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+
+}
+
+int sl_expr_temp_gt(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  if (left->kind_ != right->kind_) return -1;
+  if (left->kind_ == sletk_float) {
+    sl_expr_temp_init_bool(&tmp, left->v_.f_ > right->v_.f_);
+  }
+  else if (left->kind_ == sletk_int) {
+    sl_expr_temp_init_bool(&tmp, left->v_.i_ > right->v_.i_);
+  }
+  else {
+    return -1;
+  }
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+
+}
+
+int sl_expr_temp_ge(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  if (left->kind_ != right->kind_) return -1;
+  if (left->kind_ == sletk_float) {
+    sl_expr_temp_init_bool(&tmp, left->v_.f_ >= right->v_.f_);
+  }
+  else if (left->kind_ == sletk_int) {
+    sl_expr_temp_init_bool(&tmp, left->v_.i_ >= right->v_.i_);
+  }
+  else {
+    return -1;
+  }
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+
+}
+
+int sl_expr_temp_eq(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  size_t n;
+  
+  if (left->kind_ != right->kind_) return -1;
+  switch (left->kind_) {
+    case sletk_float:
+      sl_expr_temp_init_bool(&tmp, left->v_.f_ == right->v_.f_);
+      break;
+    case sletk_int:
+      sl_expr_temp_init_bool(&tmp, left->v_.i_ == right->v_.i_);
+      break;
+    case sletk_vec2:
+    case sletk_vec3:
+    case sletk_vec4: {
+      size_t num_comps = 2 + ((size_t)left->kind_) - (size_t)sletk_vec2;
+      for (n = 0; n < num_comps; ++n) {
+        if (left->v_.v_[n] != right->v_.v_[n]) {
+          sl_expr_temp_init_bool(&tmp, 0);
+          break;
+        }
+      }
+      sl_expr_temp_init_bool(&tmp, 1);
+      break;
+    }
+    case sletk_ivec2:
+    case sletk_ivec3:
+    case sletk_ivec4: {
+      size_t num_comps = 2 + ((size_t)left->kind_) - (size_t)sletk_ivec2;
+      for (n = 0; n < num_comps; ++n) {
+        if (left->v_.iv_[n] != right->v_.iv_[n]) {
+          sl_expr_temp_init_bool(&tmp, 0);
+          break;
+        }
+      }
+      sl_expr_temp_init_bool(&tmp, 1);
+      break;
+    }
+    case sletk_bvec2:
+    case sletk_bvec3:
+    case sletk_bvec4: {
+      size_t num_comps = 2 + ((size_t)left->kind_) - (size_t)sletk_bvec2;
+      for (n = 0; n < num_comps; ++n) {
+        if (left->v_.bv_[n] != right->v_.bv_[n]) {
+          sl_expr_temp_init_bool(&tmp, 0);
+          break;
+        }
+      }
+      sl_expr_temp_init_bool(&tmp, 1);
+      break;
+    }
+    case sletk_mat2:
+    case sletk_mat3:
+    case sletk_mat4: {
+      size_t num_comps = 2 + ((size_t)left->kind_) - (size_t)sletk_mat2;
+      num_comps *= num_comps;
+      for (n = 0; n < num_comps; ++n) {
+        if (left->v_.m_[n] != right->v_.m_[n]) {
+          sl_expr_temp_init_bool(&tmp, 0);
+          break;
+        }
+      }
+      sl_expr_temp_init_bool(&tmp, 1);
+      break;
+    }
+    case sletk_array:
+    case sletk_struct: {
+      if (sl_type_unqualified(left->v_.comp_.struct_or_array_type_) != sl_type_unqualified(left->v_.comp_.struct_or_array_type_)) {
+        sl_expr_temp_init_bool(&tmp, 0);
+        break;
+      }
+      if (left->v_.comp_.num_elements_ != right->v_.comp_.num_elements_) {
+        sl_expr_temp_init_bool(&tmp, 0);
+        break;
+      }
+      sl_expr_temp_init_bool(&tmp, 1);
+      for (n = 0; n < left->v_.comp_.num_elements_; ++n) {
+        int r;
+        r = sl_expr_temp_eq(&tmp, &left->v_.comp_.elements_[n], &right->v_.comp_.elements_[n]);
+        if (r) return r;
+        if (!tmp.v_.b_) break;
+      }
+      break;
+    }
+    default:
+      return -1;
+  }
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+
+}
+
+int sl_expr_temp_ne(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  int r;
+  r = sl_expr_temp_eq(&tmp, left, right);
+  if (r) return r;
+
+  tmp.v_.b_ = !tmp.v_.b_;
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+
+}
