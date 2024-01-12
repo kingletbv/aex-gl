@@ -149,7 +149,236 @@ int sl_expr_is_lvalue(struct sl_type_base *tb, const struct sl_expr *x) {
   return 0;
 }
 
+static int sl_expr_validate_mul(struct diags *dx, struct sl_type_base *tb, const struct sl_expr *x) {
+  int r = sl_expr_validate(dx, tb, x->children_[0]);
+  r |= sl_expr_validate(dx, tb, x->children_[1]);
+  if (r & SLXV_INVALID) return r;
+  struct sl_expr *x0 = x->children_[0];
+  struct sl_expr *x1 = x->children_[1];
+  struct sl_type *t0 = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+  struct sl_type *t1 = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+  if (!t0 || !t1) return r | SLXV_INVALID;
+  
+  if (t0->kind_ > t1->kind_) {
+    struct sl_type *t = t0;
+    t0 = t1;
+    t1 = t;
+    struct sl_expr *e = x0;
+    x0 = x1;
+    x1 = e;
+  }
+  switch (t0->kind_) {
+    case sltk_float:
+      switch (t1->kind_) {
+        case sltk_float:
+        case sltk_vec2:
+        case sltk_vec3:
+        case sltk_vec4:
+        case sltk_mat2:
+        case sltk_mat3:
+        case sltk_mat4:
+          return r;
+        default:
+          break;
+      }
+      break;
+
+    case sltk_vec2:
+      switch (t1->kind_) {
+        case sltk_vec2:
+        case sltk_mat2:
+          return r;
+        default:
+          break;
+      }
+      break;
+
+    case sltk_vec3:
+      switch (t1->kind_) {
+        case sltk_vec3:
+        case sltk_mat3:
+          return r;
+        default:
+          break;
+      }
+      break;
+
+    case sltk_vec4:
+      switch (t1->kind_) {
+        case sltk_vec2:
+        case sltk_mat2:
+          return r;
+        default:
+          break;
+      }
+      break;
+
+    case sltk_mat2:
+      if (t1->kind_ == sltk_mat2) {
+        return r;
+      }
+      break;
+
+    case sltk_mat3:
+      if (t1->kind_ == sltk_mat3) {
+        return r;
+      }
+      break;
+
+    case sltk_mat4:
+      if (t1->kind_ == sltk_mat4) {
+        return r;
+      }
+      break;
+
+    case sltk_int:
+      switch (t1->kind_) {
+        case sltk_int:
+        case sltk_ivec2:
+        case sltk_ivec3:
+        case sltk_ivec4:
+          return r;
+        default:
+          break;
+      }
+      break;
+    case sltk_ivec2:
+      if (t1->kind_ == sltk_ivec2) {
+          return r;
+      }
+      break;
+    case sltk_ivec3:
+      if (t1->kind_ == sltk_ivec3) {
+        return r;
+      }
+      break;
+    case sltk_ivec4:
+      if (t1->kind_ == sltk_ivec4) {
+        return r;
+      }
+      break;
+    default:
+      break;
+  }
+
+  dx_error_loc(dx, &x->op_loc_, "Invalid types for multiplication");
+  return r | SLXV_INVALID;
+}
+
+static int sl_expr_validate_div_sub_add(struct diags *dx, struct sl_type_base *tb, const struct sl_expr *x) {
+  int r = sl_expr_validate(dx, tb, x->children_[0]);
+  r |= sl_expr_validate(dx, tb, x->children_[1]);
+  if (r & SLXV_INVALID) return r;
+  struct sl_expr *x0 = x->children_[0];
+  struct sl_expr *x1 = x->children_[1];
+  struct sl_type *t0 = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+  struct sl_type *t1 = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+  if (!t0 || !t1) return r | SLXV_INVALID;
+
+  if (t0->kind_ > t1->kind_) {
+    struct sl_type *t = t0;
+    t0 = t1;
+    t1 = t;
+    struct sl_expr *e = x0;
+    x0 = x1;
+    x1 = e;
+  }
+  switch (t0->kind_) {
+    case sltk_float:
+      switch (t1->kind_) {
+        case sltk_float:
+        case sltk_vec2:
+        case sltk_vec3:
+        case sltk_vec4:
+        case sltk_mat2:
+        case sltk_mat3:
+        case sltk_mat4:
+          return r;
+        default:
+          break;
+      }
+      break;
+
+    case sltk_vec2:
+    case sltk_vec3:
+    case sltk_vec4:
+      if (t1->kind_ == t0->kind_) {
+        return r;
+      }
+      break;
+
+    case sltk_mat2:
+      if (t1->kind_ == sltk_mat2) {
+        return r;
+      }
+      break;
+
+    case sltk_mat3:
+      if (t1->kind_ == sltk_mat3) {
+        return r;
+      }
+      break;
+
+    case sltk_mat4:
+      if (t1->kind_ == sltk_mat4) {
+        return r;
+      }
+      break;
+
+    case sltk_int:
+      switch (t1->kind_) {
+        case sltk_int:
+        case sltk_ivec2:
+        case sltk_ivec3:
+        case sltk_ivec4:
+          return r;
+        default:
+          break;
+      }
+      break;
+
+    case sltk_ivec2:
+    case sltk_ivec3:
+    case sltk_ivec4:
+      if (t1->kind_ == t0->kind_) {
+        return r;
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  const char *op = "operation";
+  switch (x->op_) {
+    case exop_divide:
+    case exop_div_assign:
+      op = "division";
+      break;
+    case exop_add:
+    case exop_add_assign:
+      op = "addition";
+      break;
+    case exop_subtract:
+    case exop_sub_assign:
+      op = "subtraction";
+      break;
+    default:
+      assert(0 && "Invalid op");
+      break;
+  }
+
+  dx_error_loc(dx, &x->op_loc_, "Invalid types for %s");
+  return r | SLXV_INVALID;
+}
+
 int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_expr *x) {
+  if (!x) {
+    /* If NULL, then x is invalid, however, this would have been reported earlier (causing
+     * it to be NULL) - therefore we don't report here. */
+    return SLXV_INVALID;
+  }
+
   switch (x->op_) {
     case exop_invalid:
       return SLXV_INVALID;
@@ -286,21 +515,93 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
     case exop_post_inc:
     case exop_post_dec:
     case exop_pre_inc:
-    case exop_pre_dec:
+    case exop_pre_dec: {
+        int r = sl_expr_validate(dx, tb, x->children_[0]);
+        if (r & SLXV_INVALID) return r;
+        if (!sl_expr_is_lvalue(tb, x->children_[0])) {
+          dx_error_loc(dx, &x->op_loc_, "Increment/decrement on non-lvalue");
+          return r | SLXV_INVALID;
+        }
+        struct sl_type *t = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+        switch (t->kind_) {
+          case sltk_float:
+          case sltk_vec2:
+          case sltk_vec3:
+          case sltk_vec4:
+            break;
+          case sltk_int:
+          case sltk_ivec2:
+          case sltk_ivec3:
+          case sltk_ivec4:
+            break;
+          default:
+            dx_error_loc(dx, &x->op_loc_, "Increment/decrement on non-scalar type");
+            return r | SLXV_INVALID;
+        }
+        return r;
+    }
 
-    case exop_negate:
-    case exop_logical_not:
-
+    case exop_negate: {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      if (r & SLXV_INVALID) return r;
+      struct sl_type *t = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      switch (t->kind_) {
+        case sltk_float:
+        case sltk_vec2:
+        case sltk_vec3:
+        case sltk_vec4:
+          break;
+        case sltk_int:
+        case sltk_ivec2:
+        case sltk_ivec3:
+        case sltk_ivec4:
+          break;
+        default:
+          dx_error_loc(dx, &x->op_loc_, "Negate on non-scalar type");
+          return r | SLXV_INVALID;
+      }
+      return r;
+    }
+    case exop_logical_not: {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      if (r & SLXV_INVALID) return r;
+      struct sl_type *t = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      if (t->kind_ != sltk_bool) {
+        dx_error_loc(dx, &x->op_loc_, "Logical not on non-boolean type");
+        return r | SLXV_INVALID;
+      }
+      return r;
+    }
     case exop_multiply:
-    case exop_divide:
+      return sl_expr_validate_mul(dx, tb, x);
 
+    case exop_divide:
     case exop_add:
     case exop_subtract:
+      return sl_expr_validate_div_sub_add(dx, tb, x);
 
     case exop_lt:
     case exop_le:
     case exop_ge:
-    case exop_gt:
+    case exop_gt: {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      r = r | sl_expr_validate(dx, tb, x->children_[1]);
+      struct sl_type *t0 = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      struct sl_type *t1 = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+      if ((t0->kind_ != sltk_float) && (t0->kind_ != sltk_int)) {
+        dx_error_loc(dx, &x->op_loc_, "Comparison on non-scalar type");
+        return r | SLXV_INVALID;
+      }
+      if ((t1->kind_ != sltk_float) && (t1->kind_ != sltk_int)) {
+          dx_error_loc(dx, &x->op_loc_, "Comparison on non-scalar type");
+          return r | SLXV_INVALID;
+        }
+      if (t0->kind_ != t1->kind_) {
+        dx_error_loc(dx, &x->op_loc_, "Comparison on incompatible types");
+        return r | SLXV_INVALID;
+      }
+      return r;
+    }
 
     case exop_eq:
     case exop_ne:
@@ -310,17 +611,98 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
 
     case exop_logical_and:
     case exop_logical_or:
-    case exop_logical_xor:
+    case exop_logical_xor: {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      r = r | sl_expr_validate(dx, tb, x->children_[1]);
+      if (r & SLXV_INVALID) return r;
+      struct sl_type *t = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      if (t->kind_ != sltk_bool) {
+        dx_error_loc(dx, &x->op_loc_, "Logical not on non-boolean type");
+        return r | SLXV_INVALID;
+      }
+      t = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+      if (t->kind_ != sltk_bool) {
+        dx_error_loc(dx, &x->op_loc_, "Logical not on non-boolean type");
+        return r | SLXV_INVALID;
+      }
+      return r;
+    }
 
-    case exop_assign:
-    case exop_mul_assign:
+    case exop_assign: {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      r |= sl_expr_validate(dx, tb, x->children_[1]);
+      if (r & SLXV_INVALID) return r;
+      if (!sl_expr_is_lvalue(tb, x->children_[0])) {
+        dx_error_loc(dx, &x->op_loc_, "Assignment requires lvalue");
+        return r | SLXV_INVALID;
+      }
+      struct sl_type *lvalue_type = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      struct sl_type *expr_type = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+      if (lvalue_type != expr_type) {
+        dx_error_loc(dx, &x->op_loc_, "Assignment on incompatible lvalue type");
+        return r | SLXV_INVALID;
+      }
+      return r;
+    }
+
+    case exop_mul_assign: {
+      int r = sl_expr_validate_mul(dx, tb, x);
+      if (r & SLXV_INVALID) return r;
+      if (!sl_expr_is_lvalue(tb, x->children_[0])) {
+        dx_error_loc(dx, &x->op_loc_, "Multiply-assign on non-lvalue");
+        return r | SLXV_INVALID;
+      }
+      struct sl_type *lvalue_type = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      struct sl_type *expr_type = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+      if (lvalue_type != expr_type) {
+        dx_error_loc(dx, &x->op_loc_, "Multiply-assign on incompatible lvalue type");
+        return r | SLXV_INVALID;
+      }
+      return r;
+    }
+
     case exop_div_assign:
     case exop_add_assign:
-    case exop_sub_assign:
+    case exop_sub_assign: {
+      int r = sl_expr_validate_div_sub_add(dx, tb, x);
+      if (r & SLXV_INVALID) return r;
+      if (!sl_expr_is_lvalue(tb, x->children_[0])) {
+        dx_error_loc(dx, &x->op_loc_, "Assignment on non-lvalue");
+        return r | SLXV_INVALID;
+      }
+      struct sl_type *lvalue_type = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      struct sl_type *expr_type = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+      if (lvalue_type != expr_type) {
+        dx_error_loc(dx, &x->op_loc_, "Assignment on incompatible lvalue type");
+        return r | SLXV_INVALID;
+      }
+      return r;
+    }
 
     case exop_sequence:
+      return sl_expr_validate(dx, tb, x->children_[0]) | sl_expr_validate(dx, tb, x->children_[1]);
 
-    case exop_conditional:
+    case exop_conditional: {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      r = r | sl_expr_validate(dx, tb, x->children_[1]);
+      r = r | sl_expr_validate(dx, tb, x->children_[2]);
+      struct sl_type *ct = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      if (ct->kind_ != sltk_bool) {
+        dx_error_loc(dx, &x->op_loc_, "Conditional expression with non-boolean condition");
+        return r | SLXV_INVALID;
+      }
+      struct sl_type *t1 = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+      struct sl_type *t2 = sl_type_unqualified(sl_expr_type(tb, x->children_[2]));
+      if (t1 != t2) {
+        dx_error_loc(dx, &x->op_loc_, "Conditional expression with incompatible types");
+        return r | SLXV_INVALID;
+      }
+      if (t1->kind_ == sltk_array) {
+        dx_error_loc(dx, &x->op_loc_, "Conditional expression with array type is not permitted");
+        return r | SLXV_INVALID;
+      }
+      return r;
+    }
     default:
       return SLXV_INVALID;
   }
