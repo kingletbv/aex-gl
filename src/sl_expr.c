@@ -33,6 +33,10 @@
 #include "sl_expr.h"
 #endif
 
+#ifndef DIAGS_H_INCLUDED
+#define DIAGS_H_INCLUDED
+#include "pp/diags.h"
+#endif
 
 void sl_expr_init(struct sl_expr *x) {
   x->op_ = exop_invalid;
@@ -68,7 +72,261 @@ void sl_expr_free(struct sl_expr *x) {
   free(x);
 }
 
-int sl_expr_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+int sl_expr_is_lvalue(struct sl_type_base *tb, const struct sl_expr *x) {
+  switch (x->op_) {
+    case exop_invalid:
+      return 0;
+    case exop_variable: {
+      if (!x->variable_ || !x->variable_->type_) return 0;
+      int is_constant = !!(sl_type_qualifiers(x->variable_->type_) & SL_TYPE_QUALIFIER_CONST);
+      if (is_constant) return 0;
+      return 1;
+    }
+    case exop_literal:
+      return 0;
+    case exop_array_subscript:
+      return sl_expr_is_lvalue(tb, x->children_[0]);
+    case exop_component_selection: {
+      /* This is an lvalue if the vector is an lvalue and we don't duplicate columns in the selection */
+      int is_child_lvalue = sl_expr_is_lvalue(tb, x->children_[0]);
+      if (!is_child_lvalue) return 0;
+      size_t n;
+      if (!x->num_components_) return 0;
+      for (n = 0; n < x->num_components_; ++x) {
+        size_t dup_check;
+        for (dup_check = 0; dup_check < x->num_components_; ++dup_check) {
+          if (x->swizzle_[n].component_index_ == x->swizzle_[dup_check].component_index_) {
+            /* Duplicate column - hence not an lvalue (GLSL 1 5.8 assignments p46) */
+            return 0;
+          }
+        }
+      }
+      return 1;
+    }
+    case exop_field_selection:
+      return sl_expr_is_lvalue(tb, x->children_[0]);
+    case exop_post_inc:
+    case exop_post_dec:
+    case exop_pre_inc:
+    case exop_pre_dec:
+      return 0;
+    case exop_negate:
+      return 0;
+    case exop_logical_not:
+      return 0;
+    case exop_multiply:
+    case exop_divide:
+    case exop_add:
+    case exop_subtract:
+    case exop_lt:
+    case exop_le:
+    case exop_ge:
+    case exop_gt:
+    case exop_eq:
+    case exop_ne:
+      return 0;
+    case exop_function_call:
+      return 0;
+    case exop_constructor:
+      return 0;
+    case exop_logical_and:
+    case exop_logical_or:
+    case exop_logical_xor:
+      return 0;
+    case exop_assign:
+    case exop_mul_assign:
+    case exop_div_assign:
+    case exop_add_assign:
+    case exop_sub_assign:
+      return 0;
+    case exop_sequence:
+      return 0;
+    case exop_conditional:
+      return 0;
+    default:
+      assert(!"Unhandled expression type");
+  }
+  return 0;
+}
+
+int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_expr *x) {
+  switch (x->op_) {
+    case exop_invalid:
+      return SLXV_INVALID;
+    case exop_variable: {
+      if (!x->variable_) return SLXV_INVALID;
+      if (!x->variable_->type_) return SLXV_INVALID;
+      if (sl_type_qualifiers(x->variable_->type_) & SL_TYPE_QUALIFIER_CONST) {
+        return 0; /* ok but constant */
+      }
+      return SLXV_NOT_CONSTANT; /* ok */
+    }
+    case exop_literal: {
+      return 0;
+    }
+    case exop_array_subscript: {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      int index_validation = sl_expr_validate(dx, tb, x->children_[1]);
+      r |= index_validation;
+      if (r & SLXV_INVALID) return r;
+      struct sl_type *array_type = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      if (array_type->kind_ != sltk_array) {
+        dx_error_loc(dx, &x->op_loc_, "Array subscript on non-array type");
+        return r | SLXV_INVALID;
+      }
+      struct sl_type *index_type = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+      if (index_type->kind_ != sltk_int) {
+        dx_error_loc(dx, &x->op_loc_, "Array subscript with non-integral index type");
+        return r | SLXV_INVALID;
+      }
+      if (!(index_validation & SLXV_NOT_CONSTANT)) {
+        /* Index is constant and legal int, evaluate it and check it is >= 0 and < array size */
+        struct sl_expr_temp index_value;
+        sl_expr_temp_init(&index_value, NULL);
+        if (sl_expr_eval(tb, x->children_[1], &index_value)) {
+          sl_expr_temp_cleanup(&index_value);
+          return r | SLXV_INVALID;
+        }
+        if (index_value.kind_ != sletk_int) {
+          sl_expr_temp_cleanup(&index_value);
+          return r | SLXV_INVALID;
+        }
+        if (index_value.v_.i_ < 0) {
+          dx_error_loc(dx, &x->op_loc_, "Array subscript with negative index");
+          sl_expr_temp_cleanup(&index_value);
+          return r | SLXV_INVALID;
+        }
+        if (((uint64_t)index_value.v_.i_) >= array_type->array_size_) {
+          dx_error_loc(dx, &x->op_loc_, "Array subscript with index >= array size");
+          sl_expr_temp_cleanup(&index_value);
+          return r | SLXV_INVALID;
+        }
+        sl_expr_temp_cleanup(&index_value);
+      }
+      return r;
+    }
+    case exop_component_selection: /* e.g. myvec3.xxz */ {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      if (r & SLXV_INVALID) return r;
+      struct sl_type *vec_type = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      int vec_size = 0;
+      if (vec_type->kind_ != sltk_vec2 &&
+          vec_type->kind_ != sltk_vec3 &&
+          vec_type->kind_ != sltk_vec4 &&
+          vec_type->kind_ != sltk_bvec2 &&
+          vec_type->kind_ != sltk_bvec3 &&
+          vec_type->kind_ != sltk_bvec4 &&
+          vec_type->kind_ != sltk_ivec2 &&
+          vec_type->kind_ != sltk_ivec3 &&
+          vec_type->kind_ != sltk_ivec4) {
+        dx_error_loc(dx, &x->op_loc_, "Component selection on non-vector type");
+        return r | SLXV_INVALID;
+      }
+      switch (vec_type->kind_) {
+        case sltk_vec2:
+        case sltk_bvec2:
+        case sltk_ivec2:
+          vec_size = 2;
+          break;
+        case sltk_vec3:
+        case sltk_bvec3:
+        case sltk_ivec3:
+          vec_size = 3;
+          break;
+        case sltk_vec4:
+        case sltk_bvec4:
+        case sltk_ivec4:
+          vec_size = 4;
+          break;
+        default:
+          assert(0 && "Invalid vector type");
+          break;
+      }
+      if (x->num_components_ > 4) {
+        dx_error_loc(dx, &x->op_loc_, "Component selection with more than 4 components");
+        return r | SLXV_INVALID;
+      }
+      size_t n;
+      for (n = 0; n < x->num_components_; ++n) {
+        if (x->swizzle_[n].component_index_ >= vec_size) {
+          dx_error_loc(dx, &x->op_loc_, "Component selection with component exceeding vector size");
+          return r | SLXV_INVALID;
+        }
+      }
+      return r;
+    }
+    case exop_field_selection:     /* e.g. mystruct.myfield */ {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      if (r & SLXV_INVALID) return r;
+      struct sl_type_field *tf = x->field_selection_;
+      struct sl_type *struct_type = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      if (struct_type->kind_ != sltk_struct) {
+        dx_error_loc(dx, &x->op_loc_, "Field selection on non-struct type");
+        return r | SLXV_INVALID;
+      }
+      if (!tf) {
+        dx_error_loc(dx, &x->op_loc_, "Field selection missing field");
+        return r | SLXV_INVALID;
+      }
+      struct sl_type_field *f = struct_type->fields_;
+      if (f) {
+        do {
+          f = f->chain_;
+
+        } while (f != tf && f != struct_type->fields_);
+      }
+      if (f == tf) {
+        /* Found */
+        return r;
+      }
+      /* Field not found */
+      dx_error_loc(dx, &x->op_loc_, "Field selection with unknown field");
+      return r | SLXV_INVALID;
+    }
+    case exop_post_inc:
+    case exop_post_dec:
+    case exop_pre_inc:
+    case exop_pre_dec:
+
+    case exop_negate:
+    case exop_logical_not:
+
+    case exop_multiply:
+    case exop_divide:
+
+    case exop_add:
+    case exop_subtract:
+
+    case exop_lt:
+    case exop_le:
+    case exop_ge:
+    case exop_gt:
+
+    case exop_eq:
+    case exop_ne:
+
+    case exop_function_call:
+    case exop_constructor:
+
+    case exop_logical_and:
+    case exop_logical_or:
+    case exop_logical_xor:
+
+    case exop_assign:
+    case exop_mul_assign:
+    case exop_div_assign:
+    case exop_add_assign:
+    case exop_sub_assign:
+
+    case exop_sequence:
+
+    case exop_conditional:
+    default:
+      return SLXV_INVALID;
+  }
+}
+
+int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   size_t n;
   switch (x->op_) {
     case exop_invalid:
@@ -497,7 +755,7 @@ int sl_expr_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp
       int failed = 0;
 
       for (n = 0; n < x->num_components_; ++n) {
-        struct sl_component_selection *cs = x->swizzle_ + n;
+        const struct sl_component_selection *cs = x->swizzle_ + n;
         switch (cs->conversion_) {
           case slcc_float_to_float:
             switch (children[cs->parameter_index_].kind_) {

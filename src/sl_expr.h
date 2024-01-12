@@ -45,6 +45,14 @@
 extern "C" {
 #endif
 
+/* Flags returned by sl_expr_validate() */
+
+/* The expression is not valid and should not be evaluated */
+#define SLXV_INVALID 1
+
+/* The expression is not a compile time constant (and cannot be used in array declarations etc.) */
+#define SLXV_NOT_CONSTANT 2
+
 typedef enum expr_op {
   exop_invalid,
 
@@ -191,6 +199,17 @@ struct sl_expr *sl_expr_alloc_binop(expr_op_t op,const struct situs *loc,struct 
 
 /* like sl_expr_alloc_binop, but for operators with 3 operands. */
 struct sl_expr *sl_expr_alloc_ternop(expr_op_t op,const struct situs *loc,struct sl_expr **opd0, struct sl_expr **opd1, struct sl_expr **opd2);
+
+/* Returns non-zero if this is an lvalue expression, zero otherwise. */
+int sl_expr_is_lvalue(struct sl_type_base *tb, const struct sl_expr *x);
+
+/* Returns a combination of SLXV_xxx flags, determining if the expression is valid and
+ * if the expression is a compile-time constant. Will issue diagnostics if issues are
+ * found with the expression that were, ostensibly, not diagnosed before.. */
+int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_expr *x);
+
+/* Evaluate an expression and store the result in the given temporary. */
+int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
 #ifdef __cplusplus
 } /* extern "C" */
