@@ -380,13 +380,13 @@ int sl_expr_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp
           res = sl_expr_temp_ne(r, &lopd, &ropd);
           break;
         case exop_logical_and:
-          res = -1; // XXX: IMPLEMENT
+          res = sl_expr_temp_logical_and(r, &lopd, &ropd);
           break;
         case exop_logical_or:
-          res = -1; // XXX: IMPLEMENT
+          res = sl_expr_temp_logical_or(r, &lopd, &ropd);
           break;
         case exop_logical_xor:
-          res = -1; // XXX: IMPLEMENT
+          res = sl_expr_temp_logical_xor(r, &lopd, &ropd);
           break;
         case exop_sequence:
           res = 0;

@@ -128,6 +128,9 @@ int sl_expr_temp_ge(struct sl_expr_temp *dst, const struct sl_expr_temp *left, c
 int sl_expr_temp_eq(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
 int sl_expr_temp_ne(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
 
+int sl_expr_temp_logical_and(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_logical_or(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
+int sl_expr_temp_logical_xor(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
 
 #ifdef __cplusplus
 } /* extern "C" */

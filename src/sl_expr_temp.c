@@ -1263,7 +1263,6 @@ int sl_expr_temp_lt(struct sl_expr_temp *dst, const struct sl_expr_temp *left, c
   }
   sl_expr_temp_cleanup(&tmp);
   return 0;
-
 }
 
 int sl_expr_temp_le(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
@@ -1285,7 +1284,6 @@ int sl_expr_temp_le(struct sl_expr_temp *dst, const struct sl_expr_temp *left, c
   }
   sl_expr_temp_cleanup(&tmp);
   return 0;
-
 }
 
 int sl_expr_temp_gt(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
@@ -1307,7 +1305,6 @@ int sl_expr_temp_gt(struct sl_expr_temp *dst, const struct sl_expr_temp *left, c
   }
   sl_expr_temp_cleanup(&tmp);
   return 0;
-
 }
 
 int sl_expr_temp_ge(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
@@ -1329,7 +1326,6 @@ int sl_expr_temp_ge(struct sl_expr_temp *dst, const struct sl_expr_temp *left, c
   }
   sl_expr_temp_cleanup(&tmp);
   return 0;
-
 }
 
 int sl_expr_temp_eq(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
@@ -1426,7 +1422,6 @@ int sl_expr_temp_eq(struct sl_expr_temp *dst, const struct sl_expr_temp *left, c
   }
   sl_expr_temp_cleanup(&tmp);
   return 0;
-
 }
 
 int sl_expr_temp_ne(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
@@ -1443,5 +1438,49 @@ int sl_expr_temp_ne(struct sl_expr_temp *dst, const struct sl_expr_temp *left, c
   }
   sl_expr_temp_cleanup(&tmp);
   return 0;
+}
 
+int sl_expr_temp_logical_and(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  if (left->kind_ != right->kind_) return -1;
+  if ((left->kind_ != sletk_bool) || (right->kind_ != sletk_bool)) return -1;
+
+  sl_expr_temp_init_bool(&tmp, left->v_.b_ && right->v_.b_);
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+}
+
+int sl_expr_temp_logical_or(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  if (left->kind_ != right->kind_) return -1;
+  if ((left->kind_ != sletk_bool) || (right->kind_ != sletk_bool)) return -1;
+
+  sl_expr_temp_init_bool(&tmp, left->v_.b_ && right->v_.b_);
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
+}
+
+int sl_expr_temp_logical_xor(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right) {
+  struct sl_expr_temp tmp;
+  if (left->kind_ != right->kind_) return -1;
+  if ((left->kind_ != sletk_bool) || (right->kind_ != sletk_bool)) return -1;
+
+  sl_expr_temp_init_bool(&tmp, (left->v_.b_ && !right->v_.b_) || (!left->v_.b_ && right->v_.b_));
+
+  if (sl_expr_temp_copy(dst, &tmp)) {
+    sl_expr_temp_cleanup(&tmp);
+    return -1;
+  }
+  sl_expr_temp_cleanup(&tmp);
+  return 0;
 }
