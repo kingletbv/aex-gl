@@ -372,6 +372,39 @@ static int sl_expr_validate_div_sub_add(struct diags *dx, struct sl_type_base *t
   return r | SLXV_INVALID;
 }
 
+static int sl_expr_type_contains_array(struct sl_type *t) {
+  t = sl_type_unqualified(t);
+  if (!t) return 0;
+  if (t->kind_ == sltk_array) return 1;
+  if (t->kind_ == sltk_struct) {
+    struct sl_type_field *f = t->fields_;
+    if (f) {
+      do {
+        if (sl_expr_type_contains_array(f->type_)) return 1;
+        f = f->chain_;
+      } while (f != t->fields_);
+    }
+  }
+  return 0;
+}
+
+static int sl_expr_type_contains_sampler(struct sl_type *t) {
+  t = sl_type_unqualified(t);
+  if (!t) return 0;
+  if (t->kind_ == sltk_sampler2D) return 1;
+  if (t->kind_ == sltk_samplerCube) return 1;
+  if (t->kind_ == sltk_struct) {
+    struct sl_type_field *f = t->fields_;
+    if (f) {
+      do {
+        if (sl_expr_type_contains_sampler(f->type_)) return 1;
+        f = f->chain_;
+      } while (f != t->fields_);
+    }
+  }
+  return 0;
+}
+
 int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_expr *x) {
   if (!x) {
     /* If NULL, then x is invalid, however, this would have been reported earlier (causing
@@ -586,6 +619,7 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
     case exop_gt: {
       int r = sl_expr_validate(dx, tb, x->children_[0]);
       r = r | sl_expr_validate(dx, tb, x->children_[1]);
+      if (r & SLXV_INVALID) return r;
       struct sl_type *t0 = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
       struct sl_type *t1 = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
       if ((t0->kind_ != sltk_float) && (t0->kind_ != sltk_int)) {
@@ -604,10 +638,69 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
     }
 
     case exop_eq:
-    case exop_ne:
+    case exop_ne: {
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      r = r | sl_expr_validate(dx, tb, x->children_[1]);
+      if (r & SLXV_INVALID) return r;
+      struct sl_type *t0 = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      struct sl_type *t1 = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
+      if (t0 != t1) {
+        dx_error_loc(dx, &x->op_loc_, "Equality on incompatible types");
+        return r | SLXV_INVALID;
+      }
+      if (sl_expr_type_contains_array(t0)) {
+        dx_error_loc(dx, &x->op_loc_, "Equality on array type is not permitted");
+        return r | SLXV_INVALID;
+      }
+      if (sl_expr_type_contains_sampler(t0)) {
+        dx_error_loc(dx, &x->op_loc_, "Equality on sampler type is not permitted");
+        return r | SLXV_INVALID;
+      }
+      return r;
+    }
 
-    case exop_function_call:
+    case exop_function_call: {
+      if (x->num_children_ != x->function_->num_parameters_) {
+        dx_error_loc(dx, &x->op_loc_, "Function call with wrong number of parameters");
+        return SLXV_INVALID;
+      }
+      size_t n;
+      int r = 0;
+      for (n = 0; n < x->num_children_; ++n) {
+        r = r | sl_expr_validate(dx, tb, x->children_[n]);
+        if (r & SLXV_INVALID) return r;
+      }
+      struct sl_function *f = x->function_;
+      for (n = 0; n < x->num_children_; ++n) {
+        struct sl_type *t = sl_expr_type(tb, x->children_[n]);
+        if (!t) return r | SLXV_INVALID;
+        int qualifiers = sl_type_qualifiers(t);
+        t = sl_type_unqualified(t);
+        struct sl_parameter *p = &f->parameters_[n];
+        int param_qualifiers = sl_type_qualifiers(p->type_);
+        struct sl_type *pt = sl_type_unqualified(p->type_);
+        if (param_qualifiers & (SL_PARAMETER_QUALIFIER_INOUT | SL_PARAMETER_QUALIFIER_OUT)) {
+          if (!sl_expr_is_lvalue(tb, x->children_[n])) {
+            const char *param_qualifier_str = "";
+            if (param_qualifiers & SL_PARAMETER_QUALIFIER_OUT) param_qualifier_str = "out";
+            if (param_qualifiers & SL_PARAMETER_QUALIFIER_INOUT) param_qualifier_str = "inout";
+            dx_error_loc(dx, &x->children_[n]->op_loc_, "%s parameter requires lvalue", param_qualifier_str);
+            return r | SLXV_INVALID;
+          }
+        }
+
+        if (!pt) return r | SLXV_INVALID;
+        if (t != pt) {
+          dx_error_loc(dx, &x->op_loc_, "Function call with incompatible parameter type");
+          return r | SLXV_INVALID;
+        }
+      }
+
+      return r;
+    }
     case exop_constructor:
+      
+      break;
 
     case exop_logical_and:
     case exop_logical_or:
