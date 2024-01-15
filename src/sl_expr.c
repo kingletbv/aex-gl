@@ -1395,6 +1395,7 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
       float *f = NULL;
       int64_t *i = NULL;
       int *b = NULL;
+      int done = 0;
 
       switch (tmp.kind_) {
         case sletk_void:
@@ -1421,6 +1422,7 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
               return -1;
             }
           }
+          done = 1;
           break;
         }
         case sletk_float:
@@ -1459,183 +1461,187 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
 
       int failed = 0;
 
-      for (n = 0; n < x->num_components_; ++n) {
-        const struct sl_component_selection *cs = x->swizzle_ + n;
-        switch (cs->conversion_) {
-          case slcc_float_to_float:
-            switch (children[cs->parameter_index_].kind_) {
-              case sletk_float:
-                f[n] = children[cs->parameter_index_].v_.f_;
+      if (!done) {
+        /* Did not complete yet (this was not a struct/array but is a scalar/vector/matrix) */
+        for (n = 0; n < x->num_components_; ++n) {
+          const struct sl_component_selection *cs = x->swizzle_ + n;
+          switch (cs->conversion_) {
+            case slcc_float_to_float:
+              switch (children[cs->parameter_index_].kind_) {
+                case sletk_float:
+                  f[n] = children[cs->parameter_index_].v_.f_;
+                  break;
+                case sletk_vec2:
+                case sletk_vec3:
+                case sletk_vec4:
+                  f[n] = children[cs->parameter_index_].v_.v_[cs->component_index_];
+                  break;
+                case sletk_mat2:
+                case sletk_mat3:
+                case sletk_mat4:
+                  f[n] = children[cs->parameter_index_].v_.m_[cs->component_index_];
+                  break;
+                default:
+                  /* conversion mismatches type found */
+                  failed = 1;
+                  break;
+              }
+              break;
+              case slcc_float_to_int:
+                switch (children[cs->parameter_index_].kind_) {
+                  case sletk_float:
+                    i[n] = (int64_t)children[cs->parameter_index_].v_.f_;
+                    break;
+                  case sletk_vec2:
+                  case sletk_vec3:
+                  case sletk_vec4:
+                    i[n] = (int64_t)children[cs->parameter_index_].v_.v_[cs->component_index_];
+                    break;
+                  case sletk_mat2:
+                  case sletk_mat3:
+                  case sletk_mat4:
+                    i[n] = (int64_t)children[cs->parameter_index_].v_.m_[cs->component_index_];
+                    break;
+                  default:
+                    /* conversion mismatches type found */
+                    failed = 1;
+                    break;
+                }
                 break;
-              case sletk_vec2:
-              case sletk_vec3:
-              case sletk_vec4:
-                f[n] = children[cs->parameter_index_].v_.v_[cs->component_index_];
+              case slcc_float_to_bool:
+                switch (children[cs->parameter_index_].kind_) {
+                  case sletk_float:
+                    b[n] = !!children[cs->parameter_index_].v_.f_;
+                    break;
+                  case sletk_vec2:
+                  case sletk_vec3:
+                  case sletk_vec4:
+                    b[n] = !!children[cs->parameter_index_].v_.v_[cs->component_index_];
+                    break;
+                  case sletk_mat2:
+                  case sletk_mat3:
+                  case sletk_mat4:
+                    b[n] = !!children[cs->parameter_index_].v_.m_[cs->component_index_];
+                    break;
+                  default:
+                    /* conversion mismatches type found */
+                    failed = 1;
+                    break;
+                }
                 break;
-              case sletk_mat2:
-              case sletk_mat3:
-              case sletk_mat4:
-                f[n] = children[cs->parameter_index_].v_.m_[cs->component_index_];
+              case slcc_int_to_float:
+                switch (children[cs->parameter_index_].kind_) {
+                  case sletk_int:
+                    f[n] = (float)children[cs->parameter_index_].v_.i_;
+                    break;
+                  case sletk_ivec2:
+                  case sletk_ivec3:
+                  case sletk_ivec4:
+                    f[n] = (float)children[cs->parameter_index_].v_.iv_[cs->component_index_];
+                    break;
+                  default:
+                    /* conversion mismatches type found */
+                    failed = 1;
+                    break;
+                }
+                break;
+              case slcc_int_to_int:
+                switch (children[cs->parameter_index_].kind_) {
+                  case sletk_int:
+                    i[n] = children[cs->parameter_index_].v_.i_;
+                    break;
+                  case sletk_ivec2:
+                  case sletk_ivec3:
+                  case sletk_ivec4:
+                    i[n] = children[cs->parameter_index_].v_.iv_[cs->component_index_];
+                    break;
+                  default:
+                    /* conversion mismatches type found */
+                    failed = 1;
+                    break;
+                }
+                break;
+              case slcc_int_to_bool:
+                switch (children[cs->parameter_index_].kind_) {
+                  case sletk_int:
+                    b[n] = !!children[cs->parameter_index_].v_.i_;
+                    break;
+                  case sletk_ivec2:
+                  case sletk_ivec3:
+                  case sletk_ivec4:
+                    b[n] = !!children[cs->parameter_index_].v_.iv_[cs->component_index_];
+                    break;
+                  default:
+                    /* conversion mismatches type found */
+                    failed = 1;
+                    break;
+                }
+                break;
+              case slcc_bool_to_float:
+                switch (children[cs->parameter_index_].kind_) {
+                  case sletk_bool:
+                    f[n] = (float)!!children[cs->parameter_index_].v_.b_;
+                    break;
+                  case sletk_bvec2:
+                  case sletk_bvec3:
+                  case sletk_bvec4:
+                    f[n] = (float)!!children[cs->parameter_index_].v_.bv_[cs->component_index_];
+                    break;
+                  default:
+                    /* conversion mismatches type found */
+                    failed = 1;
+                    break;
+                }
+                break;
+              case slcc_bool_to_int:
+                switch (children[cs->parameter_index_].kind_) {
+                  case sletk_bool:
+                    i[n] = (int64_t)!!children[cs->parameter_index_].v_.b_;
+                    break;
+                  case sletk_bvec2:
+                  case sletk_bvec3:
+                  case sletk_bvec4:
+                    i[n] = (int64_t)!!children[cs->parameter_index_].v_.bv_[cs->component_index_];
+                    break;
+                  default:
+                    /* conversion mismatches type found */
+                    failed = 1;
+                    break;
+                }
+                break;
+              case slcc_bool_to_bool:
+                switch (children[cs->parameter_index_].kind_) {
+                  case sletk_bool:
+                    i[n] = children[cs->parameter_index_].v_.b_;
+                    break;
+                  case sletk_bvec2:
+                  case sletk_bvec3:
+                  case sletk_bvec4:
+                    i[n] = children[cs->parameter_index_].v_.bv_[cs->component_index_];
+                    break;
+                  default:
+                    /* conversion mismatches type found */
+                    failed = 1;
+                    break;
+                }
                 break;
               default:
-                /* conversion mismatches type found */
                 failed = 1;
-                break;
-            }
-            break;
-            case slcc_float_to_int:
-              switch (children[cs->parameter_index_].kind_) {
-                case sletk_float:
-                  i[n] = (int64_t)children[cs->parameter_index_].v_.f_;
-                  break;
-                case sletk_vec2:
-                case sletk_vec3:
-                case sletk_vec4:
-                  i[n] = (int64_t)children[cs->parameter_index_].v_.v_[cs->component_index_];
-                  break;
-                case sletk_mat2:
-                case sletk_mat3:
-                case sletk_mat4:
-                  i[n] = (int64_t)children[cs->parameter_index_].v_.m_[cs->component_index_];
-                  break;
-                default:
-                  /* conversion mismatches type found */
-                  failed = 1;
-                  break;
-              }
               break;
-            case slcc_float_to_bool:
-              switch (children[cs->parameter_index_].kind_) {
-                case sletk_float:
-                  b[n] = !!children[cs->parameter_index_].v_.f_;
-                  break;
-                case sletk_vec2:
-                case sletk_vec3:
-                case sletk_vec4:
-                  b[n] = !!children[cs->parameter_index_].v_.v_[cs->component_index_];
-                  break;
-                case sletk_mat2:
-                case sletk_mat3:
-                case sletk_mat4:
-                  b[n] = !!children[cs->parameter_index_].v_.m_[cs->component_index_];
-                  break;
-                default:
-                  /* conversion mismatches type found */
-                  failed = 1;
-                  break;
-              }
-              break;
-            case slcc_int_to_float:
-              switch (children[cs->parameter_index_].kind_) {
-                case sletk_int:
-                  f[n] = (float)children[cs->parameter_index_].v_.i_;
-                  break;
-                case sletk_ivec2:
-                case sletk_ivec3:
-                case sletk_ivec4:
-                  f[n] = (float)children[cs->parameter_index_].v_.iv_[cs->component_index_];
-                  break;
-                default:
-                  /* conversion mismatches type found */
-                  failed = 1;
-                  break;
-              }
-              break;
-            case slcc_int_to_int:
-              switch (children[cs->parameter_index_].kind_) {
-                case sletk_int:
-                  i[n] = children[cs->parameter_index_].v_.i_;
-                  break;
-                case sletk_ivec2:
-                case sletk_ivec3:
-                case sletk_ivec4:
-                  i[n] = children[cs->parameter_index_].v_.iv_[cs->component_index_];
-                  break;
-                default:
-                  /* conversion mismatches type found */
-                  failed = 1;
-                  break;
-              }
-              break;
-            case slcc_int_to_bool:
-              switch (children[cs->parameter_index_].kind_) {
-                case sletk_int:
-                  b[n] = !!children[cs->parameter_index_].v_.i_;
-                  break;
-                case sletk_ivec2:
-                case sletk_ivec3:
-                case sletk_ivec4:
-                  b[n] = !!children[cs->parameter_index_].v_.iv_[cs->component_index_];
-                  break;
-                default:
-                  /* conversion mismatches type found */
-                  failed = 1;
-                  break;
-              }
-              break;
-            case slcc_bool_to_float:
-              switch (children[cs->parameter_index_].kind_) {
-                case sletk_bool:
-                  f[n] = (float)!!children[cs->parameter_index_].v_.b_;
-                  break;
-                case sletk_bvec2:
-                case sletk_bvec3:
-                case sletk_bvec4:
-                  f[n] = (float)!!children[cs->parameter_index_].v_.bv_[cs->component_index_];
-                  break;
-                default:
-                  /* conversion mismatches type found */
-                  failed = 1;
-                  break;
-              }
-              break;
-            case slcc_bool_to_int:
-              switch (children[cs->parameter_index_].kind_) {
-                case sletk_bool:
-                  i[n] = (int64_t)!!children[cs->parameter_index_].v_.b_;
-                  break;
-                case sletk_bvec2:
-                case sletk_bvec3:
-                case sletk_bvec4:
-                  i[n] = (int64_t)!!children[cs->parameter_index_].v_.bv_[cs->component_index_];
-                  break;
-                default:
-                  /* conversion mismatches type found */
-                  failed = 1;
-                  break;
-              }
-              break;
-            case slcc_bool_to_bool:
-              switch (children[cs->parameter_index_].kind_) {
-                case sletk_bool:
-                  i[n] = children[cs->parameter_index_].v_.b_;
-                  break;
-                case sletk_bvec2:
-                case sletk_bvec3:
-                case sletk_bvec4:
-                  i[n] = children[cs->parameter_index_].v_.bv_[cs->component_index_];
-                  break;
-                default:
-                  /* conversion mismatches type found */
-                  failed = 1;
-                  break;
-              }
-              break;
-            default:
-              failed = 1;
-            break;
+          }
+          if (failed) break;
         }
-        if (failed) break;
       }
-      if (failed) {
-        for (n = 0; n < x->num_children_; ++x) {
-          sl_expr_temp_cleanup(children + n);
-        }
-        if (children) free(children);
-        sl_expr_temp_cleanup(&tmp);
-        return -1;
+      if (!failed) {
+        failed = sl_expr_temp_copy(r, &tmp);
       }
-      break;
+      for (n = 0; n < x->num_children_; ++x) {
+        sl_expr_temp_cleanup(children + n);
+      }
+      if (children) free(children);
+      sl_expr_temp_cleanup(&tmp);
+
+      return failed ? -1 : 0;
     }
 
     case exop_assign:
@@ -1676,6 +1682,10 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
 
       return 0;
     }
+
+    default:
+      assert(!"Unhandled expression type");
+      return -1;
   }
 }
 
