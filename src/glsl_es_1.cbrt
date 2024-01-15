@@ -446,7 +446,21 @@ assignment-operator: OR_ASSIGN { dx_error_loc(cc->dx_, &${0}, "bitwise-or-assign
 expression: assignment-expression  { $$ = $0; $0 = NULL; }
 expression: expression COMMA assignment-expression { $$ = sl_expr_alloc_binop(exop_sequence, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
-constant-expression: conditional-expression  { $$ = $0; $0 = NULL; }
+constant-expression: conditional-expression  { 
+  int validation = sl_expr_validate(cc->dx_, &cc->tb_, $0);
+  if (validation & SLXV_INVALID) {
+    /* Expression is invalid, this has already been reported */
+    $$ = NULL;
+  }
+  else if (validation & SLXV_NOT_CONSTANT) {
+    /* Expression is not constant, this has not yet been reported */
+    dx_error_loc(cc->dx_, &${0}, "Error: expression is not constant");
+  }
+  else {
+    $$ = $0;
+    $0 = NULL;
+  }
+}
 
 %type function-prototype: struct sl_function *
 %constructor $$ = NULL;
