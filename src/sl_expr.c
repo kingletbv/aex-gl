@@ -699,7 +699,65 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
       return r;
     }
     case exop_constructor:
-      
+      if (x->constructor_type_->kind_ == sltk_struct) {
+        size_t num_fields = 0;
+        struct sl_type_field *tf = x->constructor_type_->fields_;
+        if (tf) {
+          do {
+            tf = tf->chain_;
+            ++num_fields;
+          } while (tf != x->constructor_type_->fields_);
+        }
+
+        if (x->num_children_ != num_fields) {
+          dx_error_loc(dx, &x->op_loc_, "Constructor with wrong number of parameters");
+          return SLXV_INVALID;
+        }
+        size_t n;
+        int r = 0;
+        for (n = 0; n < x->num_children_; ++n) {
+          r = r | sl_expr_validate(dx, tb, x->children_[n]);
+          if (r & SLXV_INVALID) return r;
+        }
+
+        size_t param_index = 0;
+        tf = x->constructor_type_->fields_;
+        if (tf) {
+          do {
+            tf = tf->chain_;
+
+            struct sl_type *t = sl_type_unqualified(sl_expr_type(tb, x->children_[param_index]));
+            if (!t) return r | SLXV_INVALID;
+            
+            struct sl_type *tp = sl_type_unqualified(tf->type_);
+            if (t != tp) {
+              dx_error_loc(dx, &x->children_[param_index]->op_loc_, "Constructor with incompatible parameter type");
+              return r | SLXV_INVALID;
+            }
+
+            ++param_index;
+          } while (tf != x->constructor_type_->fields_);
+        }
+
+        return r;
+      } else {
+        if (x->num_children_ != 1) {
+          dx_error_loc(dx, &x->op_loc_, "Constructor with wrong number of parameters");
+          return SLXV_INVALID;
+        }
+        /* XXX: Match up the constructor logic (component-wise, or as a whole) with the
+         *      actual parameters found in-situ .. This is a re-creation of the logic
+         *      we already have in glsl_es1_assist.c so maybe transplant from there to
+         *      here, as it is fairly non-trivial. */
+        size_t n;
+        int r = 0;
+        for (n = 0; n < x->num_children_; ++n) {
+          r = r | sl_expr_validate(dx, tb, x->children_[n]);
+          if (r & SLXV_INVALID) return r;
+        }
+
+        return r;
+      }
       break;
 
     case exop_logical_and:
