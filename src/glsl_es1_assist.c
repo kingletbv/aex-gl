@@ -357,11 +357,73 @@ struct sl_expr *glsl_es1_field_or_swizzle_selection(struct diags *dx, struct sl_
   }
 }
 
+struct sl_expr *glsl_es1_struct_constructor_realize(struct diags *dx, struct sym_table *st, struct sl_type_base *tb, struct glsl_es1_function_call *fs) {
+  struct sl_type *t = sl_type_unqualified(fs->constructor_type_);
+  if (!t) return NULL; /* pass-through errors */
+  if (t->kind_ != sltk_struct) {
+    assert(!"Struct type expected");
+    return NULL;
+  }
+  struct sl_type_field *tf = t->fields_;
+  size_t num_fields = 0;
+  if (tf) {
+    do {
+      tf = tf->chain_;
+
+      num_fields++;
+    } while (tf != t->fields_);
+  }
+
+  if (fs->num_parameters_ != num_fields) {
+    dx_error_loc(dx, &fs->loc_, "Constructor \"%s\" expects %d parameter%s, got %d", t->tag_, num_fields, (num_fields > 1) ? "s" : "", fs->num_parameters_);
+    return NULL;
+  }
+
+  size_t n;
+  tf = t->fields_;
+  for (n = 0; n < num_fields; ++n) {
+    tf = tf->chain_;
+
+    struct sl_expr *fex = fs->parameters_[n].expr_;
+    if (!fex) {
+      /* No expression, assume already reported. */
+      return NULL;
+    }
+    struct sl_type *fex_type = sl_expr_type(tb, fex);
+    if (!fex_type) {
+      /* No type, assume already reported. */
+      return NULL;
+    }
+    fex_type = sl_type_unqualified(fex_type);
+    if (fex_type != sl_type_unqualified(tf->type_)) {
+      dx_error_loc(dx, &fs->parameters_[n].loc_, "Constructor \"%s\" type mismatch on field parameter \"%s\"", t->tag_, tf->ident_);
+      return NULL;
+    }
+  }
+
+  /* Type checked, all is well, form the expression */
+  struct sl_expr *constr_expr = sl_expr_alloc_constructor(t, &fs->loc_, fs->num_parameters_, &fs->parameters_->expr_, sizeof(*fs->parameters_));
+  if (!constr_expr) {
+  /* No memory. */
+    dx_no_memory(dx);
+    return NULL;
+  }
+
+  for (n = 0; n < num_fields; ++n) {
+    fs->parameters_[n].expr_ = NULL; /* Ownership transferred to function_expr */
+  }
+  return constr_expr;
+}
+
 struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_table *st, struct sl_type_base *tb, struct glsl_es1_function_call *fs) {
   if (fs->constructor_type_) {
     /* Constructor call. */
     sl_type_kind_t scalar_kind = sltk_invalid;
     struct sl_type *t = sl_type_unqualified(fs->constructor_type_);
+    if (!t) return NULL; /* pass-through errors */
+    if (t->kind_ == sltk_struct) {
+      return glsl_es1_struct_constructor_realize(dx, st, tb, fs);
+    }
     int row, col;
     int num_target_components = 0;
     struct sl_component_selection swizzle[16]; /* 4x4 matrix is the largest type we support */
