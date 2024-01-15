@@ -405,6 +405,167 @@ static int sl_expr_type_contains_sampler(struct sl_type *t) {
   return 0;
 }
 
+static int sl_expr_vec_mat_num_components(sl_type_kind_t kind) {
+  switch (kind) {
+    case sltk_float:
+    case sltk_int:
+    case sltk_bool:
+      return 1;
+    case sltk_vec2:
+    case sltk_ivec2:
+    case sltk_bvec2:
+      return 2;
+    case sltk_vec3:
+    case sltk_ivec3:
+    case sltk_bvec3:
+      return 3;
+    case sltk_vec4:
+    case sltk_ivec4:
+    case sltk_bvec4:
+      return 4;
+    case sltk_mat2:
+      return 4;
+    case sltk_mat3:
+      return 9;
+    case sltk_mat4:
+      return 16;
+    default:
+      assert(0 && "Invalid type");
+      return 0;
+  }
+}
+
+int sl_expr_validate_vec_mat_scalar_constructor(struct diags *dx, struct sl_type_base *tb, const struct sl_expr *x) {
+  struct sl_type *t = x->constructor_type_;
+  if (!t) return SLXV_INVALID;
+  t = sl_type_unqualified(t);
+  switch (t->kind_) {
+    case sltk_float:
+    case sltk_int:
+    case sltk_bool: {
+      /* Should have one child, which may be a vec, mat, or scalar */
+      if (x->num_children_ != 1) {
+        dx_error_loc(dx, &x->op_loc_, "Scalar constructor with incorrect number of parameters");
+        return SLXV_INVALID;
+      }
+      int r = sl_expr_validate(dx, tb, x->children_[0]);
+      if (r & SLXV_INVALID) return r;
+      struct sl_type *t0 = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      if (!t0) return r | SLXV_INVALID;
+      switch (t0->kind_) {
+        case sltk_float:
+        case sltk_int:
+        case sltk_bool:
+          /* Initialize, possibly by type conversion */
+          return r;
+        case sltk_vec2:
+        case sltk_vec3:
+        case sltk_vec4:
+        case sltk_ivec2:
+        case sltk_ivec3:
+        case sltk_ivec4:
+        case sltk_bvec2:
+        case sltk_bvec3:
+        case sltk_bvec4:
+        case sltk_mat2:
+        case sltk_mat3:
+        case sltk_mat4:
+          /* Initialize with the first component of non-scalar type */
+          return r;
+        default:
+          /* Cannot initialize with any other type */
+          dx_error_loc(dx, &x->op_loc_, "Scalar constructor with incompatible parameter type");
+          return r | SLXV_INVALID;
+      }
+    }
+    case sltk_mat2:
+    case sltk_mat3:
+    case sltk_mat4: {
+      /* A matrix can be constructed from another matrix. However, if a matrix argument is
+       * given to a matrix constructor, it is an error to give any other arguments. 5.4.2 p. 42 */
+      /* Is there a matrix in the arguments? If so, then valid only if it is the only argument
+       * NOTE: If this matrix check passes, and the constructor is not a single matrix, then
+       *       we fall through to vecs for additional processing. */
+      size_t n;
+      int r = 0;
+      for (n = 0; n < x->num_children_; ++n) {
+        struct sl_type *t = sl_type_unqualified(sl_expr_type(tb, x->children_[n]));
+        if (!t) return r | SLXV_INVALID;
+        if (t->kind_ == sltk_mat2 ||
+            t->kind_ == sltk_mat3 ||
+            t->kind_ == sltk_mat4) {
+          /* Yes, there is a matrix in the arguments */
+          if (x->num_children_ > 1) {
+            dx_error_loc(dx, &x->op_loc_, "Matrix constructor with matrix argument must consist of only the matrix argument");
+            return r | SLXV_INVALID;
+          }
+          /* Matrix argument in isolation, yay, return its validation as our result */
+          return r | sl_expr_validate(dx, tb, x->children_[n]);
+        }
+      }
+      /* At this point: no matrix argument, fall through and treat matrix constructor as a vector constructor 
+       * (e.g. component-by-component construction) */
+    }
+    case sltk_vec2:
+    case sltk_vec3:
+    case sltk_vec4:
+    case sltk_ivec2:
+    case sltk_ivec3:
+    case sltk_ivec4:
+    case sltk_bvec2:
+    case sltk_bvec3:
+    case sltk_bvec4: {
+      /* Count the number of components in the constructor type */
+      int components_needed = sl_expr_vec_mat_num_components(t->kind_);
+      int components_remaining = components_needed;
+      /* Validate each child */
+      size_t n;
+      int r;
+      for (n = 0; n < x->num_children_; ++n) {
+        r |= sl_expr_validate(dx, tb, x->children_[n]);
+        if (r & SLXV_INVALID) return r;
+      }
+      /* Now count the components provided by each */
+      for (n = 0; n < x->num_children_; ++n) {
+        struct sl_type *t = sl_type_unqualified(sl_expr_type(tb, x->children_[n]));
+        if (!t) return r | SLXV_INVALID;
+        switch (t->kind_) {
+          case sltk_float:
+          case sltk_int:
+          case sltk_bool:
+          case sltk_vec2:
+          case sltk_vec3:
+          case sltk_vec4:
+          case sltk_ivec2:
+          case sltk_ivec3:
+          case sltk_ivec4:
+          case sltk_bvec2:
+          case sltk_bvec3:
+          case sltk_bvec4:
+          case sltk_mat2:
+          case sltk_mat3:
+          case sltk_mat4: {
+            if (components_remaining <= 0) {
+              /* All components already filled, so this argument is futile & invalid. */
+              dx_error_loc(dx, &x->op_loc_, "Constructor with too many parameters");
+              return r | SLXV_INVALID;
+            }
+            components_remaining -= sl_expr_vec_mat_num_components(t->kind_);
+            break;
+          }
+          default:
+            dx_error_loc(dx, &x->op_loc_, "Constructor with incompatible parameter type");
+            return r | SLXV_INVALID;
+        }
+      }
+    }
+    default:
+      /* Should never get here; caller should not have invoked this function for this type. */
+      assert(!!"Invalid type");
+      return SLXV_INVALID;
+  }
+}
+
 int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_expr *x) {
   if (!x) {
     /* If NULL, then x is invalid, however, this would have been reported earlier (causing
@@ -698,8 +859,10 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
 
       return r;
     }
-    case exop_constructor:
-      if (x->constructor_type_->kind_ == sltk_struct) {
+    case exop_constructor: {
+      struct sl_type *t = sl_type_unqualified(x->constructor_type_);
+      if (!t) return SLXV_INVALID;
+      if (t->kind_ == sltk_struct) {
         size_t num_fields = 0;
         struct sl_type_field *tf = x->constructor_type_->fields_;
         if (tf) {
@@ -741,24 +904,33 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
 
         return r;
       } else {
-        if (x->num_children_ != 1) {
-          dx_error_loc(dx, &x->op_loc_, "Constructor with wrong number of parameters");
-          return SLXV_INVALID;
+        switch (t->kind_) {
+          case sltk_float:
+          case sltk_int:
+          case sltk_bool:
+          case sltk_vec2:
+          case sltk_vec3:
+          case sltk_vec4:
+          case sltk_ivec2:
+          case sltk_ivec3:
+          case sltk_ivec4:
+          case sltk_bvec2:
+          case sltk_bvec3:
+          case sltk_bvec4:
+          case sltk_mat2:
+          case sltk_mat3:
+          case sltk_mat4: {
+            int r = 0;
+            r = sl_expr_validate_vec_mat_scalar_constructor(dx, tb, x);
+            return r;
+          }
+          default:
+            dx_error_loc(dx, &x->op_loc_, "Constructor with invalid type");
+            return SLXV_INVALID;
         }
-        /* XXX: Match up the constructor logic (component-wise, or as a whole) with the
-         *      actual parameters found in-situ .. This is a re-creation of the logic
-         *      we already have in glsl_es1_assist.c so maybe transplant from there to
-         *      here, as it is fairly non-trivial. */
-        size_t n;
-        int r = 0;
-        for (n = 0; n < x->num_children_; ++n) {
-          r = r | sl_expr_validate(dx, tb, x->children_[n]);
-          if (r & SLXV_INVALID) return r;
-        }
-
-        return r;
       }
       break;
+    }
 
     case exop_logical_and:
     case exop_logical_or:
