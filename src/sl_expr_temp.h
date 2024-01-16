@@ -132,6 +132,8 @@ int sl_expr_temp_logical_and(struct sl_expr_temp *dst, const struct sl_expr_temp
 int sl_expr_temp_logical_or(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
 int sl_expr_temp_logical_xor(struct sl_expr_temp *dst, const struct sl_expr_temp *left, const struct sl_expr_temp *right);
 
+char *sl_expr_temp_to_str(const struct sl_expr_temp *val);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

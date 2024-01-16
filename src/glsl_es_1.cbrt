@@ -152,7 +152,7 @@ $: {
 
 %type primary-expression postfix-expression function-call integer-expression unary-expression multiplicative-expression additive-expression shift-expression \
       relational-expression equality-expression and-expression exclusive-or-expression inclusive-or-expression logical-and-expression logical-xor-expression \
-      logical-or-expression conditional-expression assignment-expression expression constant-expression: struct sl_expr *
+      logical-or-expression conditional-expression assignment-expression expression constant-expression initializer: struct sl_expr *
 %constructor $$ = NULL;
 %move $$ = $0; $0 = NULL;
 %destructor sl_expr_free($$);
@@ -937,7 +937,35 @@ struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   $$ = tf;
 }
 
-initializer: assignment-expression;
+initializer: assignment-expression {
+  int validation = sl_expr_validate(cc->dx_, &cc->tb_, $0);
+  if (validation & SLXV_INVALID) {
+    /* Expression is invalid, this has already been reported */
+    $$ = NULL;
+  }
+  else {
+    if (validation & SLXV_NOT_CONSTANT) {
+    /* Expression is not constant, this has not yet been reported */
+    dx_error_loc(cc->dx_, &${ 0 }, "Note: intializer expression is not constant");
+    }
+    struct sl_expr_temp temp;
+    sl_expr_temp_init(&temp, NULL);
+    int r;
+    r = sl_expr_eval(&cc->tb_, $0, &temp);
+    if (r) {
+      dx_fatal_loc(cc->dx_, &${ 0 }, "Error: intializer expression evaluation unexpectedly failed");
+    }
+    else {
+      char *val = sl_expr_temp_to_str(&temp);
+      dx_warn_loc(cc->dx_, &${ 0 }, "Initializer expression evaluated to %s", val);
+      if (val) free(val);
+
+      $$ = $0;
+      $0 = NULL;
+    }
+    sl_expr_temp_cleanup(&temp);
+  }
+}
 
 declaration-statement: declaration;
 

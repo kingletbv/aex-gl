@@ -28,6 +28,16 @@
 #include <string.h>
 #endif
 
+#ifndef INTTYPES_H_INCLUDED
+#define INTTYPES_H_INCLUDED
+#include <inttypes.h>
+#endif
+
+#ifndef ASSERT_H_INCLUDED
+#define ASSERT_H_INCLUDED
+#include <assert.h>
+#endif
+
 #ifndef SL_EXPR_TEMP_H_INCLUDED
 #define SL_EXPR_TEMP_H_INCLUDED
 #include "sl_expr_temp.h"
@@ -1483,4 +1493,69 @@ int sl_expr_temp_logical_xor(struct sl_expr_temp *dst, const struct sl_expr_temp
   }
   sl_expr_temp_cleanup(&tmp);
   return 0;
+}
+
+static size_t sl_expr_temp_to_string_buf(char **p, size_t *buf_size_remaining, size_t *total_needed, const struct sl_expr_temp *val) {
+  if (!val) return sl_buf_printf(p, buf_size_remaining, total_needed, "(null)");
+  switch (val->kind_) {
+    case sletk_void:
+      return sl_buf_printf(p, buf_size_remaining, total_needed, "(void)");
+      case sletk_array:
+      case sletk_struct: {
+        size_t n;
+        sl_buf_printf(p, buf_size_remaining, total_needed, "{ ");
+        for (n = 0; n < val->v_.comp_.num_elements_; ++n) {
+          if (n) sl_buf_printf(p, buf_size_remaining, total_needed, ", ");
+          sl_expr_temp_to_string_buf(p, buf_size_remaining, total_needed, &val->v_.comp_.elements_[n]);
+        }
+        return sl_buf_printf(p, buf_size_remaining, total_needed, " }");
+      }
+      case sletk_float:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "%f", val->v_.f_);
+      case sletk_int:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "%" PRId64, val->v_.i_);
+      case sletk_bool:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "%s", val->v_.b_ ? "true" : "false");
+      case sletk_vec2:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "vec2(%f, %f)", val->v_.v_[0], val->v_.v_[1]);
+      case sletk_vec3:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "vec3(%f, %f, %f)", val->v_.v_[0], val->v_.v_[1], val->v_.v_[2]);
+      case sletk_vec4:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "vec4(%f, %f, %f, %f)", val->v_.v_[0], val->v_.v_[1], val->v_.v_[2], val->v_.v_[3]);
+      case sletk_bvec2:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "bvec2(%s, %s)", val->v_.bv_[0] ? "true" : "false", val->v_.bv_[1] ? "true" : "false");
+      case sletk_bvec3:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "bvec3(%s, %s, %s)", val->v_.bv_[0] ? "true" : "false", val->v_.bv_[1] ? "true" : "false", val->v_.bv_[2] ? "true" : "false");
+      case sletk_bvec4:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "bvec4(%s, %s, %s, %s)", val->v_.bv_[0] ? "true" : "false", val->v_.bv_[1] ? "true" : "false", val->v_.bv_[2] ? "true" : "false", val->v_.bv_[3] ? "true" : "false");
+      case sletk_ivec2:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "ivec2(%" PRId64 ", %" PRId64 ")", val->v_.iv_[0], val->v_.iv_[1]);
+      case sletk_ivec3:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "ivec3(%" PRId64 ", %" PRId64 ", %" PRId64 ")", val->v_.iv_[0], val->v_.iv_[1], val->v_.iv_[2]);
+      case sletk_ivec4:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "ivec4(%" PRId64 ", %" PRId64 ", %" PRId64 ", %" PRId64 ")", val->v_.iv_[0], val->v_.iv_[1], val->v_.iv_[2], val->v_.iv_[3]);
+      case sletk_mat2:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "mat2(%f, %f, %f, %f)", val->v_.m_[0], val->v_.m_[1], val->v_.m_[2], val->v_.m_[3]);
+      case sletk_mat3:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "mat3(%f, %f, %f, %f, %f, %f, %f, %f, %f)", val->v_.m_[0], val->v_.m_[1], val->v_.m_[2], val->v_.m_[3], val->v_.m_[4], val->v_.m_[5], val->v_.m_[6], val->v_.m_[7], val->v_.m_[8]);
+      case sletk_mat4:
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "mat4(%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f)", val->v_.m_[0], val->v_.m_[1], val->v_.m_[2], val->v_.m_[3], val->v_.m_[4], val->v_.m_[5], val->v_.m_[6], val->v_.m_[7], val->v_.m_[8], val->v_.m_[9], val->v_.m_[10], val->v_.m_[11], val->v_.m_[12], val->v_.m_[13], val->v_.m_[14], val->v_.m_[15]);
+      default:
+        assert(!"unknown temp kind");
+        return sl_buf_printf(p, buf_size_remaining, total_needed, "(unknown)");
+  }
+}
+
+char *sl_expr_temp_to_str(const struct sl_expr_temp *val) {
+  size_t size_needed = 1 /* always need at least 1 for NULL terminator */;
+  size_t buf_size_remaining = 0;
+  char *p = NULL;
+  sl_expr_temp_to_string_buf(&p, &buf_size_remaining, &size_needed, val);
+  char *buf = (char *)malloc(size_needed);
+  if (!buf) return NULL;
+  p = buf;
+  buf_size_remaining = size_needed;
+  size_needed = 0;
+  sl_expr_temp_to_string_buf(&p, &buf_size_remaining, &size_needed, val);
+  return buf;
 }
