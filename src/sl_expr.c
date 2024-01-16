@@ -520,7 +520,7 @@ int sl_expr_validate_vec_mat_scalar_constructor(struct diags *dx, struct sl_type
       int components_remaining = components_needed;
       /* Validate each child */
       size_t n;
-      int r;
+      int r = 0;
       for (n = 0; n < x->num_children_; ++n) {
         r |= sl_expr_validate(dx, tb, x->children_[n]);
         if (r & SLXV_INVALID) return r;
@@ -558,6 +558,12 @@ int sl_expr_validate_vec_mat_scalar_constructor(struct diags *dx, struct sl_type
             return r | SLXV_INVALID;
         }
       }
+      if (components_remaining > 0) {
+        /* Not all components filled */
+        dx_error_loc(dx, &x->op_loc_, "Constructor with too few parameters");
+        return r | SLXV_INVALID;
+      }
+      return r;
     }
     default:
       /* Should never get here; caller should not have invoked this function for this type. */
