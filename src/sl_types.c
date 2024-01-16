@@ -462,17 +462,27 @@ static size_t sl_type_to_string_buf(char **p, size_t *buf_size_remaining, size_t
       sl_type_to_string_buf(p, buf_size_remaining, total_needed, t->derived_type_);
       return sl_buf_printf(p, buf_size_remaining, total_needed, "[%"PRIu64"]", t->array_size_);
     case sltk_qualifier:
+      /* Order matches section 4.7 Order of Qualification in GLSL v1.00 (p. 45) */
+
+      /* invariant-qualifier */
+      if (t->qualifiers_ & SL_TYPE_QUALIFIER_INVARIANT) sl_buf_printf(p, buf_size_remaining, total_needed, "invariant ");
+
+      /* storage-qualifier */
       if (t->qualifiers_ & SL_TYPE_QUALIFIER_CONST) sl_buf_printf(p, buf_size_remaining, total_needed, "const ");
       if (t->qualifiers_ & SL_TYPE_QUALIFIER_ATTRIBUTE) sl_buf_printf(p, buf_size_remaining, total_needed, "attribute ");
       if (t->qualifiers_ & SL_TYPE_QUALIFIER_VARYING) sl_buf_printf(p, buf_size_remaining, total_needed, "varying ");
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_INVARIANT) sl_buf_printf(p, buf_size_remaining, total_needed, "invariant ");
       if (t->qualifiers_ & SL_TYPE_QUALIFIER_UNIFORM) sl_buf_printf(p, buf_size_remaining, total_needed, "uniform ");
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_HIGH_PRECISION) sl_buf_printf(p, buf_size_remaining, total_needed, "highp ");
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_MEDIUM_PRECISION) sl_buf_printf(p, buf_size_remaining, total_needed, "mediump ");
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_LOW_PRECISION) sl_buf_printf(p, buf_size_remaining, total_needed, "lowp ");
+
+      /* parameter-qualifier */
       if (t->qualifiers_ & SL_PARAMETER_QUALIFIER_IN) sl_buf_printf(p, buf_size_remaining, total_needed, "in ");
       if (t->qualifiers_ & SL_PARAMETER_QUALIFIER_OUT) sl_buf_printf(p, buf_size_remaining, total_needed, "out ");
       if (t->qualifiers_ & SL_PARAMETER_QUALIFIER_INOUT) sl_buf_printf(p, buf_size_remaining, total_needed, "inout ");
+
+      /* precision-qualifier */
+      if (t->qualifiers_ & SL_TYPE_QUALIFIER_HIGH_PRECISION) sl_buf_printf(p, buf_size_remaining, total_needed, "highp ");
+      if (t->qualifiers_ & SL_TYPE_QUALIFIER_MEDIUM_PRECISION) sl_buf_printf(p, buf_size_remaining, total_needed, "mediump ");
+      if (t->qualifiers_ & SL_TYPE_QUALIFIER_LOW_PRECISION) sl_buf_printf(p, buf_size_remaining, total_needed, "lowp ");
+
       sl_type_to_string_buf(p, buf_size_remaining, total_needed, t->derived_type_);
       return *total_needed;
     case sltk_struct:
