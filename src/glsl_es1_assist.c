@@ -577,7 +577,7 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
       int num_src_components = 0;
       int n;
       for (n = 0; n < fs->num_parameters_; ++n) {
-        struct sl_type *pt = sl_expr_type(tb, fs->parameters_[n].expr_);
+        struct sl_type *pt = sl_type_unqualified(sl_expr_type(tb, fs->parameters_[n].expr_));
         if (!pt) {
           /* No type, assume this was an issue that's already reported. */
           return NULL;
@@ -853,5 +853,46 @@ int glsl_es1_build_array_type(struct diags *dx, struct sl_type_base *tb, struct 
   }
   sl_expr_temp_cleanup(&array_size_temp);
   *parray_type = array_type;
+  return 0;
+}
+
+int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variable *var, struct sl_expr *initializer, const struct situs *ini_loc) {
+  int initializer_must_be_constant = 0;
+  int is_const = !!(sl_type_qualifiers(var->type_) & SL_TYPE_QUALIFIER_CONST);
+  int is_global = cc->current_frame_ == &cc->global_frame_;
+  /* If the variable is declared as "const" then the initializer must be a constant.
+   * Additionally, if the variable is declared at the global scope, then the initializer
+   * must also be a constant (for we don't "execute" any code to initialize it.) */
+  initializer_must_be_constant = is_const || is_global;
+
+  int validation = sl_expr_validate(cc->dx_, &cc->tb_, initializer);
+
+  if (validation & SLXV_INVALID) {
+    /* Expression is invalid, and this has already been reported for diagnostics
+     * by sl_expr_validate(). */
+    return 0;
+  }
+
+  if (initializer_must_be_constant) {
+    if (validation & SLXV_NOT_CONSTANT) {
+      dx_error_loc(cc->dx_, ini_loc, "Error: initializer for \"%s\" must be a constant expression", var->name_);
+      return 0;
+    }
+
+    int r;
+    r = sl_expr_eval(&cc->tb_, initializer, &var->value_);
+    if (r) {
+      /* eval shouldn't fail on us after validation, unless there's no memory.
+       * Note that this might misdiagnose internal errors (e.g. the stuff we never
+       * expect to occur) for memory errors. */
+      dx_no_memory(cc->dx_);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+
+    return 0;
+  }
+  else {
+    /* XXX: Don't evaluate, instead, build assignment statement and append to current execution block. */
+  }
   return 0;
 }

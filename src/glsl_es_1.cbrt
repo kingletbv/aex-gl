@@ -692,7 +692,9 @@ init-declarator-list: init-declarator-list COMMA IDENTIFIER EQUAL initializer {
   struct sl_variable *var = NULL;
   int r = glsl_es1_declare_variable(cc, $2, &${ 2 }, cc->last_type_specifier_, &var);
   if (r) return r;
-  /* XXX: HANDLE INITIALIZERS */
+  r = glsl_es1_process_initializer(cc, var, $4, &${ 4 });
+  if (r) return r;
+
   char *type_str = sl_type_to_str(cc->last_type_specifier_);
   dx_warn_loc(cc->dx_, &${ 2 }, "Declared variable %s of type %s", $2, type_str);
   if (type_str) free(type_str);
@@ -727,7 +729,8 @@ single-declaration: fully-specified-type IDENTIFIER LEFT_BRACKET constant-expres
 single-declaration: fully-specified-type IDENTIFIER EQUAL initializer {
   struct sl_variable *var = NULL;
   int r = glsl_es1_declare_variable(cc, $1, &${ 1 }, cc->last_type_specifier_, &var);
-  /* XXX: HANDLE INITIALIZERS */
+  r = glsl_es1_process_initializer(cc, var, $3, &${ 3 });
+  if (r) return r;
   char *type_str = sl_type_to_str(cc->last_type_specifier_);
   dx_warn_loc(cc->dx_, &${ 1 }, "Declared variable %s of type %s", $1, type_str);
   if (type_str) free(type_str);
@@ -900,33 +903,8 @@ struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
 }
 
 initializer: assignment-expression {
-  int validation = sl_expr_validate(cc->dx_, &cc->tb_, $0);
-  if (validation & SLXV_INVALID) {
-    /* Expression is invalid, this has already been reported */
-    $$ = NULL;
-  }
-  else {
-    if (validation & SLXV_NOT_CONSTANT) {
-    /* Expression is not constant, this has not yet been reported */
-    dx_error_loc(cc->dx_, &${ 0 }, "Note: intializer expression is not constant");
-    }
-    struct sl_expr_temp temp;
-    sl_expr_temp_init(&temp, NULL);
-    int r;
-    r = sl_expr_eval(&cc->tb_, $0, &temp);
-    if (r) {
-      dx_fatal_loc(cc->dx_, &${ 0 }, "Error: intializer expression evaluation unexpectedly failed");
-    }
-    else {
-      char *val = sl_expr_temp_to_str(&temp);
-      dx_warn_loc(cc->dx_, &${ 0 }, "Initializer expression evaluated to %s", val);
-      if (val) free(val);
-
-      $$ = $0;
-      $0 = NULL;
-    }
-    sl_expr_temp_cleanup(&temp);
-  }
+  $$ = $0;
+  $0 = NULL;
 }
 
 declaration-statement: declaration;
@@ -964,7 +942,15 @@ selection-rest-statement: statement-with-scope;
 %over   selection-rest-statement: statement-with-scope *
 
 condition: expression;
-condition: fully-specified-type IDENTIFIER EQUAL initializer;
+condition: fully-specified-type IDENTIFIER EQUAL initializer {
+  struct sl_variable *var = NULL;
+  int r = glsl_es1_declare_variable(cc, $1, &${ 1 }, $0, &var);
+  r = glsl_es1_process_initializer(cc, var, $3, &${ 3 });
+  if (r) return r;
+  char *type_str = sl_type_to_str(cc->last_type_specifier_);
+  dx_warn_loc(cc->dx_, &${ 1 }, "Declared variable %s of type %s", $1, type_str);
+  if (type_str) free(type_str);
+}
 
 iteration-statement: WHILE LEFT_PAREN condition RIGHT_PAREN statement-no-new-scope;
 iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON;
