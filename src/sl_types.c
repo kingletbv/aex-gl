@@ -415,7 +415,6 @@ size_t sl_buf_printf(char **p, size_t *buf_size_remaining, size_t *total_needed,
 }
 
 static size_t sl_type_to_string_buf(char **p, size_t *buf_size_remaining, size_t *total_needed, const struct sl_type *t) {
-  char *start = *p;
   if (!t) return sl_buf_printf(p, buf_size_remaining, total_needed, "(null)");
   switch (t->kind_) {
     default:
