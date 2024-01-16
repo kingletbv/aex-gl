@@ -710,6 +710,9 @@ init-declarator-list: single-declaration;
 init-declarator-list: init-declarator-list COMMA IDENTIFIER {
   int r = glsl_es1_declare_variable(cc, $2, &${ 2 }, cc->last_type_specifier_, NULL);
   if (r) return r;
+  char *type_str = sl_type_to_str(cc->last_type_specifier_);
+  dx_warn_loc(cc->dx_, &${ 2 }, "Declared variable %s of type %s", $2, type_str);
+  if (type_str) free(type_str);
 }
 
 init-declarator-list: init-declarator-list COMMA IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
@@ -722,20 +725,31 @@ init-declarator-list: init-declarator-list COMMA IDENTIFIER LEFT_BRACKET constan
     struct sl_variable *var = NULL;
     int r = glsl_es1_declare_variable(cc, $2, &${ 2 }, array_type, &var);
     if (r) return r;
+    char *type_str = sl_type_to_str(array_type);
+    dx_warn_loc(cc->dx_, &${ 2 }, "Declared variable %s of type %s", $2, type_str);
+    if (type_str) free(type_str);
   }
 }
 
 init-declarator-list: init-declarator-list COMMA IDENTIFIER EQUAL initializer {
   struct sl_variable *var = NULL;
   int r = glsl_es1_declare_variable(cc, $2, &${ 2 }, cc->last_type_specifier_, &var);
+  if (r) return r;
   /* XXX: HANDLE INITIALIZERS */
+  char *type_str = sl_type_to_str(cc->last_type_specifier_);
+  dx_warn_loc(cc->dx_, &${ 2 }, "Declared variable %s of type %s", $2, type_str);
+  if (type_str) free(type_str);
 }
 
 single-declaration: fully-specified-type;
 single-declaration: fully-specified-type IDENTIFIER {
   int r = glsl_es1_declare_variable(cc, $1, &${1}, cc->last_type_specifier_, NULL);
   if (r) return r;
+  char *type_str = sl_type_to_str(cc->last_type_specifier_);
+  dx_warn_loc(cc->dx_, &${ 1 }, "Declared variable %s of type %s", $1, type_str);
+  if (type_str) free(type_str);
 }
+
 single-declaration: fully-specified-type IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $3, &${3}));
   if (!array_type && cc->last_type_specifier_) {
@@ -746,12 +760,18 @@ single-declaration: fully-specified-type IDENTIFIER LEFT_BRACKET constant-expres
     struct sl_variable *var = NULL;
     int r = glsl_es1_declare_variable(cc, $1, &${ 1 }, array_type, &var);
     if (r) return r;
+    char *type_str = sl_type_to_str(array_type);
+    dx_warn_loc(cc->dx_, &${ 1 }, "Declared variable %s of type %s", $1, type_str);
+    if (type_str) free(type_str);
   }
 }
 single-declaration: fully-specified-type IDENTIFIER EQUAL initializer {
   struct sl_variable *var = NULL;
   int r = glsl_es1_declare_variable(cc, $1, &${ 1 }, cc->last_type_specifier_, &var);
   /* XXX: HANDLE INITIALIZERS */
+  char *type_str = sl_type_to_str(cc->last_type_specifier_);
+  dx_warn_loc(cc->dx_, &${ 1 }, "Declared variable %s of type %s", $1, type_str);
+  if (type_str) free(type_str);
 }
 
 single-declaration: INVARIANT IDENTIFIER; /* XXX: HANDLE INVARIANT */

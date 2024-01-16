@@ -207,6 +207,25 @@ void sl_type_field_free_chain(struct sl_type_field *chain);
 /* Returns the type with any qualifiers removed */
 struct sl_type *sl_type_unqualified(struct sl_type *t);
 
+/* Converts the type to a string for debugging purposes, string should be freed using free() */
+char *sl_type_to_str(struct sl_type *t);
+
+/* sl_buf_printf() writes to *p and advances the *p pointer (thus, to create output, we may call
+ * it successively with the same p pointer). No output will be written beyond *buf_size_remaining,
+ * and *buf_size_remaining is reduced by the number of bytes written. *total_needed is increased
+ * by the number of bytes needed to write the output. If *buf_size_remaining is 0, then no output
+ * is written at all. Note that *total_needed does not consider the null terminator (this to
+ * ensure that multiple successive sl_buf_printf() calls don't account for the single null terminator
+ * multiple times.)
+ * At the end of this call, *p will be pointing at the NULL terminator following the formed string,
+ * or, if no string could be formed (at all, e.g. *buf_size_remaining==0), is left unaffected.
+ * If not enough bytes were available in *buf_size_remaining, *p will be set to the first byte after
+ * the NULL terminator, and the output will have been truncated such that a NULL terminator is in
+ * place.
+ * The return value is always the total_needed value; there is no way to detect errors (errors should
+ * not occur if the fmt is not malformed.) */
+size_t sl_buf_printf(char **p, size_t *buf_size_remaining, size_t *total_needed, const char *fmt, ...);
+
 #define sl_type_qualifiers(t) (((t)->kind_) == sltk_qualifier ? (t)->qualifiers_ : 0)
 
 #ifdef __cplusplus
