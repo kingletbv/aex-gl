@@ -476,6 +476,7 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
       }
       switch (t->kind_) {
         case sltk_mat2: {
+          num_target_components = 4;
           switch (t_first_param->kind_) {
             case sltk_mat2:
               for (col = 0; col < 2; ++col) {
@@ -505,6 +506,7 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
           break;
         }
         case sltk_mat3:
+          num_target_components = 9;
           switch (t_first_param->kind_) {
             case sltk_mat2:
               for (col = 0; col < 2; ++col) {
@@ -533,6 +535,7 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
           }
           break;
         case sltk_mat4:
+          num_target_components = 16;
           switch (t_first_param->kind_) {
             case sltk_mat2:
               for (col = 0; col < 2; ++col) {
@@ -694,6 +697,7 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
     for (n = 0; n < sizeof(swizzle) / sizeof(*swizzle); ++n) {
       constr_expr->swizzle_[n] = swizzle[n];
     }
+    constr_expr->num_components_ = num_target_components;
 
     for (n = 0; n < fs->num_parameters_; ++n) {
       fs->parameters_[n].expr_ = NULL; /* Ownership transferred to function_expr */
