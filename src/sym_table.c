@@ -615,8 +615,8 @@ sym_table_result_t st_find_or_insert(struct sym_table *st, sym_kind_t kind, cons
         ns->parent_ = s;
         s->left_ = ns;
         ns->is_red_ = 1;
-        ns->prev_ = s->prev_;
-        ns->next_ = s;
+        ns->prev_ = st->seq_->prev_;
+        ns->next_ = st->seq_;
         ns->prev_->next_ = ns->next_->prev_ = ns;
         ns->kind_ = kind;
 
@@ -636,8 +636,8 @@ sym_table_result_t st_find_or_insert(struct sym_table *st, sym_kind_t kind, cons
         ns->parent_ = s;
         s->right_ = ns;
         ns->is_red_ = 1;
-        ns->prev_ = s;
-        ns->next_ = s->next_;
+        ns->prev_ = st->seq_->prev_;
+        ns->next_ = st->seq_;
         ns->prev_->next_ = ns->next_->prev_ = ns;
         ns->kind_ = kind;
 
