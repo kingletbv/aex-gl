@@ -208,7 +208,7 @@ void sl_type_field_free_chain(struct sl_type_field *chain);
 struct sl_type *sl_type_unqualified(struct sl_type *t);
 
 /* Converts the type to a string for debugging purposes, string should be freed using free() */
-char *sl_type_to_str(struct sl_type *t);
+char *sl_type_to_str(const struct sl_type *t);
 
 /* sl_buf_printf() writes to *p and advances the *p pointer (thus, to create output, we may call
  * it successively with the same p pointer). No output will be written beyond *buf_size_remaining,
