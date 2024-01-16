@@ -45,6 +45,9 @@ void glsl_es1_function_call_cleanup(struct glsl_es1_function_call *fc);
 int glsl_es1_function_call_append_parameter(struct glsl_es1_function_call *fc, struct sl_expr *param_expr, const struct situs *param_loc);
 struct sl_expr *glsl_es1_field_or_swizzle_selection(struct diags *dx, struct sl_type_base *tb, struct sl_expr *x, char *field_id, const struct situs *field_loc);
 struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_table *st, struct sl_type_base *tb, struct glsl_es1_function_call *fs);
+int glsl_es1_declare_variable(struct glsl_es1_compiler *cc, const char *name, const struct situs *loc, struct sl_type *typ, struct sl_variable **ppvar);
+int glsl_es1_build_array_type(struct diags *dx, struct sl_type_base *tb, struct sl_type *base_type, struct sl_expr *size_expr, const struct situs *size_expr_loc,
+                              struct sl_type **parray_type);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -567,16 +567,19 @@ parameter-declarator: type-specifier IDENTIFIER {
 
 parameter-declarator: type-specifier IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   if (cc->current_function_prototype_ && $0) {
-    struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, $0, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $3, &${ 3 }));
-
-    if (!array_type && cc->last_type_specifier_) {
-      dx_no_memory(cc->dx_);
-      return _GLSL_ES1_NO_MEMORY;
+    struct sl_type *array_type = NULL;
+    int r;
+    r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, $0, $3, &${ 3 }, &array_type);
+    if (r) return r;
+    if (!array_type) {
+      /* Failed to put an array type together, already reported */
     }
-    size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, $1, &${ 1 }, array_type);
-    if (parameter_index == SIZE_MAX) {
-      dx_no_memory(cc->dx_);
-      return _GLSL_ES1_NO_MEMORY;
+    else {
+      size_t parameter_index = sl_function_append_parameter(cc->current_function_prototype_, $1, &${ 1 }, array_type);
+      if (parameter_index == SIZE_MAX) {
+        dx_no_memory(cc->dx_);
+        return _GLSL_ES1_NO_MEMORY;
+      }
     }
   }
 }
@@ -645,66 +648,18 @@ parameter-type-specifier: type-specifier {
 
 parameter-type-specifier: type-specifier LEFT_BRACKET constant-expression RIGHT_BRACKET {
   if ($0) {
-    struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, $0, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $2, &${ 2 }));
-
-    if (!array_type && cc->last_type_specifier_) {
-      dx_no_memory(cc->dx_);
-      return _GLSL_ES1_NO_MEMORY;
+    struct sl_type *array_type = NULL;
+    int r;
+    r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, $0, $2, &${ 2 }, &array_type);
+    if (r) return r;
+    if (!array_type) {
+      /* Failed to put an array type together, already reported */
     }
-    $$ = array_type;
-  }
-}
-
-%%
-
-int glsl_es1_declare_variable(struct glsl_es1_compiler *cc, const char *name, const struct situs *loc, struct sl_type *typ, struct sl_variable **ppvar) {
-  struct sym *s = NULL;
-  sym_table_result_t str = st_find_or_insert(cc->current_scope_, SK_VARIABLE, name, strlen(name), loc, sizeof(struct sym), &s);
-  if (str == STR_NOMEM) {
-    dx_no_memory(cc->dx_);
-    return _GLSL_ES1_NO_MEMORY;
-  }
-  if (str == STR_DUPLICATE) {
-    dx_error_loc(cc->dx_, loc, "Error: duplicate identifier \"%s\" declaration", name);
-    dx_error_loc(cc->dx_, &s->loc_, "See original use of \"%s\"", s->name_);
-  }
-  struct sl_variable *var = sl_frame_alloc_variable(cc->current_frame_, name, loc, typ);
-  if (!var) {
-    if (str == STR_OK) {
-      st_remove(cc->current_scope_, s);
-      sym_cleanup(s);
-      free(s);
-    }
-    dx_no_memory(cc->dx_);
-    return _GLSL_ES1_NO_MEMORY;
-  }
-  var->symbol_ = s;
-  s->v_.variable_ = var;
-  if (ppvar) *ppvar = var;
-  return 0; /* 0 = good */
-}
-
-/* XXX: Change for final constant expr evaluation */
-uint64_t glsl_es1_XXX_constant_int_array_size_eval_expr(struct glsl_es1_compiler *cc, struct sl_expr *expr, const struct situs *loc) {
-  /* XXX: EVALUATE CONSTANT-EXPRESSION FOR ARRAY SIZE */
-  uint64_t array_size = 1; /* XXX: EVALUTE ARRAY SIZE */
-  int invalid_array_size = 1;
-  if (expr) {
-    /* XXX: Placeholder code to see if the literal value bubbles all the way up */
-    if ((expr->op_ == exop_literal) && (expr->literal_value_.kind_ == sletk_int)) {
-      if (expr->literal_value_.v_.i_ > 0) {
-        array_size = (uint64_t)expr->literal_value_.v_.i_;
-        invalid_array_size = 0;
-      }
+    else {
+      $$ = array_type;
     }
   }
-  if (invalid_array_size) {
-    dx_error_loc(cc->dx_, loc, "Error: array size must be a constant integer expression greater than 0");
-  }
-  return array_size;
 }
-
-%%
 
 init-declarator-list: single-declaration;
 init-declarator-list: init-declarator-list COMMA IDENTIFIER {
@@ -716,12 +671,14 @@ init-declarator-list: init-declarator-list COMMA IDENTIFIER {
 }
 
 init-declarator-list: init-declarator-list COMMA IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
-  struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $4, &${ 4 }));
-  if (!array_type && cc->last_type_specifier_) {
-    dx_no_memory(cc->dx_);
-    return _GLSL_ES1_NO_MEMORY;
+  struct sl_type *array_type = NULL;
+  int r;
+  r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, cc->last_type_specifier_, $4, &${ 4 }, &array_type);
+  if (r) return r;
+  if (!array_type) {
+    /* Failed to put an array type together, already reported */
   }
-  if (array_type) {
+  else {
     struct sl_variable *var = NULL;
     int r = glsl_es1_declare_variable(cc, $2, &${ 2 }, array_type, &var);
     if (r) return r;
@@ -751,12 +708,14 @@ single-declaration: fully-specified-type IDENTIFIER {
 }
 
 single-declaration: fully-specified-type IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
-  struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $3, &${3}));
-  if (!array_type && cc->last_type_specifier_) {
-    dx_no_memory(cc->dx_);
-    return _GLSL_ES1_NO_MEMORY;
+  struct sl_type *array_type = NULL;
+  int r;
+  r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, $0, $3, &${ 3 }, &array_type);
+  if (r) return r;
+  if (!array_type) {
+    /* Failed to put an array type together, already reported */
   }
-  if (array_type) {
+  else {
     struct sl_variable *var = NULL;
     int r = glsl_es1_declare_variable(cc, $1, &${ 1 }, array_type, &var);
     if (r) return r;
@@ -921,20 +880,23 @@ struct-declarator: IDENTIFIER {
 }
 
 struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
-  struct sl_type *array_type = sl_type_base_array_type(&cc->tb_, cc->last_type_specifier_, glsl_es1_XXX_constant_int_array_size_eval_expr(cc, $2, &${ 2 }));
-
-  if (!array_type && cc->last_type_specifier_) {
-    dx_no_memory(cc->dx_);
-    return _GLSL_ES1_NO_MEMORY;
+  struct sl_type *array_type = NULL;
+  int r;
+  r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, cc->last_type_specifier_, $2, &${ 2 }, &array_type);
+  if (r) return r;
+  if (!array_type) {
+    /* Failed to put an array type together, already reported */
   }
-  struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, $0, &${0}, array_type);
-  if (!tf) {
-    dx_no_memory(cc->dx_);
-    return _GLSL_ES1_NO_MEMORY;
+  else {
+    struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, $0, &${ 0 }, array_type);
+    if (!tf) {
+      dx_no_memory(cc->dx_);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    tf->ident_ = $0; /* tf adopts ownership, prevents malloc/free pair. */
+    $0 = NULL; /* tf adopted ownership */
+    $$ = tf;
   }
-  tf->ident_ = $0; /* tf adopts ownership, prevents malloc/free pair. */
-  $0 = NULL; /* tf adopted ownership */
-  $$ = tf;
 }
 
 initializer: assignment-expression {

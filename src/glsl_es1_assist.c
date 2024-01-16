@@ -53,6 +53,11 @@
 #include "sl_frame.h"
 #endif
 
+#ifndef GLSL_ES1_COMPILER_H_INCLUDED
+#define GLSL_ES1_COMPILER_H_INCLUDED
+#include "glsl_es1_compiler.h"
+#endif
+
 #ifndef GLSL_ES1_ASSIST_H_INCLUDED
 #define GLSL_ES1_ASSIST_H_INCLUDED
 #include "glsl_es1_assist.h"
@@ -782,4 +787,71 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
 
     return function_expr;
   }
+}
+
+int glsl_es1_declare_variable(struct glsl_es1_compiler *cc, const char *name, const struct situs *loc, struct sl_type *typ, struct sl_variable **ppvar) {
+  struct sym *s = NULL;
+  sym_table_result_t str = st_find_or_insert(cc->current_scope_, SK_VARIABLE, name, strlen(name), loc, sizeof(struct sym), &s);
+  if (str == STR_NOMEM) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  if (str == STR_DUPLICATE) {
+    dx_error_loc(cc->dx_, loc, "Error: duplicate identifier \"%s\" declaration", name);
+    dx_error_loc(cc->dx_, &s->loc_, "See original use of \"%s\"", s->name_);
+  }
+  struct sl_variable *var = sl_frame_alloc_variable(cc->current_frame_, name, loc, typ);
+  if (!var) {
+    if (str == STR_OK) {
+      st_remove(cc->current_scope_, s);
+      sym_cleanup(s);
+      free(s);
+    }
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  var->symbol_ = s;
+  s->v_.variable_ = var;
+  if (ppvar) *ppvar = var;
+  return 0; /* 0 = good */
+}
+
+int glsl_es1_build_array_type(struct diags *dx, struct sl_type_base *tb, struct sl_type *base_type, struct sl_expr *size_expr, const struct situs *size_expr_loc,
+                              struct sl_type **parray_type) {
+  /* Expr has already been validated, so we know it's both valid and constant. */
+  struct sl_expr_temp array_size_temp;
+  sl_expr_temp_init(&array_size_temp, NULL);
+  int r;
+  r = sl_expr_eval(tb, size_expr, &array_size_temp);
+  if (r) {
+    dx_no_memory(dx);
+    sl_expr_temp_cleanup(&array_size_temp);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  struct sl_type *array_size_expr_type = sl_expr_temp_type(tb, &array_size_temp);
+  if (!array_size_expr_type) {
+    dx_no_memory(dx);
+    sl_expr_temp_cleanup(&array_size_temp);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  if (array_size_expr_type->kind_ != sltk_int) {
+    dx_error_loc(dx, size_expr_loc, "Error: array size expression must be an integer");
+    sl_expr_temp_cleanup(&array_size_temp);
+    return 0;
+  }
+  int64_t array_size = array_size_temp.v_.i_;
+  if (array_size <= 0) {
+    dx_error_loc(dx, size_expr_loc, "Error: array size expression must be positive non-zero integer");
+    sl_expr_temp_cleanup(&array_size_temp);
+    return 0;
+  }
+  struct sl_type *array_type = sl_type_base_array_type(tb, base_type, array_size);
+  if (!array_type) {
+    dx_no_memory(dx);
+    sl_expr_temp_cleanup(&array_size_temp);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  sl_expr_temp_cleanup(&array_size_temp);
+  *parray_type = array_type;
+  return 0;
 }
