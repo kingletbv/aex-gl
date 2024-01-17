@@ -38,6 +38,7 @@
       <Filter>pp</Filter>
     </ClCompile>
     <ClCompile Include="..\src\glsl_es1_assist.c" />
+    <ClCompile Include="..\src\sl_stmt.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -82,6 +83,7 @@
       <Filter>pp</Filter>
     </ClInclude>
     <ClInclude Include="..\src\glsl_es1_assist.h" />
+    <ClInclude Include="..\src\sl_stmt.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">

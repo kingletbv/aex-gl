@@ -62,6 +62,11 @@
 #include "sl_frame.h"
 #endif
 
+#ifndef SL_STMT_H_INCLUDED
+#define SL_STMT_H_INCLUDED
+#include "sl_stmt.h"
+#endif
+
 #ifndef GLSL_ES1_ASSIST_H_INCLUDED
 #define GLSL_ES1_ASSIST_H_INCLUDED
 #include "glsl_es1_assist.h"
@@ -467,6 +472,13 @@ constant-expression: conditional-expression  {
 %move $$ = $0; $0 = NULL;
 %destructor if ($$) sl_frame_free_function($$);
 
+/* The statements being passed up here are not declarations but initializers. The declaration part is 
+ * in the symbol tables and frames. */
+%type declaration init-declarator-list single-declaration condition: struct sl_stmt *
+%constructor $$ = NULL;
+%move $$ = $0; $0 = NULL;
+%destructor if ($$) sl_stmt_free_list($$);
+
 declaration: function-prototype SEMICOLON {
   struct sl_function *f;
   f = $0;
@@ -518,7 +530,9 @@ declaration: function-prototype SEMICOLON {
 
 }
 
-declaration: init-declarator-list SEMICOLON;
+declaration: init-declarator-list SEMICOLON {
+  $$ = $0; $0 = NULL;
+}
 declaration: PRECISION precision-qualifier type-specifier-no-prec SEMICOLON;
 
 function-prototype: function-declarator RIGHT_PAREN {
@@ -668,6 +682,8 @@ init-declarator-list: init-declarator-list COMMA IDENTIFIER {
   char *type_str = sl_type_to_str(cc->last_type_specifier_);
   dx_warn_loc(cc->dx_, &${ 2 }, "Declared variable %s of type %s", $2, type_str);
   if (type_str) free(type_str);
+  /* No initializers on this one, pass up any previous ones */
+  $$ = $0; $0 = NULL;
 }
 
 init-declarator-list: init-declarator-list COMMA IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
@@ -686,18 +702,25 @@ init-declarator-list: init-declarator-list COMMA IDENTIFIER LEFT_BRACKET constan
     dx_warn_loc(cc->dx_, &${ 2 }, "Declared variable %s of type %s", $2, type_str);
     if (type_str) free(type_str);
   }
+  /* No initializers on this one, pass up any previous ones */
+  $$ = $0; $0 = NULL;
 }
 
 init-declarator-list: init-declarator-list COMMA IDENTIFIER EQUAL initializer {
   struct sl_variable *var = NULL;
   int r = glsl_es1_declare_variable(cc, $2, &${ 2 }, cc->last_type_specifier_, &var);
   if (r) return r;
-  r = glsl_es1_process_initializer(cc, var, $4, &${ 4 });
+  struct sl_stmt *stmt = NULL;
+  r = glsl_es1_process_initializer(cc, var, &$4, &${ 4 }, &${3}, &stmt);
   if (r) return r;
 
   char *type_str = sl_type_to_str(cc->last_type_specifier_);
   dx_warn_loc(cc->dx_, &${ 2 }, "Declared variable %s of type %s", $2, type_str);
   if (type_str) free(type_str);
+
+  /* Pass up both this initializer (if any) and any prior ones */
+  $$ = sl_stmt_append_list($0, stmt);
+  $0 = NULL;
 }
 
 single-declaration: fully-specified-type;
@@ -729,11 +752,15 @@ single-declaration: fully-specified-type IDENTIFIER LEFT_BRACKET constant-expres
 single-declaration: fully-specified-type IDENTIFIER EQUAL initializer {
   struct sl_variable *var = NULL;
   int r = glsl_es1_declare_variable(cc, $1, &${ 1 }, cc->last_type_specifier_, &var);
-  r = glsl_es1_process_initializer(cc, var, $3, &${ 3 });
+  struct sl_stmt *stmt = NULL;
+  r = glsl_es1_process_initializer(cc, var, &$3, &${ 3 }, &${2}, &stmt);
   if (r) return r;
   char *type_str = sl_type_to_str(cc->last_type_specifier_);
   dx_warn_loc(cc->dx_, &${ 1 }, "Declared variable %s of type %s", $1, type_str);
   if (type_str) free(type_str);
+
+  /* Pass up initializer (if any) */
+  $$ = stmt;
 }
 
 single-declaration: INVARIANT IDENTIFIER; /* XXX: HANDLE INVARIANT */
@@ -945,11 +972,13 @@ condition: expression;
 condition: fully-specified-type IDENTIFIER EQUAL initializer {
   struct sl_variable *var = NULL;
   int r = glsl_es1_declare_variable(cc, $1, &${ 1 }, $0, &var);
-  r = glsl_es1_process_initializer(cc, var, $3, &${ 3 });
+  struct sl_stmt *stmt = NULL;
+  r = glsl_es1_process_initializer(cc, var, &$3, &${ 3 }, &${2}, &stmt);
   if (r) return r;
   char *type_str = sl_type_to_str(cc->last_type_specifier_);
   dx_warn_loc(cc->dx_, &${ 1 }, "Declared variable %s of type %s", $1, type_str);
   if (type_str) free(type_str);
+  $$ = stmt;
 }
 
 iteration-statement: WHILE LEFT_PAREN condition RIGHT_PAREN statement-no-new-scope;

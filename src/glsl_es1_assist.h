@@ -24,6 +24,7 @@ extern "C" {
 
 struct sl_expr;
 struct situs;
+struct sl_stmt;
 
 struct glsl_es1_function_call_parameter {
   struct sl_expr *expr_;
@@ -48,7 +49,8 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
 int glsl_es1_declare_variable(struct glsl_es1_compiler *cc, const char *name, const struct situs *loc, struct sl_type *typ, struct sl_variable **ppvar);
 int glsl_es1_build_array_type(struct diags *dx, struct sl_type_base *tb, struct sl_type *base_type, struct sl_expr *size_expr, const struct situs *size_expr_loc,
                               struct sl_type **parray_type);
-int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variable *var, struct sl_expr *initializer, const struct situs *ini_loc);
+int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variable *var, struct sl_expr **pinitializer, const struct situs *ini_loc, const struct situs *equal_loc, 
+                                 struct sl_stmt **pinitializer_stmt);
 
 #ifdef __cplusplus
 } /* extern "C" */

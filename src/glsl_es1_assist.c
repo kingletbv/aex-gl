@@ -53,6 +53,11 @@
 #include "sl_frame.h"
 #endif
 
+#ifndef SL_STMT_H_INCLUDED
+#define SL_STMT_H_INCLUDED
+#include "sl_stmt.h"
+#endif
+
 #ifndef GLSL_ES1_COMPILER_H_INCLUDED
 #define GLSL_ES1_COMPILER_H_INCLUDED
 #include "glsl_es1_compiler.h"
@@ -856,7 +861,8 @@ int glsl_es1_build_array_type(struct diags *dx, struct sl_type_base *tb, struct 
   return 0;
 }
 
-int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variable *var, struct sl_expr *initializer, const struct situs *ini_loc) {
+int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variable *var, struct sl_expr **pinitializer, const struct situs *ini_loc, const struct situs *equal_loc, 
+                                 struct sl_stmt **pinitializer_stmt) {
   int initializer_must_be_constant = 0;
   int is_const = !!(sl_type_qualifiers(var->type_) & SL_TYPE_QUALIFIER_CONST);
   int is_global = cc->current_frame_ == &cc->global_frame_;
@@ -865,7 +871,7 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
    * must also be a constant (for we don't "execute" any code to initialize it.) */
   initializer_must_be_constant = is_const || is_global;
 
-  int validation = sl_expr_validate(cc->dx_, &cc->tb_, initializer);
+  int validation = sl_expr_validate(cc->dx_, &cc->tb_, *pinitializer);
 
   if (validation & SLXV_INVALID) {
     /* Expression is invalid, and this has already been reported for diagnostics
@@ -880,7 +886,7 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
     }
 
     int r;
-    r = sl_expr_eval(&cc->tb_, initializer, &var->value_);
+    r = sl_expr_eval(&cc->tb_, *pinitializer, &var->value_);
     if (r) {
       /* eval shouldn't fail on us after validation, unless there's no memory.
        * Note that this might misdiagnose internal errors (e.g. the stuff we never
@@ -889,10 +895,50 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
       return _GLSL_ES1_NO_MEMORY;
     }
 
+    /* Note that we don't clear *pinitializer, instead expect caller to
+     * free it; rationale being we copied its evaluated value instead. */
+
     return 0;
   }
   else {
-    /* XXX: Don't evaluate, instead, build assignment statement and append to current execution block. */
+    /* Initializer at runtime */
+    struct sl_stmt *initializer_stmt = sl_stmt_alloc();
+    if (!initializer_stmt) {
+      dx_no_memory(cc->dx_);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    /* Have to manually verify the types match because the expression was already validated
+     * and we don't want diagnostics to be issued twice. */
+    struct sl_expr *var_expr = sl_expr_alloc_variable(var, &var->location_);
+
+    struct sl_type *lvalue_type = sl_type_unqualified(sl_expr_type(&cc->tb_, var_expr));
+    struct sl_type *expr_type = sl_type_unqualified(sl_expr_type(&cc->tb_, *pinitializer));
+    if (lvalue_type != expr_type) {
+      dx_error_loc(cc->dx_, equal_loc, "Initializer with incompatible type");
+
+      /* We issued the error and that's enough, we don't need to halt compilation by having
+       * it return a value, the user has the diagnostic, the variable was declared, but its
+       * initialization is not valid and hence not performed. */
+      return 0;
+    }
+
+    struct sl_expr *assign_expr = sl_expr_alloc_binop(exop_assign, equal_loc, &var_expr, pinitializer);
+
+    if (assign_expr) {
+      /* We have an assignment expression, this implies *pinitializer and var_expr are now NULL */
+      assert(!*pinitializer);
+      assert(!var_expr);
+
+      initializer_stmt->prep_ = assign_expr;
+      *pinitializer_stmt = initializer_stmt;
+      return 0;
+    }
+    if (initializer_stmt) sl_stmt_free(initializer_stmt);
+    if (var_expr) sl_expr_free(var_expr);
+    if (assign_expr) sl_expr_free(assign_expr);
+    
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
   }
   return 0;
 }
