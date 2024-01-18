@@ -112,6 +112,7 @@
 %nt compound-statement-no-new-scope statement-list expression-statement selection-statement
 %nt selection-rest-statement condition iteration-statement for-init-statement condition-opt
 %nt for-rest-statement jump-statement translation-unit external-declaration function-definition
+%nt start-scope
 
 %nt grammar
 
@@ -965,18 +966,49 @@ simple-statement: jump-statement {
   $$ = $0; $0 = NULL;
 }
 
+%type start-scope: struct sym_table *
+%constructor $$ = NULL;
+%move $$ = $0; $0 = NULL;
+%destructor if ($$) { st_cleanup($$); free($$); }
+start-scope: {
+  struct sym_table *st = (struct sym_table *)malloc(sizeof(struct sym_table));
+  if (!st) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  st_init(st, cc->current_scope_);
+  $$ = st;
+}
+
 compound-statement-with-scope: LEFT_BRACE RIGHT_BRACE {
   /* Passing up NULL, rather than an empty block sl_stmt of some kind.. */
 }
-compound-statement-with-scope: LEFT_BRACE statement-list RIGHT_BRACE {
+compound-statement-with-scope: LEFT_BRACE start-scope statement-list RIGHT_BRACE {
+  /* pop scope */
+  if ($1) {
+    assert((cc->current_scope_ == $1) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $1->parent_;
+  }
+
+  $$ = $2; $2 = NULL;
+}
+
+statement-with-scope: start-scope compound-statement-no-new-scope {
+  /* pop scope */
+  if ($0) {
+    assert((cc->current_scope_ == $0) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $0->parent_;
+  }
   $$ = $1; $1 = NULL;
 }
 
-statement-with-scope: compound-statement-no-new-scope {
-  $$ = $0; $0 = NULL;
-}
-statement-with-scope: simple-statement {
-  $$ = $0; $0 = NULL;
+statement-with-scope: start-scope simple-statement {
+  /* pop scope */
+  if ($0) {
+    assert((cc->current_scope_ == $0) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $0->parent_;
+  }
+  $$ = $1; $1 = NULL;
 }
 
 compound-statement-no-new-scope: LEFT_BRACE RIGHT_BRACE {
@@ -1025,7 +1057,6 @@ expression-statement: expression SEMICOLON {
   }
 }
 
-
 selection-statement: IF LEFT_PAREN expression RIGHT_PAREN selection-rest-statement {
   if ($4) {
     $4->condition_ = $2;
@@ -1073,9 +1104,29 @@ condition: fully-specified-type IDENTIFIER EQUAL initializer {
   $$ = stmt;
 }
 
-iteration-statement: WHILE LEFT_PAREN condition RIGHT_PAREN statement-no-new-scope;
-iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON;
-iteration-statement: FOR LEFT_PAREN for-init-statement for-rest-statement RIGHT_PAREN statement-no-new-scope;
+iteration-statement: WHILE start-scope LEFT_PAREN condition RIGHT_PAREN statement-no-new-scope {
+  /* pop scope */
+  if ($1) {
+    assert((cc->current_scope_ == $1) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $1->parent_;
+  }
+}
+
+iteration-statement: DO start-scope statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON {
+  /* pop scope */
+  if ($1) {
+    assert((cc->current_scope_ == $1) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $1->parent_;
+  }
+}
+
+iteration-statement: FOR start-scope LEFT_PAREN for-init-statement for-rest-statement RIGHT_PAREN statement-no-new-scope {
+  /* pop scope */
+  if ($1) {
+    assert((cc->current_scope_ == $1) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $1->parent_;
+  }
+}
 
 for-init-statement: expression-statement;
 for-init-statement: declaration-statement;
