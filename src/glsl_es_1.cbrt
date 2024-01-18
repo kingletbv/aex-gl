@@ -472,9 +472,13 @@ constant-expression: conditional-expression  {
 %move $$ = $0; $0 = NULL;
 %destructor if ($$) sl_frame_free_function($$);
 
-/* The statements being passed up here are not declarations but initializers. The declaration part is 
+/* The statements being passed up here for declaration, init-declarator-list and single-declaration, are not declarations 
+ * but initializers. The declaration part is 
  * in the symbol tables and frames. */
-%type declaration init-declarator-list single-declaration condition: struct sl_stmt *
+%type declaration init-declarator-list single-declaration \
+      condition declaration-statement statement-no-new-scope simple-statement compound-statement-with-scope statement-with-scope \
+      compound-statement-no-new-scope statement-list expression-statement selection-statement selection-rest-statement \
+      iteration-statement jump-statement: struct sl_stmt *
 %constructor $$ = NULL;
 %move $$ = $0; $0 = NULL;
 %destructor if ($$) sl_stmt_free_list($$);
@@ -934,36 +938,124 @@ initializer: assignment-expression {
   $0 = NULL;
 }
 
-declaration-statement: declaration;
+declaration-statement: declaration {
+  $$ = $0; $0 = NULL;
+}
 
-statement-no-new-scope: compound-statement-with-scope;
-statement-no-new-scope: simple-statement;
+statement-no-new-scope: compound-statement-with-scope {
+  $$ = $0; $0 = NULL;
+}
+statement-no-new-scope: simple-statement {
+  $$ = $0; $0 = NULL;
+}
 
-simple-statement: declaration-statement;
-simple-statement: expression-statement;
-simple-statement: selection-statement;
-simple-statement: iteration-statement;
-simple-statement: jump-statement;
+simple-statement: declaration-statement {
+  $$ = $0; $0 = NULL;
+}
+simple-statement: expression-statement {
+  $$ = $0; $0 = NULL;
+}
+simple-statement: selection-statement {
+  $$ = $0; $0 = NULL;
+}
+simple-statement: iteration-statement {
+  $$ = $0; $0 = NULL;
+}
+simple-statement: jump-statement {
+  $$ = $0; $0 = NULL;
+}
 
-compound-statement-with-scope: LEFT_BRACE RIGHT_BRACE;
-compound-statement-with-scope: LEFT_BRACE statement-list RIGHT_BRACE;
+compound-statement-with-scope: LEFT_BRACE RIGHT_BRACE {
+  /* Passing up NULL, rather than an empty block sl_stmt of some kind.. */
+}
+compound-statement-with-scope: LEFT_BRACE statement-list RIGHT_BRACE {
+  $$ = $1; $1 = NULL;
+}
 
-statement-with-scope: compound-statement-no-new-scope;
-statement-with-scope: simple-statement;
+statement-with-scope: compound-statement-no-new-scope {
+  $$ = $0; $0 = NULL;
+}
+statement-with-scope: simple-statement {
+  $$ = $0; $0 = NULL;
+}
 
-compound-statement-no-new-scope: LEFT_BRACE RIGHT_BRACE;
-compound-statement-no-new-scope: LEFT_BRACE statement-list RIGHT_BRACE;
+compound-statement-no-new-scope: LEFT_BRACE RIGHT_BRACE {
+  /* Passing up NULL, rather than an empty block sl_stmt of some kind.. */
+}
+compound-statement-no-new-scope: LEFT_BRACE statement-list RIGHT_BRACE {
+  $$ = $1; $1 = NULL;
+}
 
-statement-list: statement-no-new-scope;
-statement-list: statement-list statement-no-new-scope;
+statement-list: statement-no-new-scope {
+  $$ = $0; $0 = NULL;
+}
 
-expression-statement: SEMICOLON;
-expression-statement: expression SEMICOLON;
+statement-list: statement-list statement-no-new-scope {
+  $$ = sl_stmt_append_list($0, $1);
+  $0 = $1 = NULL;
+}
 
-selection-statement: IF LEFT_PAREN expression RIGHT_PAREN selection-rest-statement;
+expression-statement: SEMICOLON {
+  $$ = sl_stmt_alloc();
+  if (!$$) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$->kind_ = slsk_expression;
+  $$->prep_ = NULL;
+}
 
-selection-rest-statement: statement-with-scope ELSE statement-with-scope;
-selection-rest-statement: statement-with-scope;
+expression-statement: expression SEMICOLON {
+  if ($0) {
+    int validation = sl_expr_validate(cc->dx_, &cc->tb_, $0);
+    if (validation & SLXV_INVALID) {
+      /* Expression is invalid, how has just been reported to the user by sl_expr_validate() */
+      $$ = NULL;
+    }
+    else {
+      $$ = sl_stmt_alloc();
+      if (!$$) {
+        dx_no_memory(cc->dx_);
+        return _GLSL_ES1_NO_MEMORY;
+      }
+      $$->kind_ = slsk_expression;
+      $$->prep_ = $0;
+      $0 = NULL;
+    }
+  }
+}
+
+
+selection-statement: IF LEFT_PAREN expression RIGHT_PAREN selection-rest-statement {
+  if ($4) {
+    $4->condition_ = $2;
+    $2 = NULL;
+  }
+  $$ = $4; $4 = NULL;
+}
+
+selection-rest-statement: statement-with-scope ELSE statement-with-scope {
+  $$ = sl_stmt_alloc();
+  if (!$$) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$->kind_ = slsk_if;
+  $$->true_branch_ = $0;
+  $$->false_branch_ = $2;
+  $0 = NULL;
+  $2 = NULL;
+}
+selection-rest-statement: statement-with-scope {
+  $$ = sl_stmt_alloc();
+  if (!$$) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$->kind_ = slsk_continue;
+  $$->true_branch_ = $0;
+  $0 = NULL;
+}
 
 %prefer selection-rest-statement: statement-with-scope * ELSE statement-with-scope
 %over   selection-rest-statement: statement-with-scope *
@@ -994,11 +1086,51 @@ condition-opt: ;
 for-rest-statement: condition-opt SEMICOLON;
 for-rest-statement: condition-opt SEMICOLON expression;
 
-jump-statement: CONTINUE SEMICOLON;
-jump-statement: BREAK SEMICOLON;
-jump-statement: RETURN SEMICOLON;
-jump-statement: RETURN expression SEMICOLON;
-jump-statement: DISCARD SEMICOLON;
+jump-statement: CONTINUE SEMICOLON {
+  $$ = sl_stmt_alloc();
+  if (!$$) { 
+    dx_no_memory(cc->dx_); 
+    return _GLSL_ES1_NO_MEMORY; 
+  }
+  $$->kind_ = slsk_continue;
+}
+
+jump-statement: BREAK SEMICOLON {
+  $$ = sl_stmt_alloc();
+  if (!$$) { 
+    dx_no_memory(cc->dx_); 
+    return _GLSL_ES1_NO_MEMORY; 
+  }
+  $$->kind_ = slsk_break;
+}
+
+jump-statement: RETURN SEMICOLON {
+  $$ = sl_stmt_alloc();
+  if (!$$) { 
+    dx_no_memory(cc->dx_); 
+    return _GLSL_ES1_NO_MEMORY; 
+  }
+  $$->kind_ = slsk_return;
+}
+
+jump-statement: RETURN expression SEMICOLON  {
+  $$ = sl_stmt_alloc();
+  if (!$$) { 
+    dx_no_memory(cc->dx_); 
+    return _GLSL_ES1_NO_MEMORY; 
+  }
+  $$->kind_ = slsk_return;
+  $$->prep_ = $1; $1 = NULL;
+}
+
+jump-statement: DISCARD SEMICOLON {
+  $$ = sl_stmt_alloc();
+  if (!$$) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$->kind_ = slsk_discard;
+}
 
 /* Reset common action - we don't want to merge the entire source into a single large situs; hence
  * the largest productions (translation unit, external declarations and whole function definitions)

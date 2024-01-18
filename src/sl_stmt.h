@@ -56,7 +56,8 @@ struct sl_stmt {
 
   /* Prep expression for (x;;)
    * Also the initializer assignment for slsk_for()
-   * and the expression to execute for slsk_expression. */
+   * and the expression to execute for slsk_expression (which can be NULL if the expression is empty, just a semicolon.)
+   * and the value (if any) to return for slsk_return. */
   struct sl_expr *prep_;
 
   /* Condition expression for if (x), while (x), do-while(x), for (;x;). */
