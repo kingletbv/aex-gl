@@ -23,6 +23,11 @@
 #include "sl_expr.h"
 #endif
 
+#ifndef SYM_TABLE_H_INCLUDED
+#define SYM_TABLE_H_INCLUDED
+#include "sym_table.h"
+#endif
+
 void sl_stmt_init(struct sl_stmt *s) {
   s->kind_ = slsk_invalid;
   situs_init(&s->keyword_loc_);
@@ -31,6 +36,7 @@ void sl_stmt_init(struct sl_stmt *s) {
   s->prep_ = s->condition_ = s->post_ = NULL;
   s->true_branch_ = NULL;
   s->false_branch_ = NULL;
+  s->scope_ = NULL;
 }
 
 void sl_stmt_cleanup(struct sl_stmt *s) {
@@ -40,6 +46,10 @@ void sl_stmt_cleanup(struct sl_stmt *s) {
   sl_expr_free(s->post_);
   while (s->true_branch_) sl_stmt_cleanup(s->true_branch_);
   while (s->false_branch_) sl_stmt_cleanup(s->false_branch_);
+  if (s->scope_) {
+    st_cleanup(s->scope_);
+    free(s->scope_);
+  }
 }
 
 void sl_stmt_detach(struct sl_stmt *child) {

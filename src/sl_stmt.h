@@ -31,6 +31,7 @@ extern "C" {
 #endif
 
 struct sl_expr;
+struct sym_table;
 
 typedef enum sl_stmt_kind {
   slsk_invalid,
@@ -42,7 +43,8 @@ typedef enum sl_stmt_kind {
   slsk_continue,
   slsk_break,
   slsk_return,
-  slsk_discard
+  slsk_discard,
+  slsk_compound
 } sl_stmt_kind_t;
 
 struct sl_stmt {
@@ -72,6 +74,14 @@ struct sl_stmt {
   /* False branch is the else branch of the if. */
   struct sl_stmt *false_branch_;
 
+  /* Scope block for compound statements.
+   * slsk_compound: the scope for the compound statement, may be NULL. 
+   * slsk_for: the scope for the for statement and its body, starting with the condition (e.g. "for (int x=0; ;) { .. }", the
+   *           "int x" goes into this symtable and the scope is used in the for's body.. That the for's body uses the same
+   *           scope has semantic consequences, e.g. "for (int x;;) { int x; <-- Error, duplicate identfier "x" declaration }"
+   *           instead of hiding the original "x" declaration, it conflicts, because both are in the same scope.
+   */
+  struct sym_table *scope_;
 };
 
 void sl_stmt_init(struct sl_stmt *s);
