@@ -1101,7 +1101,9 @@ selection-rest-statement: statement-with-scope ELSE statement-with-scope {
   }
   $$->kind_ = slsk_if;
   $$->true_branch_ = $0;
+  sl_stmt_set_list_parent($$->true_branch_, $$);
   $$->false_branch_ = $2;
+  sl_stmt_set_list_parent($$->false_branch_, $$);
   $0 = NULL;
   $2 = NULL;
 }
@@ -1114,6 +1116,7 @@ selection-rest-statement: statement-with-scope {
   }
   $$->kind_ = slsk_continue;
   $$->true_branch_ = $0;
+  sl_stmt_set_list_parent($$->true_branch_, $$);
   $0 = NULL;
 }
 
