@@ -34,6 +34,7 @@ void sl_stmt_init(struct sl_stmt *s) {
   s->next_ = s->prev_ = NULL;
   s->parent_ = NULL;
   s->expr_ = s->condition_ = s->post_ = NULL;
+  s->prep_ = NULL;
   s->true_branch_ = NULL;
   s->false_branch_ = NULL;
   s->scope_ = NULL;
@@ -44,6 +45,7 @@ void sl_stmt_cleanup(struct sl_stmt *s) {
   sl_expr_free(s->expr_);
   sl_expr_free(s->condition_);
   sl_expr_free(s->post_);
+  while (s->prep_) sl_stmt_cleanup(s->prep_);
   while (s->true_branch_) sl_stmt_cleanup(s->true_branch_);
   while (s->false_branch_) sl_stmt_cleanup(s->false_branch_);
   if (s->scope_) {
@@ -57,10 +59,13 @@ void sl_stmt_detach(struct sl_stmt *child) {
     return;
   }
   if (child->parent_ && child->parent_->true_branch_ == child) {
-    child->parent_->true_branch_ = child->next_;
+    child->parent_->true_branch_ = (child->next_ == child) ? NULL : child->next_;
   }
   else if (child->parent_ && child->parent_->false_branch_ == child) {
-    child->parent_->false_branch_ = child->next_;
+    child->parent_->false_branch_ = (child->next_ == child) ? NULL : child->next_;
+  }
+  else if (child->parent_ && child->parent_->prep_ == child) {
+    child->parent_->prep_ = (child->next_ == child) ? NULL : child->next_;
   }
   child->next_->prev_ = child->prev_;
   child->prev_->next_ = child->next_;

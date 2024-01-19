@@ -66,6 +66,10 @@ struct sl_stmt {
   /* Post-loop expression for: for (;;x) */
   struct sl_expr *post_;
 
+  /* Preparation statements for slsk_for's init-stmt ("for (int x=1;;)", the assignment "x=1"
+   * goes here.) */
+  struct sl_stmt *prep_;
+
   /* True branch is the body of the if, while, do, for. */
   struct sl_stmt *true_branch_;
 
