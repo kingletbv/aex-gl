@@ -1335,6 +1335,12 @@ jump-statement: CONTINUE SEMICOLON {
     return _GLSL_ES1_NO_MEMORY; 
   }
   $$->kind_ = slsk_continue;
+  if (situs_clone(&$$->keyword_loc_, &${ 0 })) {
+    sl_stmt_free($$);
+    $$ = NULL;
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
 }
 
 jump-statement: BREAK SEMICOLON {
@@ -1344,6 +1350,12 @@ jump-statement: BREAK SEMICOLON {
     return _GLSL_ES1_NO_MEMORY; 
   }
   $$->kind_ = slsk_break;
+  if (situs_clone(&$$->keyword_loc_, &${ 0 })) {
+    sl_stmt_free($$);
+    $$ = NULL;
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
 }
 
 jump-statement: RETURN SEMICOLON {
@@ -1353,6 +1365,12 @@ jump-statement: RETURN SEMICOLON {
     return _GLSL_ES1_NO_MEMORY; 
   }
   $$->kind_ = slsk_return;
+  if (situs_clone(&$$->keyword_loc_, &${ 0 })) {
+    sl_stmt_free($$);
+    $$ = NULL;
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
 }
 
 jump-statement: RETURN expression SEMICOLON  {
@@ -1363,6 +1381,12 @@ jump-statement: RETURN expression SEMICOLON  {
   }
   $$->kind_ = slsk_return;
   $$->expr_ = $1; $1 = NULL;
+  if (situs_clone(&$$->keyword_loc_, &${ 0 })) {
+    sl_stmt_free($$);
+    $$ = NULL;
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
 }
 
 jump-statement: DISCARD SEMICOLON {
@@ -1372,6 +1396,12 @@ jump-statement: DISCARD SEMICOLON {
     return _GLSL_ES1_NO_MEMORY;
   }
   $$->kind_ = slsk_discard;
+  if (situs_clone(&$$->keyword_loc_, &${ 0 })) {
+    sl_stmt_free($$);
+    $$ = NULL;
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
 }
 
 /* Reset common action - we don't want to merge the entire source into a single large situs; hence
