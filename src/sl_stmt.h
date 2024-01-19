@@ -56,11 +56,9 @@ struct sl_stmt {
   /* Next, and previous in the parent's chain, and a link to the parent. */
   struct sl_stmt *next_, *prev_, *parent_;
 
-  /* Prep expression for (x;;)
-   * Also the initializer assignment for slsk_for()
-   * and the expression to execute for slsk_expression (which can be NULL if the expression is empty, just a semicolon.)
+  /* The expression to execute for slsk_expression (which can be NULL if the expression is empty, just a semicolon.)
    * and the value (if any) to return for slsk_return. */
-  struct sl_expr *prep_;
+  struct sl_expr *expr_;
 
   /* Condition expression for if (x), while (x), do-while(x), for (;x;). */
   struct sl_expr *condition_;

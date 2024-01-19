@@ -489,7 +489,7 @@ constant-expression: conditional-expression  {
 %type declaration init-declarator-list single-declaration \
       condition declaration-statement statement-no-new-scope simple-statement compound-statement-with-scope statement-with-scope \
       compound-statement-no-new-scope statement-list expression-statement selection-statement selection-rest-statement \
-      iteration-statement jump-statement: struct sl_stmt *
+      iteration-statement for-init-statement jump-statement: struct sl_stmt *
 %constructor $$ = NULL;
 %move $$ = $0; $0 = NULL;
 %destructor if ($$) sl_stmt_free_list($$);
@@ -1044,7 +1044,7 @@ expression-statement: SEMICOLON {
     return _GLSL_ES1_NO_MEMORY;
   }
   $$->kind_ = slsk_expression;
-  $$->prep_ = NULL;
+  $$->expr_ = NULL;
 }
 
 expression-statement: expression SEMICOLON {
@@ -1061,7 +1061,7 @@ expression-statement: expression SEMICOLON {
         return _GLSL_ES1_NO_MEMORY;
       }
       $$->kind_ = slsk_expression;
-      $$->prep_ = $0;
+      $$->expr_ = $0;
       $0 = NULL;
     }
   }
@@ -1127,11 +1127,9 @@ iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_P
     int validation = sl_expr_validate(cc->dx_, &cc->tb_, $4);
     if (validation & SLXV_INVALID) {
       /* Expression is invalid, this has been reported by sl_expr_validate */
-      
     }
     else {
       /* Conditional expression valid and good to go */
-
       struct situs combined_keywords;
       situs_init(&combined_keywords);
       /* "do" */
@@ -1161,17 +1159,15 @@ iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_P
     }
   }
 }
-
 iteration-statement: FOR start-scope LEFT_PAREN for-init-statement for-rest-statement RIGHT_PAREN statement-no-new-scope {
-  /* pop scope */
   if ($1) {
     assert((cc->current_scope_ == $1) && "scope should be set or restored to start-scope of same production");
     cc->current_scope_ = $1->parent_;
   }
 }
 
-for-init-statement: expression-statement;
-for-init-statement: declaration-statement;
+for-init-statement: expression-statement  { $$ = $0; $0 = NULL; }
+for-init-statement: declaration-statement { $$ = $0; $0 = NULL; }
 
 condition-opt: condition;
 condition-opt: ;
@@ -1213,7 +1209,7 @@ jump-statement: RETURN expression SEMICOLON  {
     return _GLSL_ES1_NO_MEMORY; 
   }
   $$->kind_ = slsk_return;
-  $$->prep_ = $1; $1 = NULL;
+  $$->expr_ = $1; $1 = NULL;
 }
 
 jump-statement: DISCARD SEMICOLON {

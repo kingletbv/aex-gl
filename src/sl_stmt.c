@@ -33,7 +33,7 @@ void sl_stmt_init(struct sl_stmt *s) {
   situs_init(&s->keyword_loc_);
   s->next_ = s->prev_ = NULL;
   s->parent_ = NULL;
-  s->prep_ = s->condition_ = s->post_ = NULL;
+  s->expr_ = s->condition_ = s->post_ = NULL;
   s->true_branch_ = NULL;
   s->false_branch_ = NULL;
   s->scope_ = NULL;
@@ -41,7 +41,7 @@ void sl_stmt_init(struct sl_stmt *s) {
 
 void sl_stmt_cleanup(struct sl_stmt *s) {
   sl_stmt_detach(s);
-  sl_expr_free(s->prep_);
+  sl_expr_free(s->expr_);
   sl_expr_free(s->condition_);
   sl_expr_free(s->post_);
   while (s->true_branch_) sl_stmt_cleanup(s->true_branch_);

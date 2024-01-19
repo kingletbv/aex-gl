@@ -929,7 +929,7 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
       assert(!*pinitializer);
       assert(!var_expr);
 
-      initializer_stmt->prep_ = assign_expr;
+      initializer_stmt->expr_ = assign_expr;
       *pinitializer_stmt = initializer_stmt;
       return 0;
     }
