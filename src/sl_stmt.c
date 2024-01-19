@@ -35,6 +35,7 @@ void sl_stmt_init(struct sl_stmt *s) {
   s->parent_ = NULL;
   s->expr_ = s->condition_ = s->post_ = NULL;
   s->prep_ = NULL;
+  s->prep_cond_ = NULL;
   s->true_branch_ = NULL;
   s->false_branch_ = NULL;
   s->scope_ = NULL;
@@ -46,6 +47,7 @@ void sl_stmt_cleanup(struct sl_stmt *s) {
   sl_expr_free(s->condition_);
   sl_expr_free(s->post_);
   while (s->prep_) sl_stmt_cleanup(s->prep_);
+  while (s->prep_cond_) sl_stmt_cleanup(s->prep_cond_);
   while (s->true_branch_) sl_stmt_cleanup(s->true_branch_);
   while (s->false_branch_) sl_stmt_cleanup(s->false_branch_);
   if (s->scope_) {
@@ -101,6 +103,17 @@ struct sl_stmt *sl_stmt_append_list(struct sl_stmt *front, struct sl_stmt *back)
   back_head->prev_ = front_tail;
 
   return front_head;
+}
+
+void sl_stmt_set_list_parent(struct sl_stmt *list, struct sl_stmt *parent) {
+  struct sl_stmt *s = list;
+  if (s) {
+    do {
+      s->parent_ = parent;
+
+      s = s->next_;
+    } while (s != list);
+  }
 }
 
 struct sl_stmt *sl_stmt_alloc(void) {

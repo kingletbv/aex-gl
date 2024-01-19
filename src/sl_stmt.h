@@ -70,6 +70,12 @@ struct sl_stmt {
    * goes here.) */
   struct sl_stmt *prep_;
 
+  /* Preparation statement for slsk_for's condition ("for (;x;)") - it is legal for that to be
+   * a declaration with initializer, in which case there is an initializer assignment to be executed 
+   * prior to each iteration's condition evaluation. 
+   */
+  struct sl_stmt *prep_cond_;
+
   /* True branch is the body of the if, while, do, for. */
   struct sl_stmt *true_branch_;
 
@@ -111,6 +117,10 @@ struct sl_stmt *sl_stmt_append(struct sl_stmt *head, struct sl_stmt *child);
 
 /* sl_stmt_append_list() joins two lists together and returns the new head of the list. */
 struct sl_stmt *sl_stmt_append_list(struct sl_stmt *front, struct sl_stmt *back);
+
+/* Sets the parent_ member of the entire list to parent; use this when assigning an entire
+ * list to the prep_, true_branch_, or false_branch_ members. */
+void sl_stmt_set_list_parent(struct sl_stmt *list, struct sl_stmt *parent);
 
 #ifdef __cplusplus
 } /* extern "C" */

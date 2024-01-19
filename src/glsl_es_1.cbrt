@@ -110,7 +110,7 @@
 %nt struct-declaration struct-declarator-list struct-declarator initializer declaration-statement 
 %nt statement-no-new-scope simple-statement compound-statement-with-scope statement-with-scope 
 %nt compound-statement-no-new-scope statement-list expression-statement selection-statement
-%nt selection-rest-statement condition iteration-statement for-init-statement condition-opt
+%nt selection-rest-statement condition iteration-statement for-init-statement 
 %nt for-rest-statement jump-statement translation-unit external-declaration function-definition
 %nt start-scope
 
@@ -487,7 +487,7 @@ constant-expression: conditional-expression  {
  * but initializers. The declaration part is 
  * in the symbol tables and frames. */
 %type declaration init-declarator-list single-declaration \
-      condition declaration-statement statement-no-new-scope simple-statement compound-statement-with-scope statement-with-scope \
+      declaration-statement statement-no-new-scope simple-statement compound-statement-with-scope statement-with-scope \
       compound-statement-no-new-scope statement-list expression-statement selection-statement selection-rest-statement \
       iteration-statement for-init-statement jump-statement: struct sl_stmt *
 %constructor $$ = NULL;
@@ -976,10 +976,27 @@ simple-statement: jump-statement {
   $$ = $0; $0 = NULL;
 }
 
-%type start-scope: struct sym_table *
-%constructor $$ = NULL;
-%move $$ = $0; $0 = NULL;
-%destructor if ($$) { st_cleanup($$); free($$); }
+/* start-scope also gets 'cc' as backlink because we'd like to access it from
+ * destructors. Those are called when productions are reduced, when in error-
+ * recovery or, and this is the problem, when the parser is being destroyed
+ * in glsl_es1_stack_cleanup() -- there we don't have access to parameters
+ * passed to the parser (a carburetta design choice.) So we pass a backlink
+ * in manually. */
+%type start-scope: struct { struct sym_table *st_; struct glsl_es1_compiler *cc_; }
+%constructor $$.st_ = NULL; $$.cc_ = NULL;
+%move $$.st_ = $0.st_; $$.cc_ = $0.cc_; $0.st_ = NULL;
+%destructor if ($$.st_) { \
+  struct sym_table *st; \
+  /* pop out of scope if on stack (e.g. during error recovery) */ \
+  for (st = $$.cc_->current_scope_; st; st = st->parent_) { \
+    if (st == $$.st_) { \
+      $$.cc_->current_scope_ = st->parent_; \
+      break; \
+    } \
+  } \
+  st_cleanup($$.st_); \
+  free($$.st_); \
+}
 start-scope: {
   struct sym_table *st = (struct sym_table *)malloc(sizeof(struct sym_table));
   if (!st) {
@@ -987,7 +1004,8 @@ start-scope: {
     return _GLSL_ES1_NO_MEMORY;
   }
   st_init(st, cc->current_scope_);
-  $$ = st;
+  $$.st_ = st;
+  $$.cc_ = cc;
 }
 
 compound-statement-with-scope: LEFT_BRACE RIGHT_BRACE {
@@ -995,9 +1013,9 @@ compound-statement-with-scope: LEFT_BRACE RIGHT_BRACE {
 }
 compound-statement-with-scope: LEFT_BRACE start-scope statement-list RIGHT_BRACE {
   /* pop scope */
-  if ($1) {
-    assert((cc->current_scope_ == $1) && "scope should be set or restored to start-scope of same production");
-    cc->current_scope_ = $1->parent_;
+  if ($1.st_) {
+    assert((cc->current_scope_ == $1.st_) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $1.st_->parent_;
   }
 
   $$ = $2; $2 = NULL;
@@ -1005,18 +1023,18 @@ compound-statement-with-scope: LEFT_BRACE start-scope statement-list RIGHT_BRACE
 
 statement-with-scope: start-scope compound-statement-no-new-scope {
   /* pop scope */
-  if ($0) {
-    assert((cc->current_scope_ == $0) && "scope should be set or restored to start-scope of same production");
-    cc->current_scope_ = $0->parent_;
+  if ($0.st_) {
+    assert((cc->current_scope_ == $0.st_) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $0.st_->parent_;
   }
   $$ = $1; $1 = NULL;
 }
 
 statement-with-scope: start-scope simple-statement {
   /* pop scope */
-  if ($0) {
-    assert((cc->current_scope_ == $0) && "scope should be set or restored to start-scope of same production");
-    cc->current_scope_ = $0->parent_;
+  if ($0.st_) {
+    assert((cc->current_scope_ == $0.st_) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $0.st_->parent_;
   }
   $$ = $1; $1 = NULL;
 }
@@ -1087,6 +1105,7 @@ selection-rest-statement: statement-with-scope ELSE statement-with-scope {
   $0 = NULL;
   $2 = NULL;
 }
+
 selection-rest-statement: statement-with-scope {
   $$ = sl_stmt_alloc();
   if (!$$) {
@@ -1101,24 +1120,51 @@ selection-rest-statement: statement-with-scope {
 %prefer selection-rest-statement: statement-with-scope * ELSE statement-with-scope
 %over   selection-rest-statement: statement-with-scope *
 
-condition: expression;
+%type condition: struct { struct sl_stmt *initializer_; struct sl_expr *condition_; }
+%constructor \
+  $$.initializer_ = NULL; \
+  $$.condition_ = NULL;
+%move \
+  $$.initializer_ = $0.initializer_; \
+  $$.condition_ = $0.condition_; \
+  $0.initializer_ = NULL; \
+  $0.condition_ = NULL;
+%destructor \
+  if ($$.initializer_) sl_stmt_free($$.initializer_); \
+  if ($$.condition_) sl_expr_free($$.condition_);
+
+condition: expression {
+  $$.condition_ = $0;
+  $0 = NULL;
+}
 condition: fully-specified-type IDENTIFIER EQUAL initializer {
+  /* First build up the initializer statement, then create a reference
+   * to the variable as the condition. */
   struct sl_variable *var = NULL;
   int r = glsl_es1_declare_variable(cc, $1, &${ 1 }, $0, &var);
   struct sl_stmt *stmt = NULL;
   r = glsl_es1_process_initializer(cc, var, &$3, &${ 3 }, &${2}, &stmt);
   if (r) return r;
+
   char *type_str = sl_type_to_str(cc->last_type_specifier_);
   dx_warn_loc(cc->dx_, &${ 1 }, "Declared variable %s of type %s", $1, type_str);
   if (type_str) free(type_str);
-  $$ = stmt;
+
+  struct sl_expr *cond = sl_expr_alloc_variable(var, &${1});
+  if (!cond) {
+    sl_stmt_free_list(stmt);
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$.initializer_ = stmt;
+  $$.condition_ = cond;
 }
 
 iteration-statement: WHILE start-scope LEFT_PAREN condition RIGHT_PAREN statement-no-new-scope {
   /* pop scope */
-  if ($1) {
-    assert((cc->current_scope_ == $1) && "scope should be set or restored to start-scope of same production");
-    cc->current_scope_ = $1->parent_;
+  if ($1.st_) {
+    assert((cc->current_scope_ == $1.st_) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $1.st_->parent_;
   }
 }
 
@@ -1156,24 +1202,85 @@ iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_P
       $$->kind_ = slsk_do;
       $$->condition_ = $4; $4 = NULL;
       $$->true_branch_ = $1; $1 = NULL;
+      sl_stmt_set_list_parent($$->true_branch_, $$);
     }
   }
 }
+
+%type for-rest-statement: struct { struct sl_expr *condition_, *post_; struct sl_stmt *condition_prep_; int failed_; }
+%constructor \
+  $$.condition_ = NULL; \
+  $$.post_ = NULL; \
+  $$.condition_prep_ = NULL; \
+  $$.failed_ = 0;
+%move \
+  $$.condition_ = $0.condition_; \
+  $$.post_ = $0.post_; \
+  $$.condition_prep_ = $0.condition_prep_; \
+  $$.failed_ = $0.failed_; \
+  $0.condition_ = NULL; \
+  $0.post_ = NULL; \
+  $0.condition_prep_ = NULL;
+
+%destructor \
+  if ($$.condition_) sl_expr_free($$.condition_); \
+  if ($$.post_) sl_expr_free($$.post_); \
+  if ($$.condition_prep_) sl_stmt_free_list($$.condition_prep_);
+
 iteration-statement: FOR start-scope LEFT_PAREN for-init-statement for-rest-statement RIGHT_PAREN statement-no-new-scope {
-  if ($1) {
-    assert((cc->current_scope_ == $1) && "scope should be set or restored to start-scope of same production");
-    cc->current_scope_ = $1->parent_;
+  if ($1.st_) {
+    assert((cc->current_scope_ == $1.st_) && "scope should be set or restored to start-scope of same production");
+    cc->current_scope_ = $1.st_->parent_;
+  }
+  if ($4.failed_) {
+    /* Failed to parse for-rest-statement, already reported */
+    $$ = NULL;
+  }
+  else {
+    $$ = sl_stmt_alloc();
+    if (!$$) {
+      dx_no_memory(cc->dx_);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    if (situs_clone(&$$->keyword_loc_, &${0})) {
+      sl_stmt_free($$);
+      $$ = NULL;
+      dx_no_memory(cc->dx_);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    $$->kind_ = slsk_for;
+    $$->scope_ = $1.st_; $1.st_ = NULL;
+    $$->prep_ = $3; $3 = NULL;
+    sl_stmt_set_list_parent($$->prep_, $$);
+    $$->prep_cond_ = $4.condition_prep_; $4.condition_prep_ = NULL;
+    sl_stmt_set_list_parent($$->prep_cond_, $$);
+    $$->condition_ = $4.condition_; $4.condition_ = NULL;
+    $$->post_ = $4.post_; $4.post_ = NULL;
+    $$->true_branch_ = $6; $6 = NULL;
+    sl_stmt_set_list_parent($$->true_branch_, $$);
   }
 }
 
 for-init-statement: expression-statement  { $$ = $0; $0 = NULL; }
 for-init-statement: declaration-statement { $$ = $0; $0 = NULL; }
 
-condition-opt: condition;
-condition-opt: ;
-
-for-rest-statement: condition-opt SEMICOLON;
-for-rest-statement: condition-opt SEMICOLON expression;
+for-rest-statement:           SEMICOLON            {
+}
+for-rest-statement:           SEMICOLON expression {
+  if (!$1) $$.failed_ = 1;
+  $$.post_ = $1; $1 = NULL;
+}
+for-rest-statement: condition SEMICOLON            {
+  if (!$0.condition_) $$.failed_ = 1;
+  $$.condition_ = $0.condition_; $0.condition_ = NULL;
+  $$.condition_prep_ = $0.initializer_; $0.initializer_ = NULL;
+}
+for-rest-statement: condition SEMICOLON expression {
+  if (!$0.condition_ || !$2) $$.failed_ = 1;
+  $$.condition_ = $0.condition_; $0.condition_ = NULL;
+  $$.condition_prep_ = $0.initializer_; $0.initializer_ = NULL;
+  $$.post_ = $2; $2 = NULL;
+}
 
 jump-statement: CONTINUE SEMICOLON {
   $$ = sl_stmt_alloc();
