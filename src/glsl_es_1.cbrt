@@ -1124,32 +1124,41 @@ iteration-statement: WHILE start-scope LEFT_PAREN condition RIGHT_PAREN statemen
 
 iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON {
   if ($4) {
-    struct situs combined_keywords;
-    situs_init(&combined_keywords);
-    /* "do" */
-    if (situs_concat(&combined_keywords, &${0})) {
-      dx_no_memory(cc->dx_);
-      situs_cleanup(&combined_keywords);
-      return _GLSL_ES1_NO_MEMORY;
+    int validation = sl_expr_validate(cc->dx_, &cc->tb_, $4);
+    if (validation & SLXV_INVALID) {
+      /* Expression is invalid, this has been reported by sl_expr_validate */
+      
     }
-    /* "while" */
-    if (situs_concat(&combined_keywords, &${2})) {
-      dx_no_memory(cc->dx_);
-      situs_cleanup(&combined_keywords);
-      return _GLSL_ES1_NO_MEMORY;
-    }
+    else {
+      /* Conditional expression valid and good to go */
 
-    $$ = sl_stmt_alloc();
-    if (!$$) {
+      struct situs combined_keywords;
+      situs_init(&combined_keywords);
+      /* "do" */
+      if (situs_concat(&combined_keywords, &${0})) {
+        dx_no_memory(cc->dx_);
+        situs_cleanup(&combined_keywords);
+        return _GLSL_ES1_NO_MEMORY;
+      }
+      /* "while" */
+      if (situs_concat(&combined_keywords, &${2})) {
+        dx_no_memory(cc->dx_);
+        situs_cleanup(&combined_keywords);
+        return _GLSL_ES1_NO_MEMORY;
+      }
+
+      $$ = sl_stmt_alloc();
+      if (!$$) {
+        situs_cleanup(&combined_keywords);
+        dx_no_memory(cc->dx_);
+        return _GLSL_ES1_NO_MEMORY;
+      }
+      situs_swap(&$$->keyword_loc_, &combined_keywords);
       situs_cleanup(&combined_keywords);
-      dx_no_memory(cc->dx_);
-      return _GLSL_ES1_NO_MEMORY;
+      $$->kind_ = slsk_do;
+      $$->condition_ = $4; $4 = NULL;
+      $$->true_branch_ = $1; $1 = NULL;
     }
-    situs_swap(&$$->keyword_loc_, &combined_keywords);
-    situs_cleanup(&combined_keywords);
-    $$->kind_ = slsk_do;
-    $$->condition_ = $4; $4 = NULL;
-    $$->true_branch_ = $1; $1 = NULL;
   }
 }
 
