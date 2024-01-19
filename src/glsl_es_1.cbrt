@@ -1112,12 +1112,7 @@ iteration-statement: WHILE start-scope LEFT_PAREN condition RIGHT_PAREN statemen
   }
 }
 
-iteration-statement: DO start-scope statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON {
-  /* pop scope */
-  if ($1) {
-    assert((cc->current_scope_ == $1) && "scope should be set or restored to start-scope of same production");
-    cc->current_scope_ = $1->parent_;
-  }
+iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON {
 }
 
 iteration-statement: FOR start-scope LEFT_PAREN for-init-statement for-rest-statement RIGHT_PAREN statement-no-new-scope {
