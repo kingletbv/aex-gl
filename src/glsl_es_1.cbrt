@@ -1166,6 +1166,24 @@ iteration-statement: WHILE start-scope LEFT_PAREN condition RIGHT_PAREN statemen
     assert((cc->current_scope_ == $1.st_) && "scope should be set or restored to start-scope of same production");
     cc->current_scope_ = $1.st_->parent_;
   }
+  $$ = sl_stmt_alloc();
+  if (!$$) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  if (situs_clone(&$$->keyword_loc_, &${ 0 })) {
+    sl_stmt_free($$);
+    $$ = NULL;
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$->kind_ = slsk_while;
+  $$->scope_ = $1.st_; $1.st_ = NULL;
+  $$->condition_ = $3.condition_; $3.condition_ = NULL;
+  $$->prep_cond_ = $3.initializer_; $3.initializer_ = NULL;
+  sl_stmt_set_list_parent($$->prep_cond_, $$);
+  $$->true_branch_ = $5; $5 = NULL;
+  sl_stmt_set_list_parent($$->true_branch_, $$);
 }
 
 iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON {
@@ -1221,7 +1239,6 @@ iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_P
   $0.condition_ = NULL; \
   $0.post_ = NULL; \
   $0.condition_prep_ = NULL;
-
 %destructor \
   if ($$.condition_) sl_expr_free($$.condition_); \
   if ($$.post_) sl_expr_free($$.post_); \
