@@ -76,10 +76,13 @@ struct sl_stmt {
 
   /* Scope block for compound statements.
    * slsk_compound: the scope for the compound statement, may be NULL. 
-   * slsk_for: the scope for the for statement and its body, starting with the condition (e.g. "for (int x=0; ;) { .. }", the
+   * slsk_for: the scope for the for statement and its body, starting with the condition (e.g. "for (int x=0; ;) .. body ..", the
    *           "int x" goes into this symtable and the scope is used in the for's body.. That the for's body uses the same
-   *           scope has semantic consequences, e.g. "for (int x;;) { int x; <-- Error, duplicate identfier "x" declaration }"
-   *           instead of hiding the original "x" declaration, it conflicts, because both are in the same scope.
+   *           scope has semantic consequences, e.g. "for (int x;;) int x = 10; <-- Error, duplicate identfier "x" declaration"
+   *           instead of hiding the original "x" declaration, it conflicts, because both are in the same scope. Note that the
+   *           spec specifies the body of the for loop as "statement-no-new-scope" - this can be either a statement (e.g. 
+   *           the declaration-statement "int x = 10;" above), or, confusingly, a compound-statement-with-scope (e.g. "{ int x = 10; }"
+   *           so while "for (int x=0;;) int x=4;" is invalid for the scoping reasons outlined, "for (int x=0;;) { int x=4; }" is valid.
    */
   struct sym_table *scope_;
 };
