@@ -76,7 +76,7 @@ struct sl_stmt {
    */
   struct sl_stmt *prep_cond_;
 
-  /* True branch is the body of the if, while, do, for. */
+  /* True branch is the body of the if, while, do, for, and compound statements. */
   struct sl_stmt *true_branch_;
 
   /* False branch is the else branch of the if. */

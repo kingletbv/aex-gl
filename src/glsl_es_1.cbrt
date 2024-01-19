@@ -1018,7 +1018,15 @@ compound-statement-with-scope: LEFT_BRACE start-scope statement-list RIGHT_BRACE
     cc->current_scope_ = $1.st_->parent_;
   }
 
-  $$ = $2; $2 = NULL;
+  $$ = sl_stmt_alloc();
+  if (!$$) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$->kind_ = slsk_compound;
+  $$->scope_ = $1.st_; $1.st_ = NULL;
+  $$->true_branch_ = $2; $2 = NULL;
+  sl_stmt_set_list_parent($$->true_branch_, $$);
 }
 
 statement-with-scope: start-scope compound-statement-no-new-scope {
@@ -1027,7 +1035,16 @@ statement-with-scope: start-scope compound-statement-no-new-scope {
     assert((cc->current_scope_ == $0.st_) && "scope should be set or restored to start-scope of same production");
     cc->current_scope_ = $0.st_->parent_;
   }
-  $$ = $1; $1 = NULL;
+  /* Treat this as a compound statement due to the presence of scope. */
+  $$ = sl_stmt_alloc();
+  if (!$$) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$->kind_ = slsk_compound;
+  $$->scope_ = $0.st_; $0.st_ = NULL;
+  $$->true_branch_ = $1; $1 = NULL;
+  sl_stmt_set_list_parent($$->true_branch_, $$);
 }
 
 statement-with-scope: start-scope simple-statement {
@@ -1036,7 +1053,16 @@ statement-with-scope: start-scope simple-statement {
     assert((cc->current_scope_ == $0.st_) && "scope should be set or restored to start-scope of same production");
     cc->current_scope_ = $0.st_->parent_;
   }
-  $$ = $1; $1 = NULL;
+  /* Treat this as a compound statement due to the presence of scope. */
+  $$ = sl_stmt_alloc();
+  if (!$$) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  $$->kind_ = slsk_compound;
+  $$->scope_ = $0.st_; $0.st_ = NULL;
+  $$->true_branch_ = $1; $1 = NULL;
+  sl_stmt_set_list_parent($$->true_branch_, $$);
 }
 
 compound-statement-no-new-scope: LEFT_BRACE RIGHT_BRACE {
