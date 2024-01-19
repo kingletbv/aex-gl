@@ -219,6 +219,11 @@ postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRA
     situs_cleanup(&combined_brackets);
     return _GLSL_ES1_NO_MEMORY;
   }
+  if (situs_concat(&combined_brackets, &${3})) {
+    dx_no_memory(cc->dx_);
+    situs_cleanup(&combined_brackets);
+    return _GLSL_ES1_NO_MEMORY;
+  }
   $$ = sl_expr_alloc_binop(exop_array_subscript, &combined_brackets, &$0, &$2);
   situs_cleanup(&combined_brackets);
   if (!$$) {
@@ -408,6 +413,11 @@ conditional-expression: logical-or-expression QUESTION expression COLON assignme
   struct situs question_colon;
   situs_init(&question_colon);
   if (situs_concat(&question_colon, &${1})) {
+    dx_no_memory(cc->dx_);
+    situs_cleanup(&question_colon);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  if (situs_concat(&question_colon, &${3})) {
     dx_no_memory(cc->dx_);
     situs_cleanup(&question_colon);
     return _GLSL_ES1_NO_MEMORY;
@@ -1113,6 +1123,34 @@ iteration-statement: WHILE start-scope LEFT_PAREN condition RIGHT_PAREN statemen
 }
 
 iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON {
+  if ($4) {
+    struct situs combined_keywords;
+    situs_init(&combined_keywords);
+    /* "do" */
+    if (situs_concat(&combined_keywords, &${0})) {
+      dx_no_memory(cc->dx_);
+      situs_cleanup(&combined_keywords);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    /* "while" */
+    if (situs_concat(&combined_keywords, &${2})) {
+      dx_no_memory(cc->dx_);
+      situs_cleanup(&combined_keywords);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+
+    $$ = sl_stmt_alloc();
+    if (!$$) {
+      situs_cleanup(&combined_keywords);
+      dx_no_memory(cc->dx_);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    situs_swap(&$$->keyword_loc_, &combined_keywords);
+    situs_cleanup(&combined_keywords);
+    $$->kind_ = slsk_do;
+    $$->condition_ = $4; $4 = NULL;
+    $$->true_branch_ = $1; $1 = NULL;
+  }
 }
 
 iteration-statement: FOR start-scope LEFT_PAREN for-init-statement for-rest-statement RIGHT_PAREN statement-no-new-scope {
