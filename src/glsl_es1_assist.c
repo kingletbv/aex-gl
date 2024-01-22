@@ -1021,17 +1021,36 @@ int glsl_es1_process_function_prototype(struct glsl_es1_compiler *cc, struct sl_
         return -1;
       }
       else {
-        /* Function already declared, now we start a definition for it */
-        int r = glsl_es1_start_function_definition(cc, f);
-        if (r) return r;
+        /* At this point, the arguments for f and existing_fn are the same, but we haven't checked the return type yet. */
+        if (f->return_type_ != existing_fn->return_type_) {
+          char *current_return_type = sl_type_to_str(f->return_type_);
+          char *previous_return_type = sl_type_to_str(existing_fn->return_type_);
+          if (!current_return_type || !previous_return_type) {
+            dx_no_memory(cc->dx_);
+            return _GLSL_ES1_NO_MEMORY;
+          }
+          dx_error_loc(cc->dx_, &f->location_, "function \"%s\" with return type '%s' previously declared with different return type '%s' (see line %d)", f->name_, current_return_type, previous_return_type, situs_line(&existing_fn->location_));
+          free(current_return_type);
+          free(previous_return_type);
+          return -1;
+        }
+        if (!is_definition) {
+          /* Prototype declaration, disregard this one, keep the original declaration; allow caller to free *pf */
+          return 0;
+        }
+        else {
+          /* Function already declared, now we start a definition for it */
+          int r = glsl_es1_start_function_definition(cc, f);
+          if (r) return r;
         
-        /* Set symbol to the new function definition, overwriting the function declaration */
-        struct sl_function *old_fn = existing_sym->v_.function_;
-        existing_sym->v_.function_ = f;
-        sl_frame_free_function(old_fn);
-        *pf = NULL;
+          /* Set symbol to the new function definition, overwriting the function declaration */
+          struct sl_function *old_fn = existing_sym->v_.function_;
+          existing_sym->v_.function_ = f;
+          sl_frame_free_function(old_fn);
+          *pf = NULL;
 
-        return 0;
+          return 0;
+        }
       }
     }
   }
@@ -1051,7 +1070,6 @@ int glsl_es1_process_function_prototype(struct glsl_es1_compiler *cc, struct sl_
     if (str == STR_DUPLICATE) {
       /* Duplicate can happen in case of overloaded functions, merge f into the existing chain */
       if (s->v_.function_) {
-        dx_warn_loc(cc->dx_, &f->location_, "function \"%s\" already declared (see line %d), overloading", f->name_, situs_line(&s->v_.function_->location_));
         f->overload_chain_ = s->v_.function_->overload_chain_;
         *pf = NULL;
         s->v_.function_->overload_chain_ = f;
@@ -1063,13 +1081,15 @@ int glsl_es1_process_function_prototype(struct glsl_es1_compiler *cc, struct sl_
     }
     else /* (str == STR_OK) */ {
       /* new symbol */
-      dx_warn_loc(cc->dx_, &f->location_, "function \"%s\" declared", f->name_);
       s->v_.function_ = f;
       *pf = NULL;
       f->overload_chain_ = f;
     }
-    int r = glsl_es1_start_function_definition(cc, f);
-    if (r) return r;
+
+    if (is_definition) {
+      int r = glsl_es1_start_function_definition(cc, f);
+      if (r) return r;
+    }
 
     f->symbol_ = s;
     return 0;
