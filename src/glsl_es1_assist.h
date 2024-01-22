@@ -51,6 +51,7 @@ int glsl_es1_build_array_type(struct diags *dx, struct sl_type_base *tb, struct 
                               struct sl_type **parray_type);
 int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variable *var, struct sl_expr **pinitializer, const struct situs *ini_loc, const struct situs *equal_loc, 
                                  struct sl_stmt **pinitializer_stmt);
+int glsl_es1_process_function_prototype(struct glsl_es1_compiler *cc, struct sl_function **pf, int is_definition);
 
 #ifdef __cplusplus
 } /* extern "C" */

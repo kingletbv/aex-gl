@@ -112,7 +112,7 @@
 %nt compound-statement-no-new-scope statement-list expression-statement selection-statement
 %nt selection-rest-statement condition iteration-statement for-init-statement 
 %nt for-rest-statement jump-statement translation-unit external-declaration function-definition
-%nt start-scope
+%nt start-scope function-definition-setup
 
 %nt grammar
 
@@ -542,7 +542,6 @@ declaration: function-prototype SEMICOLON {
       $0 = NULL;
     }
   }
-
 }
 
 declaration: init-declarator-list SEMICOLON {
@@ -1415,4 +1414,24 @@ translation-unit: translation-unit external-declaration;
 external-declaration: function-definition;
 external-declaration: declaration;
 
-function-definition: function-prototype compound-statement-no-new-scope;
+%type function-definition-setup: struct sl_function *
+%constructor $$ = NULL;
+%move $$ = $0; $0 = NULL;
+%destructor /* no destructor for sl_function, it is attached to the global frame */
+
+function-definition-setup: function-prototype {
+  struct sl_function *f = $0;
+
+  if ($0) {
+    int r = glsl_es1_process_function_prototype(cc, &$0, 1 /* function definition */);
+    if (r == _GLSL_ES1_NO_MEMORY) return r;
+    if (r) {
+      $$ = NULL;
+    }
+    else {
+      $$ = f;
+    }
+  }
+}
+
+function-definition: function-definition-setup compound-statement-no-new-scope;

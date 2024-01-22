@@ -827,6 +827,12 @@ int glsl_es1_build_array_type(struct diags *dx, struct sl_type_base *tb, struct 
   struct sl_expr_temp array_size_temp;
   sl_expr_temp_init(&array_size_temp, NULL);
   int r;
+  if (!size_expr) {
+    /* Failure on the size expression, pass on up */
+    *parray_type = NULL;
+    return 0;
+  }
+
   r = sl_expr_eval(tb, size_expr, &array_size_temp);
   if (r) {
     dx_no_memory(dx);
@@ -941,4 +947,131 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
     return _GLSL_ES1_NO_MEMORY;
   }
   return 0;
+}
+
+static int glsl_es1_start_function_definition(struct glsl_es1_compiler *cc, struct sl_function *f) {
+  struct sl_stmt *body = sl_stmt_alloc();
+  if (!body) {
+    dx_no_memory(cc->dx_);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  body->kind_ = slsk_compound;
+  struct sym_table *st = (struct sym_table *)malloc(sizeof(struct sym_table));
+  if (!st) {
+    dx_no_memory(cc->dx_);
+    sl_stmt_free_list(body);
+    return _GLSL_ES1_NO_MEMORY;
+  }
+  st_init(st, cc->current_scope_);
+  body->scope_ = st;
+  f->body_ = body;
+  size_t n;
+  for (n = 0; n < f->num_parameters_; ++n) {
+    struct sl_parameter *param = f->parameters_ + n;
+    struct sl_variable *var = sl_frame_alloc_variable(&f->frame_, param->name_, &param->location_, param->type_);
+    if (!var) {
+      dx_no_memory(cc->dx_);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    var->is_parameter_ = 1;
+    var->parameter_index_ = n;
+    param->variable_ = var;
+    struct sym *s = NULL;
+    sym_table_result_t strt = st_find_or_insert(st, SK_VARIABLE, param->name_, strlen(param->name_), &param->location_, sizeof(struct sym), &s);
+    if (strt == STR_NOMEM) {
+      /* note that everything thus far will be owned by the sl_function (via sl_frame, via body_, etc.), so no cleanup needed. */
+      dx_no_memory(cc->dx_);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    if (strt == STR_DUPLICATE) {
+      dx_error_loc(cc->dx_, &param->location_, "duplicate parameter identifier \"%s\" declaration", param->name_);
+      dx_error_loc(cc->dx_, &s->loc_, "See original use of \"%s\"", s->name_);
+      return -1;
+    }
+    assert(strt == STR_OK);
+    s->v_.variable_ = var;
+    var->symbol_ = s;
+    param->symbol_ = s;
+  }
+
+  cc->current_frame_ = &f->frame_;
+  cc->current_scope_ = body->scope_;
+  return 0;
+}
+
+int glsl_es1_process_function_prototype(struct glsl_es1_compiler *cc, struct sl_function **pf, int is_definition) {
+  struct sl_function *f = *pf;
+  if (!f) return -1;
+
+  /* Find matching function */
+  struct sl_function *existing_fn = NULL;
+  struct sym *existing_sym = NULL;
+  struct sym_table *existing_scope = NULL;
+  sl_function_search(cc->current_scope_, f, &existing_scope, &existing_sym, &existing_fn);
+  if (existing_fn) {
+    /* Existing, matching, function declared */
+    if (!is_definition) {
+      dx_error_loc(cc->dx_, &f->location_, "function \"%s\" already declared (see line %d)", f->name_, situs_line(&existing_fn->location_));
+      return -1;
+    }
+    else {
+      /* Function already declared, check if it was already defined */
+      if (existing_fn->body_) {
+        dx_error_loc(cc->dx_, &f->location_, "function \"%s\" already defined (see line %d)", f->name_, situs_line(&existing_fn->location_));
+        return -1;
+      }
+      else {
+        /* Function already declared, now we start a definition for it */
+        int r = glsl_es1_start_function_definition(cc, f);
+        if (r) return r;
+        
+        /* Set symbol to the new function definition, overwriting the function declaration */
+        struct sl_function *old_fn = existing_sym->v_.function_;
+        existing_sym->v_.function_ = f;
+        sl_frame_free_function(old_fn);
+        *pf = NULL;
+
+        return 0;
+      }
+    }
+  }
+  else if (existing_sym && (existing_scope == cc->current_scope_)) {
+    /* Symbol in use on current scope (e.g. variable), but not a function */
+    dx_error_loc(cc->dx_, &f->location_, "symbol \"%s\" already declared (see line %d)", f->name_, situs_line(&existing_sym->loc_));
+    return -1;
+  }
+  else {
+    /* No existing function or symbol, add to symbol table */
+    struct sym *s = NULL;
+    sym_table_result_t str = st_find_or_insert(cc->current_scope_, SK_FUNCTION, f->name_, strlen(f->name_), &f->location_, sizeof(struct sym), &s);
+    if (str == STR_NOMEM) {
+      dx_no_memory(cc->dx_);
+      return _GLSL_ES1_NO_MEMORY;
+    }
+    if (str == STR_DUPLICATE) {
+      /* Duplicate can happen in case of overloaded functions, merge f into the existing chain */
+      if (s->v_.function_) {
+        dx_warn_loc(cc->dx_, &f->location_, "function \"%s\" already declared (see line %d), overloading", f->name_, situs_line(&s->v_.function_->location_));
+        f->overload_chain_ = s->v_.function_->overload_chain_;
+        *pf = NULL;
+        s->v_.function_->overload_chain_ = f;
+      }
+      else {
+        f->overload_chain_ = f;
+      }
+      s->v_.function_ = f;
+    }
+    else /* (str == STR_OK) */ {
+      /* new symbol */
+      dx_warn_loc(cc->dx_, &f->location_, "function \"%s\" declared", f->name_);
+      s->v_.function_ = f;
+      *pf = NULL;
+      f->overload_chain_ = f;
+    }
+    int r = glsl_es1_start_function_definition(cc, f);
+    if (r) return r;
+
+    f->symbol_ = s;
+    return 0;
+  }
 }

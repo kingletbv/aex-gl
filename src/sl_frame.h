@@ -36,6 +36,7 @@ extern "C" {
 #endif
 
 struct sl_type;
+struct sl_stmt;
 
 struct sl_variable {
   /* Name of the variable, may be NULL if, for some reason, this is an 
@@ -60,6 +61,11 @@ struct sl_variable {
   /* The symbol that represents this variable in a scope, can be NULL if the 
    * scope no longer exists or this is some sort of internal temp variable. */
   struct sym *symbol_;
+
+  /* If non-zero, this is a parameter to a function, defined in the frame of the 
+   * function. */
+  int is_parameter_:1;
+  size_t parameter_index_;
 };
 
 struct sl_parameter {
@@ -77,6 +83,14 @@ struct sl_parameter {
   /* The symbol that represents this parameter in a scope, can be NULL if the
    * scope no longer exists or this is some sort of internal temp variable. */
   struct sym *symbol_;
+
+  /* The variable that represents this parameter in the function's frame. */
+  struct sl_variable *variable_;
+};
+
+struct sl_frame {
+  /* Tail cyclic chain of all variables in this frame, in order of declaration. */
+  struct sl_variable *variables_;
 };
 
 struct sl_function {
@@ -112,11 +126,18 @@ struct sl_function {
    * site of the prototype, if a prototype is first declared and later a definition
    * is found. */
   struct sym *symbol_;
-};
 
-struct sl_frame {
-  /* Tail cyclic chain of all variables in this frame, in order of declaration. */
-  struct sl_variable *variables_;
+  /* The frame of the function, this is the frame that contains the function's
+   * parameters and local variables. */
+  struct sl_frame frame_;
+
+  /* The statements making up the body of this function, if the function has been
+   * defined. If the function has only been declared, this will be NULL. If the
+   * function has been defined but has an empty body, this will point to the 
+   * slsk_compound statement for the function definition (whose scope includes
+   * the declarations for the parameters); but the contents of that compound
+   * statement will be empty. */
+  struct sl_stmt *body_;
 };
 
 void sl_frame_init(struct sl_frame *frame);

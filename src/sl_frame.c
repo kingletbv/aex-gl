@@ -43,6 +43,11 @@
 #include "sym_table.h"
 #endif
 
+#ifndef SL_STMT_H_INCLUDED
+#define SL_STMT_H_INCLUDED
+#include "sl_stmt.h"
+#endif
+
 void sl_variable_init(struct sl_variable *v) {
   v->name_ = NULL;
   situs_init(&v->location_);
@@ -50,6 +55,8 @@ void sl_variable_init(struct sl_variable *v) {
   v->type_ = NULL;
   sl_expr_temp_init_void(&v->value_);
   v->symbol_ = NULL;
+  v->is_parameter_ = 0;
+  v->parameter_index_ = 0;
 }
 
 void sl_variable_cleanup(struct sl_variable *v) {
@@ -143,6 +150,8 @@ struct sl_function *sl_frame_alloc_function(const char *name, const struct situs
       return NULL;
     }
   }
+  sl_frame_init(&f->frame_);
+  f->body_ = NULL;
   return f;
 }
 
@@ -162,6 +171,8 @@ void sl_frame_free_function(struct sl_function *f) {
   }
   situs_cleanup(&f->location_);
   if (f->name_) free(f->name_);
+  sl_stmt_free_list(f->body_);
+  sl_frame_cleanup(&f->frame_);
   free(f);
 }
 
@@ -178,6 +189,7 @@ size_t sl_function_append_parameter(struct sl_function *f, const char *name, con
   situs_init(&p->location_);
   p->type_ = type;
   p->symbol_ = NULL;
+  p->variable_ = NULL;
   if (loc && situs_clone(&p->location_, loc)) {
   /* Failed memory alloc */
     situs_cleanup(&p->location_);
