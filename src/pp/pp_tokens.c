@@ -219,6 +219,9 @@ struct pptk *pptk_clone_single(struct preprocessor *pp, struct pptk *one) {
   if (!clone) {
     return NULL;
   }
+  clone->v_type_ = one->v_type_;
+  clone->v_ = one->v_;
+
   return clone;
 }
 
