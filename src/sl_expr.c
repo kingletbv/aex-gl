@@ -368,7 +368,7 @@ static int sl_expr_validate_div_sub_add(struct diags *dx, struct sl_type_base *t
       break;
   }
 
-  dx_error_loc(dx, &x->op_loc_, "Invalid types for %s");
+  dx_error_loc(dx, &x->op_loc_, "Invalid types for %s", op);
   return r | SLXV_INVALID;
 }
 
