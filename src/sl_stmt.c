@@ -143,7 +143,7 @@ void sl_stmt_free_list(struct sl_stmt *stmt_list) {
       next = s->next_;
 
       sl_stmt_free(s);
-    } while (next != s);
+    } while ((next != s) && next);
   }
 }
 
