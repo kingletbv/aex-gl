@@ -964,7 +964,7 @@ static int glsl_es1_start_function_definition(struct glsl_es1_compiler *cc, stru
   }
   st_init(st, cc->current_scope_);
   body->scope_ = st;
-  f->body_ = body;
+  f->body_ = sl_stmt_append(f->body_, body);
   size_t n;
   for (n = 0; n < f->num_parameters_; ++n) {
     struct sl_parameter *param = f->parameters_ + n;
