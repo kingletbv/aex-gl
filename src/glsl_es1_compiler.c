@@ -248,5 +248,6 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
     dx_no_memory(cc->dx_);
     return GLSL_ES1_R_FAILED;
   }
+  ifile->unpoppable_ = 1; /* never pop beyond toplevel input */
   return glsl_es1_compile(cc);
 }
