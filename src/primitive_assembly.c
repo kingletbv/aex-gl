@@ -973,7 +973,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
         switch (pacd->col_type_) {
           case PACT_EXECUTION_CHAIN:
             for (row = 0; row < num_rows; ++row) {
-              *pf++ = 0.f;
+              *pf++ = (float)((row == (num_rows-1)) ? 0 : 1);
             }
             break;
           case PACT_POSITION_X:
@@ -1286,7 +1286,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
         switch (pacd->col_type_) {
           case PACT_EXECUTION_CHAIN:
             for (row = 0; row < num_rows; ++row) {
-              *pu8++ = 0;
+              *pu8++ = ((row == (num_rows-1)) ? 0 : 1);
             }
             break;
           case PACT_POSITION_X:
@@ -1475,7 +1475,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
         switch (pacd->col_type_) {
           case PACT_EXECUTION_CHAIN:
             for (row = 0; row < num_rows; ++row) {
-              *pu16++ = 0;
+              *pu16++ = ((row == (num_rows-1)) ? 0 : 1);
             }
             break;
           case PACT_POSITION_X:
@@ -1664,7 +1664,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
         switch (pacd->col_type_) {
           case PACT_EXECUTION_CHAIN:
             for (row = 0; row < num_rows; ++row) {
-              *pi32++ = 0;
+              *pi32++ = ((row == (num_rows-1)) ? 0 : 1);
             }
             break;
           case PACT_POSITION_X:
