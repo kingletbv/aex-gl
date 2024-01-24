@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 /* Number of rows in the primitive assembly buffer. */
-#define PRIMITIVE_ASSEMBLY_MAX_ROWS 384
+#define PRIMITIVE_ASSEMBLY_MAX_ROWS 256
 
 typedef enum primitive_assembly_data_type {
   PADT_NONE,
