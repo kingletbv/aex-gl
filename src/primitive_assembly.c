@@ -147,7 +147,7 @@ int primitive_assembly_alloc_buffers(struct primitive_assembly *pa) {
     }
     pa->num_cols_ = num_cols;
     pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].col_type_ = PACT_EXECUTION_CHAIN;
-    pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].data_type_ = PADT_UINT16;
+    pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].data_type_ = PADT_UINT8;
     pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].attrib_element_index_ = -1;
     pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].attrib_index_ = -1;
     pa->column_descriptors_[PAC_IDX_POSITION_X].col_type_ = PACT_POSITION_X;
@@ -973,7 +973,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
         switch (pacd->col_type_) {
           case PACT_EXECUTION_CHAIN:
             for (row = 0; row < num_rows; ++row) {
-              *pf++ = 1.f;
+              *pf++ = 0.f;
             }
             break;
           case PACT_POSITION_X:
@@ -1286,7 +1286,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
         switch (pacd->col_type_) {
           case PACT_EXECUTION_CHAIN:
             for (row = 0; row < num_rows; ++row) {
-              *pu8++ = 1;
+              *pu8++ = 0;
             }
             break;
           case PACT_POSITION_X:
@@ -1475,7 +1475,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
         switch (pacd->col_type_) {
           case PACT_EXECUTION_CHAIN:
             for (row = 0; row < num_rows; ++row) {
-              *pu16++ = 1;
+              *pu16++ = 0;
             }
             break;
           case PACT_POSITION_X:
@@ -1664,7 +1664,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
         switch (pacd->col_type_) {
           case PACT_EXECUTION_CHAIN:
             for (row = 0; row < num_rows; ++row) {
-              *pi32++ = 1;
+              *pi32++ = 0;
             }
             break;
           case PACT_POSITION_X:
