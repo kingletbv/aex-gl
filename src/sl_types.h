@@ -205,7 +205,7 @@ struct sl_type_field *sl_type_field_join(struct sl_type_field *front, struct sl_
 void sl_type_field_free_chain(struct sl_type_field *chain);
 
 /* Returns the type with any qualifiers removed */
-struct sl_type *sl_type_unqualified(struct sl_type *t);
+#define sl_type_unqualified(t) ((t) && ((t)->kind_ == sltk_qualifier) ? (t)->derived_type_ : NULL)
 
 /* Converts the type to a string for debugging purposes, string should be freed using free() */
 char *sl_type_to_str(const struct sl_type *t);

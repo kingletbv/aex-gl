@@ -384,14 +384,6 @@ void sl_type_field_free_chain(struct sl_type_field *chain) {
   }
 }
 
-struct sl_type *sl_type_unqualified(struct sl_type *t) {
-  if (!t) return NULL;
-  if (t->kind_ == sltk_qualifier) {
-    return t->derived_type_;
-  }
-  return t;
-}
-
 size_t sl_buf_printf(char **p, size_t *buf_size_remaining, size_t *total_needed, const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
