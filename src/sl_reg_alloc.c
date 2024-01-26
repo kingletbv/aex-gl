@@ -160,7 +160,6 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
       break;
   }
   size_t n;
-  ra->kind_ = ra_kind;
   if (ra_kind == slrak_array) {
     ra->v_.comp_.num_elements_ = tunq->array_size_;
     ra->v_.comp_.elements_ = NULL;
@@ -179,6 +178,11 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
       r = sl_reg_alloc_set_type(ra->v_.comp_.elements_ + n, tunq->derived_type_);
       if (r) {
         /* no memory, or an overflow */
+        size_t k;
+        for (k = 0; k < n; ++k) {
+          sl_reg_alloc_cleanup(ra->v_.comp_.elements_ + k);
+        }
+        free(ra->v_.comp_.elements_);
         return -1;
       }
     }
@@ -217,6 +221,12 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
         r = sl_reg_alloc_set_type(ra->v_.comp_.elements_ + field_index, field->type_);
         if (r) {
           /* no memory, or an overflow */
+          size_t n;
+          for (n = 0; n < field_index; ++n) {
+            sl_reg_alloc_cleanup(ra->v_.comp_.elements_ + n);
+          }
+          free(ra->v_.comp_.elements_);
+
           return -1;
         }
         ++field_index;
@@ -231,6 +241,7 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
       ra->v_.regs_[n] = SL_REG_NONE;
     }
   }
+  ra->kind_ = ra_kind;
   return 0;
 }
 
