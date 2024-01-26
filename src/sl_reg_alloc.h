@@ -67,7 +67,8 @@ struct sl_reg_alloc {
   } v_;
 };
 
-int sl_reg_alloc_init(struct sl_reg_alloc *ra, const struct sl_type *t);
+void sl_reg_alloc_init(struct sl_reg_alloc *ra);
+int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t);
 void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra);
 
 

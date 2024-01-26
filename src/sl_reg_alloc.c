@@ -79,7 +79,16 @@ static int sl_reg_alloc_get_cardinality(sl_reg_alloc_kind_t kind) {
   return 0;
 }
 
-int sl_reg_alloc_init(struct sl_reg_alloc *ra, const struct sl_type *t) {
+void sl_reg_alloc_init(struct sl_reg_alloc *ra) {
+  ra->kind_ = slrak_void;
+}
+
+int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
+  /* Clear out the old */
+  if ((ra->kind_ == slrak_struct) || (ra->kind_ == slrak_array)) {
+    sl_reg_alloc_cleanup(ra);
+    sl_reg_alloc_init(ra);
+  }
   if (!t) {
     /* special case for dud initialization short-hand */
     ra->kind_ = slrak_void;
@@ -166,12 +175,14 @@ int sl_reg_alloc_init(struct sl_reg_alloc *ra, const struct sl_type *t) {
     }
     for (n = 0; n < ra->v_.comp_.num_elements_; ++n) {
       int r;
-      r = sl_reg_alloc_init(ra->v_.comp_.elements_ + n, tunq->derived_type_);
+      sl_reg_alloc_init(ra->v_.comp_.elements_ + n);
+      r = sl_reg_alloc_set_type(ra->v_.comp_.elements_ + n, tunq->derived_type_);
       if (r) {
         /* no memory, or an overflow */
         return -1;
       }
     }
+    ra->v_.comp_.struct_or_array_type_ = tunq;
   }
   else if (ra_kind == slrak_struct) {
     size_t num_fields = 0;
@@ -202,7 +213,8 @@ int sl_reg_alloc_init(struct sl_reg_alloc *ra, const struct sl_type *t) {
         field = field->chain_;
 
         int r;
-        r = sl_reg_alloc_init(ra->v_.comp_.elements_ + field_index, field->type_);
+        sl_reg_alloc_init(ra->v_.comp_.elements_ + field_index);
+        r = sl_reg_alloc_set_type(ra->v_.comp_.elements_ + field_index, field->type_);
         if (r) {
           /* no memory, or an overflow */
           return -1;
@@ -210,6 +222,7 @@ int sl_reg_alloc_init(struct sl_reg_alloc *ra, const struct sl_type *t) {
         ++field_index;
       } while (field != tunq->fields_);
     }
+    ra->v_.comp_.struct_or_array_type_ = tunq;
   }
   else {
     memset(ra->v_.regs_, 0, sizeof(ra->v_.regs_));
