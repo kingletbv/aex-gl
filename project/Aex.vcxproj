@@ -117,6 +117,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -125,6 +126,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -153,6 +157,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -161,6 +166,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\attrib_set.c" />
@@ -185,9 +193,14 @@
     <ClCompile Include="..\src\rasterizer.c">
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <ClCompile Include="..\src\sl_execution.c">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/Qvec-report:2 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Qvec-report:2 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="..\src\sl_expr.c" />
     <ClCompile Include="..\src\sl_expr_temp.c" />
     <ClCompile Include="..\src\sl_frame.c" />
+    <ClCompile Include="..\src\sl_reg_alloc.c" />
     <ClCompile Include="..\src\sl_stmt.c" />
     <ClCompile Include="..\src\sl_types.c" />
     <ClCompile Include="..\src\sym_table.c" />
@@ -303,9 +316,12 @@
     <ClInclude Include="..\src\pp\situs.h" />
     <ClInclude Include="..\src\primitive_assembly.h" />
     <ClInclude Include="..\src\rasterizer.h" />
+    <ClInclude Include="..\src\sl_binop_snippet_inc.h" />
+    <ClInclude Include="..\src\sl_execution.h" />
     <ClInclude Include="..\src\sl_expr.h" />
     <ClInclude Include="..\src\sl_expr_temp.h" />
     <ClInclude Include="..\src\sl_frame.h" />
+    <ClInclude Include="..\src\sl_reg_alloc.h" />
     <ClInclude Include="..\src\sl_stmt.h" />
     <ClInclude Include="..\src\sl_types.h" />
     <ClInclude Include="..\src\sym_table.h" />
