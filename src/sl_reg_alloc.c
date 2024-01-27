@@ -258,3 +258,249 @@ void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra) {
   }
 }
 
+#if 0
+struct sl_reg_allocator {
+  size_t num_free_float_regs_;
+  size_t num_free_float_regs_allocated_;
+  int *free_float_regs_;
+  int current_max_float_reg_;
+
+  size_t num_free_int_regs_;
+  size_t num_free_int_regs_allocated_;
+  int *free_int_regs_;
+  int current_max_int_reg_;
+
+  size_t num_free_bool_regs_;
+  size_t num_free_bool_regs_allocated_;
+  int *free_bool_regs_;
+  int current_max_bool_reg_;
+
+  size_t num_free_sampler2D_regs_;
+  size_t num_free_sampler2D_regs_allocated_;
+  int *free_sampler2D_regs_;
+  int current_max_sampler2D_reg_;
+
+  size_t num_free_samplerCube_regs_;
+  size_t num_free_samplerCube_regs_allocated_;
+  int *free_samplerCube_regs_;
+  int current_max_samplerCube_reg_;
+};
+#endif
+
+void sl_reg_allocator_init(struct sl_reg_allocator *ra) {
+  ra->num_free_float_regs_ = 0;
+  ra->num_free_float_regs_allocated_ = 0;
+  ra->free_float_regs_ = NULL;
+  ra->current_max_float_reg_ = 0;
+
+  ra->num_free_int_regs_ = 0;
+  ra->num_free_int_regs_allocated_ = 0;
+  ra->free_int_regs_ = NULL;
+  ra->current_max_int_reg_ = 0;
+
+  ra->num_free_bool_regs_ = 0;
+  ra->num_free_bool_regs_allocated_ = 0;
+  ra->free_bool_regs_ = NULL;
+  ra->current_max_bool_reg_ = 0;
+
+  ra->num_free_sampler2D_regs_ = 0;
+  ra->num_free_sampler2D_regs_allocated_ = 0;
+  ra->free_sampler2D_regs_ = NULL;
+  ra->current_max_sampler2D_reg_ = 0;
+
+  ra->num_free_samplerCube_regs_ = 0;
+  ra->num_free_samplerCube_regs_allocated_ = 0;
+  ra->free_samplerCube_regs_ = NULL;
+  ra->current_max_samplerCube_reg_ = 0;
+
+}
+
+void sl_reg_allocator_cleanup(struct sl_reg_allocator *ra) {
+  if (ra->free_float_regs_) {
+    free(ra->free_float_regs_);
+    ra->free_float_regs_ = NULL;
+  }
+  if (ra->free_int_regs_) {
+    free(ra->free_int_regs_);
+    ra->free_int_regs_ = NULL;
+  }
+  if (ra->free_bool_regs_) {
+    free(ra->free_bool_regs_);
+    ra->free_bool_regs_ = NULL;
+  }
+  if (ra->free_sampler2D_regs_) {
+    free(ra->free_sampler2D_regs_);
+    ra->free_sampler2D_regs_ = NULL;
+  }
+  if (ra->free_samplerCube_regs_) {
+    free(ra->free_samplerCube_regs_);
+    ra->free_samplerCube_regs_ = NULL;
+  }
+}
+
+int sl_reg_allocator_alloc_int_reg(struct sl_reg_allocator *ra) {
+  if (ra->num_free_int_regs_) {
+    return ra->free_int_regs_[--ra->num_free_int_regs_];
+  }
+  else {
+    int reg = ra->current_max_int_reg_++;
+    return reg;
+  }
+}
+
+int sl_reg_allocator_release_int_reg(struct sl_reg_allocator *ra, int reg) {
+  if (ra->num_free_int_regs_ == ra->num_free_int_regs_allocated_) {
+    size_t new_num_free_int_regs_allocated = ra->num_free_int_regs_allocated_ + ra->num_free_int_regs_allocated_ + 1;
+    if (new_num_free_int_regs_allocated <= ra->num_free_int_regs_allocated_) {
+      /* overflow */
+      return -1;
+    }
+    if (new_num_free_int_regs_allocated > (SIZE_MAX / sizeof(int))) {
+      /* overflow */
+      return -1;
+    }
+    int *new_free_int_regs = (int *)realloc(ra->free_int_regs_, sizeof(int) * new_num_free_int_regs_allocated);
+    if (!new_free_int_regs) {
+      /* no mem */
+      return -1;
+    }
+    ra->free_int_regs_ = new_free_int_regs;
+    ra->num_free_int_regs_allocated_ = new_num_free_int_regs_allocated;
+  }
+  ra->free_int_regs_[ra->num_free_int_regs_++] = reg;
+  return 0;
+}
+
+int sl_reg_allocator_alloc_float_reg(struct sl_reg_allocator *ra) {
+  if (ra->num_free_float_regs_) {
+    return ra->free_float_regs_[--ra->num_free_float_regs_];
+  }
+  else {
+    int reg = ra->current_max_float_reg_++;
+    return reg;
+  }
+}
+
+int sl_reg_allocator_release_float_reg(struct sl_reg_allocator *ra, int reg) {
+  if (ra->num_free_float_regs_ == ra->num_free_float_regs_allocated_) {
+    size_t new_num_free_float_regs_allocated = ra->num_free_float_regs_allocated_ + ra->num_free_float_regs_allocated_ + 1;
+    if (new_num_free_float_regs_allocated <= ra->num_free_float_regs_allocated_) {
+      /* overflow */
+      return -1;
+    }
+    if (new_num_free_float_regs_allocated > (SIZE_MAX / sizeof(int))) {
+      /* overflow */
+      return -1;
+    }
+    int *new_free_float_regs = (int *)realloc(ra->free_float_regs_, sizeof(int) * new_num_free_float_regs_allocated);
+    if (!new_free_float_regs) {
+      /* no mem */
+      return -1;
+    }
+    ra->free_float_regs_ = new_free_float_regs;
+    ra->num_free_float_regs_allocated_ = new_num_free_float_regs_allocated;
+  }
+  ra->free_float_regs_[ra->num_free_float_regs_++] = reg;
+  return 0;
+}
+
+int sl_reg_allocator_alloc_bool_reg(struct sl_reg_allocator *ra) {
+  if (ra->num_free_bool_regs_) {
+    return ra->free_bool_regs_[--ra->num_free_bool_regs_];
+  }
+  else {
+    int reg = ra->current_max_bool_reg_++;
+    return reg;
+  }
+}
+
+int sl_reg_allocator_release_bool_reg(struct sl_reg_allocator *ra, int reg) {
+  if (ra->num_free_bool_regs_ == ra->num_free_bool_regs_allocated_) {
+    size_t new_num_free_bool_regs_allocated = ra->num_free_bool_regs_allocated_ + ra->num_free_bool_regs_allocated_ + 1;
+    if (new_num_free_bool_regs_allocated <= ra->num_free_bool_regs_allocated_) {
+      /* overflow */
+      return -1;
+    }
+    if (new_num_free_bool_regs_allocated > (SIZE_MAX / sizeof(int))) {
+      /* overflow */
+      return -1;
+    }
+    int *new_free_bool_regs = (int *)realloc(ra->free_bool_regs_, sizeof(int) * new_num_free_bool_regs_allocated);
+    if (!new_free_bool_regs) {
+      /* no mem */
+      return -1;
+    }
+    ra->free_bool_regs_ = new_free_bool_regs;
+    ra->num_free_bool_regs_allocated_ = new_num_free_bool_regs_allocated;
+  }
+  ra->free_bool_regs_[ra->num_free_bool_regs_++] = reg;
+  return 0;
+}
+
+int sl_reg_allocator_alloc_sampler2D_reg(struct sl_reg_allocator *ra) {
+  if (ra->num_free_sampler2D_regs_) {
+    return ra->free_sampler2D_regs_[--ra->num_free_sampler2D_regs_];
+  }
+  else {
+    int reg = ra->current_max_sampler2D_reg_++;
+    return reg;
+  }
+}
+
+int sl_reg_allocator_release_sampler2D_reg(struct sl_reg_allocator *ra, int reg) {
+  if (ra->num_free_sampler2D_regs_ == ra->num_free_sampler2D_regs_allocated_) {
+    size_t new_num_free_sampler2D_regs_allocated = ra->num_free_sampler2D_regs_allocated_ + ra->num_free_sampler2D_regs_allocated_ + 1;
+    if (new_num_free_sampler2D_regs_allocated <= ra->num_free_sampler2D_regs_allocated_) {
+      /* overflow */
+      return -1;
+    }
+    if (new_num_free_sampler2D_regs_allocated > (SIZE_MAX / sizeof(int))) {
+      /* overflow */
+      return -1;
+    }
+    int *new_free_sampler2D_regs = (int *)realloc(ra->free_sampler2D_regs_, sizeof(int) * new_num_free_sampler2D_regs_allocated);
+    if (!new_free_sampler2D_regs) {
+      /* no mem */
+      return -1;
+    }
+    ra->free_sampler2D_regs_ = new_free_sampler2D_regs;
+    ra->num_free_sampler2D_regs_allocated_ = new_num_free_sampler2D_regs_allocated;
+  }
+  ra->free_sampler2D_regs_[ra->num_free_sampler2D_regs_++] = reg;
+  return 0;
+}
+
+int sl_reg_allocator_alloc_samplerCube_reg(struct sl_reg_allocator *ra) {
+  if (ra->num_free_samplerCube_regs_) {
+    return ra->free_samplerCube_regs_[--ra->num_free_samplerCube_regs_];
+  }
+  else {
+    int reg = ra->current_max_samplerCube_reg_++;
+    return reg;
+  }
+}
+
+int sl_reg_allocator_release_samplerCube_reg(struct sl_reg_allocator *ra, int reg) {
+  if (ra->num_free_samplerCube_regs_ == ra->num_free_samplerCube_regs_allocated_) {
+    size_t new_num_free_samplerCube_regs_allocated = ra->num_free_samplerCube_regs_allocated_ + ra->num_free_samplerCube_regs_allocated_ + 1;
+    if (new_num_free_samplerCube_regs_allocated <= ra->num_free_samplerCube_regs_allocated_) {
+      /* overflow */
+      return -1;
+    }
+    if (new_num_free_samplerCube_regs_allocated > (SIZE_MAX / sizeof(int))) {
+      /* overflow */
+      return -1;
+    }
+    int *new_free_samplerCube_regs = (int *)realloc(ra->free_samplerCube_regs_, sizeof(int) * new_num_free_samplerCube_regs_allocated);
+    if (!new_free_samplerCube_regs) {
+      /* no mem */
+      return -1;
+    }
+    ra->free_samplerCube_regs_ = new_free_samplerCube_regs;
+    ra->num_free_samplerCube_regs_allocated_ = new_num_free_samplerCube_regs_allocated;
+  }
+  ra->free_samplerCube_regs_[ra->num_free_samplerCube_regs_++] = reg;
+  return 0;
+}
+
+

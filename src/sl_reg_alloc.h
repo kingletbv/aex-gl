@@ -67,10 +67,50 @@ struct sl_reg_alloc {
   } v_;
 };
 
+struct sl_reg_allocator {
+  size_t num_free_float_regs_;
+  size_t num_free_float_regs_allocated_;
+  int *free_float_regs_;
+  int current_max_float_reg_;
+
+  size_t num_free_int_regs_;
+  size_t num_free_int_regs_allocated_;
+  int *free_int_regs_;
+  int current_max_int_reg_;
+
+  size_t num_free_bool_regs_;
+  size_t num_free_bool_regs_allocated_;
+  int *free_bool_regs_;
+  int current_max_bool_reg_;
+
+  size_t num_free_sampler2D_regs_;
+  size_t num_free_sampler2D_regs_allocated_;
+  int *free_sampler2D_regs_;
+  int current_max_sampler2D_reg_;
+
+  size_t num_free_samplerCube_regs_;
+  size_t num_free_samplerCube_regs_allocated_;
+  int *free_samplerCube_regs_;
+  int current_max_samplerCube_reg_;
+};
+
 void sl_reg_alloc_init(struct sl_reg_alloc *ra);
 int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t);
 void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra);
 
+void sl_reg_allocator_init(struct sl_reg_allocator *ra);
+void sl_reg_allocator_cleanup(struct sl_reg_allocator *ra);
+
+int sl_reg_allocator_alloc_int_reg(struct sl_reg_allocator *ra);
+int sl_reg_allocator_release_int_reg(struct sl_reg_allocator *ra, int reg);
+int sl_reg_allocator_alloc_float_reg(struct sl_reg_allocator *ra);
+int sl_reg_allocator_release_float_reg(struct sl_reg_allocator *ra, int reg);
+int sl_reg_allocator_alloc_bool_reg(struct sl_reg_allocator *ra);
+int sl_reg_allocator_release_bool_reg(struct sl_reg_allocator *ra, int reg);
+int sl_reg_allocator_alloc_sampler2D_reg(struct sl_reg_allocator *ra);
+int sl_reg_allocator_release_sampler2D_reg(struct sl_reg_allocator *ra, int reg);
+int sl_reg_allocator_alloc_samplerCube_reg(struct sl_reg_allocator *ra);
+int sl_reg_allocator_release_samplerCube_reg(struct sl_reg_allocator *ra, int reg);
 
 #ifdef __cplusplus
 } /* extern "C" */
