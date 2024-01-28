@@ -258,34 +258,49 @@ void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra) {
   }
 }
 
-#if 0
-struct sl_reg_allocator {
-  size_t num_free_float_regs_;
-  size_t num_free_float_regs_allocated_;
-  int *free_float_regs_;
-  int current_max_float_reg_;
-
-  size_t num_free_int_regs_;
-  size_t num_free_int_regs_allocated_;
-  int *free_int_regs_;
-  int current_max_int_reg_;
-
-  size_t num_free_bool_regs_;
-  size_t num_free_bool_regs_allocated_;
-  int *free_bool_regs_;
-  int current_max_bool_reg_;
-
-  size_t num_free_sampler2D_regs_;
-  size_t num_free_sampler2D_regs_allocated_;
-  int *free_sampler2D_regs_;
-  int current_max_sampler2D_reg_;
-
-  size_t num_free_samplerCube_regs_;
-  size_t num_free_samplerCube_regs_allocated_;
-  int *free_samplerCube_regs_;
-  int current_max_samplerCube_reg_;
-};
-#endif
+int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src) {
+  dst->kind_ = src->kind_;
+  if ((src->kind_ == slrak_array) || (src->kind_ == slrak_struct)) {
+    size_t n;
+    if (!src->v_.comp_.elements_) {
+      /* No memory, or no elements, something wrong with the source. */
+      return -1;
+    }
+    struct sl_reg_alloc *new_elements;
+    new_elements = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc) * src->v_.comp_.num_elements_);
+    if (!new_elements) {
+      /* no memory */
+      return -1;
+    }
+    for (n = 0; n < src->v_.comp_.num_elements_; ++n) {
+      int r;
+      sl_reg_alloc_init(new_elements + n);
+      r = sl_reg_alloc_clone(new_elements + n, src->v_.comp_.elements_ + n);
+      if (r) {
+        /* no memory, or an overflow */
+        size_t k;
+        for (k = 0; k < n; ++k) {
+          sl_reg_alloc_cleanup(new_elements + k);
+        }
+        free(new_elements);
+        return -1;
+      }
+    }
+    sl_reg_alloc_cleanup(dst);
+    sl_reg_alloc_init(dst);
+    dst->kind_ = src->kind_;
+    dst->v_.comp_.elements_ = new_elements;
+    dst->v_.comp_.num_elements_ = src->v_.comp_.num_elements_;
+    dst->v_.comp_.struct_or_array_type_ = src->v_.comp_.struct_or_array_type_;
+  }
+  else {
+    sl_reg_alloc_cleanup(dst);
+    sl_reg_alloc_init(dst);
+    dst->kind_ = src->kind_;
+    memcpy(dst->v_.regs_, src->v_.regs_, sizeof(dst->v_.regs_));
+  }
+  return 0;
+}
 
 void sl_reg_allocator_init(struct sl_reg_allocator *ra) {
   ra->num_free_float_regs_ = 0;
