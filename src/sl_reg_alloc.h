@@ -23,6 +23,15 @@ extern "C" {
 /* Register value if not yet allocated (which is the default after initialization) */
 #define SL_REG_NONE -1
 
+typedef enum sl_reg_category {
+  slrc_invalid,
+  slrc_float,
+  slrc_int,
+  slrc_bool,
+  slrc_sampler2D,
+  slrc_samplerCube
+} sl_reg_category_t;
+
 typedef enum sl_reg_alloc_kind {
   slrak_void,
   slrak_array,
@@ -113,6 +122,9 @@ int sl_reg_allocator_alloc_sampler2D_reg(struct sl_reg_allocator *ra);
 int sl_reg_allocator_release_sampler2D_reg(struct sl_reg_allocator *ra, int reg);
 int sl_reg_allocator_alloc_samplerCube_reg(struct sl_reg_allocator *ra);
 int sl_reg_allocator_release_samplerCube_reg(struct sl_reg_allocator *ra, int reg);
+
+int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
+int sl_reg_allocator_unlock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 
 #ifdef __cplusplus
 } /* extern "C" */

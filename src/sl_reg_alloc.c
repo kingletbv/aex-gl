@@ -23,6 +23,11 @@
 #include <string.h>
 #endif
 
+#ifndef ASSERT_H_INCLUDED
+#define ASSERT_H_INCLUDED
+#include <assert.h>
+#endif
+
 #ifndef SL_REG_ALLOC_H_INCLUDED
 #define SL_REG_ALLOC_H_INCLUDED
 #include "sl_reg_alloc.h"
@@ -299,6 +304,238 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
     dst->kind_ = src->kind_;
     memcpy(dst->v_.regs_, src->v_.regs_, sizeof(dst->v_.regs_));
   }
+  return 0;
+}
+
+static sl_reg_category_t sl_reg_alloc_get_category(sl_reg_alloc_kind_t kind) {
+  switch (kind) {
+    case slrak_void:
+    case slrak_array:
+    case slrak_struct:
+      return slrc_invalid;
+    case slrak_float:
+      return slrc_float;
+    case slrak_int:
+      return slrc_int;
+    case slrak_bool:
+      return slrc_bool;
+    case slrak_vec2:
+      return slrc_float;
+    case slrak_vec3:
+      return slrc_float;
+    case slrak_vec4:
+      return slrc_float;
+    case slrak_bvec2:
+      return slrc_bool;
+    case slrak_bvec3:
+      return slrc_bool;
+    case slrak_bvec4:
+      return slrc_bool;
+    case slrak_ivec2:
+      return slrc_int;
+    case slrak_ivec3:
+      return slrc_int;
+    case slrak_ivec4:
+      return slrc_int;
+    case slrak_mat2:
+      return slrc_float;
+    case slrak_mat3:
+      return slrc_float;
+    case slrak_mat4:
+      return slrc_float;
+    case slrak_sampler2D:
+      return slrc_sampler2D;
+    case slrak_samplerCube:
+      return slrc_samplerCube;
+  }
+  return slrc_invalid;
+}
+
+static int sl_reg_allocator_lock_reg(struct sl_reg_allocator *ract, sl_reg_category_t reg_cat, int reg_num) {
+  int *free_regs = NULL;
+  size_t *num_free_regs = NULL;
+  size_t *num_free_regs_allocated = NULL;
+  if (reg_cat == slrc_invalid) return -1;
+  switch (reg_cat) {
+    case slrc_float:
+      free_regs = ract->free_float_regs_;
+      num_free_regs = &ract->num_free_float_regs_;
+      num_free_regs_allocated = &ract->num_free_float_regs_allocated_;
+      break;
+    case slrc_int:
+      free_regs = ract->free_int_regs_;
+      num_free_regs = &ract->num_free_int_regs_;
+      num_free_regs_allocated = &ract->num_free_int_regs_allocated_;
+      break;
+    case slrc_bool:
+      free_regs = ract->free_bool_regs_;
+      num_free_regs = &ract->num_free_bool_regs_;
+      num_free_regs_allocated = &ract->num_free_bool_regs_allocated_;
+      break;
+    case slrc_sampler2D:
+      free_regs = ract->free_sampler2D_regs_;
+      num_free_regs = &ract->num_free_sampler2D_regs_;
+      num_free_regs_allocated = &ract->num_free_sampler2D_regs_allocated_;
+      break;
+    case slrc_samplerCube:
+      free_regs = ract->free_samplerCube_regs_;
+      num_free_regs = &ract->num_free_samplerCube_regs_;
+      num_free_regs_allocated = &ract->num_free_samplerCube_regs_allocated_;
+      break;
+    default: 
+      assert(0);
+      return -1;
+  }
+  /* Linear search to find the reg_num; not ideal but probably reasonably fast in practice */
+  size_t n;
+  for (n = 0; n < *num_free_regs; ++n) {
+    if (free_regs[n] == reg_num) {
+      /* Swap with last reg and decrement num_free_regs */
+      free_regs[n] = free_regs[--(*num_free_regs)];
+      return 0;
+    }
+  }
+  /* Not found; this is an error as it suggests the register is either already locked,
+   * (in which case it should not be locked again), or it is not a valid register number.
+   */
+  return -1;
+}
+
+static int sl_reg_allocator_unlock_reg(struct sl_reg_allocator *ract, sl_reg_category_t reg_cat, int reg_num) {
+  int *free_regs = NULL;
+  size_t *num_free_regs = NULL;
+  size_t *num_free_regs_allocated = NULL;
+  if (reg_cat == slrc_invalid) return -1;
+  switch (reg_cat) {
+    case slrc_float:
+      free_regs = ract->free_float_regs_;
+      num_free_regs = &ract->num_free_float_regs_;
+      num_free_regs_allocated = &ract->num_free_float_regs_allocated_;
+      break;
+    case slrc_int:
+      free_regs = ract->free_int_regs_;
+      num_free_regs = &ract->num_free_int_regs_;
+      num_free_regs_allocated = &ract->num_free_int_regs_allocated_;
+      break;
+    case slrc_bool:
+      free_regs = ract->free_bool_regs_;
+      num_free_regs = &ract->num_free_bool_regs_;
+      num_free_regs_allocated = &ract->num_free_bool_regs_allocated_;
+      break;
+    case slrc_sampler2D:
+      free_regs = ract->free_sampler2D_regs_;
+      num_free_regs = &ract->num_free_sampler2D_regs_;
+      num_free_regs_allocated = &ract->num_free_sampler2D_regs_allocated_;
+      break;
+    case slrc_samplerCube:
+      free_regs = ract->free_samplerCube_regs_;
+      num_free_regs = &ract->num_free_samplerCube_regs_;
+      num_free_regs_allocated = &ract->num_free_samplerCube_regs_allocated_;
+      break;
+    default:
+      assert(0);
+      return -1;
+  }
+  if (*num_free_regs == *num_free_regs_allocated) {
+    size_t new_num_free_regs_allocated = *num_free_regs_allocated + *num_free_regs_allocated + 1;
+    if (new_num_free_regs_allocated <= *num_free_regs_allocated) {
+      /* overflow */
+      return -1;
+    }
+    if (new_num_free_regs_allocated > (SIZE_MAX / sizeof(int))) {
+      /* overflow */
+      return -1;
+    }
+    int *new_free_regs = (int *)realloc(free_regs, sizeof(int) * new_num_free_regs_allocated);
+    if (!new_free_regs) {
+      /* no mem */
+      return -1;
+    }
+    free_regs = new_free_regs;
+    *num_free_regs_allocated = new_num_free_regs_allocated;
+  }
+  free_regs[(*num_free_regs)++] = reg_num;
+  return 0;
+}
+
+
+int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
+  int r;
+
+  if ((ra->kind_ == slrak_array) || (ra->kind_ == slrak_struct)) {
+    size_t n;
+    for (n = 0; n < ra->v_.comp_.num_elements_; ++n) {
+      r = sl_reg_allocator_lock(ract, ra->v_.comp_.elements_ + n);
+      if (r) {
+        /* no memory, or an overflow */
+        size_t k;
+        for (k = 0; k < n; ++k) {
+          sl_reg_allocator_unlock(ract, ra->v_.comp_.elements_ + k);
+        }
+        return -1;
+      }
+    }
+  }
+  else {
+    int card = sl_reg_alloc_get_cardinality(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    int n;
+    for (n = 0; n < card; ++n) {
+      int reg_num = ra->v_.regs_[n];
+      if (reg_num != SL_REG_NONE) {
+        r = sl_reg_allocator_lock_reg(ract, cat, reg_num);
+        if (r) {
+          /* no memory, or an overflow */
+          int k;
+          for (k = 0; k < n; ++k) {
+            sl_reg_allocator_unlock_reg(ract, cat, ra->v_.regs_[k]);
+          }
+          return -1;
+        }
+      }
+    }
+  }
+
+  return 0;
+}
+
+int sl_reg_allocator_unlock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
+  int r;
+
+  if ((ra->kind_ == slrak_array) || (ra->kind_ == slrak_struct)) {
+    size_t n;
+    for (n = 0; n < ra->v_.comp_.num_elements_; ++n) {
+      r = sl_reg_allocator_unlock(ract, ra->v_.comp_.elements_ + n);
+      if (r) {
+        /* no memory, or an overflow */
+        size_t k;
+        for (k = 0; k < n; ++k) {
+          sl_reg_allocator_lock(ract, ra->v_.comp_.elements_ + k);
+        }
+        return -1;
+      }
+    }
+  }
+  else {
+    int card = sl_reg_alloc_get_cardinality(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    int n;
+    for (n = 0; n < card; ++n) {
+      int reg_num = ra->v_.regs_[n];
+      if (reg_num != SL_REG_NONE) {
+        r = sl_reg_allocator_unlock_reg(ract, cat, reg_num);
+        if (r) {
+          /* no memory, or an overflow */
+          int k;
+          for (k = 0; k < n; ++k) {
+            sl_reg_allocator_lock_reg(ract, cat, ra->v_.regs_[k]);
+          }
+          return -1;
+        }
+      }
+    }
+  }
+
   return 0;
 }
 
