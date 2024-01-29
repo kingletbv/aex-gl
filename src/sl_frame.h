@@ -31,12 +31,19 @@
 #include "pp/situs.h"
 #endif
 
+#ifndef SL_REG_ALLOC_H_INCLUDED
+#define SL_REG_ALLOC_H_INCLUDED
+#include "sl_reg_alloc.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct sl_type;
 struct sl_stmt;
+struct sl_frame;
+struct sl_function;
 
 struct sl_variable {
   /* Name of the variable, may be NULL if, for some reason, this is an 
@@ -50,6 +57,9 @@ struct sl_variable {
    * (sl_frame::variables_). */
   struct sl_variable *chain_;
 
+  /* A back pointer to the frame that the variable has been declared in */
+  struct sl_frame *frame_;
+
   /* Type of the variable; should always be valid. */
   struct sl_type *type_;
 
@@ -57,6 +67,9 @@ struct sl_variable {
    * the type of the variable. That is to say: the type of the value should be 
    * the same as type_, except potentially for qualifiers. */
   struct sl_expr_temp value_;
+
+  /* The register the variable occupies (when not uniform or constant.) */
+  struct sl_reg_alloc reg_alloc_;
 
   /* The symbol that represents this variable in a scope, can be NULL if the 
    * scope no longer exists or this is some sort of internal temp variable. */
@@ -91,6 +104,10 @@ struct sl_parameter {
 struct sl_frame {
   /* Tail cyclic chain of all variables in this frame, in order of declaration. */
   struct sl_variable *variables_;
+
+  /* Pointer to the function this frame is declared for, or alternatively, NULL if
+   * this is a global frame. */
+  struct sl_function *function_;
 };
 
 struct sl_function {
@@ -147,6 +164,9 @@ void sl_frame_cleanup(struct sl_frame *frame);
  * variable; similarly, loc can be NULL or be the location where the variable is declared.
  * vartype must be set to the variable's type. If a memory allocation failure occurs, NULL is returned. */
 struct sl_variable *sl_frame_alloc_variable(struct sl_frame *frame, const char *name, const struct situs *loc, struct sl_type *vartype);
+
+/* Returns non-zero if the variable is global (i.e. is declared in a global frame) */
+int sl_variable_is_global(const struct sl_variable *v);
 
 /* Allocates a function, but does not yet add it to the frame. */
 struct sl_function *sl_frame_alloc_function(const char *name, const struct situs *loc, struct sl_type *return_type);

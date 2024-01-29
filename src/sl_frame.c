@@ -52,8 +52,10 @@ void sl_variable_init(struct sl_variable *v) {
   v->name_ = NULL;
   situs_init(&v->location_);
   v->chain_ = NULL;
+  v->frame_ = NULL;
   v->type_ = NULL;
   sl_expr_temp_init_void(&v->value_);
+  sl_reg_alloc_init(&v->reg_alloc_);
   v->symbol_ = NULL;
   v->is_parameter_ = 0;
   v->parameter_index_ = 0;
@@ -62,11 +64,13 @@ void sl_variable_init(struct sl_variable *v) {
 void sl_variable_cleanup(struct sl_variable *v) {
   situs_cleanup(&v->location_);
   sl_expr_temp_cleanup(&v->value_);
+  sl_reg_alloc_cleanup(&v->reg_alloc_);
   /* We don't free the symbol, as it is owned by the scope. */
 }
 
 void sl_frame_init(struct sl_frame *frame) {
   frame->variables_ = NULL;
+  frame->function_ = NULL;
 }
 
 void sl_frame_cleanup(struct sl_frame *frame) {
@@ -98,6 +102,7 @@ struct sl_variable *sl_frame_alloc_variable(struct sl_frame *frame, const char *
   struct sl_variable *v = (struct sl_variable *)malloc(sizeof(struct sl_variable));
   if (!v) return NULL;
   sl_variable_init(v);
+  v->frame_ = frame;
   if (loc && situs_clone(&v->location_, loc)) {
     /* Failed memory alloc */
     sl_variable_cleanup(v);
@@ -119,9 +124,21 @@ struct sl_variable *sl_frame_alloc_variable(struct sl_frame *frame, const char *
     free(v);
     return NULL;
   }
+  if (sl_reg_alloc_set_type(&v->reg_alloc_, vartype)) {
+    /* Failed to init value due to memory allocation failure */
+    sl_expr_temp_cleanup(&v->value_);
+    sl_variable_cleanup(v);
+    free(v);
+    return NULL;
+  }
 
   sl_frame_add_variable(frame, v);
   return v;
+}
+
+int sl_variable_is_global(const struct sl_variable *v) {
+  if (!v) return 0;
+  return !v->frame_->function_;
 }
 
 struct sl_function *sl_frame_alloc_function(const char *name, const struct situs *loc, struct sl_type *return_type) {
@@ -151,6 +168,7 @@ struct sl_function *sl_frame_alloc_function(const char *name, const struct situs
     }
   }
   sl_frame_init(&f->frame_);
+  f->frame_.function_ = f;
   f->body_ = NULL;
   return f;
 }
