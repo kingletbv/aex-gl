@@ -106,7 +106,7 @@ struct sl_reg_allocator {
 void sl_reg_alloc_init(struct sl_reg_alloc *ra);
 int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t);
 void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra);
-
+int sl_reg_alloc_is_allocated(const struct sl_reg_alloc *ra);
 int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src);
 
 void sl_reg_allocator_init(struct sl_reg_allocator *ra);
@@ -123,6 +123,7 @@ int sl_reg_allocator_release_sampler2D_reg(struct sl_reg_allocator *ra, int reg)
 int sl_reg_allocator_alloc_samplerCube_reg(struct sl_reg_allocator *ra);
 int sl_reg_allocator_release_samplerCube_reg(struct sl_reg_allocator *ra, int reg);
 
+void sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 int sl_reg_allocator_unlock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 

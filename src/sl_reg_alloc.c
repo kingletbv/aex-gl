@@ -263,6 +263,14 @@ void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra) {
   }
 }
 
+int sl_reg_alloc_is_allocated(const struct sl_reg_alloc *ra) {
+  while ((ra->kind_ == slrak_array) || (ra->kind_ == slrak_struct)) {
+    if (!ra->v_.comp_.elements_) return 1; /* no elements, ergo, nothing to allocate to begin with. */
+    ra = ra->v_.comp_.elements_; /* tail recursion removed */
+  }
+  return ra->v_.regs_[0] != SL_REG_NONE;
+}
+
 int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src) {
   dst->kind_ = src->kind_;
   if ((src->kind_ == slrak_array) || (src->kind_ == slrak_struct)) {
@@ -537,6 +545,60 @@ int sl_reg_allocator_unlock(struct sl_reg_allocator *ract, struct sl_reg_alloc *
   }
 
   return 0;
+}
+
+void sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
+  if ((ra->kind_ == slrak_array) || (ra->kind_ == slrak_struct)) {
+    size_t n;
+    for (n = 0; n < ra->v_.comp_.num_elements_; ++n) {
+      sl_reg_allocator_alloc(ract, ra->v_.comp_.elements_ + n);
+    }
+  }
+  else {
+    int card = sl_reg_alloc_get_cardinality(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    int n;
+    switch (cat) {
+      case slrc_float:
+        for (n = 0; n < card; ++n) {
+          if (ra->v_.regs_[n] == SL_REG_NONE) {
+            ra->v_.regs_[n] = sl_reg_allocator_alloc_float_reg(ract);
+          }
+        }
+        break;
+      case slrc_int:
+        for (n = 0; n < card; ++n) {
+          if (ra->v_.regs_[n] == SL_REG_NONE) {
+            ra->v_.regs_[n] = sl_reg_allocator_alloc_int_reg(ract);
+          }
+        }
+        break;
+      case slrc_bool:
+        for (n = 0; n < card; ++n) {
+          if (ra->v_.regs_[n] == SL_REG_NONE) {
+            ra->v_.regs_[n] = sl_reg_allocator_alloc_bool_reg(ract);
+          }
+        }
+        break;
+      case slrc_sampler2D:
+        for (n = 0; n < card; ++n) {
+          if (ra->v_.regs_[n] == SL_REG_NONE) {
+            ra->v_.regs_[n] = sl_reg_allocator_alloc_sampler2D_reg(ract);
+          }
+        }
+        break;
+      case slrc_samplerCube:
+        for (n = 0; n < card; ++n) {
+          if (ra->v_.regs_[n] == SL_REG_NONE) {
+            ra->v_.regs_[n] = sl_reg_allocator_alloc_samplerCube_reg(ract);
+          }
+        }
+        break;
+      default:
+        /* Unknown kind of category */
+        assert(0);
+    }
+  }
 }
 
 void sl_reg_allocator_init(struct sl_reg_allocator *ra) {
