@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+#ifndef ASSERT_H_INCLUDED
+#define ASSERT_H_INCLUDED
+#include <assert.h>
+#endif
+
 #ifndef SL_STMT_H_INCLUDED
 #define SL_STMT_H_INCLUDED
 #include "sl_stmt.h"
@@ -147,3 +152,91 @@ void sl_stmt_free_list(struct sl_stmt *stmt_list) {
   }
 }
 
+static struct sl_stmt *sl_stmt_next_sibling(struct sl_stmt *s) {
+  /* Try and find the next sibling, or return NULL if there is no next sibling.
+   * This is less trivial than it sounds because the siblings are the concatenations
+   * of all child-statement lists, and these might either be lists or isolated statements
+   * not in any list. */
+  if (!s->parent_) {
+    /* No sibling if not in parent as we cannot tell where the list starts and ends without
+     * a parent's head pointer. */
+    return NULL;
+  }
+  struct sl_stmt *next = s->next_;
+  if (next &&
+      (next != s->parent_->prep_) &&
+      (next != s->parent_->prep_cond_) &&
+      (next != s->parent_->true_branch_) &&
+      (next != s->parent_->false_branch_)) {
+    /* Have a next, furthermore, the next is not the head of any parent; because of that,
+     * we know it is the immediate successor. */
+    return next;
+  }
+  /* Either next is NULL and s is in isolation, or we hit one of the parent's head pointers;
+   * in either case, we determine which child list in the parent completed, and try to move
+   * to the next possible list. */
+  struct sl_stmt *head = next ? next : s;
+  if (head == s->parent_->prep_) {
+    if (s->parent_->prep_cond_) return s->parent_->prep_cond_;
+    if (s->parent_->true_branch_) return s->parent_->true_branch_;
+    if (s->parent_->false_branch_) return s->parent_->false_branch_;
+    return NULL;
+  }
+  if (head == s->parent_->prep_cond_) {
+    if (s->parent_->true_branch_) return s->parent_->true_branch_;
+    if (s->parent_->false_branch_) return s->parent_->false_branch_;
+    return NULL;
+  }
+  if (head == s->parent_->true_branch_) {
+    if (s->parent_->false_branch_) return s->parent_->false_branch_;
+    return NULL;
+  }
+  /* Must be the last one or the datastructures are not valid (s->parent_ pointing to
+   * a parent that does not know about it.) */
+  assert(head == s->parent_->false_branch_);
+  return NULL;
+}
+
+static struct sl_stmt *sl_stmt_first_child(struct sl_stmt *s) {
+  if (s->prep_) return s->prep_;
+  if (s->prep_cond_) return s->prep_cond_;
+  if (s->true_branch_) return s->true_branch_;
+  if (s->false_branch_) return s->false_branch_;
+  return NULL; // no children
+}
+
+void sl_stmt_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_stmt *stmt_list) {
+  struct sl_stmt *s;
+  s = stmt_list;
+  for (;;) {
+    struct sl_stmt *child;
+
+    /* Enter s */
+    /* { ... } */
+
+    child = sl_stmt_first_child(s);
+    if (child) {
+      s = child;
+    }
+    else {
+      /* Could not enter a child, we are at a leaf; find a sibling */
+      struct sl_stmt *next = NULL;
+      
+      do {
+        next = sl_stmt_next_sibling(s);
+
+        /* Leaving s
+         * { ... } */
+
+        if (!next) {
+          if (s->parent_ == stmt_list->parent_) {
+            /* About to pop outside the stmt_list to its parent if we don't stop here, we've reached the end. */
+            return;
+          }
+          s = s->parent_;
+        }
+      } while (!next);
+      s = next;
+    }
+  }
+}
