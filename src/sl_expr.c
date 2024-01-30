@@ -44,6 +44,7 @@ void sl_expr_init(struct sl_expr *x) {
   x->num_children_ = 0;
   x->children_ = NULL;
   sl_expr_temp_init_void(&x->literal_value_);
+  sl_reg_alloc_init(&x->reg_alloc_);
   x->num_components_ = 0;
   memset(x->component_selection_, 0, sizeof(x->component_selection_));
   x->field_selection_ = NULL;
@@ -60,6 +61,7 @@ void sl_expr_cleanup(struct sl_expr *x) {
     x->children_ = NULL;
   }
   sl_expr_temp_cleanup(&x->literal_value_);
+  sl_reg_alloc_cleanup(&x->reg_alloc_);
 }
 
 void sl_expr_free(struct sl_expr *x) {
@@ -2146,4 +2148,152 @@ struct sl_expr *sl_expr_alloc_ternop(expr_op_t op,const struct situs *loc,struct
   return x;
 }
 
+static int sl_expr_alloc_register_pre_pass(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
+  switch (x->op_) {
+    case exop_invalid:
+      return -1;
 
+    case exop_variable: {
+      /* Variables should already have a register assigned, so use it, instead of a new allocation.
+       * XXX: Note that we might, in the future, change constant values and uniform values to work
+       *      differently from having a whole register (column) assigned to each; but for now this
+       *      is the a trade-off in favor of simplicity, at the cost of memory access.
+       */
+      return sl_reg_alloc_clone(&x->reg_alloc_, &x->variable_->reg_alloc_); 
+    }
+  }
+  size_t n;
+  for (n = 0; n < x->num_children_; ++n) {
+    int r;
+    r = sl_expr_alloc_register_pre_pass(tb, ract, x->children_[n]);
+    if (r) return r;
+  }
+  return 0;
+}
+
+static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
+  size_t n;
+  int r;
+  if (x->op_ == exop_conditional) {
+    /* Conditionals are special as we'd like the true and false sub-expressions to get into the
+     * same register as the conditional expression itself; if at all possible, as this prevents
+     * having to manually move the results. */
+    struct sl_expr *child;
+    child = x->children_[0];
+    if (!sl_reg_alloc_is_allocated(&child->reg_alloc_)) {
+      sl_reg_allocator_alloc(ract, &child->reg_alloc_);
+      child->was_prelocked_ = 0;
+    }
+    else {
+      child->was_prelocked_ = 1;
+    }
+    for (n = 1; n < 2; ++n) {
+      child = x->children_[n];
+      if (!sl_reg_alloc_is_allocated(&child->reg_alloc_)) {
+
+        r = sl_reg_alloc_clone(&child->reg_alloc_, &x->reg_alloc_);
+        if (r) return r;
+        child->was_prelocked_ = 0;
+      }
+      else {
+        child->was_prelocked_ = 1;
+      }
+      /* Enter child for allocation */
+      r = sl_expr_alloc_registers(tb, ract, child);
+      if (r) return r;
+    }
+    /* Release first child (the condition bool) register; the others are either prelocked (so don't 
+     * touch) or a clone of the exop_conditional's register (keep locked for parent.) */
+    child = x->children_[0];
+    if (!child->was_prelocked_) {
+      r = sl_reg_allocator_unlock(ract, &child->reg_alloc_);
+      if (r) return r;
+    }
+    return 0;
+  }
+  /* On entry, x->reg_alloc_ will already be allocated and locked. We'd like its immediate children
+   * to be in different registers, and so will allocate and lock them now. It is possible the child
+   * is already locked (e.g. it might be a variable which is always in a unique register of its own) 
+   * so remember that for later, such that we don't unlock.. */
+  for (n = 0; n < x->num_children_; ++n) {
+    struct sl_expr *child = x->children_[n];
+    if (!sl_reg_alloc_is_allocated(&child->reg_alloc_)) {
+      /* Not yet allocated in the pre-pass, therefore allocate it now. Allocation implicitly
+       * locks as well. */
+      sl_reg_allocator_alloc(ract, &child->reg_alloc_);
+      child->was_prelocked_ = 0;
+    }
+    else {
+      /* Mark so we don't unlock things that should always stay locked */
+      child->was_prelocked_ = 1;
+    }
+  }
+  
+  /* Now release the direct children we allocated, we will enter their descendants, prepare
+   * their subtree, and incrementally lock the direct children to ensure the results of one
+   * operand are not contaminated by the computation of another (by holding the results in
+   * one or more registers that are held locked during the computation of the other.) */
+  for (n = 0; n < x->num_children_; ++n) {
+    struct sl_expr *child = x->children_[n];
+    r = sl_reg_allocator_unlock(ract, &child->reg_alloc_);
+    if (r) return r;
+  }
+  /* Unlock register for x itself, we are about to enter the children, none of x's direct
+   * children may share x's register, but *their* descendants *can* reuse that register and
+   * this might in fact reduce the load a bit. */
+  if (!x->was_prelocked_) {
+    r = sl_reg_allocator_unlock(ract, &x->reg_alloc_);
+    if (r) return r;
+  }
+  for (n = 0; n < x->num_children_; ++n) {
+    struct sl_expr *child = x->children_[n];
+    if (!child->was_prelocked_) {
+      r = sl_reg_allocator_lock(ract, &child->reg_alloc_);
+      if (r) return r;
+    }
+    /* Enter child for computation */
+    r = sl_expr_alloc_registers(tb, ract, child);
+    if (r) return r;
+    /* Step to next.. notice how we keep previous operand children locked, but not yet
+     * subsequent ones. */
+  }
+  /* Re-lock x (to return the situation to how the caller gave it to us,) and unlock our direct children
+   * (as their registers may now be re-used.) */
+  if (!x->was_prelocked_) {
+    r = sl_reg_allocator_lock(ract, &x->reg_alloc_);
+    if (r) return r;
+  }
+  for (n = 0; n < x->num_children_; ++n) {
+    struct sl_expr *child = x->children_[n];
+    r = sl_reg_allocator_unlock(ract, &child->reg_alloc_);
+    if (r) return r;
+  }
+
+  return 0;
+}
+
+int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
+  int r;
+  r = sl_expr_alloc_register_pre_pass(tb, ract, x);
+  if (r) return r;
+
+  if (!sl_reg_alloc_is_allocated(&x->reg_alloc_)) {
+    /* Top node of the expression has not yet been allocated.. Make an allocation here because
+     * sl_expr_alloc_register_main_pass() will not do it for it, but assume one has already been
+     * made (benefit of doing it this way is that the parent/caller can decide which register a child
+     * should go in.)
+     * We do this check after sl_expr_alloc_register_pre_pass() because that function might assign
+     * a register to x (if x is an exop_variable for instance.) */
+    x->was_prelocked_ = 0;
+    sl_reg_allocator_alloc(ract, &x->reg_alloc_);
+  }
+  else {
+    x->was_prelocked_ = 1;
+  }
+  r = sl_expr_alloc_register_main_pass(tb, ract, x);
+  if (r) return r;
+  if (!x->was_prelocked_) {
+    sl_reg_allocator_unlock(ract, &x->reg_alloc_);
+  }
+  return 0;
+}

@@ -41,6 +41,11 @@
 #include "sl_types.h"
 #endif
 
+#ifndef SL_REG_ALLOC_H_INCLUDED
+#define SL_REG_ALLOC_H_INCLUDED
+#include "sl_reg_alloc.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -142,6 +147,12 @@ struct sl_expr {
   /* exop_literal */
   struct sl_expr_temp literal_value_;
 
+  /* register allocation, applicable for non-constant values. */
+  struct sl_reg_alloc reg_alloc_;
+  
+  /* Runtime helper during register allocation */
+  int was_prelocked_:1;
+
   /* exop_component_selection; each component_selection_[] contains
    * the ASCII letter of the component (e.g. x,y,z,w,r,g,b,a,s,t,p or q) */
   int num_components_;
@@ -210,6 +221,14 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
 
 /* Evaluate an expression and store the result in the given temporary. */
 int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+/* Allocate temp registers for all expression nodes in the expression x, while respecting 
+ * existing allocations made for some of the nodes and/or variables.
+ * Make sure any existing allocations are locked to prevent inappropriate double-use.
+ * Returns 0 upon success, non-zero should be treated as a fatal error (typically memory, overflow
+ * or an internal error.)
+ */
+int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x);
 
 #ifdef __cplusplus
 } /* extern "C" */
