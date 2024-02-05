@@ -116,6 +116,88 @@ static void sl_exec_clear_ep(struct sl_execution *exec, size_t ep_index) {
   ep->continue_chain_ptr_ = 0;
 }
 
+void sl_exec_init(struct sl_execution *exec) {
+  exec->num_execution_points_ = exec->num_execution_points_allocated_ = 0;
+  exec->execution_points_ = NULL;
+  exec->num_float_regs_ = 0;
+  exec->float_regs_ = NULL;
+  exec->num_int_regs_ = 0;
+  exec->int_regs_ = NULL;
+  exec->num_bool_regs_ = 0;
+  exec->bool_regs_ = NULL;
+}
+
+void sl_exec_cleanup(struct sl_execution *exec) {
+  if (exec->execution_points_) free(exec->execution_points_);
+  if (exec->float_regs_) free(exec->float_regs_);
+  if (exec->int_regs_) free(exec->int_regs_);
+  if (exec->bool_regs_) free(exec->bool_regs_);
+}
+
+int sl_exec_prep(struct sl_execution *exec, struct sl_reg_allocator *rac) {
+  void *new_float_regs = NULL;
+  void *new_int_regs = NULL;
+  void *new_bool_regs = NULL;
+  void *new_sampler2D_regs = NULL;
+  void *new_samplerCube_regs = NULL;
+  if (rac->current_max_float_reg_) {
+    new_float_regs = malloc(sizeof(float *) * rac->current_max_float_reg_);
+    if (!new_float_regs) goto fail;
+    memset(new_float_regs, 0, sizeof(float *) * rac->current_max_float_reg_);
+  }
+  if (rac->current_max_int_reg_) {
+    new_int_regs = malloc(sizeof(int *) * rac->current_max_int_reg_);
+    if (!new_int_regs) goto fail;
+    memset(new_int_regs, 0, sizeof(int *) * rac->current_max_int_reg_);
+  }
+  if (rac->current_max_bool_reg_) {
+    new_bool_regs = malloc(sizeof(unsigned char *) * rac->current_max_bool_reg_);
+    if (!new_bool_regs) goto fail;
+    memset(new_bool_regs, 0, sizeof(int *) * rac->current_max_bool_reg_);
+  }
+  if (rac->current_max_sampler2D_reg_) {
+    new_sampler2D_regs = malloc(sizeof(void *) * rac->current_max_sampler2D_reg_);
+    if (!new_sampler2D_regs) goto fail;
+    memset(new_sampler2D_regs, 0, sizeof(void *) * rac->current_max_sampler2D_reg_);
+  }
+  if (rac->current_max_samplerCube_reg_) {
+    new_samplerCube_regs = malloc(sizeof(void *) * rac->current_max_samplerCube_reg_);
+    if (!new_samplerCube_regs) goto fail;
+    memset(new_samplerCube_regs, 0, sizeof(void *) * rac->current_max_samplerCube_reg_);
+  }
+
+  if (exec->float_regs_) free(exec->float_regs_);
+  if (exec->int_regs_) free(exec->int_regs_);
+  if (exec->bool_regs_) free(exec->bool_regs_);
+  if (exec->sampler_2D_regs_) free(exec->sampler_2D_regs_);
+  if (exec->sampler_cube_regs_) free(exec->sampler_cube_regs_);
+
+  exec->num_float_regs_ = (size_t)rac->current_max_float_reg_;
+  exec->float_regs_ = (float **)new_float_regs;
+
+  exec->num_int_regs_ = (size_t)rac->current_max_int_reg_;
+  exec->int_regs_ = (int **)new_int_regs;
+
+  exec->num_bool_regs_ = (size_t)rac->current_max_bool_reg_;
+  exec->bool_regs_ = (unsigned char **)new_bool_regs;
+
+  exec->num_sampler_2D_regs_ = (size_t)rac->current_max_sampler2D_reg_;
+  exec->sampler_2D_regs_ = (void **)new_sampler2D_regs;
+
+  exec->num_sampler_cube_regs_ = (size_t)rac->current_max_samplerCube_reg_;
+  exec->sampler_cube_regs_ = (void **)new_samplerCube_regs;
+
+  return 0;
+fail:
+  if (new_float_regs) free(new_float_regs);
+  if (new_int_regs) free(new_int_regs);
+  if (new_bool_regs) free(new_bool_regs);
+  if (new_sampler2D_regs) free(new_sampler2D_regs);
+  if (new_samplerCube_regs) free(new_samplerCube_regs);
+
+  return -1;
+}
+
 void sl_exec_set_expr(struct sl_execution *exec, size_t ep_index, struct sl_expr *expr, uint32_t chain, size_t continuation_ptr) {
   sl_exec_clear_ep(exec, ep_index);
   struct sl_execution_point *ep = exec->execution_points_ + ep_index;
@@ -131,7 +213,80 @@ int sl_exec_push_expr(struct sl_execution *exec, struct sl_expr *expr, uint32_t 
   if (r) return r;
   
   sl_exec_set_expr(exec, exec->num_execution_points_++, expr, chain, continuation_ptr);
+
+  return 0;
 }
+
+uint32_t sl_exec_join_chains(struct sl_execution *exec, uint32_t a, uint32_t b) {
+  /* Join chain starting at a and chain starting at b, into a single chain, the start
+   * of which is returned. This is like a merge sort in that we need to maintain
+   * the relative order.
+   * Sentinel value inside the execution chain is 0, however, this cannot be used
+   * to indicate an empty list as row 0 is a valid row. Consequently, to indicate
+   * "no list", a or b should be set to SL_EXEC_NO_CHAIN. This is also why their
+   * type is uint32_t. */
+  uint8_t *ec = exec->exec_chain_reg_;
+
+  uint32_t r;
+  if (a == SL_EXEC_NO_CHAIN) return b;
+  if (b == SL_EXEC_NO_CHAIN) return a;
+
+  if (a < b) {
+    r = a;
+    uint8_t step = ec[a];
+    if (step) {
+      a += step;
+    }
+    else {
+      a = SL_EXEC_NO_CHAIN;
+    }
+  }
+  else if (a > b) {
+    r = b;
+    uint8_t step = ec[b];
+    if (step) {
+      b += step;
+    }
+    else {
+      b = SL_EXEC_NO_CHAIN;
+    }
+  }
+  else /* (a == b) */ {
+    /* No merging necessary when they're the same chain */
+    return a;
+  }
+
+  uint32_t q;
+  q = r;
+  for (;;) {
+    if (a < b) {
+      ec[q] = (uint8_t)(a - q);
+      q = a;
+      uint8_t step = ec[a];
+      if (step) a += step;
+      else a = SL_EXEC_NO_CHAIN;
+    }
+    else if (a > b) {
+      ec[q] = (uint8_t)(b - q);
+      q = b;
+      uint8_t step = ec[b];
+      if (step) b += step;
+      else b = SL_EXEC_NO_CHAIN;
+    }
+    else /* (a == b) */ {
+      /* This happens when both a and b are SL_EXEC_NO_CHAIN, it could also happen
+       * when a or b are part of the same list (in which case the earlier one
+       * will catch up to the later one until they are identical) - that latter
+       * case means there's no further point in merging (as they're already 
+       * merged. */
+      
+      /* No need to terminate ec[q] as it is guaranteed to be the tail of one or
+       * the other list (and so is already 0) */
+      return q;
+    }
+  }
+}
+
 
 int sl_exec_run(struct sl_execution *exec) {
   int r;
@@ -170,6 +325,54 @@ int sl_exec_run(struct sl_execution *exec) {
       }
     }
     else if (ep->kind_ == SLEPK_EXPR) {
+      switch (ep->v_.expr_->op_) {
+        case exop_invalid:
+
+        case exop_variable:
+        case exop_literal:
+        case exop_array_subscript:
+        case exop_component_selection:
+        case exop_field_selection:
+        case exop_post_inc:
+        case exop_post_dec:
+        case exop_pre_inc:
+        case exop_pre_dec:
+
+        case exop_negate:
+        case exop_logical_not:
+
+        case exop_multiply:
+        case exop_divide:
+
+        case exop_add:
+        case exop_subtract:
+
+        case exop_lt:
+        case exop_le:
+        case exop_ge:
+        case exop_gt:
+
+        case exop_eq:
+        case exop_ne:
+
+        case exop_function_call:
+        case exop_constructor:
+
+        case exop_logical_and:
+        case exop_logical_or:
+        case exop_logical_xor:
+
+        case exop_assign:
+        case exop_mul_assign:
+        case exop_div_assign:
+        case exop_add_assign:
+        case exop_sub_assign:
+
+        case exop_sequence:
+
+        case exop_conditional:
+          ;
+      }
     }
   }
 }

@@ -19,6 +19,7 @@ extern "C" {
 
 struct sl_stmt;
 struct sl_expr;
+struct sl_reg_allocator;
 
 typedef enum sl_execution_point_kind {
   SLEPK_NONE,
@@ -77,12 +78,40 @@ struct sl_execution {
   size_t num_execution_points_;
   size_t num_execution_points_allocated_;
   struct sl_execution_point *execution_points_;
+
+  /* Pointer to the execution chain column of data; the execution chain value 
+   * is the number of rows to the next row in the same execution chain, or 0
+   * as the sentinel value if this is the last row. Typically 1 if the chain
+   * includes the next row down. Note that values may never be negative, 
+   * consequently, chains are always in sorted order of their row. */
+  uint8_t *exec_chain_reg_;
+
+  /* Pointers to each of the registers (columns) of data, by scalar type (more
+   * complex types are split out over these, e.g. a vec2 is two float registers) */
+  size_t num_float_regs_;
+  float **float_regs_;
+
+  size_t num_int_regs_;
+  int **int_regs_;
+
+  size_t num_bool_regs_;
+  unsigned char **bool_regs_;
+
+  size_t num_sampler_2D_regs_;
+  void **sampler_2D_regs_;
+
+  size_t num_sampler_cube_regs_;
+  void **sampler_cube_regs_;
 };
 
 void sl_exec_init(struct sl_execution *exec);
 void sl_exec_cleanup(struct sl_execution *exec);
 
+int sl_exec_prep(struct sl_execution *exec, struct sl_reg_allocator *rac);
+
 int sl_exec_run(struct sl_execution *exec);
+
+uint32_t sl_exec_join_chains(struct sl_execution *exec, uint32_t a, uint32_t b);
 
 #ifdef __cplusplus
 } /* extern "C" */
