@@ -205,14 +205,26 @@ static struct sl_stmt *sl_stmt_first_child(struct sl_stmt *s) {
   return NULL; // no children
 }
 
-void sl_stmt_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_stmt *stmt_list) {
+int sl_stmt_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_stmt *stmt_list) {
   struct sl_stmt *s;
   s = stmt_list;
   for (;;) {
     struct sl_stmt *child;
 
     /* Enter s */
-    /* { ... } */
+    int r;
+    if (s->expr_) {
+      r = sl_expr_alloc_registers(tb, ract, s->expr_);
+    }
+    if (!r && s->condition_) {
+      r = sl_expr_alloc_registers(tb, ract, s->condition_);
+    }
+    if (!r && s->post_) {
+      r = sl_expr_alloc_registers(tb, ract, s->post_);
+    }
+    if (r) {
+      return r;
+    }
 
     child = sl_stmt_first_child(s);
     if (child) {
@@ -231,7 +243,7 @@ void sl_stmt_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *r
         if (!next) {
           if (s->parent_ == stmt_list->parent_) {
             /* About to pop outside the stmt_list to its parent if we don't stop here, we've reached the end. */
-            return;
+            return 0;
           }
           s = s->parent_;
         }
