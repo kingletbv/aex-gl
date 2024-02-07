@@ -28,6 +28,11 @@
 #include <stdint.h>
 #endif
 
+#ifndef ASSERT_H_INCLUDED
+#define ASSERT_H_INCLUDED
+#include <assert.h>
+#endif
+
 #ifndef SL_EXPR_H_INCLUDED
 #define SL_EXPR_H_INCLUDED
 #include "sl_expr.h"
@@ -67,6 +72,14 @@ void sl_exec_f_mul(uint8_t row, uint8_t *restrict chain_column, float *restrict 
 #undef BINOP_SNIPPET_TYPE
 }
 
+void sl_exec_i_mul(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const int64_t *restrict left_column, const int64_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) left * right
+#define BINOP_SNIPPET_TYPE int64_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
 void sl_exec_f_div(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
 #define BINOP_SNIPPET_OPERATOR(left, right) left / right
 #define BINOP_SNIPPET_TYPE float
@@ -74,6 +87,479 @@ void sl_exec_f_div(uint8_t row, uint8_t *restrict chain_column, float *restrict 
 #undef BINOP_SNIPPET_OPERATOR
 #undef BINOP_SNIPPET_TYPE
 }
+
+void sl_exec_logical_or(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const uint8_t *restrict left_column, const uint8_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) (0 - ((left || right) && !(left && right)))
+#define BINOP_SNIPPET_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_dot_product2(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict left_0_column, const float *restrict left_1_column, const float *restrict right_0_column, const float *restrict right_1_column) {
+  for (;;) {
+    uint64_t chain;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict left0 = left_0_column + row;
+        const float *restrict left1 = left_1_column + row;
+        const float *restrict right0 = right_0_column + row;
+        const float *restrict right1 = right_1_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          result[n] = left0[n] * right0[n] + left1[n] * right1[n];
+        }
+
+        uint8_t delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) goto done;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict left0 = left_0_column + row;
+        const float *restrict left1 = left_1_column + row;
+        const float *restrict right0 = right_0_column + row;
+        const float *restrict right1 = right_1_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          result[n] = left0[n] * right0[n] + left1[n] * right1[n];
+        }
+        uint8_t delta = (chain & 0xFF000000) >> 24;
+        if (!delta) goto done;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        result_column[row] = left_0_column[row] * right_0_column[row] + left_1_column[row] * right_1_column[row];
+        uint8_t delta = chain_column[row];
+        if (!delta) goto done;
+        row += delta;
+      } while (row & 3);
+    }
+  }
+done:;
+}
+
+void sl_exec_f_dot_product3(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, 
+                            const float *restrict left_0_column, 
+                            const float *restrict left_1_column, 
+                            const float *restrict left_2_column, 
+                            const float *restrict right_0_column,
+                            const float *restrict right_1_column,
+                            const float *restrict right_2_column) {
+  for (;;) {
+    uint64_t chain;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict left0 = left_0_column + row;
+        const float *restrict left1 = left_1_column + row;
+        const float *restrict left2 = left_2_column + row;
+        const float *restrict right0 = right_0_column + row;
+        const float *restrict right1 = right_1_column + row;
+        const float *restrict right2 = right_2_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          result[n] = left0[n] * right0[n] + left1[n] * right1[n] + left2[n] * right2[n];
+        }
+
+        uint8_t delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) goto done;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict left0 = left_0_column + row;
+        const float *restrict left1 = left_1_column + row;
+        const float *restrict left2 = left_2_column + row;
+        const float *restrict right0 = right_0_column + row;
+        const float *restrict right1 = right_1_column + row;
+        const float *restrict right2 = right_2_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          result[n] = left0[n] * right0[n] + left1[n] * right1[n] + left2[n] * right2[n];
+        }
+        uint8_t delta = (chain & 0xFF000000) >> 24;
+        if (!delta) goto done;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        result_column[row] = left_0_column[row] * right_0_column[row] 
+                           + left_1_column[row] * right_1_column[row]
+                           + left_2_column[row] * right_2_column[row];
+        uint8_t delta = chain_column[row];
+        if (!delta) goto done;
+        row += delta;
+      } while (row & 3);
+    }
+  }
+done:;
+}
+
+void sl_exec_f_dot_product4(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, 
+                            const float *restrict left_0_column, 
+                            const float *restrict left_1_column, 
+                            const float *restrict left_2_column, 
+                            const float *restrict left_3_column, 
+                            const float *restrict right_0_column,
+                            const float *restrict right_1_column,
+                            const float *restrict right_2_column,
+                            const float *restrict right_3_column) {
+  for (;;) {
+    uint64_t chain;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict left0 = left_0_column + row;
+        const float *restrict left1 = left_1_column + row;
+        const float *restrict left2 = left_2_column + row;
+        const float *restrict left3 = left_3_column + row;
+        const float *restrict right0 = right_0_column + row;
+        const float *restrict right1 = right_1_column + row;
+        const float *restrict right2 = right_2_column + row;
+        const float *restrict right3 = right_3_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          result[n] = left0[n] * right0[n] + left1[n] * right1[n] + left2[n] * right2[n] + left3[n] * right3[n];
+        }
+
+        uint8_t delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) goto done;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict left0 = left_0_column + row;
+        const float *restrict left1 = left_1_column + row;
+        const float *restrict left2 = left_2_column + row;
+        const float *restrict left3 = left_3_column + row;
+        const float *restrict right0 = right_0_column + row;
+        const float *restrict right1 = right_1_column + row;
+        const float *restrict right2 = right_2_column + row;
+        const float *restrict right3 = right_3_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          result[n] = left0[n] * right0[n] + left1[n] * right1[n] + left2[n] * right2[n] + left3[n] * right3[n];
+        }
+        uint8_t delta = (chain & 0xFF000000) >> 24;
+        if (!delta) goto done;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        result_column[row] = left_0_column[row] * right_0_column[row] 
+                           + left_1_column[row] * right_1_column[row]
+                           + left_2_column[row] * right_2_column[row]
+                           + left_3_column[row] * right_3_column[row];
+        uint8_t delta = chain_column[row];
+        if (!delta) goto done;
+        row += delta;
+      } while (row & 3);
+    }
+  }
+done:;
+}
+
+static int sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *left, struct sl_reg_alloc *right) {
+  int r, c;
+  if (left->kind_ == right->kind_) {
+    switch (left->kind_) {
+      case slrak_float:
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[0]], 
+                      exec->float_regs_[left->v_.regs_[0]],
+                      exec->float_regs_[right->v_.regs_[0]]);
+        break;
+      case slrak_int:
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[0]], 
+                      exec->int_regs_[left->v_.regs_[0]],
+                      exec->int_regs_[right->v_.regs_[0]]);
+        break;
+      case slrak_vec2:
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[0]], 
+                      exec->float_regs_[left->v_.regs_[0]],
+                      exec->float_regs_[right->v_.regs_[0]]);
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[1]], 
+                      exec->float_regs_[left->v_.regs_[1]],
+                      exec->float_regs_[right->v_.regs_[1]]);
+        break;
+      case slrak_vec3:
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[0]], 
+                      exec->float_regs_[left->v_.regs_[0]],
+                      exec->float_regs_[right->v_.regs_[0]]);
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[1]], 
+                      exec->float_regs_[left->v_.regs_[1]],
+                      exec->float_regs_[right->v_.regs_[1]]);
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[2]], 
+                      exec->float_regs_[left->v_.regs_[2]],
+                      exec->float_regs_[right->v_.regs_[2]]);
+        break;
+      case slrak_vec4:
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[0]], 
+                      exec->float_regs_[left->v_.regs_[0]],
+                      exec->float_regs_[right->v_.regs_[0]]);
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[1]], 
+                      exec->float_regs_[left->v_.regs_[1]],
+                      exec->float_regs_[right->v_.regs_[1]]);
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[2]], 
+                      exec->float_regs_[left->v_.regs_[2]],
+                      exec->float_regs_[right->v_.regs_[2]]);
+        sl_exec_f_mul(row, exec->exec_chain_reg_,
+                      exec->float_regs_[dst->v_.regs_[3]], 
+                      exec->float_regs_[left->v_.regs_[3]],
+                      exec->float_regs_[right->v_.regs_[3]]);
+        break;
+      case slrak_ivec2:
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[0]],
+                      exec->int_regs_[left->v_.regs_[0]],
+                      exec->int_regs_[right->v_.regs_[0]]);
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[1]],
+                      exec->int_regs_[left->v_.regs_[1]],
+                      exec->int_regs_[right->v_.regs_[1]]);
+        break;
+      case slrak_ivec3:
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[0]],
+                      exec->int_regs_[left->v_.regs_[0]],
+                      exec->int_regs_[right->v_.regs_[0]]);
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[1]],
+                      exec->int_regs_[left->v_.regs_[1]],
+                      exec->int_regs_[right->v_.regs_[1]]);
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[2]],
+                      exec->int_regs_[left->v_.regs_[2]],
+                      exec->int_regs_[right->v_.regs_[2]]);
+        break;
+      case slrak_ivec4:
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[0]],
+                      exec->int_regs_[left->v_.regs_[0]],
+                      exec->int_regs_[right->v_.regs_[0]]);
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[1]],
+                      exec->int_regs_[left->v_.regs_[1]],
+                      exec->int_regs_[right->v_.regs_[1]]);
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[2]],
+                      exec->int_regs_[left->v_.regs_[2]],
+                      exec->int_regs_[right->v_.regs_[2]]);
+        sl_exec_i_mul(row, exec->exec_chain_reg_,
+                      exec->int_regs_[dst->v_.regs_[3]],
+                      exec->int_regs_[left->v_.regs_[3]],
+                      exec->int_regs_[right->v_.regs_[3]]);
+        break;
+      case slrak_mat2:
+        for (c = 0; c < 2; ++c) {
+          for (r = 0; r < 2; ++r) {
+            sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
+                                   exec->float_regs_[dst->v_.regs_[c * 2 + r]],
+                                   exec->float_regs_[left->v_.regs_[r + 0]], 
+                                   exec->float_regs_[left->v_.regs_[r + 2]],
+                                   exec->float_regs_[right->v_.regs_[c * 2 + 0]], 
+                                   exec->float_regs_[right->v_.regs_[c * 2 + 1]]);
+          }
+        }
+        break;
+      case slrak_mat3:
+        for (c = 0; c < 3; ++c) {
+          for (r = 0; r < 3; ++r) {
+            sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
+                                   exec->float_regs_[dst->v_.regs_[c * 3 + r]],
+                                   exec->float_regs_[left->v_.regs_[r + 0]], 
+                                   exec->float_regs_[left->v_.regs_[r + 3]],
+                                   exec->float_regs_[left->v_.regs_[r + 6]],
+                                   exec->float_regs_[right->v_.regs_[c * 3 + 0]], 
+                                   exec->float_regs_[right->v_.regs_[c * 3 + 1]],
+                                   exec->float_regs_[right->v_.regs_[c * 3 + 2]]);
+          }
+        }
+        break;
+      case slrak_mat4:
+        for (c = 0; c < 4; ++c) {
+          for (r = 0; r < 4; ++r) {
+            sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
+                                   exec->float_regs_[dst->v_.regs_[c * 4 + r]],
+                                   exec->float_regs_[left->v_.regs_[r + 0]], 
+                                   exec->float_regs_[left->v_.regs_[r + 4]],
+                                   exec->float_regs_[left->v_.regs_[r + 8]],
+                                   exec->float_regs_[left->v_.regs_[r + 12]],
+                                   exec->float_regs_[right->v_.regs_[c * 4 + 0]], 
+                                   exec->float_regs_[right->v_.regs_[c * 4 + 1]],
+                                   exec->float_regs_[right->v_.regs_[c * 4 + 2]],
+                                   exec->float_regs_[right->v_.regs_[c * 4 + 3]]);
+          }
+        }
+        break;
+    }
+  }
+  else if (left->kind_ == sletk_float) {
+    int num_coords = 0;
+    switch (right->kind_) {
+      case slrak_vec2: num_coords = 2; break;
+      case slrak_vec3: num_coords = 3; break;
+      case slrak_vec4: num_coords = 4; break;
+      case slrak_mat2: num_coords = 4; break;
+      case slrak_mat3: num_coords = 9; break;
+      case slrak_mat4: num_coords = 16; break;
+    }
+    for (r = 0; r < num_coords; ++r) {
+      sl_exec_f_mul(row, exec->exec_chain_reg_,
+                    exec->float_regs_[dst->v_.regs_[r]], 
+                    exec->float_regs_[left->v_.regs_[0]],
+                    exec->float_regs_[right->v_.regs_[r]]);
+    }
+  }
+  else if (right->kind_ == sletk_float) {
+    int num_coords = 0;
+    switch (left->kind_) {
+      case slrak_vec2: num_coords = 2; break;
+      case slrak_vec3: num_coords = 3; break;
+      case slrak_vec4: num_coords = 4; break;
+      case slrak_mat2: num_coords = 4; break;
+      case slrak_mat3: num_coords = 9; break;
+      case slrak_mat4: num_coords = 16; break;
+    }
+    for (r = 0; r < num_coords; ++r) {
+      sl_exec_f_mul(row, exec->exec_chain_reg_,
+                    exec->float_regs_[dst->v_.regs_[r]], 
+                    exec->float_regs_[left->v_.regs_[r]],
+                    exec->float_regs_[right->v_.regs_[0]]);
+    }
+  }
+  else if (left->kind_ == sletk_int) {
+    int num_coords = 0;
+    switch (right->kind_) {
+      case slrak_ivec2: num_coords = 2; break;
+      case slrak_ivec3: num_coords = 3; break;
+      case slrak_ivec4: num_coords = 4; break;
+    }
+    for (r = 0; r < num_coords; ++r) {
+      sl_exec_i_mul(row, exec->exec_chain_reg_,
+                    exec->int_regs_[dst->v_.regs_[r]], 
+                    exec->int_regs_[left->v_.regs_[0]],
+                    exec->int_regs_[right->v_.regs_[r]]);
+    }
+  }
+  else if (right->kind_ == sletk_int) {
+    int num_coords = 0;
+    switch (left->kind_) {
+      case slrak_ivec2: num_coords = 2; break;
+      case slrak_ivec3: num_coords = 3; break;
+      case slrak_ivec4: num_coords = 4; break;
+    }
+    for (r = 0; r < num_coords; ++r) {
+      sl_exec_i_mul(row, exec->exec_chain_reg_,
+                    exec->int_regs_[dst->v_.regs_[r]],
+                    exec->int_regs_[left->v_.regs_[r]],
+                    exec->int_regs_[right->v_.regs_[0]]);
+    }
+  }
+  else if ((left->kind_ == sletk_vec2) && (right->kind_ == sletk_mat2)) {
+    for (r = 0; r < 2; ++r) {
+      sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
+                             exec->float_regs_[dst->v_.regs_[r]],
+                             exec->float_regs_[left->v_.regs_[0]],
+                             exec->float_regs_[left->v_.regs_[1]],
+                             exec->float_regs_[right->v_.regs_[0 + r * 2]],
+                             exec->float_regs_[right->v_.regs_[1 + r * 2]]);
+    }
+  }
+  else if ((left->kind_ == sletk_mat2) && (right->kind_ == sletk_vec2)) {
+    for (r = 0; r < 2; ++r) {
+      sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
+                             exec->float_regs_[dst->v_.regs_[r]],
+                             exec->float_regs_[left->v_.regs_[0 + r]],
+                             exec->float_regs_[left->v_.regs_[2 + r]],
+                             exec->float_regs_[right->v_.regs_[0]],
+                             exec->float_regs_[right->v_.regs_[1]]);
+    }
+  }
+  else if ((left->kind_ == sletk_vec3) && (right->kind_ == sletk_mat3)) {
+    for (r = 0; r < 3; ++r) {
+      sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
+                             exec->float_regs_[dst->v_.regs_[r]],
+                             exec->float_regs_[left->v_.regs_[0]],
+                             exec->float_regs_[left->v_.regs_[1]],
+                             exec->float_regs_[left->v_.regs_[2]],
+                             exec->float_regs_[right->v_.regs_[0 + r * 3]],
+                             exec->float_regs_[right->v_.regs_[1 + r * 3]],
+                             exec->float_regs_[right->v_.regs_[2 + r * 3]]);
+    }
+  }
+  else if ((left->kind_ == sletk_mat3) && (right->kind_ == sletk_vec3)) {
+    for (r = 0; r < 3; ++r) {
+      sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
+                             exec->float_regs_[dst->v_.regs_[r]],
+                             exec->float_regs_[left->v_.regs_[0 + r]],
+                             exec->float_regs_[left->v_.regs_[3 + r]],
+                             exec->float_regs_[left->v_.regs_[6 + r]],
+                             exec->float_regs_[right->v_.regs_[0]],
+                             exec->float_regs_[right->v_.regs_[1]],
+                             exec->float_regs_[right->v_.regs_[2]]);
+    }
+  }
+  else if ((left->kind_ == sletk_vec4) && (right->kind_ == sletk_mat4)) {
+    for (r = 0; r < 4; ++r) {
+      sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
+                             exec->float_regs_[dst->v_.regs_[r]],
+                             exec->float_regs_[left->v_.regs_[0]],
+                             exec->float_regs_[left->v_.regs_[1]],
+                             exec->float_regs_[left->v_.regs_[2]],
+                             exec->float_regs_[left->v_.regs_[3]],
+                             exec->float_regs_[right->v_.regs_[0 + r * 4]],
+                             exec->float_regs_[right->v_.regs_[1 + r * 4]],
+                             exec->float_regs_[right->v_.regs_[2 + r * 4]],
+                             exec->float_regs_[right->v_.regs_[3 + r * 4]]);
+    }
+  }
+  else if ((left->kind_ == sletk_mat4) && (right->kind_ == sletk_vec4)) {
+    for (r = 0; r < 4; ++r) {
+      sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
+                             exec->float_regs_[dst->v_.regs_[r]],
+                             exec->float_regs_[left->v_.regs_[0 + r]],
+                             exec->float_regs_[left->v_.regs_[4 + r]],
+                             exec->float_regs_[left->v_.regs_[8 + r]],
+                             exec->float_regs_[left->v_.regs_[12 + r]],
+                             exec->float_regs_[right->v_.regs_[0]],
+                             exec->float_regs_[right->v_.regs_[1]],
+                             exec->float_regs_[right->v_.regs_[2]],
+                             exec->float_regs_[right->v_.regs_[3]]);
+    }
+  }
+}
+
 
 static int sl_exec_reserve_n(struct sl_execution *exec, size_t n) {
   size_t new_num_needed = exec->num_execution_points_ + n;
@@ -146,9 +632,9 @@ int sl_exec_prep(struct sl_execution *exec, struct sl_reg_allocator *rac) {
     memset(new_float_regs, 0, sizeof(float *) * rac->current_max_float_reg_);
   }
   if (rac->current_max_int_reg_) {
-    new_int_regs = malloc(sizeof(int *) * rac->current_max_int_reg_);
+    new_int_regs = malloc(sizeof(int64_t *) * rac->current_max_int_reg_);
     if (!new_int_regs) goto fail;
-    memset(new_int_regs, 0, sizeof(int *) * rac->current_max_int_reg_);
+    memset(new_int_regs, 0, sizeof(int64_t *) * rac->current_max_int_reg_);
   }
   if (rac->current_max_bool_reg_) {
     new_bool_regs = malloc(sizeof(unsigned char *) * rac->current_max_bool_reg_);
@@ -176,7 +662,7 @@ int sl_exec_prep(struct sl_execution *exec, struct sl_reg_allocator *rac) {
   exec->float_regs_ = (float **)new_float_regs;
 
   exec->num_int_regs_ = (size_t)rac->current_max_int_reg_;
-  exec->int_regs_ = (int **)new_int_regs;
+  exec->int_regs_ = (int64_t **)new_int_regs;
 
   exec->num_bool_regs_ = (size_t)rac->current_max_bool_reg_;
   exec->bool_regs_ = (unsigned char **)new_bool_regs;
@@ -215,6 +701,11 @@ int sl_exec_push_expr(struct sl_execution *exec, struct sl_expr *expr, uint32_t 
   sl_exec_set_expr(exec, exec->num_execution_points_++, expr, chain, continuation_ptr);
 
   return 0;
+}
+
+void sl_exec_pop_ep(struct sl_execution *exec) {
+  assert(exec->num_execution_points_);
+  exec->num_execution_points_--;
 }
 
 uint32_t sl_exec_join_chains(struct sl_execution *exec, uint32_t a, uint32_t b) {
@@ -291,15 +782,18 @@ uint32_t sl_exec_join_chains(struct sl_execution *exec, uint32_t a, uint32_t b) 
 int sl_exec_run(struct sl_execution *exec) {
   int r;
   while (exec->num_execution_points_) {
-    struct sl_execution_point *ep = exec->execution_points_ + exec->num_execution_points_;
-    if (ep->kind_ == SLEPK_STMT) {
-      switch (ep->v_.stmt_->kind_) {
+    /* Build "eps[epi]" shorthand for exec->execution_points_[exec->num_execution_points_ - 1] as we'll be referencing it, a lot. */
+    size_t epi = exec->num_execution_points_;
+    struct sl_execution_point *eps = exec->execution_points_;
+#define CHAIN_REF(x) (((uintptr_t)&(x)) - (uintptr_t)exec->execution_points_)
+    size_t post_chain_continuation = CHAIN_REF(eps[epi].post_chain_);
+    if (eps[epi].kind_ == SLEPK_STMT) {
+      switch (eps[epi].v_.stmt_->kind_) {
         case slsk_expression: {
-          if (ep->enter_chain_ != SL_EXEC_NO_CHAIN) {
-            r = sl_exec_push_expr(exec, ep->v_.stmt_->expr_, ep->enter_chain_, ((uintptr_t)&ep->post_chain_) - (uintptr_t)exec->execution_points_);
+          if (eps[epi].enter_chain_ != SL_EXEC_NO_CHAIN) {
+            r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->expr_, eps[epi].enter_chain_, post_chain_continuation);
             if (r) return r;
-            ep = exec->execution_points_ + exec->num_execution_points_;
-            ep->enter_chain_ = SL_EXEC_NO_CHAIN;
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;  
           }
           break;
@@ -324,54 +818,130 @@ int sl_exec_run(struct sl_execution *exec) {
           break;
       }
     }
-    else if (ep->kind_ == SLEPK_EXPR) {
-      switch (ep->v_.expr_->op_) {
-        case exop_invalid:
+    else if (eps[epi].kind_ == SLEPK_EXPR) {
+      if (eps[epi].enter_chain_ != SL_EXEC_NO_CHAIN) {
+        switch (eps[epi].v_.expr_->op_) {
+          case exop_invalid: {
+            /* Can't do anything when this happens, treat as no-op */
+            assert(0);
+            break;
+          }
+          case exop_variable: {
+            /* The value is already in the appropriate registers */
+            break;
+          }
+          case exop_literal: {
+            /* Load constant value into the register */
+            /* XXX: */
+            break;
+          }
+          case exop_array_subscript:
+          case exop_component_selection:
+          case exop_field_selection:
+          case exop_post_inc:
+          case exop_post_dec:
+          case exop_pre_inc:
+          case exop_pre_dec:
 
-        case exop_variable:
-        case exop_literal:
-        case exop_array_subscript:
-        case exop_component_selection:
-        case exop_field_selection:
-        case exop_post_inc:
-        case exop_post_dec:
-        case exop_pre_inc:
-        case exop_pre_dec:
+          case exop_negate:
+          case exop_logical_not: {
+            break;
+          }
 
-        case exop_negate:
-        case exop_logical_not:
+          case exop_multiply:
+          case exop_divide:
 
-        case exop_multiply:
-        case exop_divide:
+          case exop_add:
+          case exop_subtract:
 
-        case exop_add:
-        case exop_subtract:
+          case exop_lt:
+          case exop_le:
+          case exop_ge:
+          case exop_gt:
 
-        case exop_lt:
-        case exop_le:
-        case exop_ge:
-        case exop_gt:
+          case exop_eq:
+          case exop_ne:
 
-        case exop_eq:
-        case exop_ne:
+          case exop_logical_xor: {
+            /* Evaluate both branches first, then come back to evaluate this expression node on the revisit_chain_.. */
 
-        case exop_function_call:
-        case exop_constructor:
+            /* Push 2nd child first, it will be evaluated last (LIFO) */
+            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[1], SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
+            /* Now push the first child, its continuation is the second child's evaluation */
+            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
+            break;
+          }
 
-        case exop_logical_and:
-        case exop_logical_or:
-        case exop_logical_xor:
+          case exop_function_call:
+          case exop_constructor:
+            break;
 
-        case exop_assign:
-        case exop_mul_assign:
-        case exop_div_assign:
-        case exop_add_assign:
-        case exop_sub_assign:
+          /* XXX: Logical AND/OR evaluation: these should evalue the left branch first and, depending on the result, optionally evalue the right - sequence points! */
+          case exop_logical_and:
+          case exop_logical_or: {
+            break;
+          }
 
-        case exop_sequence:
+          case exop_assign:
+          case exop_mul_assign:
+          case exop_div_assign:
+          case exop_add_assign:
+          case exop_sub_assign:
+            break;
 
-        case exop_conditional:
-          ;
+          case exop_sequence: {
+            /* The sequence is implied in the evaluation of its children */
+            size_t our_continue_ptr = eps[epi].continue_chain_ptr_;
+            struct sl_expr *seq_expr = eps[epi].v_.expr_;
+            sl_exec_pop_ep(exec); /* pop exop_sequence, we're realizing it on the stack */
+
+            /* Push the 2nd child on the stack first (LIFO); its continuation is our (exop_sequence) continuation */
+            sl_exec_push_expr(exec, seq_expr->children_[1], SL_EXEC_NO_CHAIN, our_continue_ptr);
+            /* Now push the 1st child on the stack, to be evaluated first; its continuation is our second child. */
+            sl_exec_push_expr(exec, seq_expr->children_[0], eps[epi].enter_chain_, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
+            
+            break;
+          }
+
+          /* XXX: Conditional evaluation: these should evaluate the first child first and, depending on the result, optionally evaluate the second or the third */
+          case exop_conditional:
+            ;
+        }
+      }
+      else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
+        switch (eps[epi].v_.expr_->op_) {
+          case exop_multiply:
+          case exop_divide:
+
+          case exop_add:
+          case exop_subtract:
+
+          case exop_lt:
+          case exop_le:
+          case exop_ge:
+          case exop_gt:
+
+          case exop_eq:
+          case exop_ne:
+
+          case exop_logical_xor: {
+            switch (eps[epi].v_.expr_->op_) {
+              case exop_logical_xor:
+                /* Perform logical XOR on both children's registers */
+                sl_exec_logical_or((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                   exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]], 
+                                   exec->bool_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                                   exec->bool_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                break;
+            }
+
+            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
+            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+
+            sl_exec_pop_ep(exec);
+          }
+        }
       }
     }
   }

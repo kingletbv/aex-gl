@@ -43,7 +43,9 @@ struct sl_execution_point {
    * The revisit chain represents a return to the statement from a child, for instance,
    * for a "while" loop statement, the revisit chain are the executions returning following 
    * the child statement's executions. (And in the case of the while loop, we would test
-   * the condition and try again.) */
+   * the condition and try again.)
+   * For expressions, this is the chain after the children have executed, but before the 
+   * operator of the expression node itself has executed. */
   uint32_t revisit_chain_;
 
   /* index of the first row in the post chain, or SL_EXEC_NO_CHAIN if there is no
@@ -63,6 +65,8 @@ struct sl_execution_point {
    * This is a size_t offset because execution_points_ might dynamically reallocate. 
    * The continue_chain_ptr_ should (for obvious reasons) always point up the stack from
    * the current execution_point, never down the stack.
+   * Note that this points to a chain, therefore, a uint32_t, not an sl_execution_point,
+   * as it has multiple of these.
    */
   size_t continue_chain_ptr_;
 
@@ -92,7 +96,7 @@ struct sl_execution {
   float **float_regs_;
 
   size_t num_int_regs_;
-  int **int_regs_;
+  int64_t **int_regs_;
 
   size_t num_bool_regs_;
   unsigned char **bool_regs_;
