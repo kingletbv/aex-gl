@@ -88,6 +88,14 @@ void sl_exec_f_div(uint8_t row, uint8_t *restrict chain_column, float *restrict 
 #undef BINOP_SNIPPET_TYPE
 }
 
+void sl_exec_i_div(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const int64_t *restrict left_column, const int64_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) left / right
+#define BINOP_SNIPPET_TYPE int64_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
 void sl_exec_logical_or(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const uint8_t *restrict left_column, const uint8_t *restrict right_column) {
 #define BINOP_SNIPPET_OPERATOR(left, right) (0 - ((left || right) && !(left && right)))
 #define BINOP_SNIPPET_TYPE uint8_t
@@ -424,7 +432,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
         break;
     }
   }
-  else if (left->kind_ == sletk_float) {
+  else if (left->kind_ == slrak_float) {
     int num_coords = 0;
     switch (right->kind_) {
       case slrak_vec2: num_coords = 2; break;
@@ -441,7 +449,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
                     exec->float_regs_[right->v_.regs_[r]]);
     }
   }
-  else if (right->kind_ == sletk_float) {
+  else if (right->kind_ == slrak_float) {
     int num_coords = 0;
     switch (left->kind_) {
       case slrak_vec2: num_coords = 2; break;
@@ -458,7 +466,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
                     exec->float_regs_[right->v_.regs_[0]]);
     }
   }
-  else if (left->kind_ == sletk_int) {
+  else if (left->kind_ == slrak_int) {
     int num_coords = 0;
     switch (right->kind_) {
       case slrak_ivec2: num_coords = 2; break;
@@ -472,7 +480,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
                     exec->int_regs_[right->v_.regs_[r]]);
     }
   }
-  else if (right->kind_ == sletk_int) {
+  else if (right->kind_ == slrak_int) {
     int num_coords = 0;
     switch (left->kind_) {
       case slrak_ivec2: num_coords = 2; break;
@@ -486,7 +494,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
                     exec->int_regs_[right->v_.regs_[0]]);
     }
   }
-  else if ((left->kind_ == sletk_vec2) && (right->kind_ == sletk_mat2)) {
+  else if ((left->kind_ == slrak_vec2) && (right->kind_ == slrak_mat2)) {
     for (r = 0; r < 2; ++r) {
       sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
                              exec->float_regs_[dst->v_.regs_[r]],
@@ -496,7 +504,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
                              exec->float_regs_[right->v_.regs_[1 + r * 2]]);
     }
   }
-  else if ((left->kind_ == sletk_mat2) && (right->kind_ == sletk_vec2)) {
+  else if ((left->kind_ == slrak_mat2) && (right->kind_ == slrak_vec2)) {
     for (r = 0; r < 2; ++r) {
       sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
                              exec->float_regs_[dst->v_.regs_[r]],
@@ -506,7 +514,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
                              exec->float_regs_[right->v_.regs_[1]]);
     }
   }
-  else if ((left->kind_ == sletk_vec3) && (right->kind_ == sletk_mat3)) {
+  else if ((left->kind_ == slrak_vec3) && (right->kind_ == slrak_mat3)) {
     for (r = 0; r < 3; ++r) {
       sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
                              exec->float_regs_[dst->v_.regs_[r]],
@@ -518,7 +526,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
                              exec->float_regs_[right->v_.regs_[2 + r * 3]]);
     }
   }
-  else if ((left->kind_ == sletk_mat3) && (right->kind_ == sletk_vec3)) {
+  else if ((left->kind_ == slrak_mat3) && (right->kind_ == slrak_vec3)) {
     for (r = 0; r < 3; ++r) {
       sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
                              exec->float_regs_[dst->v_.regs_[r]],
@@ -530,7 +538,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
                              exec->float_regs_[right->v_.regs_[2]]);
     }
   }
-  else if ((left->kind_ == sletk_vec4) && (right->kind_ == sletk_mat4)) {
+  else if ((left->kind_ == slrak_vec4) && (right->kind_ == slrak_mat4)) {
     for (r = 0; r < 4; ++r) {
       sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
                              exec->float_regs_[dst->v_.regs_[r]],
@@ -544,7 +552,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
                              exec->float_regs_[right->v_.regs_[3 + r * 4]]);
     }
   }
-  else if ((left->kind_ == sletk_mat4) && (right->kind_ == sletk_vec4)) {
+  else if ((left->kind_ == slrak_mat4) && (right->kind_ == slrak_vec4)) {
     for (r = 0; r < 4; ++r) {
       sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
                              exec->float_regs_[dst->v_.regs_[r]],
@@ -561,8 +569,118 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
 }
 
 static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *left, struct sl_reg_alloc *right) {
-  int r, c;
+  int r;
 
+  if (left->kind_ == right->kind_) {
+    switch (left->kind_) {
+      case slrak_float:
+      case slrak_vec2:
+      case slrak_vec3:
+      case slrak_vec4:
+      case slrak_mat2:
+      case slrak_mat3:
+      case slrak_mat4: {
+        int num_components = 0;
+        switch (left->kind_) {
+          case slrak_float: num_components = 1; break;
+          case slrak_vec2: num_components = 2; break;
+          case slrak_vec3: num_components = 3; break;
+          case slrak_vec4: num_components = 4; break;
+          case slrak_mat2: num_components = 2; break;
+          case slrak_mat3: num_components = 3; break;
+          case slrak_mat4: num_components = 4; break;
+        }
+        for (r = 0; r < num_components; ++r) {
+          sl_exec_f_div(row, exec->exec_chain_reg_, 
+                        exec->float_regs_[dst->v_.regs_[r]],
+                        exec->float_regs_[left->v_.regs_[r]],
+                        exec->float_regs_[right->v_.regs_[r]]);
+        }
+        break;
+      }
+      case slrak_int:
+      case slrak_ivec2:
+      case slrak_ivec3:
+      case slrak_ivec4: {
+        int num_components = 0;
+        switch (left->kind_) {
+          case slrak_int:   num_components = 1; break;
+          case slrak_ivec2: num_components = 2; break;
+          case slrak_ivec3: num_components = 3; break;
+          case slrak_ivec4: num_components = 4; break;
+        }
+        for (r = 0; r < num_components; ++r) {
+          sl_exec_i_div(row, exec->exec_chain_reg_, 
+                        exec->int_regs_[dst->v_.regs_[r]],
+                        exec->int_regs_[left->v_.regs_[r]],
+                        exec->int_regs_[right->v_.regs_[r]]);
+        }
+        break;
+      }
+    }
+  }
+  else if (left->kind_ == slrak_float) {
+    int num_components = 0;
+    switch (right->kind_) {
+      case slrak_vec2: num_components = 2; break;
+      case slrak_vec3: num_components = 3; break;
+      case slrak_vec4: num_components = 4; break;
+      case slrak_mat2: num_components = 2; break;
+      case slrak_mat3: num_components = 3; break;
+      case slrak_mat4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_exec_f_div(row, exec->exec_chain_reg_, 
+                    exec->float_regs_[dst->v_.regs_[r]],
+                    exec->float_regs_[left->v_.regs_[0]],
+                    exec->float_regs_[right->v_.regs_[r]]);
+    }
+  }
+  else if (right->kind_ == slrak_float) {
+    int num_components = 0;
+    switch (left->kind_) {
+      case slrak_vec2: num_components = 2; break;
+      case slrak_vec3: num_components = 3; break;
+      case slrak_vec4: num_components = 4; break;
+      case slrak_mat2: num_components = 2; break;
+      case slrak_mat3: num_components = 3; break;
+      case slrak_mat4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_exec_f_div(row, exec->exec_chain_reg_, 
+                    exec->float_regs_[dst->v_.regs_[r]],
+                    exec->float_regs_[left->v_.regs_[r]],
+                    exec->float_regs_[right->v_.regs_[0]]);
+    }
+  }
+  else if (left->kind_ == slrak_int) {
+    int num_components = 0;
+    switch (right->kind_) {
+      case slrak_ivec2: num_components = 2; break;
+      case slrak_ivec3: num_components = 3; break;
+      case slrak_ivec4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_exec_i_div(row, exec->exec_chain_reg_,
+                    exec->int_regs_[dst->v_.regs_[r]],
+                    exec->int_regs_[left->v_.regs_[0]],
+                    exec->int_regs_[right->v_.regs_[r]]);
+    }
+  }
+  else if (right->kind_ == slrak_int) {
+    int num_components = 0;
+    switch (left->kind_) {
+      case slrak_ivec2: num_components = 2; break;
+      case slrak_ivec3: num_components = 3; break;
+      case slrak_ivec4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_exec_i_div(row, exec->exec_chain_reg_,
+                    exec->int_regs_[dst->v_.regs_[r]],
+                    exec->int_regs_[left->v_.regs_[r]],
+                    exec->int_regs_[right->v_.regs_[0]]);
+    }
+  }
 }
 
 static int sl_exec_reserve_n(struct sl_execution *exec, size_t n) {
