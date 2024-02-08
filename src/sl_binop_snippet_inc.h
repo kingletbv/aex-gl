@@ -30,11 +30,16 @@
  * right_column: of type "const BINOP_SNIPPET_TYPE * restrict"; points to the right operand
  */
 
+#ifndef BINOP_SNIPPET_RESULT_TYPE
+#define BINOP_SNIPPET_RESULT_TYPE BINOP_SNIPPET_TYPE
+#define BINOP_SNIPPET_UNDEF_RESULT_TYPE
+#endif
+
 for (;;) {
   uint64_t chain;
   if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
     do {
-      BINOP_SNIPPET_TYPE *restrict result = result_column + row;
+      BINOP_SNIPPET_RESULT_TYPE *restrict result = result_column + row;
       const BINOP_SNIPPET_TYPE *restrict left = left_column + row;
       const BINOP_SNIPPET_TYPE *restrict right = right_column + row;
       int n;
@@ -50,7 +55,7 @@ for (;;) {
   }
   else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
     do {
-      BINOP_SNIPPET_TYPE *restrict result = result_column + row;
+      BINOP_SNIPPET_RESULT_TYPE *restrict result = result_column + row;
       const BINOP_SNIPPET_TYPE *restrict left = left_column + row;
       const BINOP_SNIPPET_TYPE *restrict right = right_column + row;
       int n;
@@ -74,3 +79,7 @@ for (;;) {
   }
 }
 done: ;
+#ifdef BINOP_SNIPPET_UNDEF_RESULT_TYPE
+#undef BINOP_SNIPPET_UNDEF_RESULT_TYPE
+#undef BINOP_SNIPPET_RESULT_TYPE
+#endif

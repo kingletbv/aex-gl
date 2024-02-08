@@ -120,6 +120,131 @@ void sl_exec_logical_or(uint8_t row, uint8_t *restrict chain_column, uint8_t *re
 #undef BINOP_SNIPPET_TYPE
 }
 
+void sl_exec_f_lt(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left < right)
+#define BINOP_SNIPPET_TYPE float
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_le(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left <= right)
+#define BINOP_SNIPPET_TYPE float
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_gt(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left > right)
+#define BINOP_SNIPPET_TYPE float
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_ge(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left >= right)
+#define BINOP_SNIPPET_TYPE float
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_eq(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left == right)
+#define BINOP_SNIPPET_TYPE float
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_ne(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left != right)
+#define BINOP_SNIPPET_TYPE float
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_lt(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const int64_t *restrict left_column, const int64_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left < right)
+#define BINOP_SNIPPET_TYPE int64_t
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_le(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const int64_t *restrict left_column, const int64_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left <= right)
+#define BINOP_SNIPPET_TYPE int64_t
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_gt(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const int64_t *restrict left_column, const int64_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left > right)
+#define BINOP_SNIPPET_TYPE int64_t
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_ge(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const int64_t *restrict left_column, const int64_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left >= right)
+#define BINOP_SNIPPET_TYPE int64_t
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_eq(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const int64_t *restrict left_column, const int64_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left == right)
+#define BINOP_SNIPPET_TYPE int64_t
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_ne(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const int64_t *restrict left_column, const int64_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left != right)
+#define BINOP_SNIPPET_TYPE int64_t
+#define BINOP_SNIPPET_RESULT_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_b_eq(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const uint8_t *restrict left_column, const uint8_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left == right)
+#define BINOP_SNIPPET_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_b_ne(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const uint8_t *restrict left_column, const uint8_t *restrict right_column) {
+#define BINOP_SNIPPET_OPERATOR(left, right) 0 - (left != right)
+#define BINOP_SNIPPET_TYPE uint8_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+
 void sl_exec_f_dot_product2(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict left_0_column, const float *restrict left_1_column, const float *restrict right_0_column, const float *restrict right_1_column) {
   for (;;) {
     uint64_t chain;
@@ -1330,13 +1455,97 @@ int sl_exec_run(struct sl_execution *exec) {
             break;
           }
 
-          case exop_lt:
-          case exop_le:
-          case exop_ge:
-          case exop_gt:
+          case exop_lt: {
+            if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
+              sl_exec_f_lt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
+              sl_exec_i_lt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            break;
+          }
+          case exop_le: {
+            if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
+              sl_exec_f_le((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
+              sl_exec_i_le((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            break;
+          }
+          case exop_ge: {
+            if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
+              sl_exec_f_ge((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
+              sl_exec_i_ge((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            break;
+          }
+          case exop_gt: {
+            if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
+              sl_exec_f_gt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
+              sl_exec_i_gt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            break;
+          }
 
-          case exop_eq:
-          case exop_ne:
+          case exop_eq: {
+            if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
+              sl_exec_f_eq((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
+              sl_exec_i_eq((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            break;
+          }
+          case exop_ne: {
+            if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
+              sl_exec_f_ne((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
+              sl_exec_i_ne((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            }
+            break;
+          }
 
           case exop_logical_xor: {
             switch (eps[epi].v_.expr_->op_) {
