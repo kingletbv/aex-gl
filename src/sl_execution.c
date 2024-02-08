@@ -280,7 +280,7 @@ void sl_exec_f_dot_product4(uint8_t row, uint8_t *restrict chain_column, float *
 done:;
 }
 
-static int sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *left, struct sl_reg_alloc *right) {
+static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *left, struct sl_reg_alloc *right) {
   int r, c;
   if (left->kind_ == right->kind_) {
     switch (left->kind_) {
@@ -560,6 +560,10 @@ static int sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_all
   }
 }
 
+static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *left, struct sl_reg_alloc *right) {
+  int r, c;
+
+}
 
 static int sl_exec_reserve_n(struct sl_execution *exec, size_t n) {
   size_t new_num_needed = exec->num_execution_points_ + n;
@@ -910,8 +914,30 @@ int sl_exec_run(struct sl_execution *exec) {
       }
       else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.expr_->op_) {
-          case exop_multiply:
-          case exop_divide:
+          case exop_multiply: {
+            sl_exec_mul(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
+                        &eps[epi].v_.expr_->children_[0]->reg_alloc_,
+                        &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
+            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
+            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+
+            sl_exec_pop_ep(exec);
+            break;
+          }
+          case exop_divide: {
+            sl_exec_div(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
+                        &eps[epi].v_.expr_->children_[0]->reg_alloc_,
+                        &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
+            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
+            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+
+            sl_exec_pop_ep(exec);
+            break;
+          }
 
           case exop_add:
           case exop_subtract:
@@ -945,4 +971,6 @@ int sl_exec_run(struct sl_execution *exec) {
       }
     }
   }
+
+  return 0;
 }
