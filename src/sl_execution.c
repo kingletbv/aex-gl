@@ -429,6 +429,54 @@ void sl_exec_f_dot_product4(uint8_t row, uint8_t *restrict chain_column, float *
 done:;
 }
 
+static void sl_exec_split_chains_by_bool(struct sl_execution *exec, struct sl_reg_alloc *cond, uint32_t input_chain, uint8_t *ptrue_chain, uint8_t *pfalse_chain) {
+  uint8_t row;
+  if (input_chain == SL_EXEC_NO_CHAIN) return;
+  row = (uint8_t)input_chain;
+  const uint8_t * restrict cond_col = exec->bool_regs_[cond->v_.regs_[0]];
+  uint8_t * restrict chain_col = exec->exec_chain_reg_;
+  uint32_t true_chain = SL_EXEC_NO_CHAIN, false_chain = SL_EXEC_NO_CHAIN;
+  uint8_t true_tail;
+  uint8_t false_tail;
+  uint8_t delta;
+  do {
+    delta = chain_col[row];
+
+    if (cond_col[row]) {
+      if (true_chain != SL_EXEC_NO_CHAIN) {
+        chain_col[true_tail] = row - true_tail;
+        true_tail = row;
+      }
+      else {
+        true_chain = row;
+        true_tail = row;
+      }
+    }
+    else {
+      if (false_chain != SL_EXEC_NO_CHAIN) {
+        chain_col[false_tail] = row - false_tail;
+        false_tail = row;
+      }
+      else {
+        false_chain = row;
+        false_tail = row;
+      }
+    }
+
+    row += delta;
+  } while (delta);
+
+  if (true_chain != SL_EXEC_NO_CHAIN) {
+    chain_col[true_tail] = 0;
+  }
+  if (false_chain != SL_EXEC_NO_CHAIN) {
+    chain_col[false_tail] = 0;
+  }
+
+  *ptrue_chain = true_chain;
+  *pfalse_chain = false_chain;
+}
+
 static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *left, struct sl_reg_alloc *right) {
   int r, c;
   if (left->kind_ == right->kind_) {
@@ -1408,24 +1456,12 @@ int sl_exec_run(struct sl_execution *exec) {
             sl_exec_mul(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
-
-            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
-            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
-            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
-
-            sl_exec_pop_ep(exec);
             break;
           }
           case exop_divide: {
             sl_exec_div(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
-
-            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
-            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
-            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
-
-            sl_exec_pop_ep(exec);
             break;
           }
 
@@ -1433,12 +1469,6 @@ int sl_exec_run(struct sl_execution *exec) {
             sl_exec_add(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
-
-            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
-            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
-            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
-
-            sl_exec_pop_ep(exec);
             break;
           }
 
@@ -1446,12 +1476,6 @@ int sl_exec_run(struct sl_execution *exec) {
             sl_exec_sub(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
-
-            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
-            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
-            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
-
-            sl_exec_pop_ep(exec);
             break;
           }
 
@@ -1548,23 +1572,24 @@ int sl_exec_run(struct sl_execution *exec) {
           }
 
           case exop_logical_xor: {
-            switch (eps[epi].v_.expr_->op_) {
-              case exop_logical_xor:
-                /* Perform logical XOR on both children's registers */
-                sl_exec_logical_or((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                                   exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]], 
-                                   exec->bool_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                                   exec->bool_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
-                break;
-            }
+            sl_exec_logical_or((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]], 
+                                exec->bool_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
+                                exec->bool_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+            break;
+          }
 
-            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
-            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
-            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
-
-            sl_exec_pop_ep(exec);
+          case exop_logical_and: {
+            /* We get here when child 0 has been evaluated, make a selection and evaluate for child 1. */
+            break;
           }
         }
+
+        uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
+        *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
+        eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+
+        sl_exec_pop_ep(exec);
       }
     }
   }
