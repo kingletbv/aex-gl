@@ -613,6 +613,14 @@ static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_a
   int n;
 
   switch (src->kind_) {
+    case slrak_array:
+    case slrak_struct: {
+      size_t index;
+      for (index = 0; index < src->v_.comp_.num_elements_; ++index) {
+        sl_exec_move(exec, row, dst->v_.comp_.elements_ + index, src->v_.comp_.elements_ + index);
+      }
+      break;
+    }
     case slrak_float:
     case slrak_vec2:
     case slrak_vec3:
@@ -1331,7 +1339,7 @@ static void sl_exec_clear_ep(struct sl_execution *exec, size_t ep_index) {
   struct sl_execution_point *ep = exec->execution_points_ + ep_index;
   ep->kind_ = SLEPK_NONE;
   memset(&ep->v_, 0, sizeof(ep->v_));
-  ep->enter_chain_ = ep->revisit_chain_ = ep->post_chain_ = SL_EXEC_NO_CHAIN;
+  ep->enter_chain_ = ep->revisit_chain_ = ep->post_chain_ = ep->alt_chain_ = SL_EXEC_NO_CHAIN;
   ep->continue_chain_ptr_ = 0;
 }
 
@@ -1519,12 +1527,11 @@ int sl_exec_run(struct sl_execution *exec) {
     size_t epi = exec->num_execution_points_;
     struct sl_execution_point *eps = exec->execution_points_;
 #define CHAIN_REF(x) (((uintptr_t)&(x)) - (uintptr_t)exec->execution_points_)
-    size_t post_chain_continuation = CHAIN_REF(eps[epi].post_chain_);
     if (eps[epi].kind_ == SLEPK_STMT) {
       switch (eps[epi].v_.stmt_->kind_) {
         case slsk_expression: {
           if (eps[epi].enter_chain_ != SL_EXEC_NO_CHAIN) {
-            r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->expr_, eps[epi].enter_chain_, post_chain_continuation);
+            r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->expr_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].post_chain_));
             if (r) return r;
             eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;  
@@ -1639,9 +1646,12 @@ int sl_exec_run(struct sl_execution *exec) {
             break;
           }
 
-          /* XXX: Conditional evaluation: these should evaluate the first child first and, depending on the result, optionally evaluate the second or the third */
-          case exop_conditional:
-            ;
+          case exop_conditional: {
+            /* Conditional evaluation: evaluate the first child first and, depending 
+             * on the result, evaluate either the second or the third */
+            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(eps[epi].revisit_chain_));
+            break;
+          }
         }
       }
       else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
@@ -1818,6 +1828,22 @@ int sl_exec_run(struct sl_execution *exec) {
 
             break;
           }
+
+          case exop_conditional: {
+            /* Split execution into a true and false chain, then evaluate children selectively accordingly. */
+            /* XXX: How do we return here? In particular, we'd like to move the registers from the true_chain,
+             *      and then separately move the registers from the false_chain (because they're moving from 
+             *      different registers respectively, potentially...) */
+            uint32_t true_chain = SL_EXEC_NO_CHAIN;
+            uint32_t false_chain = SL_EXEC_NO_CHAIN;
+            sl_exec_split_chains_by_bool(exec, &eps[epi].v_.expr_->children_[0]->reg_alloc_, eps[epi].revisit_chain_,
+                                         &true_chain, &false_chain);
+            eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+            dont_pop = 1;
+            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[1], true_chain, CHAIN_REF(eps[epi].post_chain_));
+            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[2], false_chain, CHAIN_REF(eps[epi].alt_chain_));
+            break;
+          }
         }
 
         if (!dont_pop) {
@@ -1838,9 +1864,26 @@ int sl_exec_run(struct sl_execution *exec) {
           }
         }
         uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
-        *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].revisit_chain_);
-        eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+        *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].post_chain_);
+        eps[epi].post_chain_ = SL_EXEC_NO_CHAIN;
 
+        sl_exec_pop_ep(exec);
+      }
+      else if (eps[epi].alt_chain_ != SL_EXEC_NO_CHAIN) {
+        switch (eps[epi].v_.expr_->op_) {
+          case exop_conditional: {
+            /* Handle completion of the false branch's execution */
+            sl_exec_move(exec, eps[epi].alt_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[2]->reg_alloc_);
+            break;
+          }
+        }
+        uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
+        *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].alt_chain_);
+        eps[epi].alt_chain_ = SL_EXEC_NO_CHAIN;
+
+        sl_exec_pop_ep(exec);
+      }
+      else {
         sl_exec_pop_ep(exec);
       }
     }

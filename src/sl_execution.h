@@ -59,6 +59,13 @@ struct sl_execution_point {
    */
   uint32_t post_chain_;
 
+  /* Index of the first row in the alternate chain, or SL_EXEC_NO_CHAIN.
+   * This is currently used for exop_conditional, where the revisit_chain is used for
+   * handling execution after the conditional has been evaluated, post_chain is used for
+   * handling execution after the true branch has evaluated, and we need one more for
+   * handling the false branch's evaluation. */
+  uint32_t alt_chain_;
+
   /* Offset, in bytes, from sl_execution::sl_execution_points_, to the chain where the
    * executions are to join after this execution_point (and any siblings in the case
    * of statements) have completed execution.
