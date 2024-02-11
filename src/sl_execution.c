@@ -245,6 +245,7 @@ void sl_exec_b_ne(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict
 }
 
 void sl_exec_f_move(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict src_column) {
+  if (result_column == src_column) return;
   for (;;) {
     uint64_t chain;
     if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
@@ -288,6 +289,7 @@ done:;
 }
 
 void sl_exec_i_move(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const int64_t *restrict src_column) {
+  if (result_column == src_column) return;
   for (;;) {
     uint64_t chain;
     if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
@@ -331,6 +333,7 @@ done:;
 }
 
 void sl_exec_b_move(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const uint8_t *restrict src_column) {
+  if (result_column == src_column) return;
   for (;;) {
     uint64_t chain;
     if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
@@ -1793,6 +1796,28 @@ int sl_exec_run(struct sl_execution *exec) {
 
             break;
           }
+
+          case exop_logical_or: {
+            /* Like the logical-and, child 0 has been evaluated. If child 0 is true, the result is true and
+             * the second child must not be evaluated. Conversely, if child 0 is false, the result is the
+             * evaluation of the second branch */
+            uint32_t true_chain = SL_EXEC_NO_CHAIN;
+            uint32_t false_chain = SL_EXEC_NO_CHAIN;
+            sl_exec_split_chains_by_bool(exec, &eps[epi].v_.expr_->children_[0]->reg_alloc_, eps[epi].revisit_chain_,
+                                         &true_chain, &false_chain);
+            eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+            /* Child 0 == true ? Move child 0 result to our result and pass on to continuation */
+            sl_exec_move(exec, true_chain, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            uint32_t *chain_ptr = (uint32_t *)(((uintptr_t)exec->execution_points_) + eps[epi].continue_chain_ptr_);
+            *chain_ptr = sl_exec_join_chains(exec, *chain_ptr, true_chain);
+
+            /* Child 0 == False ? Move to process child 1 as the result and return here in post_chain to move it in
+             * position. */
+            dont_pop = 1;
+            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[1], false_chain, CHAIN_REF(eps[epi].post_chain_));
+
+            break;
+          }
         }
 
         if (!dont_pop) {
@@ -1805,8 +1830,9 @@ int sl_exec_run(struct sl_execution *exec) {
       }
       else if (eps[epi].post_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.expr_->op_) {
+          case exop_logical_or:
           case exop_logical_and: {
-            /* Move result from second child into result of logical-and expression node */
+            /* Move result from second child into result of logical-and or logical-or expression node */
             sl_exec_move(exec, eps[epi].post_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
             break;
           }
