@@ -2171,6 +2171,18 @@ static int sl_expr_alloc_register_pre_pass(struct sl_type_base *tb, struct sl_re
   return 0;
 }
 
+static int sl_expr_is_assignment(struct sl_expr *x) {
+  static const int is_assign[] = {
+    [exop_assign] = 1,
+    [exop_mul_assign] = 1,
+    [exop_div_assign] = 1,
+    [exop_add_assign] = 1,
+    [exop_sub_assign] = 1
+  };
+  if (x->op_ >= (sizeof(is_assign)/sizeof(*is_assign))) return 0;
+  return is_assign[x->op_];
+}
+
 static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
   size_t n;
   int r;
@@ -2245,6 +2257,7 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
     r = sl_reg_allocator_unlock(ract, &x->reg_alloc_);
     if (r) return r;
   }
+  int is_assignment = sl_expr_is_assignment(x);
   for (n = 0; n < x->num_children_; ++n) {
     struct sl_expr *child = x->children_[n];
     if (!child->was_prelocked_) {
@@ -2254,6 +2267,17 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
     /* Enter child for computation */
     r = sl_expr_alloc_registers(tb, ract, child);
     if (r) return r;
+
+    /* If this is an assignment, and the child is therefore an lvalue, then check
+     * if we need to keep some of *its* children around in registers to avoid duplicate
+     * computation. */
+    if (is_assignment && !n) {
+      if (x->children_[0]->op_ == exop_array_subscript) {
+        /* Lock register holding the index */
+        r = sl_reg_allocator_lock(ract, &x->children_[0]->children_[1]->reg_alloc_);
+      }
+    }
+
     /* Step to next.. notice how we keep previous operand children locked, but not yet
      * subsequent ones. */
   }
@@ -2267,6 +2291,12 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
     struct sl_expr *child = x->children_[n];
     r = sl_reg_allocator_unlock(ract, &child->reg_alloc_);
     if (r) return r;
+    if (is_assignment && !n) {
+      if (x->children_[0]->op_ == exop_array_subscript) {
+        /* Unlock register holding the index */
+        r = sl_reg_allocator_unlock(ract, &x->children_[0]->children_[1]->reg_alloc_);
+      }
+    }
   }
 
   return 0;
