@@ -190,6 +190,7 @@
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <ClCompile Include="..\src\range_allocator.c" />
     <ClCompile Include="..\src\rasterizer.c">
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -315,6 +316,7 @@
     <ClInclude Include="..\src\pp\scan_helpers.h" />
     <ClInclude Include="..\src\pp\situs.h" />
     <ClInclude Include="..\src\primitive_assembly.h" />
+    <ClInclude Include="..\src\range_allocator.h" />
     <ClInclude Include="..\src\rasterizer.h" />
     <ClInclude Include="..\src\sl_binop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_execution.h" />
