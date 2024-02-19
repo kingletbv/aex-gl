@@ -946,17 +946,24 @@ static struct ral_range *ral_range_pos_find_at(struct ral_range_allocator *ral, 
 }
 
 
-static struct ral_range *ral_range_pos_find_on_or_before(struct ral_range_allocator *ral, uintptr_t pos) {
+static struct ral_range *ral_range_pos_find_first_touching_or_after(struct ral_range_allocator *ral, uintptr_t left) {
+  /* NOTE: We compare against ral_range::to_ - that works only if:
+   * - None of the ral_range's overlap
+   * - A ral_range will never be empty (e.g. from_ < to_ is always true)
+   * Reason this works is because the sorted sequence of ranges by from_ will then be
+   * equal to the sorted sequence of ranges by to_.
+   */
   struct ral_range *s;
   struct ral_range *fit = NULL;
   s = ral->pos_root_;
   while (s) {
-    if (s->from_ <= pos) {
-      fit = s;
+    if (s->to_ < left) {
+      /* to is before left, and not touching. Not a fit */
       s = s->pos_right_;
     }
     else {
-      /* from > pos, not a fit */
+      /* to >= left, so either to the right of the left edge, or touching it. A fit */
+      fit = s;
       s = s->pos_left_;
     }
 
@@ -964,6 +971,66 @@ static struct ral_range *ral_range_pos_find_on_or_before(struct ral_range_alloca
   return fit;
 }
 
+static struct ral_range *ral_range_pos_find_last_touching_or_before(struct ral_range_allocator *ral, uintptr_t right) {
+  struct ral_range *s;
+  struct ral_range *fit = NULL;
+  s = ral->pos_root_;
+  while (s) {
+    if (s->from_ <= right) {
+      /* from is before right, or touching. A fit */
+      fit = s;
+      s = s->pos_right_;
+    }
+    else {
+      /* from > right, so to the right of the edge. Not a fit */
+      s = s->pos_left_;
+    }
+  }
+  return fit;
+}
+
+static struct ral_range *ral_range_pos_find_first_overlapping_or_after(struct ral_range_allocator *ral, uintptr_t left) {
+  /* NOTE: We compare against ral_range::to_ - that works only if:
+   * - None of the ral_range's overlap
+   * - A ral_range will never be empty (e.g. from_ < to_ is always true)
+   * Reason this works is because the sorted sequence of ranges by from_ will then be
+   * equal to the sorted sequence of ranges by to_.
+   */
+  struct ral_range *s;
+  struct ral_range *fit = NULL;
+  s = ral->pos_root_;
+  while (s) {
+    if (s->to_ <= left) {
+      /* to is before, or on, left. Not a fit */
+      s = s->pos_right_;
+    }
+    else {
+      /* to > left, so to the right of the left edge. A fit */
+      fit = s;
+      s = s->pos_left_;
+    }
+
+  }
+  return fit;
+}
+
+static struct ral_range *ral_range_pos_find_last_overlapping_or_before(struct ral_range_allocator *ral, uintptr_t right) {
+  struct ral_range *s;
+  struct ral_range *fit = NULL;
+  s = ral->pos_root_;
+  while (s) {
+    if (s->from_ < right) {
+      /* from is before right. A fit */
+      fit = s;
+      s = s->pos_right_;
+    }
+    else {
+      /* from >= right, so on, or to the right of the edge. Not a fit */
+      s = s->pos_left_;
+    }
+  }
+  return fit;
+}
 
 static struct ral_range *ral_range_alloc(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to) {
   ral;
@@ -976,9 +1043,25 @@ static struct ral_range *ral_range_alloc(struct ral_range_allocator *ral, uintpt
   return rr;
 }
 
+static void ral_range_free(struct ral_range_allocator *ral, struct ral_range *rr) {
+  ral;
+  if (!rr) return;
+  free(rr);
+}
+
 int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to) {
-  struct ral_range *rr = ral_range_pos_find_on_or_before(ral, to);
-  if (!rr) {
+  struct ral_range *rr_first = ral_range_pos_find_first_touching_or_after(ral, from);
+  struct ral_range *rr_last = ral_range_pos_find_last_touching_or_before(ral, to);
+
+  // Some thoughts: if no range is found (e.g. we're in a gap, which is a fairly likely case when
+  //                we don't touch anything and don't mark things free that are already free,) then
+  //                rr_first is NULL, rr_last is NULL, or rr_first->from_ > rr_last->from_
+  //                ..
+  //                rr_first is NULL and rr_last is non-NULL: append to the end (as last interval); no overlapping ranges
+  //                rr_first is non_NULL and rr_last is NULL: insert at the start (as first interval); no overlapping ranges
+  //                Both rr_first and rr_last are NULL: there are no intervals; insert as first element.
+  if (!rr_first || !rr_last || (rr_first->from_ > rr_last->from_)) {
+    /* No overlapping or adjacent ranges. */
     /* range from-to precedes any free range */
     if (to >= ral->watermark_) {
       /* Range to free is adjacent (or overlaps) the watermark beyond which everything is free,
@@ -986,9 +1069,21 @@ int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, u
       ral->watermark_ = from;
       return 0;
     }
+    struct ral_range *rr;
     rr = ral_range_alloc(ral, from, to);
     if (!rr) return -1; /* no mem */
-    if (ral->pos_seq_) {
+    if (!ral->pos_seq_) {
+      /* First and only range */
+      assert(!rr_first && !rr_last);
+      ral->pos_seq_ = rr;
+      rr->pos_next_ = rr->pos_prev_ = rr;
+      ral->pos_root_ = rr;
+      rr->pos_is_red_ = 0; /* root is always black */
+      ral_range_sz_insert(ral, rr);
+    }
+    else if (rr_first && !rr_last) {
+      /* Start of the range; add to the left of first node, 
+       * note that the first node in a rb tree is always a leaf */
       ral->pos_seq_->pos_left_ = rr;
       rr->pos_parent_ = ral->pos_seq_;
       rr->pos_is_red_ = 1; /* new insertions are always red prior to processing */
@@ -999,33 +1094,67 @@ int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, u
       ral->pos_seq_ = rr;
       ral_range_sz_insert(ral, rr);
     }
-    else {
-      /* First and only range */
+    else if (!rr_first && rr_last) {
+      /* End of the range; add to the right of the last ndoe,
+       * note that the last node in a rb tree is always, a leaf */
+      ral->pos_seq_->pos_prev_->pos_right_ = rr;
+      rr->pos_parent_ = ral->pos_seq_->pos_prev_;
+      rr->pos_is_red_ = 1; /* new insertions are always red prior to processing */
+      ral_range_pos_process_insert(ral, rr);
+      rr->pos_next_ = ral->pos_seq_;
+      rr->pos_prev_ = ral->pos_seq_->pos_prev_;
+      rr->pos_next_->pos_prev_ = rr->pos_prev_->pos_next_ = rr;
       ral->pos_seq_ = rr;
-      rr->pos_next_ = rr->pos_prev_ = rr;
-      ral->pos_root_ = rr;
-      rr->pos_is_red_ = 0; /* root is always black */
       ral_range_sz_insert(ral, rr);
+    }
+    else /* rr_first->from_ > rr_last->from_ */ {
+      /* Could not find any overlapping range, so insert new one right in the middle
+       * rr_first points to the first range after the new range, rr_last points to
+       * the last range before the new range; hence rr_first is after rr_last in
+       * the sequence; we'd also expect these two to be adjacent.
+       * Find location to insert to the left of rr_first */
+      if (rr_first->pos_left_) {
+        struct ral_range *rr_parent = rr_first->pos_left_;
+        while (rr_parent->pos_right_) rr_parent = rr_parent->pos_right_;
+        rr_parent->pos_right_ = rr;
+        rr->pos_parent_ = rr_parent;
+      }
+      else {
+        rr_first->pos_left_ = rr;
+        rr->pos_parent_ = rr_first;
+      }
+      rr->pos_is_red_ = 1;  /* new insertions are red prior to processing */
+      ral_range_pos_process_insert(ral, rr);
+      rr->pos_next_ = rr_first;
+      rr->pos_prev_ = rr_last;
+      rr->pos_next_->pos_prev_ = rr->pos_prev_->pos_next_ = rr;
     }
     return 0;
   }
-  /* to is guaranteed to be *after* rr->from_; keep moving backwards to the front
-   * until we find the rr->to_ that is before from. */
-  struct ral_range *last = rr;
-  while (rr && (rr->to_ >= from)) {
-    struct ral_range *prev;
 
-    if (rr != ral->pos_seq_) {
-      prev = rr->pos_prev_;
-    }
-    else {
-      prev = NULL;
-    }
+  assert(rr_first && rr_last && (rr_first->from_ > rr_last->to_));
+  
+  /* Overwriting or extending a range */
+  uintptr_t new_from = (from < rr_first->from_) ? from : rr_first->from_;
+  uintptr_t new_to = (to > rr_last->to_) ? to : rr_last->to_;
 
-    rr = prev;
+  /* Remove any ranges we no longer need, first range will be adapted to
+   * the new range, any remaining overlapping ranges have to go */
+  if (rr_first != rr_last) {
+    struct ral_range *rr;
+    do {
+      rr = rr_first->pos_next_;
+      ral_range_pos_remove(ral, rr);
+      ral_range_sz_remove(ral, rr);
+      ral_range_free(ral, rr);
+    } while (rr != rr_last);
   }
-  struct ral_range *first = rr;
+  ral_range_sz_remove(ral, rr_first);
+  rr_first->from_ = new_from;
+  rr_first->to_ = new_to;
+  ral_range_sz_insert(ral, rr_first);
 
+  return 0;
 }
 
 int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to) {
