@@ -1318,8 +1318,6 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
     }
   }
 
-  if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
-
   /* Remove any range in-between first and last */
   struct ral_range *rr;
   rr = rr_first->pos_next_;
@@ -1329,42 +1327,33 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
     ral_range_sz_remove(ral, rr);
     ral_range_pos_remove(ral, rr);
     ral_range_free(ral, rr);
-    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
 
     rr = rr_next;
   }
-
-  if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
 
   /* Check if we're clipping rr_first or have it fully covered */
   if (rr_first->from_ < from) {
     ral_range_sz_remove(ral, rr_first);
     rr_first->to_ = from;
     ral_range_sz_insert(ral, rr_first);
-    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
   }
   else {
     /* Fully covered */
     ral_range_sz_remove(ral, rr_first);
     ral_range_pos_remove(ral, rr_first);
-    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
     ral_range_free(ral, rr_first);
   }
-
-  if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
 
   /* Same for rr_last */
   if (rr_last->to_ > to) {
     ral_range_sz_remove(ral, rr_last);
     rr_last->from_ = to;
     ral_range_sz_insert(ral, rr_last);
-    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
   }
   else {
     ral_range_sz_remove(ral, rr_last);
     ral_range_pos_remove(ral, rr_last);
     ral_range_free(ral, rr_last);
-    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
   }
 
   return 0;
