@@ -16,6 +16,9 @@ struct ral_range {
   struct ral_range *sz_parent_, *sz_left_, *sz_right_, *sz_next_, *sz_prev_;
 
   uintptr_t from_, to_;
+
+  /* Little helper value for sanity calculations */
+  int sanity_;
 };
 
 // Basic idea is to have:
@@ -41,6 +44,10 @@ struct ral_range_allocator {
    * watermark_ could be lower. */
   uintptr_t watermark_;
 };
+
+
+/* self-test, returns non-zero upon failure, zero upon pass. */
+int ral_range_test(void);
 
 #ifdef __cplusplus
 } /* extern "C" */

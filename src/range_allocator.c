@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #endif
 
+#ifndef STDIO_H_INCLUDED
+#define STDIO_H_INCLUDED
+#include <stdio.h>
+#endif
+
 #ifndef ASSERT_H_INCLUDED
 #define ASSERT_H_INCLUDED
 #include <assert.h>
@@ -12,6 +17,29 @@
 #define RANGE_ALLOCATOR_H_INCLUDED
 #include "range_allocator.h"
 #endif
+
+static void ral_range_sz_remove(struct ral_range_allocator *ral, struct ral_range *s);
+static void ral_range_pos_remove(struct ral_range_allocator *ral, struct ral_range *s);
+
+static struct ral_range *ral_range_alloc(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to);
+static void ral_range_free(struct ral_range_allocator *ral, struct ral_range *rr);
+
+static int ral_range_sanity_check(struct ral_range_allocator *ral);
+
+void ral_range_allocator_init(struct ral_range_allocator *ral) {
+  ral->sz_root_ = ral->sz_seq_ = NULL;
+  ral->pos_root_ = ral->pos_seq_ = NULL;
+  ral->watermark_ = 0;
+}
+
+void ral_range_allocator_cleanup(struct ral_range_allocator *ral) {
+  while (ral->pos_seq_) {
+    struct ral_range *rr = ral->pos_seq_;
+    ral_range_sz_remove(ral, rr);
+    ral_range_pos_remove(ral, rr);
+    ral_range_free(ral, rr);
+  }
+}
 
 void ral_range_init(struct ral_range *rr) {
   rr->pos_parent_ = rr->pos_left_ = rr->pos_right_ = rr->pos_next_ = rr->pos_prev_ = NULL;
@@ -451,33 +479,57 @@ static int ral_range_sz_cmp(const struct ral_range *left, const struct ral_range
 static void ral_range_sz_insert(struct ral_range_allocator *ral, struct ral_range *rr) {
   struct ral_range *s;
   s = ral->sz_root_;
+  struct ral_range *next = NULL, *prev = NULL;
   if (!s) {
-    rr = ral->sz_root_;
+    ral->sz_root_ = rr;
     rr->sz_is_red_ = 0;
+    ral->sz_seq_ = rr;
+    rr->sz_next_ = rr->sz_prev_ = rr;
     return;
   }
   for (;;) {
-    int cmp = ral_range_sz_cmp(s, rr);
+    int cmp = ral_range_sz_cmp(rr, s);
     if (cmp < 0) {
+      next = s;
       if (s->sz_left_) {
         s = s->sz_left_;
       }
       else {
+        if (!prev) {
+          /* Inserting at head */
+          prev = ral->sz_seq_->sz_prev_;
+          ral->sz_seq_ = rr; /* new head */
+        }
+
         s->sz_left_ = rr;
         rr->sz_parent_ = s;
         rr->sz_is_red_ = 1;
+        rr->sz_next_ = next;
+        rr->sz_prev_ = prev;
+        rr->sz_next_->sz_prev_ = rr->sz_prev_->sz_next_ = rr;
+        rr->sz_left_ = rr->sz_right_ = NULL;
         ral_range_sz_process_insert(ral, rr);
         return;
       }
     }
     else /* (cmp >= 0) */ {
+      prev = s;
       if (s->sz_right_) {
         s = s->sz_right_;
       }
       else {
+        if (!next) {
+          /* Inserting at tail */
+          next = ral->sz_seq_;
+        }
+
         s->sz_right_ = rr;
         rr->sz_parent_ = s;
         rr->sz_is_red_ = 1;
+        rr->sz_next_ = next;
+        rr->sz_prev_ = prev;
+        rr->sz_next_->sz_prev_ = rr->sz_prev_->sz_next_ = rr;
+        rr->sz_left_ = rr->sz_right_ = NULL;
         ral_range_sz_process_insert(ral, rr);
         return;
       }
@@ -1105,7 +1157,6 @@ int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, u
       rr->pos_next_ = ral->pos_seq_;
       rr->pos_prev_ = ral->pos_seq_->pos_prev_;
       rr->pos_next_->pos_prev_ = rr->pos_prev_->pos_next_ = rr;
-      ral->pos_seq_ = rr;
       ral_range_sz_insert(ral, rr);
     }
     else /* rr_first->from_ > rr_last->from_ */ {
@@ -1129,11 +1180,12 @@ int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, u
       rr->pos_next_ = rr_first;
       rr->pos_prev_ = rr_last;
       rr->pos_next_->pos_prev_ = rr->pos_prev_->pos_next_ = rr;
+      ral_range_sz_insert(ral, rr);
     }
     return 0;
   }
 
-  assert(rr_first && rr_last && (rr_first->from_ > rr_last->to_));
+  assert(rr_first && rr_last && (rr_first->from_ < rr_last->to_));
   
   /* Overwriting or extending a range */
   uintptr_t new_from = (from < rr_first->from_) ? from : rr_first->from_;
@@ -1150,11 +1202,20 @@ int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, u
       ral_range_free(ral, rr);
     } while (rr != rr_last);
   }
-  ral_range_sz_remove(ral, rr_first);
-  rr_first->from_ = new_from;
-  rr_first->to_ = new_to;
-  ral_range_sz_insert(ral, rr_first);
-
+  if (new_to < ral->watermark_) {
+    ral_range_sz_remove(ral, rr_first);
+    rr_first->from_ = new_from;
+    rr_first->to_ = new_to;
+    ral_range_sz_insert(ral, rr_first);
+  }
+  else {
+    /* Area to free bridges the last range with the watermark area,
+     * lower watermark to start of the last range and drop the range itself */
+    ral->watermark_ = new_from;
+    ral_range_sz_remove(ral, rr_first);
+    ral_range_pos_remove(ral, rr_first);
+    ral_range_free(ral, rr_first);
+  }
   return 0;
 }
 
@@ -1195,7 +1256,6 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
           rr->pos_next_ = ral->pos_seq_;
           rr->pos_prev_ = ral->pos_seq_->pos_prev_;
           rr->pos_next_->pos_prev_ = rr->pos_prev_->pos_next_ = rr;
-          ral->pos_seq_ = rr;
           ral_range_sz_insert(ral, rr);
         }
       }
@@ -1252,12 +1312,14 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
     }
     else /* (rr_first->from >= from) && (rr_first->to_ > to) */ {
       ral_range_sz_remove(ral, rr_first);
-      rr_first->from_ = rr_first->to_;
-      rr_first->to_ = to;
+      rr_first->from_ = to;
       ral_range_sz_insert(ral, rr_first);
       return 0;
     }
   }
+
+  if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
+
   /* Remove any range in-between first and last */
   struct ral_range *rr;
   rr = rr_first->pos_next_;
@@ -1267,34 +1329,318 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
     ral_range_sz_remove(ral, rr);
     ral_range_pos_remove(ral, rr);
     ral_range_free(ral, rr);
+    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
 
     rr = rr_next;
   }
+
+  if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
 
   /* Check if we're clipping rr_first or have it fully covered */
   if (rr_first->from_ < from) {
     ral_range_sz_remove(ral, rr_first);
     rr_first->to_ = from;
     ral_range_sz_insert(ral, rr_first);
+    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
   }
   else {
     /* Fully covered */
     ral_range_sz_remove(ral, rr_first);
     ral_range_pos_remove(ral, rr_first);
+    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
     ral_range_free(ral, rr_first);
   }
+
+  if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
 
   /* Same for rr_last */
   if (rr_last->to_ > to) {
     ral_range_sz_remove(ral, rr_last);
     rr_last->from_ = to;
     ral_range_sz_insert(ral, rr_last);
+    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
   }
   else {
     ral_range_sz_remove(ral, rr_last);
     ral_range_pos_remove(ral, rr_last);
     ral_range_free(ral, rr_last);
+    if (!ral_range_sanity_check(ral)) { fprintf(stderr, "ral_range_test(): sanity check failed.\n"); return -1; }
   }
+
   return 0;
 }
 
+static int ral_range_sanity_check_pos_parent_pointers(struct ral_range *parent, struct ral_range *child) {
+  if (!child) return 1;
+  if (child->pos_parent_ != parent) return 0;
+  if (!ral_range_sanity_check_pos_parent_pointers(child, child->pos_left_)) return 0;
+  if (!ral_range_sanity_check_pos_parent_pointers(child, child->pos_right_)) return 0;
+  return 1;
+}
+
+static int ral_range_sanity_check_sz_parent_pointers(struct ral_range *parent, struct ral_range *child) {
+  if (!child) return 1;
+
+  if (child->sz_parent_ != parent) return 0;
+  if (!ral_range_sanity_check_sz_parent_pointers(child, child->sz_left_)) return 0;
+  if (!ral_range_sanity_check_sz_parent_pointers(child, child->sz_right_)) return 0;
+  return 1;
+}
+
+static int ral_range_sanity_check_range_sizes(struct ral_range_allocator *ral) {
+  struct ral_range *rr = ral->pos_seq_;
+  if (rr) {
+    do {
+      if (rr->from_ >= rr->to_) {
+        fprintf(stderr, "ral_range_sanity_check_range_sizes() failed\n");
+        return 0;
+      }
+
+      rr = rr->pos_next_;
+    } while (rr != ral->pos_seq_);
+  }
+
+  return 1;
+}
+
+static void ral_range_increment_sz_nodes(struct ral_range *rr) {
+  if (!rr) return;
+  rr->sanity_ |= 8;
+  ral_range_increment_sz_nodes(rr->sz_left_);
+  ral_range_increment_sz_nodes(rr->sz_right_);
+}
+
+static void ral_range_increment_pos_nodes(struct ral_range *rr) {
+  if (!rr) return;
+  rr->sanity_ |= 4;
+  ral_range_increment_pos_nodes(rr->pos_left_);
+  ral_range_increment_pos_nodes(rr->pos_right_);
+}
+
+static int ral_range_check_sz_nodes(struct ral_range *rr) {
+  if (!rr) return 1;
+  if (rr->sanity_ != 15) {
+    fprintf(stderr, "ral_range_sanity_check_both_trees() failed\n");
+    return 0;
+  }
+  if (!ral_range_check_sz_nodes(rr->sz_left_)) return 0;
+  if (!ral_range_check_sz_nodes(rr->sz_right_)) return 0;
+  return 1;
+}
+
+static int ral_range_check_pos_nodes(struct ral_range *rr) {
+  if (!rr) return 1;
+  if (rr->sanity_ != 15) {
+    fprintf(stderr, "ral_range_sanity_check_both_trees() failed\n");
+    return 0;
+  }
+  if (!ral_range_check_pos_nodes(rr->pos_left_)) return 0;
+  if (!ral_range_check_pos_nodes(rr->pos_right_)) return 0;
+  return 1;
+}
+
+static int ral_range_check_both_trees(struct ral_range_allocator *ral) {
+  struct ral_range *rr = ral->pos_seq_;
+  if (rr) {
+    do {
+      rr->sanity_ = 0;
+
+      rr = rr->pos_next_;
+    } while (rr != ral->pos_seq_);
+  }
+
+  rr = ral->sz_seq_;
+  if (rr) {
+    do {
+      rr->sanity_ = 0;
+
+      rr = rr->sz_next_;
+    } while (rr != ral->sz_seq_);
+  }
+
+  rr = ral->pos_seq_;
+  if (rr) {
+    do {
+      rr->sanity_ |= 1;
+
+      rr = rr->pos_next_;
+    } while (rr != ral->pos_seq_);
+  }
+
+  rr = ral->sz_seq_;
+  if (rr) {
+    do {
+      rr->sanity_ |= 2;
+
+      rr = rr->sz_next_;
+    } while (rr != ral->sz_seq_);
+  }
+
+  ral_range_increment_pos_nodes(ral->pos_root_); /* marks sanity_ as 4 */
+  ral_range_increment_sz_nodes(ral->sz_root_);   /* marks sanity_ as 8 */
+
+  rr = ral->pos_seq_;
+  if (rr) {
+    do {
+      if (rr->sanity_ != 15) {
+        fprintf(stderr, "ral_range_sanity_check_both_trees() failed\n");
+        return 0;
+      }
+
+      rr = rr->pos_next_;
+    } while (rr != ral->pos_seq_);
+  }
+
+  rr = ral->pos_seq_;
+  if (rr) {
+    do {
+      if (rr->sanity_ != 15) {
+        fprintf(stderr, "ral_range_sanity_check_both_trees() failed\n");
+        return 0;
+      }
+
+      rr = rr->pos_next_;
+    } while (rr != ral->pos_seq_);
+  }
+
+  return ral_range_check_pos_nodes(ral->pos_root_) && 
+         ral_range_check_sz_nodes(ral->sz_root_);
+}
+
+static int ral_range_sanity_watermark_check(struct ral_range_allocator *ral) {
+  if (!ral->pos_seq_) return 1;
+  if (!(ral->watermark_ > ral->pos_seq_->pos_prev_->to_)) {
+    /* There is no gap between the watermark and the last interval, this makes
+     * the last interval redundant - or - the last interval is inside the watermark
+     * area. */
+    fprintf(stderr, "ral_range_sanity_watermark_check() failed\n");
+    return 0;
+  }
+  return 1;
+}
+
+static int ral_range_sanity_check_pos_ascension(struct ral_range_allocator *ral) {
+  struct ral_range *rr = ral->pos_seq_;
+  if (rr) {
+    do {
+      if (rr->pos_next_ != ral->pos_seq_) {
+        struct ral_range *rnext = rr->pos_next_;
+        if ((rr->from_ >= rnext->from_) ||
+            (rr->to_ >= rnext->from_) ||
+            (rr->from_ >= rnext->to_) ||
+            (rr->to_ >= rnext->to_)) {
+          fprintf(stderr, "ral_range_sanity_check_pos_ascension() failed\n");
+          return 0;
+        }
+      }
+
+      rr = rr->pos_next_;
+    } while (rr != ral->pos_seq_);
+  }
+
+  return 1;
+}
+
+static int ral_range_sanity_check_sz_ascension(struct ral_range_allocator *ral) {
+  struct ral_range *rr = ral->sz_seq_;
+  if (rr) {
+    do {
+      if (rr->sz_next_ != ral->sz_seq_) {
+        struct ral_range *rnext = rr->sz_next_;
+        if ((rr->to_ - rr->from_) > (rnext->to_ - rnext->from_)) {
+          fprintf(stderr, "ral_range_sanity_check_sz_ascension() failed\n");
+          return 0;
+        }
+      }
+
+      rr = rr->sz_next_;
+    } while (rr != ral->sz_seq_);
+  }
+
+  return 1;
+}
+
+static int ral_range_sanity_check(struct ral_range_allocator *ral) {
+  int r = ral_range_sanity_check_pos_parent_pointers(NULL, ral->pos_root_)
+       && ral_range_sanity_check_sz_parent_pointers(NULL, ral->sz_root_)
+       && ral_range_sanity_check_range_sizes(ral)
+       && ral_range_check_both_trees(ral)
+       && ral_range_sanity_watermark_check(ral)
+       && ral_range_sanity_check_pos_ascension(ral)
+       && ral_range_sanity_check_sz_ascension(ral);
+  if (!r) {
+    fprintf(stderr, "ral_range_sanity_check() failed\n");
+  }
+  return r;
+}
+
+int ral_range_test(void) {
+  srand(123);
+
+  struct ral_range_allocator ral;
+  ral_range_allocator_init(&ral);
+
+  char ranges[256] = {0};
+  size_t n;
+  for (n = 0; n < 2000; ++n) {
+    uintptr_t from, to;
+    int alloc_or_free;
+    do {
+      from = rand() % (sizeof(ranges) / sizeof(*ranges));
+      to = rand() % (sizeof(ranges) / sizeof(*ranges));
+      if (from > to) {
+        uintptr_t s = from;
+        from = to;
+        to = s;
+      }
+    } while (from == to);
+    alloc_or_free = rand() & 1;
+
+    if (alloc_or_free) {
+      /* alloc range */
+      uintptr_t k;
+      for (k = from; k < to; ++k) {
+        ranges[k] = 1;
+      }
+      if (n == 250) {
+        fprintf(stderr, "investigate\n");
+      }
+      int r;
+      r = ral_range_mark_range_allocated(&ral, from, to);
+      if (r) {
+        fprintf(stderr, "ral_range_test(): failed ral_range_mark_range_allocated()\n");
+        return r;
+      }
+      r = ral_range_sanity_check(&ral);
+      if (!r) {
+        fprintf(stderr, "ral_range_test(): sanity check failed.\n");
+        return -1;
+      }
+    }
+    else {
+      /* free range */
+      uintptr_t k;
+      for (k = from; k < to; ++k) {
+        ranges[k] = 0;
+      }
+      int r;
+      if (n == 3) {
+        fprintf(stderr, "investigate\n");
+      }
+      r = ral_range_mark_range_free(&ral, from, to);
+      if (r) {
+        fprintf(stderr, "ral_range_test(): failed ral_range_mark_range_free()\n");
+        return r;
+      }
+      r = ral_range_sanity_check(&ral);
+      if (!r) {
+        fprintf(stderr, "ral_range_test(): sanity check failed.\n");
+        return -1;
+      }
+    }
+  }
+
+  ral_range_allocator_cleanup(&ral);
+
+  return 0;
+}
