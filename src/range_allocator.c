@@ -1046,6 +1046,7 @@ static struct ral_range *ral_range_alloc(struct ral_range_allocator *ral, uintpt
 static void ral_range_free(struct ral_range_allocator *ral, struct ral_range *rr) {
   ral;
   if (!rr) return;
+  ral_range_cleanup(rr);
   free(rr);
 }
 
@@ -1158,5 +1159,142 @@ int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, u
 }
 
 int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to) {
+  struct ral_range *rr_first = ral_range_pos_find_first_overlapping_or_after(ral, from);
+  struct ral_range *rr_last = ral_range_pos_find_last_overlapping_or_before(ral, to);
+
+  if (!rr_first || !rr_last || (rr_first->from_ > rr_last->from_)) {
+    /* No overlapping ranges; this means that, aside from the watermark (which we'll
+     * check next), the entire range from-to is already "not free", but allocated (again,
+     * aside from the watermark.) */
+    /* range from-to precedes any free range */
+    if (to >= ral->watermark_) {
+      /* Range to free is adjacent (or overlaps) the watermark beyond which everything is free,
+       * so just adjust the watermark. */
+      if (from > ral->watermark_) {
+        /* There is a gap between the from-to range we are now marking allocated, and the
+         * old watermark level. That gap should be considered free. Insert an interval to
+         * reflect this */
+        struct ral_range *rr;
+        rr = ral_range_alloc(ral, ral->watermark_, from);
+        if (!rr) return -1; /* no mem */
+        if (!ral->pos_seq_) {
+          /* First and only range */
+          assert(!rr_first && !rr_last);
+          ral->pos_seq_ = rr;
+          rr->pos_next_ = rr->pos_prev_ = rr;
+          ral->pos_root_ = rr;
+          rr->pos_is_red_ = 0; /* root is always black */
+          ral_range_sz_insert(ral, rr);
+        }
+        else {
+          /* End of the range; add to the right of the last node */
+          ral->pos_seq_->pos_prev_->pos_right_ = rr;
+          rr->pos_parent_ = ral->pos_seq_->pos_prev_;
+          rr->pos_is_red_ = 1; /* new insertions are always red prior to processing */
+          ral_range_pos_process_insert(ral, rr);
+          rr->pos_next_ = ral->pos_seq_;
+          rr->pos_prev_ = ral->pos_seq_->pos_prev_;
+          rr->pos_next_->pos_prev_ = rr->pos_prev_->pos_next_ = rr;
+          ral->pos_seq_ = rr;
+          ral_range_sz_insert(ral, rr);
+        }
+      }
+      ral->watermark_ = to;
+    }
+    return 0;
+  }
+
+  if (rr_first == rr_last) {
+    /* Overlap only one range, determine if we split this range in two */
+    if ((rr_first->from_ < from) && (rr_first->to_ > to)) {
+      /* Insert new range for last */
+      struct ral_range *rr;
+      rr = ral_range_alloc(ral, to, rr_first->to_);
+      /* We insert this immediately after (next to) rr_first */
+      if (rr_first->pos_right_) {
+        struct ral_range *rr_parent = rr_first->pos_right_;
+        while (rr_parent->pos_left_) rr_parent = rr_parent->pos_left_;
+        rr_parent->pos_left_ = rr;
+        rr->pos_parent_ = rr_parent;
+      }
+      else {
+        rr_first->pos_right_ = rr;
+        rr->pos_parent_ = rr_first;
+      }
+      rr->pos_is_red_ = 1;
+      rr->pos_prev_ = rr_first;
+      rr->pos_next_ = rr_first->pos_next_;
+      rr->pos_next_->pos_prev_ = rr->pos_prev_->pos_next_ = rr;
+      ral_range_pos_process_insert(ral, rr);
+      ral_range_sz_insert(ral, rr);
+
+      /* We rely on the ral_ranges not overlapping, consequently, rr_first maintains
+       * its existing position (because its from doesn't change) - however, its size
+       * changes so we re-insert it into the sz tree to reflect any new position. */
+      ral_range_sz_remove(ral, rr_first);
+      rr_first->to_ = from;
+      ral_range_sz_insert(ral, rr_first);
+      /* Range split, done */
+      return 0;
+    }
+    else if ((rr_first->from_ >= from) && (rr_first->to_ <= to)) {
+      /* Range fully overlapped by range to mark allocated, remove it */
+      ral_range_sz_remove(ral, rr_first);
+      ral_range_pos_remove(ral, rr_first);
+      ral_range_free(ral, rr_first);
+      return 0;
+    }
+    else if ((rr_first->from_ < from) /* && (rr_first->to_ <= to) */) {
+      ral_range_sz_remove(ral, rr_first);
+      rr_first->to_ = from;
+      ral_range_sz_insert(ral, rr_first);
+      return 0;
+    }
+    else /* (rr_first->from >= from) && (rr_first->to_ > to) */ {
+      ral_range_sz_remove(ral, rr_first);
+      rr_first->from_ = rr_first->to_;
+      rr_first->to_ = to;
+      ral_range_sz_insert(ral, rr_first);
+      return 0;
+    }
+  }
+  /* Remove any range in-between first and last */
+  struct ral_range *rr;
+  rr = rr_first->pos_next_;
+  while (rr != rr_last) {
+    struct ral_range *rr_next = rr->pos_next_;
+
+    ral_range_sz_remove(ral, rr);
+    ral_range_pos_remove(ral, rr);
+    ral_range_free(ral, rr);
+
+    rr = rr_next;
+  }
+
+  /* Check if we're clipping rr_first or have it fully covered */
+  if (rr_first->from_ < from) {
+    ral_range_sz_remove(ral, rr_first);
+    rr_first->to_ = from;
+    ral_range_sz_insert(ral, rr_first);
+  }
+  else {
+    /* Fully covered */
+    ral_range_sz_remove(ral, rr_first);
+    ral_range_pos_remove(ral, rr_first);
+    ral_range_free(ral, rr_first);
+  }
+
+  /* Same for rr_last */
+  if (rr_last->to_ > to) {
+    ral_range_sz_remove(ral, rr_last);
+    rr_last->from_ = to;
+    ral_range_sz_insert(ral, rr_last);
+  }
+  else {
+    ral_range_sz_remove(ral, rr_last);
+    ral_range_pos_remove(ral, rr_last);
+    ral_range_free(ral, rr_last);
+  }
+  return 0;
 }
 
