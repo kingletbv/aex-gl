@@ -1119,7 +1119,9 @@ int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, u
     if (to >= ral->watermark_) {
       /* Range to free is adjacent (or overlaps) the watermark beyond which everything is free,
        * so just adjust the watermark. */
-      ral->watermark_ = from;
+      if (from < ral->watermark_) {
+        ral->watermark_ = from;
+      }
       return 0;
     }
     struct ral_range *rr;
@@ -1264,6 +1266,15 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
     return 0;
   }
 
+  if (to > ral->watermark_) {
+    /* Note that there can be no vacant ranges in-between the old watermark level and
+     * the "to" of our range to allocate; even if (to > ral->watermark) then we know that
+     * (from < ral->watermark) because the range <from..to> overlaps at least 1 interval.
+     * This simplifies our watermark logic here as we don't need to insert new ranges
+     * to represent the exposed free area beyond the old watermark like we did above.. */
+    ral->watermark_ = to;
+  }
+
   if (rr_first == rr_last) {
     /* Overlap only one range, determine if we split this range in two */
     if ((rr_first->from_ < from) && (rr_first->to_ > to)) {
@@ -1305,12 +1316,14 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
       return 0;
     }
     else if ((rr_first->from_ < from) /* && (rr_first->to_ <= to) */) {
+      /* Clip tail end of free range */
       ral_range_sz_remove(ral, rr_first);
       rr_first->to_ = from;
       ral_range_sz_insert(ral, rr_first);
       return 0;
     }
     else /* (rr_first->from >= from) && (rr_first->to_ > to) */ {
+      /* Clip head end of free range */
       ral_range_sz_remove(ral, rr_first);
       rr_first->from_ = to;
       ral_range_sz_insert(ral, rr_first);
@@ -1570,8 +1583,11 @@ int ral_range_test(void) {
   ral_range_allocator_init(&ral);
 
   char ranges[256] = {0};
+  char range_chk[sizeof(ranges)/sizeof(*ranges)] = {0};
+  uintptr_t k;
+  for (k = 0; k < (sizeof(ranges)/sizeof(*ranges)); ++k) ranges[k] = 1; /* all is free */
   size_t n;
-  for (n = 0; n < 2000; ++n) {
+  for (n = 0; n < 20000; ++n) {
     uintptr_t from, to;
     int alloc_or_free;
     do {
@@ -1587,12 +1603,8 @@ int ral_range_test(void) {
 
     if (alloc_or_free) {
       /* alloc range */
-      uintptr_t k;
       for (k = from; k < to; ++k) {
-        ranges[k] = 1;
-      }
-      if (n == 250) {
-        fprintf(stderr, "investigate\n");
+        ranges[k] = 0;
       }
       int r;
       r = ral_range_mark_range_allocated(&ral, from, to);
@@ -1610,12 +1622,9 @@ int ral_range_test(void) {
       /* free range */
       uintptr_t k;
       for (k = from; k < to; ++k) {
-        ranges[k] = 0;
+        ranges[k] = 1;
       }
       int r;
-      if (n == 3) {
-        fprintf(stderr, "investigate\n");
-      }
       r = ral_range_mark_range_free(&ral, from, to);
       if (r) {
         fprintf(stderr, "ral_range_test(): failed ral_range_mark_range_free()\n");
@@ -1624,6 +1633,28 @@ int ral_range_test(void) {
       r = ral_range_sanity_check(&ral);
       if (!r) {
         fprintf(stderr, "ral_range_test(): sanity check failed.\n");
+        return -1;
+      }
+    }
+
+    /* Perform range check */
+    uintptr_t k;
+    for (k = 0; k < (sizeof(ranges)/sizeof(*ranges)); ++k) range_chk[k] = 0;
+    struct ral_range *rr = ral.pos_seq_;
+    if (rr) {
+      do {
+        for (k = rr->from_; k < rr->to_; ++k) {
+          range_chk[k]++;
+        }
+        rr = rr->pos_next_;
+      } while (rr != ral.pos_seq_);
+    }
+    for (k = ral.watermark_; k < (sizeof(ranges)/sizeof(*ranges)); ++k) {
+      range_chk[k]++;
+    }
+    for (k = 0; k < (sizeof(ranges)/sizeof(*ranges)); ++k) {
+      if (range_chk[k] != ranges[k]) {
+        fprintf(stderr, "ral_range_test(): sanity range check failed.\n");
         return -1;
       }
     }
