@@ -21,7 +21,7 @@
 static void ral_range_sz_remove(struct ral_range_allocator *ral, struct ral_range *s);
 static void ral_range_pos_remove(struct ral_range_allocator *ral, struct ral_range *s);
 
-static struct ral_range *ral_range_alloc(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to);
+static struct ral_range *ral_range_alloc_range(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to);
 static void ral_range_free(struct ral_range_allocator *ral, struct ral_range *rr);
 
 static int ral_range_sanity_check(struct ral_range_allocator *ral);
@@ -1084,7 +1084,7 @@ static struct ral_range *ral_range_pos_find_last_overlapping_or_before(struct ra
   return fit;
 }
 
-static struct ral_range *ral_range_alloc(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to) {
+static struct ral_range *ral_range_alloc_range(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to) {
   ral;
   struct ral_range *rr = (struct ral_range *)malloc(sizeof(struct ral_range));
   if (!rr) return NULL;
@@ -1125,7 +1125,7 @@ int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, u
       return 0;
     }
     struct ral_range *rr;
-    rr = ral_range_alloc(ral, from, to);
+    rr = ral_range_alloc_range(ral, from, to);
     if (!rr) return -1; /* no mem */
     if (!ral->pos_seq_) {
       /* First and only range */
@@ -1238,7 +1238,7 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
          * old watermark level. That gap should be considered free. Insert an interval to
          * reflect this */
         struct ral_range *rr;
-        rr = ral_range_alloc(ral, ral->watermark_, from);
+        rr = ral_range_alloc_range(ral, ral->watermark_, from);
         if (!rr) return -1; /* no mem */
         if (!ral->pos_seq_) {
           /* First and only range */
@@ -1280,7 +1280,7 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
     if ((rr_first->from_ < from) && (rr_first->to_ > to)) {
       /* Insert new range for last */
       struct ral_range *rr;
-      rr = ral_range_alloc(ral, to, rr_first->to_);
+      rr = ral_range_alloc_range(ral, to, rr_first->to_);
       /* We insert this immediately after (next to) rr_first */
       if (rr_first->pos_right_) {
         struct ral_range *rr_parent = rr_first->pos_right_;
@@ -1371,6 +1371,31 @@ int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t fr
 
   return 0;
 }
+
+
+int ral_range_alloc(struct ral_range_allocator *ral, uintptr_t size, uintptr_t *result) {
+  struct ral_range *rr = ral_range_sz_find_best_fit(ral, size);
+  if (!rr) {
+    /* No match, increase size of watermark to accommodate */
+    uintptr_t new_watermark = ral->watermark_ + size;
+    if (new_watermark < ral->watermark_) {
+      return -1; /* failure due to overflow (insanely large allocation, presumably.) */
+    }
+
+    *result = ral->watermark_;
+    ral->watermark_ = new_watermark;
+    return 0;
+  }
+
+  int r;
+  assert((rr->to_ - rr->from_) >= size); /* getting result that won't accommodate size ???? should never happen. */
+  uintptr_t start_of_range = rr->from_;
+  r = ral_range_mark_range_allocated(ral, start_of_range, start_of_range + size);
+  if (r) return r;
+  *result = start_of_range;
+  return 0;
+}
+
 
 static int ral_range_sanity_check_pos_parent_pointers(struct ral_range *parent, struct ral_range *child) {
   if (!child) return 1;

@@ -45,6 +45,21 @@ struct ral_range_allocator {
   uintptr_t watermark_;
 };
 
+void ral_range_allocator_init(struct ral_range_allocator *ral);
+void ral_range_allocator_cleanup(struct ral_range_allocator *ral);
+
+/* marks the range from from (inclusive), to to (exclusive) as allocated. Returns zero upon success,
+ * non-zero upon memory failure. from must be less than to (and may not be equal.) */
+int ral_range_mark_range_allocated(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to);
+
+/* marks the range from from (inclusive), to to (exclusive) as free. Returns zero upon success,
+ * non-zero upon memory failure. from must be less than to (and may not be equal.) */
+int ral_range_mark_range_free(struct ral_range_allocator *ral, uintptr_t from, uintptr_t to);
+
+/* allocates "size" consecutive units, returning them in *result. The range returned is the
+ * best fit of all available ranges (where "best-fit" means the range will occupy the smallest
+ * area that can still fit it), if multiple ranges match, then the lowest range is returned. */
+int ral_range_alloc(struct ral_range_allocator *ral, uintptr_t size, uintptr_t *result);
 
 /* self-test, returns non-zero upon failure, zero upon pass. */
 int ral_range_test(void);

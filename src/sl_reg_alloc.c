@@ -166,32 +166,22 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
   }
   size_t n;
   if (ra_kind == slrak_array) {
-    ra->v_.comp_.num_elements_ = tunq->array_size_;
-    ra->v_.comp_.elements_ = NULL;
-    if (ra->v_.comp_.num_elements_ > (SIZE_MAX / sizeof(struct sl_reg_alloc))) {
-      /* overflow */
+    ra->v_.array_.num_elements_ = tunq->array_size_;
+    ra->v_.array_.element_type_ = tunq->derived_type_;
+    ra->v_.array_.head_ = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc));
+    if (!ra->v_.array_.head_) {
+      /* No mem */
       return -1;
     }
-    ra->v_.comp_.elements_ = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc) * ra->v_.comp_.num_elements_);
-    if (!ra->v_.comp_.elements_) {
-      /* enomem */
+    sl_reg_alloc_init(ra->v_.array_.head_);
+    int r;
+    r = sl_reg_alloc_set_type(ra->v_.array_.head_, tunq->derived_type_);
+    if (r) {
+      /* No memory or an overflow */
+      sl_reg_alloc_cleanup(ra->v_.array_.head_);
+      ra->v_.array_.head_ = NULL;
       return -1;
     }
-    for (n = 0; n < ra->v_.comp_.num_elements_; ++n) {
-      int r;
-      sl_reg_alloc_init(ra->v_.comp_.elements_ + n);
-      r = sl_reg_alloc_set_type(ra->v_.comp_.elements_ + n, tunq->derived_type_);
-      if (r) {
-        /* no memory, or an overflow */
-        size_t k;
-        for (k = 0; k < n; ++k) {
-          sl_reg_alloc_cleanup(ra->v_.comp_.elements_ + k);
-        }
-        free(ra->v_.comp_.elements_);
-        return -1;
-      }
-    }
-    ra->v_.comp_.struct_or_array_type_ = tunq;
   }
   else if (ra_kind == slrak_struct) {
     size_t num_fields = 0;
@@ -203,14 +193,14 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
       } while (field != tunq->fields_);
     }
 
-    ra->v_.comp_.num_elements_ = num_fields;
+    ra->v_.comp_.num_fields_ = num_fields;
     if (num_fields > (SIZE_MAX / sizeof(struct sl_reg_alloc))) {
       /* unlikely overflow. */
       return -1;
     }
 
-    ra->v_.comp_.elements_ = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc) * ra->v_.comp_.num_elements_);
-    if (!ra->v_.comp_.elements_) {
+    ra->v_.comp_.fields_ = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc) * ra->v_.comp_.num_fields_);
+    if (!ra->v_.comp_.fields_) {
       /* enomem */
       return -1;
     }
@@ -222,22 +212,23 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
         field = field->chain_;
 
         int r;
-        sl_reg_alloc_init(ra->v_.comp_.elements_ + field_index);
-        r = sl_reg_alloc_set_type(ra->v_.comp_.elements_ + field_index, field->type_);
+        sl_reg_alloc_init(ra->v_.comp_.fields_ + field_index);
+        r = sl_reg_alloc_set_type(ra->v_.comp_.fields_ + field_index, field->type_);
         if (r) {
           /* no memory, or an overflow */
           size_t n;
           for (n = 0; n < field_index; ++n) {
-            sl_reg_alloc_cleanup(ra->v_.comp_.elements_ + n);
+            sl_reg_alloc_cleanup(ra->v_.comp_.fields_ + n);
           }
-          free(ra->v_.comp_.elements_);
+          free(ra->v_.comp_.fields_);
+          ra->v_.comp_.fields_ = NULL;
 
           return -1;
         }
         ++field_index;
       } while (field != tunq->fields_);
     }
-    ra->v_.comp_.struct_or_array_type_ = tunq;
+    ra->v_.comp_.struct_type_ = tunq;
   }
   else {
     memset(ra->v_.regs_, 0, sizeof(ra->v_.regs_));
@@ -251,44 +242,56 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
 }
 
 void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra) {
-  if ((ra->kind_ == slrak_array) || (ra->kind_ == slrak_struct)) {
+  if (ra->kind_ == slrak_struct) {
     size_t n;
-    if (ra->v_.comp_.elements_) {
-      for (n = 0; n < ra->v_.comp_.num_elements_; ++n) {
-        sl_reg_alloc_cleanup(ra->v_.comp_.elements_ + n);
+    if (ra->v_.comp_.fields_) {
+      for (n = 0; n < ra->v_.comp_.num_fields_; ++n) {
+        sl_reg_alloc_cleanup(ra->v_.comp_.fields_ + n);
       }
-      free(ra->v_.comp_.elements_);
-      ra->v_.comp_.elements_ = NULL;
+      free(ra->v_.comp_.fields_);
+      ra->v_.comp_.fields_ = NULL;
     }
+  }
+  else if (ra->kind_ == slrak_array) {
+    if (ra->v_.array_.head_) {
+      sl_reg_alloc_cleanup(ra->v_.array_.head_);
+    }
+    free(ra->v_.array_.head_);
   }
 }
 
 int sl_reg_alloc_is_allocated(const struct sl_reg_alloc *ra) {
   while ((ra->kind_ == slrak_array) || (ra->kind_ == slrak_struct)) {
-    if (!ra->v_.comp_.elements_) return 1; /* no elements, ergo, nothing to allocate to begin with. */
-    ra = ra->v_.comp_.elements_; /* tail recursion removed */
+    if (ra->kind_ == slrak_struct) {
+      if (!ra->v_.comp_.fields_) return 1; /* no elements, ergo, nothing to allocate to begin with. */
+      ra = ra->v_.comp_.fields_; /* tail recursion removed */
+    }
+    else if (ra->kind_ == slrak_array) {
+      ra = ra->v_.array_.head_;
+    }
   }
+
   return ra->v_.regs_[0] != SL_REG_NONE;
 }
 
 int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src) {
   dst->kind_ = src->kind_;
-  if ((src->kind_ == slrak_array) || (src->kind_ == slrak_struct)) {
+  if (src->kind_ == slrak_struct) {
     size_t n;
-    if (!src->v_.comp_.elements_) {
+    if (!src->v_.comp_.fields_) {
       /* No memory, or no elements, something wrong with the source. */
       return -1;
     }
     struct sl_reg_alloc *new_elements;
-    new_elements = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc) * src->v_.comp_.num_elements_);
+    new_elements = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc) * src->v_.comp_.num_fields_);
     if (!new_elements) {
       /* no memory */
       return -1;
     }
-    for (n = 0; n < src->v_.comp_.num_elements_; ++n) {
+    for (n = 0; n < src->v_.comp_.num_fields_; ++n) {
       int r;
       sl_reg_alloc_init(new_elements + n);
-      r = sl_reg_alloc_clone(new_elements + n, src->v_.comp_.elements_ + n);
+      r = sl_reg_alloc_clone(new_elements + n, src->v_.comp_.fields_ + n);
       if (r) {
         /* no memory, or an overflow */
         size_t k;
@@ -302,9 +305,31 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
     sl_reg_alloc_cleanup(dst);
     sl_reg_alloc_init(dst);
     dst->kind_ = src->kind_;
-    dst->v_.comp_.elements_ = new_elements;
-    dst->v_.comp_.num_elements_ = src->v_.comp_.num_elements_;
-    dst->v_.comp_.struct_or_array_type_ = src->v_.comp_.struct_or_array_type_;
+    dst->v_.comp_.fields_= new_elements;
+    dst->v_.comp_.num_fields_ = src->v_.comp_.num_fields_;
+    dst->v_.comp_.struct_type_ = src->v_.comp_.struct_type_;
+  }
+  else if (src->kind_ == slrak_array) {
+    struct sl_reg_alloc *new_element_ra = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc));
+    if (!new_element_ra) {
+      /* No memory */
+      return -1;
+    }
+    sl_reg_alloc_init(new_element_ra);
+    int r;
+    r = sl_reg_alloc_clone(new_element_ra, src->v_.array_.head_);
+    if (r) {
+      /* No mem */
+      sl_reg_alloc_cleanup(new_element_ra);
+      free(new_element_ra);
+      return -1;
+    }
+    sl_reg_alloc_cleanup(dst);
+    sl_reg_alloc_init(dst);
+    dst->kind_ = src->kind_;
+    dst->v_.array_.num_elements_ = src->v_.array_.num_elements_;
+    dst->v_.array_.element_type_ = src->v_.array_.element_type_;
+    dst->v_.array_.head_ = src->v_.array_.head_;
   }
   else {
     sl_reg_alloc_cleanup(dst);
@@ -466,22 +491,142 @@ static int sl_reg_allocator_unlock_reg(struct sl_reg_allocator *ract, sl_reg_cat
   return 0;
 }
 
-
-int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
+int sl_reg_allocator_lock_reg_range(struct sl_reg_allocator *ract, sl_reg_category_t cat, int head_reg, int array_quantity) {
+  struct ral_range_allocator *ral = NULL;
+  switch (cat) {
+    case slrc_float:
+      ral = &ract->ral_floats_;
+      break;
+    case slrc_int:
+      ral = &ract->ral_ints_;
+      break;
+    case slrc_bool:
+      ral = &ract->ral_bools_;
+      break;
+    case slrc_sampler2D:
+      ral = &ract->ral_sampler2D_;
+      break;
+    case slrc_samplerCube:
+      ral = &ract->ral_samplerCube_;
+      break;
+  }
+  if (!ral) {
+    /* Invalid category */
+    assert(0);
+    return -1;
+  }
   int r;
+  if (head_reg < 0) { return -1; /* invalid reg */ }
+  if (array_quantity <= 0) { return -1; /* invalid reg range */ }
+  uintptr_t from = (uintptr_t)head_reg;
+  uintptr_t to = from + (uintptr_t)array_quantity;
+  if (to < from) {
+    /* overflow */
+    return -1;
+  }
+  r = ral_range_mark_range_allocated(ral, from, to);
+  return r;
+}
 
-  if ((ra->kind_ == slrak_array) || (ra->kind_ == slrak_struct)) {
+int sl_reg_allocator_unlock_reg_range(struct sl_reg_allocator *ract, sl_reg_category_t cat, int head_reg, int array_quantity) {
+  struct ral_range_allocator *ral = NULL;
+  switch (cat) {
+    case slrc_float:
+      ral = &ract->ral_floats_;
+      break;
+    case slrc_int:
+      ral = &ract->ral_ints_;
+      break;
+    case slrc_bool:
+      ral = &ract->ral_bools_;
+      break;
+    case slrc_sampler2D:
+      ral = &ract->ral_sampler2D_;
+      break;
+    case slrc_samplerCube:
+      ral = &ract->ral_samplerCube_;
+      break;
+  }
+  if (!ral) {
+    /* Invalid category */
+    assert(0);
+    return -1;
+  }
+  int r;
+  if (head_reg < 0) { return -1; /* invalid reg */ }
+  if (array_quantity <= 0) { return -1; /* invalid reg range */ }
+  uintptr_t from = (uintptr_t)head_reg;
+  uintptr_t to = from + (uintptr_t)array_quantity;
+  if (to < from) {
+    /* overflow */
+    return -1;
+  }
+  r = ral_range_mark_range_free(ral, from, to);
+  return r;
+}
+
+int sl_reg_allocator_alloc_reg_range(struct sl_reg_allocator *ract, sl_reg_category_t cat, int array_quantity, int *result) {
+  struct ral_range_allocator *ral = NULL;
+  switch (cat) {
+    case slrc_float:
+      ral = &ract->ral_floats_;
+      break;
+    case slrc_int:
+      ral = &ract->ral_ints_;
+      break;
+    case slrc_bool:
+      ral = &ract->ral_bools_;
+      break;
+    case slrc_sampler2D:
+      ral = &ract->ral_sampler2D_;
+      break;
+    case slrc_samplerCube:
+      ral = &ract->ral_samplerCube_;
+      break;
+  }
+  if (!ral) {
+    /* Invalid category */
+    assert(0);
+    return -1;
+  }
+  int r;
+  if (array_quantity <= 0) { return -1; /* invalid reg range */ }
+  uintptr_t from = 0;
+  r = ral_range_alloc(ral, (uintptr_t)array_quantity, &from);
+  if (r) return r;
+  *result = (int)from;
+  return 0;
+}
+
+
+static int sl_reg_allocator_lock_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra);
+static int sl_reg_allocator_unlock_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra);
+
+static int sl_reg_allocator_lock_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra) {
+  int r;
+  if (ra->kind_ == slrak_struct) {
     size_t n;
-    for (n = 0; n < ra->v_.comp_.num_elements_; ++n) {
-      r = sl_reg_allocator_lock(ract, ra->v_.comp_.elements_ + n);
+    for (n = 0; n < ra->v_.comp_.num_fields_; ++n) {
+      r = sl_reg_allocator_lock_descend(ract, array_quantity, ra->v_.comp_.fields_ + n);
       if (r) {
-        /* no memory, or an overflow */
+        /* No memory or an overflow */
         size_t k;
         for (k = 0; k < n; ++k) {
-          sl_reg_allocator_unlock(ract, ra->v_.comp_.elements_ + k);
+          sl_reg_allocator_unlock_descend(ract, array_quantity, ra->v_.comp_.fields_ + k);
         }
         return -1;
       }
+    }
+  }
+  else if (ra->kind_ == slrak_array) {
+    if (ra->v_.array_.num_elements_ > (INT_MAX / array_quantity)) {
+      /* overflow */
+      return -1;
+    }
+    array_quantity *= (int)ra->v_.array_.num_elements_;
+    r = sl_reg_allocator_lock_descend(ract, array_quantity, ra->v_.array_.head_);
+    if (r) {
+      return r;
     }
   }
   else {
@@ -489,332 +634,132 @@ int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra
     sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
     int n;
     for (n = 0; n < card; ++n) {
-      int reg_num = ra->v_.regs_[n];
-      if (reg_num != SL_REG_NONE) {
-        r = sl_reg_allocator_lock_reg(ract, cat, reg_num);
-        if (r) {
-          /* no memory, or an overflow */
-          int k;
-          for (k = 0; k < n; ++k) {
-            sl_reg_allocator_unlock_reg(ract, cat, ra->v_.regs_[k]);
-          }
-          return -1;
+      r = sl_reg_allocator_lock_reg_range(ract, cat, ra->v_.regs_[n], array_quantity);
+      if (r) {
+        /* No memory or an overflow */
+        int k;
+        for (k = 0; k < n; ++k) {
+          sl_reg_allocator_unlock_reg_range(ract, cat, ra->v_.regs_[k], array_quantity);
         }
+        return -1;
       }
     }
   }
-
   return 0;
+}
+
+static int sl_reg_allocator_unlock_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra) {
+  int r;
+  if (ra->kind_ == slrak_struct) {
+    size_t n;
+    for (n = 0; n < ra->v_.comp_.num_fields_; ++n) {
+      r = sl_reg_allocator_unlock_descend(ract, array_quantity, ra->v_.comp_.fields_ + n);
+      if (r) {
+        /* don't try to undo the unlock lest we flip-flop between lock and unlock in perpetuity */
+        return r;
+      }
+    }
+  }
+  else if (ra->kind_ == slrak_array) {
+    if (ra->v_.array_.num_elements_ >(INT_MAX / array_quantity)) {
+      /* overflow */
+      return -1;
+    }
+    array_quantity *= (int)ra->v_.array_.num_elements_;
+    r = sl_reg_allocator_unlock_descend(ract, array_quantity, ra->v_.array_.head_);
+    if (r) {
+      return r;
+    }
+  }
+  else {
+    int card = sl_reg_alloc_get_cardinality(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    int n;
+    for (n = 0; n < card; ++n) {
+      r = sl_reg_allocator_unlock_reg_range(ract, cat, ra->v_.regs_[n], array_quantity);
+      if (r) {
+        /* don't try to undo the unlock lest we flip-flop between lock and unlock in perpetuity */
+        return r;
+      }
+    }
+  }
+  return 0;
+}
+
+static int sl_reg_allocator_alloc_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra) {
+  int r;
+  if (ra->kind_ == slrak_struct) {
+    size_t n;
+    for (n = 0; n < ra->v_.comp_.num_fields_; ++n) {
+      r = sl_reg_allocator_alloc_descend(ract, array_quantity, ra->v_.comp_.fields_ + n);
+      if (r) {
+        /* No memory or an overflow */
+        size_t k;
+        for (k = 0; k < n; ++k) {
+          sl_reg_allocator_unlock_descend(ract, array_quantity, ra->v_.comp_.fields_ + k);
+        }
+        return -1;
+      }
+    }
+  }
+  else if (ra->kind_ == slrak_array) {
+    if (ra->v_.array_.num_elements_ >(INT_MAX / array_quantity)) {
+      /* overflow */
+      return -1;
+    }
+    array_quantity *= (int)ra->v_.array_.num_elements_;
+    r = sl_reg_allocator_alloc_descend(ract, array_quantity, ra->v_.array_.head_);
+    if (r) {
+      return r;
+    }
+  }
+  else {
+    int card = sl_reg_alloc_get_cardinality(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    int n;
+    for (n = 0; n < card; ++n) {
+      /* XXX: Change this out for the actual allocator */
+      int base_reg = 0;
+      r = sl_reg_allocator_alloc_reg_range(ract, cat, array_quantity, &base_reg);
+      if (r) {
+        /* No memory or an overflow */
+        int k;
+        for (k = 0; k < n; ++k) {
+          sl_reg_allocator_unlock_reg_range(ract, cat, ra->v_.regs_[k], array_quantity);
+        }
+        return -1;
+      }
+    }
+  }
+  return 0;
+}
+
+int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
+  return sl_reg_allocator_lock_descend(ract, 1, ra);
 }
 
 int sl_reg_allocator_unlock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
-  int r;
-
-  if ((ra->kind_ == slrak_array) || (ra->kind_ == slrak_struct)) {
-    size_t n;
-    for (n = 0; n < ra->v_.comp_.num_elements_; ++n) {
-      r = sl_reg_allocator_unlock(ract, ra->v_.comp_.elements_ + n);
-      if (r) {
-        /* no memory, or an overflow */
-        size_t k;
-        for (k = 0; k < n; ++k) {
-          sl_reg_allocator_lock(ract, ra->v_.comp_.elements_ + k);
-        }
-        return -1;
-      }
-    }
-  }
-  else {
-    int card = sl_reg_alloc_get_cardinality(ra->kind_);
-    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
-    int n;
-    for (n = 0; n < card; ++n) {
-      int reg_num = ra->v_.regs_[n];
-      if (reg_num != SL_REG_NONE) {
-        r = sl_reg_allocator_unlock_reg(ract, cat, reg_num);
-        if (r) {
-          /* no memory, or an overflow */
-          int k;
-          for (k = 0; k < n; ++k) {
-            sl_reg_allocator_lock_reg(ract, cat, ra->v_.regs_[k]);
-          }
-          return -1;
-        }
-      }
-    }
-  }
-
-  return 0;
+  return sl_reg_allocator_unlock_descend(ract, 1, ra);
 }
 
-void sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
-  if ((ra->kind_ == slrak_array) || (ra->kind_ == slrak_struct)) {
-    size_t n;
-    for (n = 0; n < ra->v_.comp_.num_elements_; ++n) {
-      sl_reg_allocator_alloc(ract, ra->v_.comp_.elements_ + n);
-    }
-  }
-  else {
-    int card = sl_reg_alloc_get_cardinality(ra->kind_);
-    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
-    int n;
-    switch (cat) {
-      case slrc_float:
-        for (n = 0; n < card; ++n) {
-          if (ra->v_.regs_[n] == SL_REG_NONE) {
-            ra->v_.regs_[n] = sl_reg_allocator_alloc_float_reg(ract);
-          }
-        }
-        break;
-      case slrc_int:
-        for (n = 0; n < card; ++n) {
-          if (ra->v_.regs_[n] == SL_REG_NONE) {
-            ra->v_.regs_[n] = sl_reg_allocator_alloc_int_reg(ract);
-          }
-        }
-        break;
-      case slrc_bool:
-        for (n = 0; n < card; ++n) {
-          if (ra->v_.regs_[n] == SL_REG_NONE) {
-            ra->v_.regs_[n] = sl_reg_allocator_alloc_bool_reg(ract);
-          }
-        }
-        break;
-      case slrc_sampler2D:
-        for (n = 0; n < card; ++n) {
-          if (ra->v_.regs_[n] == SL_REG_NONE) {
-            ra->v_.regs_[n] = sl_reg_allocator_alloc_sampler2D_reg(ract);
-          }
-        }
-        break;
-      case slrc_samplerCube:
-        for (n = 0; n < card; ++n) {
-          if (ra->v_.regs_[n] == SL_REG_NONE) {
-            ra->v_.regs_[n] = sl_reg_allocator_alloc_samplerCube_reg(ract);
-          }
-        }
-        break;
-      default:
-        /* Unknown kind of category */
-        assert(0);
-    }
-  }
+int sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
+  return sl_reg_allocator_alloc_descend(ract, 1, ra);
 }
+
 
 void sl_reg_allocator_init(struct sl_reg_allocator *ra) {
-  ra->num_free_float_regs_ = 0;
-  ra->num_free_float_regs_allocated_ = 0;
-  ra->free_float_regs_ = NULL;
-  ra->current_max_float_reg_ = 0;
-
-  ra->num_free_int_regs_ = 0;
-  ra->num_free_int_regs_allocated_ = 0;
-  ra->free_int_regs_ = NULL;
-  ra->current_max_int_reg_ = 0;
-
-  ra->num_free_bool_regs_ = 0;
-  ra->num_free_bool_regs_allocated_ = 0;
-  ra->free_bool_regs_ = NULL;
-  ra->current_max_bool_reg_ = 0;
-
-  ra->num_free_sampler2D_regs_ = 0;
-  ra->num_free_sampler2D_regs_allocated_ = 0;
-  ra->free_sampler2D_regs_ = NULL;
-  ra->current_max_sampler2D_reg_ = 0;
-
-  ra->num_free_samplerCube_regs_ = 0;
-  ra->num_free_samplerCube_regs_allocated_ = 0;
-  ra->free_samplerCube_regs_ = NULL;
-  ra->current_max_samplerCube_reg_ = 0;
-
+  ral_range_allocator_init(&ra->ral_floats_);
+  ral_range_allocator_init(&ra->ral_ints_);
+  ral_range_allocator_init(&ra->ral_bools_);
+  ral_range_allocator_init(&ra->ral_sampler2D_);
+  ral_range_allocator_init(&ra->ral_samplerCube_);
 }
 
 void sl_reg_allocator_cleanup(struct sl_reg_allocator *ra) {
-  if (ra->free_float_regs_) {
-    free(ra->free_float_regs_);
-    ra->free_float_regs_ = NULL;
-  }
-  if (ra->free_int_regs_) {
-    free(ra->free_int_regs_);
-    ra->free_int_regs_ = NULL;
-  }
-  if (ra->free_bool_regs_) {
-    free(ra->free_bool_regs_);
-    ra->free_bool_regs_ = NULL;
-  }
-  if (ra->free_sampler2D_regs_) {
-    free(ra->free_sampler2D_regs_);
-    ra->free_sampler2D_regs_ = NULL;
-  }
-  if (ra->free_samplerCube_regs_) {
-    free(ra->free_samplerCube_regs_);
-    ra->free_samplerCube_regs_ = NULL;
-  }
+  ral_range_allocator_cleanup(&ra->ral_floats_);
+  ral_range_allocator_cleanup(&ra->ral_ints_);
+  ral_range_allocator_cleanup(&ra->ral_bools_);
+  ral_range_allocator_cleanup(&ra->ral_sampler2D_);
+  ral_range_allocator_cleanup(&ra->ral_samplerCube_);
 }
-
-int sl_reg_allocator_alloc_int_reg(struct sl_reg_allocator *ra) {
-  if (ra->num_free_int_regs_) {
-    return ra->free_int_regs_[--ra->num_free_int_regs_];
-  }
-  else {
-    int reg = ra->current_max_int_reg_++;
-    return reg;
-  }
-}
-
-int sl_reg_allocator_release_int_reg(struct sl_reg_allocator *ra, int reg) {
-  if (ra->num_free_int_regs_ == ra->num_free_int_regs_allocated_) {
-    size_t new_num_free_int_regs_allocated = ra->num_free_int_regs_allocated_ + ra->num_free_int_regs_allocated_ + 1;
-    if (new_num_free_int_regs_allocated <= ra->num_free_int_regs_allocated_) {
-      /* overflow */
-      return -1;
-    }
-    if (new_num_free_int_regs_allocated > (SIZE_MAX / sizeof(int))) {
-      /* overflow */
-      return -1;
-    }
-    int *new_free_int_regs = (int *)realloc(ra->free_int_regs_, sizeof(int) * new_num_free_int_regs_allocated);
-    if (!new_free_int_regs) {
-      /* no mem */
-      return -1;
-    }
-    ra->free_int_regs_ = new_free_int_regs;
-    ra->num_free_int_regs_allocated_ = new_num_free_int_regs_allocated;
-  }
-  ra->free_int_regs_[ra->num_free_int_regs_++] = reg;
-  return 0;
-}
-
-int sl_reg_allocator_alloc_float_reg(struct sl_reg_allocator *ra) {
-  if (ra->num_free_float_regs_) {
-    return ra->free_float_regs_[--ra->num_free_float_regs_];
-  }
-  else {
-    int reg = ra->current_max_float_reg_++;
-    return reg;
-  }
-}
-
-int sl_reg_allocator_release_float_reg(struct sl_reg_allocator *ra, int reg) {
-  if (ra->num_free_float_regs_ == ra->num_free_float_regs_allocated_) {
-    size_t new_num_free_float_regs_allocated = ra->num_free_float_regs_allocated_ + ra->num_free_float_regs_allocated_ + 1;
-    if (new_num_free_float_regs_allocated <= ra->num_free_float_regs_allocated_) {
-      /* overflow */
-      return -1;
-    }
-    if (new_num_free_float_regs_allocated > (SIZE_MAX / sizeof(int))) {
-      /* overflow */
-      return -1;
-    }
-    int *new_free_float_regs = (int *)realloc(ra->free_float_regs_, sizeof(int) * new_num_free_float_regs_allocated);
-    if (!new_free_float_regs) {
-      /* no mem */
-      return -1;
-    }
-    ra->free_float_regs_ = new_free_float_regs;
-    ra->num_free_float_regs_allocated_ = new_num_free_float_regs_allocated;
-  }
-  ra->free_float_regs_[ra->num_free_float_regs_++] = reg;
-  return 0;
-}
-
-int sl_reg_allocator_alloc_bool_reg(struct sl_reg_allocator *ra) {
-  if (ra->num_free_bool_regs_) {
-    return ra->free_bool_regs_[--ra->num_free_bool_regs_];
-  }
-  else {
-    int reg = ra->current_max_bool_reg_++;
-    return reg;
-  }
-}
-
-int sl_reg_allocator_release_bool_reg(struct sl_reg_allocator *ra, int reg) {
-  if (ra->num_free_bool_regs_ == ra->num_free_bool_regs_allocated_) {
-    size_t new_num_free_bool_regs_allocated = ra->num_free_bool_regs_allocated_ + ra->num_free_bool_regs_allocated_ + 1;
-    if (new_num_free_bool_regs_allocated <= ra->num_free_bool_regs_allocated_) {
-      /* overflow */
-      return -1;
-    }
-    if (new_num_free_bool_regs_allocated > (SIZE_MAX / sizeof(int))) {
-      /* overflow */
-      return -1;
-    }
-    int *new_free_bool_regs = (int *)realloc(ra->free_bool_regs_, sizeof(int) * new_num_free_bool_regs_allocated);
-    if (!new_free_bool_regs) {
-      /* no mem */
-      return -1;
-    }
-    ra->free_bool_regs_ = new_free_bool_regs;
-    ra->num_free_bool_regs_allocated_ = new_num_free_bool_regs_allocated;
-  }
-  ra->free_bool_regs_[ra->num_free_bool_regs_++] = reg;
-  return 0;
-}
-
-int sl_reg_allocator_alloc_sampler2D_reg(struct sl_reg_allocator *ra) {
-  if (ra->num_free_sampler2D_regs_) {
-    return ra->free_sampler2D_regs_[--ra->num_free_sampler2D_regs_];
-  }
-  else {
-    int reg = ra->current_max_sampler2D_reg_++;
-    return reg;
-  }
-}
-
-int sl_reg_allocator_release_sampler2D_reg(struct sl_reg_allocator *ra, int reg) {
-  if (ra->num_free_sampler2D_regs_ == ra->num_free_sampler2D_regs_allocated_) {
-    size_t new_num_free_sampler2D_regs_allocated = ra->num_free_sampler2D_regs_allocated_ + ra->num_free_sampler2D_regs_allocated_ + 1;
-    if (new_num_free_sampler2D_regs_allocated <= ra->num_free_sampler2D_regs_allocated_) {
-      /* overflow */
-      return -1;
-    }
-    if (new_num_free_sampler2D_regs_allocated > (SIZE_MAX / sizeof(int))) {
-      /* overflow */
-      return -1;
-    }
-    int *new_free_sampler2D_regs = (int *)realloc(ra->free_sampler2D_regs_, sizeof(int) * new_num_free_sampler2D_regs_allocated);
-    if (!new_free_sampler2D_regs) {
-      /* no mem */
-      return -1;
-    }
-    ra->free_sampler2D_regs_ = new_free_sampler2D_regs;
-    ra->num_free_sampler2D_regs_allocated_ = new_num_free_sampler2D_regs_allocated;
-  }
-  ra->free_sampler2D_regs_[ra->num_free_sampler2D_regs_++] = reg;
-  return 0;
-}
-
-int sl_reg_allocator_alloc_samplerCube_reg(struct sl_reg_allocator *ra) {
-  if (ra->num_free_samplerCube_regs_) {
-    return ra->free_samplerCube_regs_[--ra->num_free_samplerCube_regs_];
-  }
-  else {
-    int reg = ra->current_max_samplerCube_reg_++;
-    return reg;
-  }
-}
-
-int sl_reg_allocator_release_samplerCube_reg(struct sl_reg_allocator *ra, int reg) {
-  if (ra->num_free_samplerCube_regs_ == ra->num_free_samplerCube_regs_allocated_) {
-    size_t new_num_free_samplerCube_regs_allocated = ra->num_free_samplerCube_regs_allocated_ + ra->num_free_samplerCube_regs_allocated_ + 1;
-    if (new_num_free_samplerCube_regs_allocated <= ra->num_free_samplerCube_regs_allocated_) {
-      /* overflow */
-      return -1;
-    }
-    if (new_num_free_samplerCube_regs_allocated > (SIZE_MAX / sizeof(int))) {
-      /* overflow */
-      return -1;
-    }
-    int *new_free_samplerCube_regs = (int *)realloc(ra->free_samplerCube_regs_, sizeof(int) * new_num_free_samplerCube_regs_allocated);
-    if (!new_free_samplerCube_regs) {
-      /* no mem */
-      return -1;
-    }
-    ra->free_samplerCube_regs_ = new_free_samplerCube_regs;
-    ra->num_free_samplerCube_regs_allocated_ = new_num_free_samplerCube_regs_allocated;
-  }
-  ra->free_samplerCube_regs_[ra->num_free_samplerCube_regs_++] = reg;
-  return 0;
-}
-
 

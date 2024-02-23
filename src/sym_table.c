@@ -126,7 +126,6 @@ void sym_cleanup(struct sym *s) {
 }
 
 static struct sym *st_rotate_left(struct sym_table *st, struct sym *A) {
-
   /*
    *   A            B
    *  / \    ==>   / \

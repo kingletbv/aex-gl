@@ -16,6 +16,11 @@
 #ifndef SL_REG_ALLOC_H
 #define SL_REG_ALLOC_H
 
+#ifndef RANGE_ALLOCATOR_H_INCLUDED
+#define RANGE_ALLOCATOR_H_INCLUDED
+#include "range_allocator.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,15 +61,24 @@ typedef enum sl_reg_alloc_kind {
 } sl_reg_alloc_kind_t;
 
 struct sl_reg_alloc_compound {
-  /* The slrak_struct or slrak_array type that this compound describes. */
-  struct sl_type *struct_or_array_type_;
+  /* The sltk_struct type that this compound describes. */
+  struct sl_type *struct_type_;
 
-  /* For sletk_array, this is what you'd expect (each element corresponds
-   * to the array's element.)
-   * For sletk_struct, the sequential index of each field corresponds to
+  /* For sletk_struct, the sequential index of each field corresponds to
    * each element */
+  size_t num_fields_;
+  struct sl_reg_alloc *fields_;
+};
+
+struct sl_reg_alloc_array {
+  /* The sltk_array type that this array describes */
+  struct sl_type *element_type_;
+
+  /* The number of elements in the array */
   size_t num_elements_;
-  struct sl_reg_alloc *elements_;
+
+  /* The first element of the array, all fields are laid out consecutively */
+  struct sl_reg_alloc *head_;
 };
 
 struct sl_reg_alloc {
@@ -72,11 +86,18 @@ struct sl_reg_alloc {
 
   union {
     int regs_[16];
-    struct sl_reg_alloc_compound comp_;   /* struct, array */
+    struct sl_reg_alloc_compound comp_;   /* struct */
+    struct sl_reg_alloc_array array_;
   } v_;
 };
 
 struct sl_reg_allocator {
+  struct ral_range_allocator ral_floats_;
+  struct ral_range_allocator ral_ints_;
+  struct ral_range_allocator ral_bools_;
+  struct ral_range_allocator ral_sampler2D_;
+  struct ral_range_allocator ral_samplerCube_;
+
   size_t num_free_float_regs_;
   size_t num_free_float_regs_allocated_;
   int *free_float_regs_;
@@ -123,7 +144,7 @@ int sl_reg_allocator_release_sampler2D_reg(struct sl_reg_allocator *ra, int reg)
 int sl_reg_allocator_alloc_samplerCube_reg(struct sl_reg_allocator *ra);
 int sl_reg_allocator_release_samplerCube_reg(struct sl_reg_allocator *ra, int reg);
 
-void sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
+int sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 int sl_reg_allocator_unlock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 

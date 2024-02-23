@@ -737,11 +737,13 @@ static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_a
   int n;
 
   switch (src->kind_) {
-    case slrak_array:
+    case slrak_array: {
+      // XXX: Implement
+    }
     case slrak_struct: {
       size_t index;
-      for (index = 0; index < src->v_.comp_.num_elements_; ++index) {
-        sl_exec_move(exec, row, dst->v_.comp_.elements_ + index, src->v_.comp_.elements_ + index);
+      for (index = 0; index < src->v_.comp_.num_fields_; ++index) {
+        sl_exec_move(exec, row, dst->v_.comp_.fields_ + index, src->v_.comp_.fields_ + index);
       }
       break;
     }
@@ -805,11 +807,14 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
   int n;
 
   switch (src->kind_) {
-    case slrak_array:
+    case slrak_array: {
+      // XXX: Implement
+      break;
+    }
     case slrak_struct: {
       size_t index;
       for (index = 0; index < src->v_.comp_.num_elements_; ++index) {
-        sl_exec_init_literal(exec, row, dst->v_.comp_.elements_ + index, src->v_.comp_.elements_ + index);
+        sl_exec_init_literal(exec, row, dst->v_.comp_.fields_ + index, src->v_.comp_.elements_ + index);
       }
       break;
     }
@@ -886,6 +891,102 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
   }
 }
 
+static void sl_exec_f_array_subscript_load(uint8_t *restrict chain_column,
+                                           uint8_t row,
+                                           float * restrict dst,
+                                           const float * restrict * restrict float_regs,
+                                           const int * restrict array_indirections,
+                                           const size_t array_indirections_stride,
+                                           const int64_t * restrict index) {
+  for (;;) {
+    /* Not trying to evoke auto-vectorization, just get it done. */
+    float *restrict result = dst + row;
+    const float *restrict src = float_regs[*(const int * restrict)(((const char * restrict)array_indirections) + array_indirections_stride * index[row])];
+    *result = *src;
+    uint8_t delta = chain_column[row];
+    if (!delta) goto done;
+    row += delta;
+  }
+done:;
+}
+
+static void sl_exec_i_array_subscript_load(uint8_t *restrict chain_column,
+                                           uint8_t row,
+                                           int64_t * restrict dst,
+                                           const int64_t * restrict * restrict int_regs,
+                                           const int * restrict array_indirections,
+                                           const size_t array_indirections_stride,
+                                           const int64_t * restrict index) {
+  for (;;) {
+    /* Not trying to evoke auto-vectorization, just get it done. */
+    int64_t *restrict result = dst + row;
+    const int64_t *restrict src = int_regs[*(const int * restrict)(((const char * restrict)array_indirections) + array_indirections_stride * index[row])];
+    *result = *src;
+    uint8_t delta = chain_column[row];
+    if (!delta) goto done;
+    row += delta;
+  }
+done:;
+}
+
+static void sl_exec_b_array_subscript_load(uint8_t *restrict chain_column,
+                                           uint8_t row,
+                                           uint8_t * restrict dst,
+                                           const uint8_t * restrict * restrict bool_regs,
+                                           const int * restrict array_indirections,
+                                           const size_t array_indirections_stride,
+                                           const int64_t * restrict index) {
+  for (;;) {
+    /* Not trying to evoke auto-vectorization, just get it done. */
+    uint8_t *restrict result = dst + row;
+    const uint8_t *restrict src = bool_regs[*(const int * restrict)(((const char * restrict)array_indirections) + array_indirections_stride * index[row])];
+    *result = *src;
+    uint8_t delta = chain_column[row];
+    if (!delta) goto done;
+    row += delta;
+  }
+done:;
+}
+
+static void sl_exec_array_subscript_load(struct sl_execution *exec, uint8_t row, 
+                                         struct sl_reg_alloc *dst,
+                                         const struct sl_reg_alloc *arr,
+                                         const struct sl_reg_alloc *index) {
+  switch (arr->kind_) {
+    case slrak_float: {
+      sl_exec_f_array_subscript_load(exec->exec_chain_reg_, row, 
+                                     exec->float_regs_[dst->v_.regs_[0]], 
+                                     exec->float_regs_,
+                                     index->v_.regs_,
+                                     sizeof(*index),
+                                     exec->int_regs_[index->v_.regs_[0]]);
+      break;
+    }
+    case slrak_vec2: {
+      // .... hmmmmm ......
+      break;
+    }
+    case slrak_int: {
+      sl_exec_i_array_subscript_load(exec->exec_chain_reg_, row,
+                                     exec->int_regs_[dst->v_.regs_[0]],
+                                     exec->int_regs_,
+                                     index->v_.regs_,
+                                     sizeof(*index),
+                                     exec->int_regs_[index->v_.regs_[0]]);
+      break;
+    }
+    case slrak_bool: {
+      sl_exec_b_array_subscript_load(exec->exec_chain_reg_, row,
+                                     exec->bool_regs_[dst->v_.regs_[0]],
+                                     exec->bool_regs_,
+                                     index->v_.regs_,
+                                     sizeof(*index),
+                                     exec->int_regs_[index->v_.regs_[0]]);
+      break;
+    }
+  }
+}
+   
 static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *left, struct sl_reg_alloc *right) {
   int r, c;
   if (left->kind_ == right->kind_) {
@@ -1787,7 +1888,15 @@ int sl_exec_run(struct sl_execution *exec) {
             sl_exec_init_literal(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->literal_value_);
             break;
           }
-          case exop_array_subscript:
+          case exop_array_subscript: {
+            /* Push children first, post evaluate the subscript */
+            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[1], SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
+            /* Now push the first child, its continuation is the second child's evaluation */
+            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+            break;
+          }
+
           case exop_component_selection:
           case exop_field_selection:
           case exop_post_inc:
@@ -1865,6 +1974,13 @@ int sl_exec_run(struct sl_execution *exec) {
       else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
         int dont_pop = 0;
         switch (eps[epi].v_.expr_->op_) {
+          case exop_array_subscript: {
+            sl_exec_array_subscript_load(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, 
+                                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
+                                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+            break;
+          }
+
           case exop_multiply: {
             sl_exec_mul(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
