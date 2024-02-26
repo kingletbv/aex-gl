@@ -86,6 +86,8 @@ static int sl_reg_alloc_get_cardinality(sl_reg_alloc_kind_t kind) {
 
 void sl_reg_alloc_init(struct sl_reg_alloc *ra) {
   ra->kind_ = slrak_void;
+  ra->offset_ = NULL;
+  ra->rvalue_ = NULL;
 }
 
 int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
@@ -257,6 +259,14 @@ void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra) {
       sl_reg_alloc_cleanup(ra->v_.array_.head_);
     }
     free(ra->v_.array_.head_);
+  }
+  if (ra->offset_) {
+    sl_reg_alloc_cleanup(ra->offset_);
+    free(ra->offset_);
+  }
+  if (ra->rvalue_) {
+    sl_reg_alloc_cleanup(ra->rvalue_);
+    free(ra->rvalue_);
   }
 }
 
