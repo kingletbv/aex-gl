@@ -44,7 +44,7 @@ struct ref_range_allocator {
   struct ref_range *pos_seq_;
 };
 
-
+int ref_range_test(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
