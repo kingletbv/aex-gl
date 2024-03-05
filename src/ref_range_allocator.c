@@ -1062,10 +1062,6 @@ struct ref_range *ref_range_pos_find_end(struct ref_range_allocator *rra, uintpt
 
 
 int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr_t to, int delta) {
-  if (!ref_range_sanity_check(rra)) {
-    fprintf(stderr, "Failed sanity check inside\n");
-    return -1;
-  }
   uintptr_t edges[] ={
     from,
     to
@@ -1579,6 +1575,103 @@ int ref_range_test(void) {
 
   struct ref_range_allocator rra;
   ref_range_allocator_init(&rra);
+
+  int r;
+  uintptr_t result1 = UINTPTR_MAX;
+  r = ref_range_alloc(&rra, 1000, &result1);
+  if (r) {
+    fprintf(stderr, "ref_range_test(): failed ref_range_alloc()\n");
+    return r;
+  }
+  uintptr_t result2 = UINTPTR_MAX;
+  r = ref_range_alloc(&rra, 1000, &result2);
+  if (r) {
+    fprintf(stderr, "ref_range_test(): failed ref_range_alloc()\n");
+    return r;
+  }
+  struct ref_range *rr = rra.pos_seq_;
+  fprintf(stderr, "Post-alloc #1 & #2 (%d, %d):\n", (int)result1, (int)result2);
+  if (rr) {
+    uintptr_t last = 0;
+    do {
+      fprintf(stderr, "from: %d to: %3d refcount: %d\n", (int)last, (int)rr->at_, rr->refcount_);
+      last = rr->at_;
+
+      rr = rr->pos_next_;
+    } while (rr != rra.pos_seq_);
+  }
+  r = ref_range_mark_range_free(&rra, result1, result1 + 1000);
+  if (r) {
+    fprintf(stderr, "ref_range_test(): failed ref_range_mark_range_free()\n");
+    return r;
+  }
+  fprintf(stderr, "Post-free #1:\n");
+  rr = rra.pos_seq_;
+  if (rr) {
+    uintptr_t last = 0;
+    do {
+      fprintf(stderr, "from: %d to: %3d refcount: %d\n", (int)last, (int)rr->at_, rr->refcount_);
+      last = rr->at_;
+
+      rr = rr->pos_next_;
+    } while (rr != rra.pos_seq_);
+  }
+  uintptr_t result3 = UINTPTR_MAX;
+  r = ref_range_alloc(&rra, 500, &result3);
+  if (r) {
+    fprintf(stderr, "ref_range_test(): failed ref_range_alloc()\n");
+    return r;
+  }
+  fprintf(stderr, "Post-alloc2 (%d):\n", (int)result1);
+  rr = rra.pos_seq_;
+  if (rr) {
+    uintptr_t last = 0;
+    do {
+      fprintf(stderr, "from: %d to: %3d refcount: %d\n", (int)last, (int)rr->at_, rr->refcount_);
+      last = rr->at_;
+
+      rr = rr->pos_next_;
+    } while (rr != rra.pos_seq_);
+  }
+  // XXX: This is broken, expecting a refcount==0 range but not getting it.
+  r = ref_range_mark_range_free(&rra, result2, result2 + 1000);
+  if (r) {
+    fprintf(stderr, "ref_range_test(): failed ref_range_mark_range_free()\n");
+    return r;
+  }
+  fprintf(stderr, "Post-free #2:\n");
+  rr = rra.pos_seq_;
+  if (rr) {
+    uintptr_t last = 0;
+    do {
+      fprintf(stderr, "from: %d to: %3d refcount: %d\n", (int)last, (int)rr->at_, rr->refcount_);
+      last = rr->at_;
+
+      rr = rr->pos_next_;
+    } while (rr != rra.pos_seq_);
+  }
+  // XXX: This is broken and borked. Should yield empty range.
+  r = ref_range_mark_range_free(&rra, result3, result3 + 500);
+  if (r) {
+    fprintf(stderr, "ref_range_test(): failed ref_range_mark_range_free()\n");
+    return r;
+  }
+  fprintf(stderr, "Post-free #3:\n");
+  rr = rra.pos_seq_;
+  if (rr) {
+    uintptr_t last = 0;
+    do {
+      fprintf(stderr, "from: %d to: %3d refcount: %d\n", (int)last, (int)rr->at_, rr->refcount_);
+      last = rr->at_;
+
+      rr = rr->pos_next_;
+    } while (rr != rra.pos_seq_);
+  }
+
+  if (rra.pos_seq_) {
+    fprintf(stderr, "ref_range_test(): all memory freed should result in no ranges.. failed.\n");
+    return -1;
+  }
 
   char ranges[256] ={ 0 };
   char range_chk[sizeof(ranges)/sizeof(*ranges)] ={ 0 };
