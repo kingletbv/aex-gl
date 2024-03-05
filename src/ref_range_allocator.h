@@ -35,6 +35,9 @@ struct ref_range {
   /* Reference count for the range pos_prev_->at_ to, but not including, at_; if this ref_range
    * is the first in ref_range_allocator->pos_seq_ then the range is from 0 to, but not including, at_. */
   int refcount_;
+
+  /* Debug aid */
+  int sanity_;
 };
 
 struct ref_range_allocator {

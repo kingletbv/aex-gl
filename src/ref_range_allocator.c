@@ -43,6 +43,8 @@ static void ref_range_pos_remove(struct ref_range_allocator *rra, struct ref_ran
 
 static void ref_range_free(struct ref_range_allocator *rra, struct ref_range *rr);
 
+static int ref_range_sanity_check(struct ref_range_allocator *rra);
+
 void ref_range_allocator_init(struct ref_range_allocator *rra) {
   rra->sz_root_ = rra->sz_seq_ = NULL;
   rra->pos_root_ = rra->pos_seq_ = NULL;
@@ -51,7 +53,7 @@ void ref_range_allocator_init(struct ref_range_allocator *rra) {
 void ref_range_allocator_cleanup(struct ref_range_allocator *rra) {
   while (rra->pos_seq_) {
     struct ref_range *rr = rra->pos_seq_;
-    ref_range_sz_remove(rra, rr);
+    if (!rr->refcount_) ref_range_sz_remove(rra, rr);
     ref_range_pos_remove(rra, rr);
     ref_range_free(rra, rr);
   }
@@ -517,6 +519,7 @@ static void ref_range_sz_insert(struct ref_range_allocator *rra, struct ref_rang
     rr->sz_is_red_ = 0;
     rra->sz_seq_ = rr;
     rr->sz_next_ = rr->sz_prev_ = rr;
+    rr->sz_left_ = rr->sz_right_ = rr->sz_parent_ = NULL;
     return;
   }
   for (;;) {
@@ -1057,280 +1060,12 @@ struct ref_range *ref_range_pos_find_end(struct ref_range_allocator *rra, uintpt
   return best_fit;
 }
 
-int ref_range_apply_ref3(struct ref_range_allocator *rra, uintptr_t from, uintptr_t to, int delta) {
-  uintptr_t edges[] ={
-    from,
-    to
-  };
-  int deltas[] ={
-    delta,
-    -delta
-  };
-  int idx = 0;
-  int current_delta = 0;
-
-  /* rr: the current "write" position.
-   *     if rr is not equal to rr_next, then it can safely be overwritten. */
-  struct ref_range *rr = rra->pos_seq_;
-
-  /* rr_next: the range after next_range_edge */
-  struct ref_range *rr_next = NULL;
-  if (rr && (rr->pos_next_ != rra->pos_seq_)) rr_next = rr->pos_next_;
-
-  /* this_range_refcount: the refcount of the current range */
-  int this_range_refcount = rr ? rr->refcount_ : 0;
-
-  /* the edge that marks the end of the current, pre-existing, range */
-  uintptr_t next_range_edge = rr ? rr->at_ : 0;
-
-  /* Check if the leading edge (from) is already behind us, if so, make sure its
-   * refcount is already accurately processed */
-  uintptr_t rr_start = (rr && (rr != rra->pos_seq_)) ? rr->pos_prev_->at_ : 0;
-  while ((idx < 2) && (rr_start >= edges[idx])) {
-    current_delta += deltas[idx];
-    this_range_refcount += deltas[idx];
-    idx++;
-  }
-
-  for (;;) {
-    if (idx == (sizeof(edges)/sizeof(*edges))) {
-      /* No more new edges; emit the edge we have stored, if any, and be done */
-      if (next_range_edge) {
-        /* We still have an original edge latched, emit it */
-        if (rr != rr_next) {
-          rr->at_ = next_range_edge;
-          rr->refcount_ = this_range_refcount;
-          ref_range_sz_remove(rra, rr);
-          ref_range_sz_insert(rra, rr);
-
-          rr = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
-        }
-        else {
-          /* Build new ref_range */
-          struct ref_range *new_rr = ref_range_alloc_range(rra);
-          if (!new_rr) return -1;
-          new_rr->at_ = next_range_edge;
-          new_rr->refcount_ = this_range_refcount;
-          struct ref_range *nrp = rr_next;
-          if (nrp) {
-            if (nrp->pos_left_) {
-              nrp = nrp->pos_left_;
-              while (nrp->pos_right_) {
-                nrp = nrp->pos_right_;
-              }
-              nrp->pos_right_ = new_rr;
-            }
-            else {
-              nrp->pos_left_ = new_rr;
-            }
-            new_rr->pos_parent_ = nrp;
-            new_rr->pos_next_ = rr_next;
-            new_rr->pos_prev_ = rr_next->pos_prev_;
-            new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
-            ref_range_pos_process_insert(rra, new_rr);
-          }
-          else {
-            /* No further existing edges after next_range_edge; append new ref_range to the end */
-            if (rra->pos_seq_) {
-              new_rr->pos_parent_ = rra->pos_seq_->pos_prev_;
-              rra->pos_seq_->pos_prev_->pos_right_ = new_rr;
-              new_rr->pos_is_red_ = 1;
-              new_rr->pos_next_ = rra->pos_seq_;
-              new_rr->pos_prev_ = rra->pos_seq_->pos_prev_;
-              new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
-              ref_range_pos_process_insert(rra, new_rr);
-            }
-            else {
-              rra->pos_root_ = rra->pos_seq_ = new_rr;
-              new_rr->pos_next_ = new_rr->pos_prev_ = new_rr;
-              new_rr->pos_is_red_ = 0;
-            }
-          }
-          ref_range_sz_insert(rra, new_rr);
-        }
-      }
-
-      /* Clear out any remaining interim edges */
-      while (rr != rr_next) {
-        struct ref_range *next = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
-        ref_range_sz_remove(rra, rr);
-        ref_range_pos_remove(rra, rr);
-        ref_range_free(rra, rr);
-        rr = next;
-      }
-
-      return 0;
-    }
-    else if (!next_range_edge || 
-             (edges[idx] < next_range_edge)) {
-      /* Emit new edge for edges[idx] */
-      current_delta += deltas[idx];
-      int next_range_refcount = this_range_refcount + deltas[idx];
-      if (this_range_refcount != next_range_refcount) {
-        /* There is an edge .. */
-        if (rr != rr_next) {
-          /* Re-use existing ref_range */
-          rr->at_ = edges[idx];
-          rr->refcount_ = this_range_refcount;
-          ref_range_sz_remove(rra, rr);
-          ref_range_sz_insert(rra, rr);
-          rr = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
-        }
-        else {
-          /* Build new ref_range */
-          struct ref_range *new_rr = ref_range_alloc_range(rra);
-          if (!new_rr) return -1;
-          new_rr->at_ = edges[idx];
-          new_rr->refcount_ = this_range_refcount;
-          struct ref_range *nrp = rr_next;
-          if (nrp) {
-            if (nrp->pos_left_) {
-              nrp = nrp->pos_left_;
-              while (nrp->pos_right_) {
-                nrp = nrp->pos_right_;
-              }
-              nrp->pos_right_ = new_rr;
-            }
-            else {
-              nrp->pos_left_ = new_rr;
-            }
-            new_rr->pos_parent_ = nrp;
-            new_rr->pos_next_ = rr_next;
-            new_rr->pos_prev_ = rr_next->pos_prev_;
-            new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
-            ref_range_pos_process_insert(rra, new_rr);
-          }
-          else {
-            /* No further existing edges after next_range_edge; append new ref_range to the end */
-            if (rra->pos_seq_) {
-              new_rr->pos_parent_ = rra->pos_seq_->pos_prev_;
-              rra->pos_seq_->pos_prev_->pos_right_ = new_rr;
-              new_rr->pos_is_red_ = 1;
-              new_rr->pos_next_ = rra->pos_seq_;
-              new_rr->pos_prev_ = rra->pos_seq_->pos_prev_;
-              new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
-              ref_range_pos_process_insert(rra, new_rr);
-            }
-            else {
-              rra->pos_root_ = rra->pos_seq_ = new_rr;
-              new_rr->pos_next_ = new_rr->pos_prev_ = new_rr;
-              new_rr->pos_is_red_ = 0;
-            }
-          }
-          ref_range_sz_insert(rra, new_rr);
-          rr = (new_rr->pos_next_ != rra->pos_seq_) ? new_rr->pos_next_ : NULL;
-        }
-        this_range_refcount = next_range_refcount;
-        idx++;
-      }
-    }
-    else if (edges[idx] > next_range_edge) {
-      /* Emit existing edge */
-      int next_range_refcount = current_delta + (rr_next ? rr_next->refcount_ : 0);
-      if (this_range_refcount != next_range_refcount) {
-        /* There is an edge */
-        if (rr != rr_next) {
-          /* Re-use existing ref_range */
-          rr->at_ = next_range_edge;
-          rr->refcount_ = this_range_refcount;
-          ref_range_sz_remove(rra, rr);
-          ref_range_sz_insert(rra, rr);
-        }
-        else {
-          /* Build new ref_range */
-          struct ref_range *new_rr = ref_range_alloc_range(rra);
-          if (!new_rr) return -1;
-          struct ref_range *nrp = rr_next;
-          if (nrp) {
-            if (nrp->pos_left_) {
-              nrp = nrp->pos_left_;
-              while (nrp->pos_right_) {
-                nrp = nrp->pos_right_;
-              }
-              nrp->pos_right_ = new_rr;
-            }
-            else {
-              nrp->pos_left_ = new_rr;
-            }
-            new_rr->pos_parent_ = nrp;
-          }
-          else {
-            /* No further existing edges after next_range_edge; append new ref_range to the end */
-            new_rr->pos_parent_ = rra->pos_seq_->pos_prev_;
-            rra->pos_seq_->pos_prev_->pos_right_ = new_rr;
-          }
-          new_rr->pos_is_red_ = 1;
-          new_rr->at_ = next_range_edge;
-          new_rr->refcount_ = this_range_refcount;
-          new_rr->pos_next_ = rr_next;
-          new_rr->pos_prev_ = rr_next->pos_prev_;
-          new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
-          ref_range_pos_process_insert(rra, new_rr);
-          ref_range_sz_insert(rra, new_rr);
-          rr = new_rr;
-        }
-        rr = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
-        this_range_refcount = next_range_refcount;
-      }
-      next_range_edge = rr_next ? rr_next->at_ : 0;
-      rr_next = (rr_next && (rr_next->pos_next_ != rra->pos_seq_)) ? rr_next->pos_next_ : NULL;
-    }
-    else /* edges[idx] == next_range_edge */ {
-      /* Emit one edge representing both new and existing edges */
-      current_delta += deltas[idx];
-      int next_range_refcount = current_delta + (rr_next ? rr_next->refcount_ : 0);
-      if (this_range_refcount != next_range_refcount) {
-        if (rr != rr_next) {
-          /* Re-use the existing ref_range */
-          rr->at_ = next_range_edge;
-          rr->refcount_ = this_range_refcount;
-          ref_range_sz_remove(rra, rr);
-          ref_range_sz_insert(rra, rr);
-        }
-        else {
-          /* Build new ref_range */
-          struct ref_range *new_rr = ref_range_alloc_range(rra);
-          if (!new_rr) return -1;
-          struct ref_range *nrp = rr_next;
-          if (nrp) {
-            if (nrp->pos_left_) {
-              nrp = nrp->pos_left_;
-              while (nrp->pos_right_) {
-                nrp = nrp->pos_right_;
-              }
-              nrp->pos_right_ = new_rr;
-            }
-            else {
-              nrp->pos_left_ = new_rr;
-            }
-            new_rr->pos_parent_ = nrp;
-          }
-          else {
-            /* No further existing edges after next_range_edge; append new ref_range to the end */
-            new_rr->pos_parent_ = rra->pos_seq_->pos_prev_;
-            rra->pos_seq_->pos_prev_->pos_right_ = new_rr;
-          }
-          new_rr->pos_is_red_ = 1;
-          new_rr->at_ = next_range_edge;
-          new_rr->refcount_ = this_range_refcount;
-          new_rr->pos_next_ = rr_next;
-          new_rr->pos_prev_ = rr_next->pos_prev_;
-          new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
-          ref_range_pos_process_insert(rra, new_rr);
-          ref_range_sz_insert(rra, new_rr);
-          rr = new_rr;
-        }
-        rr = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
-        this_range_refcount = next_range_refcount;
-      }
-      next_range_edge = rr_next ? rr_next->at_ : 0;
-      rr_next = (rr_next && (rr_next->pos_next_ != rra->pos_seq_)) ? rr_next->pos_next_ : NULL;
-      idx++;
-    }
-  }
-}
 
 int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr_t to, int delta) {
+  if (!ref_range_sanity_check(rra)) {
+    fprintf(stderr, "Failed sanity check inside\n");
+    return -1;
+  }
   uintptr_t edges[] ={
     from,
     to
@@ -1349,7 +1084,10 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
 
   /* rr_next: the range after next_range_edge */
   struct ref_range *rr_next = NULL;
-  if (rr && (rr->pos_next_ != rra->pos_seq_)) rr_next = rr->pos_next_;
+  if (rr && (rr->pos_next_ != rra->pos_seq_)) {
+    rr_next = rr->pos_next_;
+  }
+  if (rr && !rr->refcount_) ref_range_sz_remove(rra, rr);
 
   /* this_range_refcount: the refcount of the current range */
   int this_range_refcount = rr ? rr->refcount_ : 0;
@@ -1374,9 +1112,7 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
         if (rr != rr_next) {
           rr->at_ = next_range_edge;
           rr->refcount_ = this_range_refcount;
-          ref_range_sz_remove(rra, rr);
-          ref_range_sz_insert(rra, rr);
-
+          if (!rr->refcount_) ref_range_sz_insert(rra, rr);
           rr = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
         }
         else {
@@ -1385,6 +1121,7 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
           if (!new_rr) return -1;
           new_rr->at_ = next_range_edge;
           new_rr->refcount_ = this_range_refcount;
+
           struct ref_range *nrp = rr_next;
           if (nrp) {
             if (nrp->pos_left_) {
@@ -1420,14 +1157,14 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
               new_rr->pos_is_red_ = 0;
             }
           }
-          ref_range_sz_insert(rra, new_rr);
+          if (!new_rr->refcount_) ref_range_sz_insert(rra, new_rr);
+          rr = (new_rr->pos_next_ != rra->pos_seq_) ? new_rr->pos_next_ : NULL;
         }
       }
 
       /* Clear out any remaining interim edges */
       while (rr != rr_next) {
         struct ref_range *next = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
-        ref_range_sz_remove(rra, rr);
         ref_range_pos_remove(rra, rr);
         ref_range_free(rra, rr);
         rr = next;
@@ -1446,8 +1183,7 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
           /* Re-use existing ref_range */
           rr->at_ = edges[idx];
           rr->refcount_ = this_range_refcount;
-          ref_range_sz_remove(rra, rr);
-          ref_range_sz_insert(rra, rr);
+          if (!rr->refcount_) ref_range_sz_insert(rra, rr);
           rr = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
         }
         else {
@@ -1491,7 +1227,7 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
               new_rr->pos_is_red_ = 0;
             }
           }
-          ref_range_sz_insert(rra, new_rr);
+          if (!new_rr->refcount_) ref_range_sz_insert(rra, new_rr);
           rr = (new_rr->pos_next_ != rra->pos_seq_) ? new_rr->pos_next_ : NULL;
         }
         this_range_refcount = next_range_refcount;
@@ -1507,8 +1243,6 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
           /* Re-use existing ref_range */
           rr->at_ = next_range_edge;
           rr->refcount_ = this_range_refcount;
-          ref_range_sz_remove(rra, rr);
-          ref_range_sz_insert(rra, rr);
         }
         else {
           /* Build new ref_range */
@@ -1540,13 +1274,14 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
           new_rr->pos_prev_ = rr_next->pos_prev_;
           new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
           ref_range_pos_process_insert(rra, new_rr);
-          ref_range_sz_insert(rra, new_rr);
           rr = new_rr;
         }
+        if (!rr->refcount_) ref_range_sz_insert(rra, rr);
         rr = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
         this_range_refcount = next_range_refcount;
       }
       next_range_edge = rr_next ? rr_next->at_ : 0;
+      if (rr_next && !rr_next->refcount_) ref_range_sz_remove(rra, rr_next);
       rr_next = (rr_next && (rr_next->pos_next_ != rra->pos_seq_)) ? rr_next->pos_next_ : NULL;
     }
     else /* edges[idx] == next_range_edge */ {
@@ -1558,8 +1293,6 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
           /* Re-use the existing ref_range */
           rr->at_ = next_range_edge;
           rr->refcount_ = this_range_refcount;
-          ref_range_sz_remove(rra, rr);
-          ref_range_sz_insert(rra, rr);
         }
         else {
           /* Build new ref_range */
@@ -1591,24 +1324,209 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
           new_rr->pos_prev_ = rr_next->pos_prev_;
           new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
           ref_range_pos_process_insert(rra, new_rr);
-          ref_range_sz_insert(rra, new_rr);
           rr = new_rr;
         }
+        if (!rr->refcount_) ref_range_sz_insert(rra, rr);
         rr = (rr->pos_next_ != rra->pos_seq_) ? rr->pos_next_ : NULL;
         this_range_refcount = next_range_refcount;
       }
       next_range_edge = rr_next ? rr_next->at_ : 0;
+      if (rr_next && !rr_next->refcount_) ref_range_sz_remove(rra, rr_next);
       rr_next = (rr_next && (rr_next->pos_next_ != rra->pos_seq_)) ? rr_next->pos_next_ : NULL;
       idx++;
     }
   }
 }
 
-
-int ref_range_sanity_check(struct ref_range_allocator *rra) {
+static int ref_range_sanity_check_pos_parent_pointers(struct ref_range *parent, struct ref_range *child) {
+  if (!child) return 1;
+  if (child->pos_parent_ != parent) return 0;
+  if (!ref_range_sanity_check_pos_parent_pointers(child, child->pos_left_)) return 0;
+  if (!ref_range_sanity_check_pos_parent_pointers(child, child->pos_right_)) return 0;
   return 1;
 }
 
+static int ref_range_sanity_check_sz_parent_pointers(struct ref_range *parent, struct ref_range *child) {
+  if (!child) return 1;
+
+  if (child->sz_parent_ != parent) return 0;
+  if (!ref_range_sanity_check_sz_parent_pointers(child, child->sz_left_)) return 0;
+  if (!ref_range_sanity_check_sz_parent_pointers(child, child->sz_right_)) return 0;
+  return 1;
+}
+
+static void ref_range_increment_sz_nodes(struct ref_range *rr) {
+  if (!rr) return;
+  rr->sanity_ |= 8;
+  ref_range_increment_sz_nodes(rr->sz_left_);
+  ref_range_increment_sz_nodes(rr->sz_right_);
+}
+
+static void ref_range_increment_pos_nodes(struct ref_range *rr) {
+  if (!rr) return;
+  rr->sanity_ |= 4;
+  ref_range_increment_pos_nodes(rr->pos_left_);
+  ref_range_increment_pos_nodes(rr->pos_right_);
+}
+
+static int ref_range_check_sz_nodes(struct ref_range *rr) {
+  if (!rr) return 1;
+  if (!rr->refcount_ && (rr->sanity_ != 15)) {
+    fprintf(stderr, "ref_range_sanity_check_both_trees() failed\n");
+    return 0;
+  }
+  if (rr->refcount_ && (rr->sanity_ != 5)) {
+    fprintf(stderr, "ref_range_sanity_check_both_trees() failed\n");
+    return 0;
+  }
+  if (!ref_range_check_sz_nodes(rr->sz_left_)) return 0;
+  if (!ref_range_check_sz_nodes(rr->sz_right_)) return 0;
+  return 1;
+}
+
+static int ref_range_check_pos_nodes(struct ref_range *rr) {
+  if (!rr) return 1;
+  if (!rr->refcount_ && (rr->sanity_ != 15)) {
+    fprintf(stderr, "ref_range_sanity_check_both_trees() failed\n");
+    return 0;
+  }
+  if (rr->refcount_ && (rr->sanity_ != 5)) {
+    fprintf(stderr, "ref_range_sanity_check_both_trees() failed\n");
+    return 0;
+  }
+  if (!ref_range_check_pos_nodes(rr->pos_left_)) return 0;
+  if (!ref_range_check_pos_nodes(rr->pos_right_)) return 0;
+  return 1;
+}
+
+static int ref_range_check_both_trees(struct ref_range_allocator *rra) {
+  struct ref_range *rr = rra->pos_seq_;
+  if (rr) {
+    do {
+      rr->sanity_ = 0;
+
+      rr = rr->pos_next_;
+    } while (rr != rra->pos_seq_);
+  }
+
+  rr = rra->sz_seq_;
+  if (rr) {
+    do {
+      rr->sanity_ = 0;
+
+      rr = rr->sz_next_;
+    } while (rr != rra->sz_seq_);
+  }
+
+  rr = rra->pos_seq_;
+  if (rr) {
+    do {
+      rr->sanity_ |= 1;
+
+      rr = rr->pos_next_;
+    } while (rr != rra->pos_seq_);
+  }
+
+  rr = rra->sz_seq_;
+  if (rr) {
+    do {
+      rr->sanity_ |= 2;
+
+      rr = rr->sz_next_;
+    } while (rr != rra->sz_seq_);
+  }
+
+  ref_range_increment_pos_nodes(rra->pos_root_); /* marks sanity_ as 4 */
+  ref_range_increment_sz_nodes(rra->sz_root_);   /* marks sanity_ as 8 */
+
+  rr = rra->pos_seq_;
+  if (rr) {
+    do {
+      if (!rr->refcount_ && (rr->sanity_ != 15)) {
+        fprintf(stderr, "ref_range_sanity_check_both_trees() failed\n");
+        return 0;
+      }
+      if (rr->refcount_ && (rr->sanity_ != 5)) {
+        fprintf(stderr, "ref_range_sanity_check_both_trees() failed\n");
+        return 0;
+      }
+
+      rr = rr->pos_next_;
+    } while (rr != rra->pos_seq_);
+  }
+
+  rr = rra->pos_seq_;
+  if (rr) {
+    do {
+      if (!rr->refcount_ && (rr->sanity_ != 15)) {
+        fprintf(stderr, "ref_range_sanity_check_both_trees() failed\n");
+        return 0;
+      }
+      if (rr->refcount_ && (rr->sanity_ != 5)) {
+        fprintf(stderr, "ref_range_sanity_check_both_trees() failed\n");
+        return 0;
+      }
+
+      rr = rr->pos_next_;
+    } while (rr != rra->pos_seq_);
+  }
+
+  return ref_range_check_pos_nodes(rra->pos_root_) &&
+         ref_range_check_sz_nodes(rra->sz_root_);
+}
+
+static int ref_range_sanity_check_pos_ascension(struct ref_range_allocator *rra) {
+  struct ref_range *rr = rra->pos_seq_;
+  if (rr) {
+    do {
+      if (rr->pos_next_ != rra->pos_seq_) {
+        struct ref_range *rnext = rr->pos_next_;
+        if (rr->at_ >= rnext->at_) {
+          fprintf(stderr, "ref_range_sanity_check_pos_ascension() failed\n");
+          return 0;
+        }
+      }
+
+      rr = rr->pos_next_;
+    } while (rr != rra->pos_seq_);
+  }
+
+  return 1;
+}
+
+static int ref_range_sanity_check_sz_ascension(struct ref_range_allocator *rra) {
+  struct ref_range *rr = rra->sz_seq_;
+  if (rr) {
+    do {
+      if (rr->sz_next_ != rra->sz_seq_) {
+        struct ref_range *rnext = rr->sz_next_;
+        uintptr_t rr_from = (rr == rra->pos_seq_) ? 0 : rr->pos_prev_->at_;
+        uintptr_t rnext_from = (rnext == rra->pos_seq_) ? 0 : rnext->pos_prev_->at_;
+
+        if ((rr->at_ - rr_from) > (rnext->at_ - rnext_from)) {
+          fprintf(stderr, "ref_range_sanity_check_sz_ascension() failed\n");
+          return 0;
+        }
+      }
+
+      rr = rr->sz_next_;
+    } while (rr != rra->sz_seq_);
+  }
+
+  return 1;
+}
+
+static int ref_range_sanity_check(struct ref_range_allocator *rra) {
+  int r = ref_range_sanity_check_pos_parent_pointers(NULL, rra->pos_root_)
+       && ref_range_sanity_check_sz_parent_pointers(NULL, rra->sz_root_)
+       && ref_range_check_both_trees(rra)
+       && ref_range_sanity_check_pos_ascension(rra)
+       && ref_range_sanity_check_sz_ascension(rra);
+  if (!r) {
+    fprintf(stderr, "ref_range_sanity_check() failed\n");
+  }
+  return r;
+}
 
 int ref_range_test(void) {
   srand(123);
@@ -1624,8 +1542,20 @@ int ref_range_test(void) {
   for (n = 0; n < 20000; ++n) {
     uintptr_t from, to;
     int alloc_or_free;
-    if (n == 3) {
-      // fprintf(stderr, "Entering area of interest\n");
+    if (0 && n == 30) {
+      fprintf(stderr, "Entering area of interest\n");
+
+      struct ref_range *rr = rra.pos_seq_;
+      fprintf(stderr, "All ranges:\n");
+      if (rr) {
+        uintptr_t last = 0;
+        do {
+          fprintf(stderr, "from: %d to: %3d refcount: %d\n", (int)last, (int)rr->at_, rr->refcount_);
+          last = rr->at_;
+
+          rr = rr->pos_next_;
+        } while (rr != rra.pos_seq_);
+      }
     }
     do {
       from = rand() % (sizeof(ranges) / sizeof(*ranges));
@@ -1646,12 +1576,12 @@ int ref_range_test(void) {
       int r;
       r = ref_range_apply_ref(&rra, from, to, 1);
       if (r) {
-        fprintf(stderr, "ral_range_test(): failed ral_range_mark_range_allocated()\n");
+        fprintf(stderr, "ref_range_test(): failed ref_range_mark_range_allocated()\n");
         return r;
       }
       r = ref_range_sanity_check(&rra);
       if (!r) {
-        fprintf(stderr, "ral_range_test(): sanity check failed.\n");
+        fprintf(stderr, "ref_range_test(): sanity check failed.\n");
         return -1;
       }
     }
@@ -1663,12 +1593,12 @@ int ref_range_test(void) {
       int r;
       r = ref_range_apply_ref(&rra, from, to, -1);
       if (r) {
-        fprintf(stderr, "ral_range_test(): failed ral_range_mark_range_free()\n");
+        fprintf(stderr, "ref_range_test(): failed ref_range_mark_range_free()\n");
         return r;
       }
       r = ref_range_sanity_check(&rra);
       if (!r) {
-        fprintf(stderr, "ral_range_test(): sanity check failed.\n");
+        fprintf(stderr, "ref_range_test(): sanity check failed.\n");
         return -1;
       }
     }
@@ -1693,7 +1623,7 @@ int ref_range_test(void) {
       uintptr_t last = 0;
       do {
         if (last == rr->at_) {
-          fprintf(stderr, "ral_range_test(): invalid zero-sized range from: %d to: %3d refcount: %d\n", (int)last, (int)rr->at_, rr->refcount_);
+          fprintf(stderr, "ref_range_test(): invalid zero-sized range from: %d to: %3d refcount: %d\n", (int)last, (int)rr->at_, rr->refcount_);
           return -1;
         }
         last = rr->at_;
@@ -1701,6 +1631,57 @@ int ref_range_test(void) {
         rr = rr->pos_next_;
       } while (rr != rra.pos_seq_);
     }
+    char is_zero[sizeof(ranges)/sizeof(*ranges)] = {0};
+    if (rr) {
+      uintptr_t last = 0;
+      do {
+        for (k = last; k < rr->at_; ++k) {
+          if (!rr->refcount_) {
+            is_zero[k] = 1;
+          }
+          else {
+            is_zero[k] = 0;
+          }
+        }
+        last = rr->at_;
+
+        rr = rr->pos_next_;
+      } while (rr != rra.pos_seq_);
+    }
+    char marked_zero[sizeof(ranges)/sizeof(*ranges)] = {0};
+    rr = rra.sz_seq_;
+    if (rr) {
+      do {
+        uintptr_t from;
+        if (rr != rra.pos_seq_) from = rr->pos_prev_->at_;
+        else from = 0;
+
+        if (rr->refcount_) {
+          fprintf(stderr, "ref_range_test(): non-zero refcount found in available space range from: %d to: %3d refcount: %d\n", (int)from, (int)rr->at_, rr->refcount_);
+          return -1;
+        }
+
+        for (k = from; k < rr->at_; ++k) {
+          marked_zero[k] = 1;
+
+          if (!is_zero[k]) {
+            fprintf(stderr, "ref_range_test(): zero not found in range from %d to: %3d refcount: %d\n", (int)from, (int)rr->at_, rr->refcount_);
+            return -1;
+          }
+        }
+
+        rr = rr->sz_next_;
+      } while (rr != rra.sz_seq_);
+    }
+    for (k = 0; k < (sizeof(ranges)/sizeof(*ranges)); ++k) {
+      if (marked_zero[k] != is_zero[k]) {
+        /* Marked zero means in the sz_seq, is_zero means in the pos_seq, there is a mismatch */
+        fprintf(stderr, "ref_range_test(): zero not found in range from %d to: %3d refcount: %d\n", (int)from, (int)rr->at_, rr->refcount_);
+        return -1;
+      }
+    }
+
+    rr = rra.pos_seq_;
     for (k = 0; k < (sizeof(ranges)/sizeof(*ranges)); ++k) {
       if (rr && rr->at_ == k) {
         rr = (rr->pos_next_ == rra.pos_seq_) ? NULL : rr->pos_next_;
@@ -1711,7 +1692,7 @@ int ref_range_test(void) {
     
     for (k = 0; k < (sizeof(ranges)/sizeof(*ranges)); ++k) {
       if (range_chk[k] != ranges[k]) {
-        fprintf(stderr, "ral_range_test(): sanity range check failed.\n");
+        fprintf(stderr, "ref_range_test(): sanity range check failed.\n");
         return -1;
       }
     }
