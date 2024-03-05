@@ -47,6 +47,30 @@ struct ref_range_allocator {
   struct ref_range *pos_seq_;
 };
 
+/* marks the range from from (inclusive), to to (exclusive) as unavailable for allocation.
+ * Returns zero upon success, non-zero upon memory failure. from must be less than to (and 
+ * may not be equal.)
+ * This function may be called multiple times over the same or overlapping ranges, as long as
+ * each such ref_range_mark_range_allocated() call is paired by an equal and matching
+ * ref_range_mark_free() call. The internal implementation uses a refcount to facilitate this.
+ */
+int ref_range_mark_range_allocated(struct ref_range_allocator *rra, uintptr_t from, uintptr_t to);
+
+/* marks the range from from (inclusive), to to (exclusive) as free. Returns zero upon success,
+ * non-zero upon memory failure. from must be less than to (and may not be equal.)
+ * Note that the implementation is refcounted, so multiple ref_range_mark_allocated() calls,
+ * or a combination of a ref_range_alloc() call with multiple ref_range_mark_allocated() calls,
+ * may be matched with multiple ref_range_mark_range_free() calls. */
+int ref_range_mark_range_free(struct ref_range_allocator *rra, uintptr_t from, uintptr_t to);
+
+/* allocates "size" consecutive units, returning them in *result. The range returned is the
+ * best fit of all available ranges (where "best-fit" means the range will occupy the smallest
+ * area that can still fit it), if multiple ranges match, then the lowest range is returned.
+ * The allocated range should be matched with a single ref_range_mark_range_free() call to
+ * free the range again for future allocations. */
+int ref_range_alloc(struct ref_range_allocator *rra, uintptr_t size, uintptr_t *result);
+
+/* self-test, returns non-zero upon failure, zero upon pass. */
 int ref_range_test(void);
 
 #ifdef __cplusplus

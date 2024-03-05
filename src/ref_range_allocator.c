@@ -1338,6 +1338,52 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
   }
 }
 
+int ref_range_alloc(struct ref_range_allocator *rra, uintptr_t size, uintptr_t *result) {
+  struct ref_range *rr = ref_range_sz_find_best_fit(rra, size);
+  uintptr_t start_of_range;
+  if (rr) {
+    assert(!rr->refcount_);
+    start_of_range = (rra->pos_seq_ == rr) ? 0 : rr->pos_prev_->at_;
+  }
+  else {
+    /* No match, allocate range at the end */
+    if (rra->pos_seq_) {
+      if (!rra->pos_seq_->pos_prev_->refcount_) {
+        /* Last range has 0 refcount, start at that range. */
+        if (rra->pos_seq_->pos_prev_ != rra->pos_seq_) {
+          start_of_range = rra->pos_seq_->pos_prev_->at_;
+        }
+        else {
+          /* Last range is also the only range and has 0 refcount, so start at ofsset 0 */
+          start_of_range = 0;
+        }
+      }
+      else {
+        /* Last range has non-zero refcount, start after that range */
+        start_of_range = rra->pos_seq_->pos_prev_->at_;
+      }
+    }
+    else {
+      /* No ranges yet, so start at offset 0 */
+      start_of_range = 0;
+    }
+  }
+  
+  int r;
+  r = ref_range_apply_ref(rra, start_of_range, start_of_range + size, 1);
+  if (r) return r;
+  *result = start_of_range;
+  return 0;
+}
+
+int ref_range_mark_range_allocated(struct ref_range_allocator *rra, uintptr_t from, uintptr_t to) {
+  return ref_range_apply_ref(rra, from, to, 1);
+}
+
+int ref_range_mark_range_free(struct ref_range_allocator *rra, uintptr_t from, uintptr_t to) {
+  return ref_range_apply_ref(rra, from, to, -1);
+}
+
 static int ref_range_sanity_check_pos_parent_pointers(struct ref_range *parent, struct ref_range *child) {
   if (!child) return 1;
   if (child->pos_parent_ != parent) return 0;
