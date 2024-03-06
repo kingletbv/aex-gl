@@ -138,31 +138,6 @@ struct sl_reg_allocator {
   struct ref_range_allocator rra_bools_;
   struct ref_range_allocator rra_sampler2D_;
   struct ref_range_allocator rra_samplerCube_;
-
-  size_t num_free_float_regs_;
-  size_t num_free_float_regs_allocated_;
-  int *free_float_regs_;
-  int current_max_float_reg_;
-
-  size_t num_free_int_regs_;
-  size_t num_free_int_regs_allocated_;
-  int *free_int_regs_;
-  int current_max_int_reg_;
-
-  size_t num_free_bool_regs_;
-  size_t num_free_bool_regs_allocated_;
-  int *free_bool_regs_;
-  int current_max_bool_reg_;
-
-  size_t num_free_sampler2D_regs_;
-  size_t num_free_sampler2D_regs_allocated_;
-  int *free_sampler2D_regs_;
-  int current_max_sampler2D_reg_;
-
-  size_t num_free_samplerCube_regs_;
-  size_t num_free_samplerCube_regs_allocated_;
-  int *free_samplerCube_regs_;
-  int current_max_samplerCube_reg_;
 };
 
 void sl_reg_alloc_init(struct sl_reg_alloc *ra);
