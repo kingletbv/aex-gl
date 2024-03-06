@@ -502,25 +502,25 @@ static int sl_reg_allocator_unlock_reg(struct sl_reg_allocator *ract, sl_reg_cat
 }
 
 int sl_reg_allocator_lock_reg_range(struct sl_reg_allocator *ract, sl_reg_category_t cat, int head_reg, int array_quantity) {
-  struct ral_range_allocator *ral = NULL;
+  struct ref_range_allocator *rra = NULL;
   switch (cat) {
     case slrc_float:
-      ral = &ract->ral_floats_;
+      rra = &ract->rra_floats_;
       break;
     case slrc_int:
-      ral = &ract->ral_ints_;
+      rra = &ract->rra_ints_;
       break;
     case slrc_bool:
-      ral = &ract->ral_bools_;
+      rra = &ract->rra_bools_;
       break;
     case slrc_sampler2D:
-      ral = &ract->ral_sampler2D_;
+      rra = &ract->rra_sampler2D_;
       break;
     case slrc_samplerCube:
-      ral = &ract->ral_samplerCube_;
+      rra = &ract->rra_samplerCube_;
       break;
   }
-  if (!ral) {
+  if (!rra) {
     /* Invalid category */
     assert(0);
     return -1;
@@ -534,30 +534,30 @@ int sl_reg_allocator_lock_reg_range(struct sl_reg_allocator *ract, sl_reg_catego
     /* overflow */
     return -1;
   }
-  r = ral_range_mark_range_allocated(ral, from, to);
+  r = ref_range_mark_range_allocated(rra, from, to);
   return r;
 }
 
 int sl_reg_allocator_unlock_reg_range(struct sl_reg_allocator *ract, sl_reg_category_t cat, int head_reg, int array_quantity) {
-  struct ral_range_allocator *ral = NULL;
+  struct ref_range_allocator *rra = NULL;
   switch (cat) {
     case slrc_float:
-      ral = &ract->ral_floats_;
+      rra = &ract->rra_floats_;
       break;
     case slrc_int:
-      ral = &ract->ral_ints_;
+      rra = &ract->rra_ints_;
       break;
     case slrc_bool:
-      ral = &ract->ral_bools_;
+      rra = &ract->rra_bools_;
       break;
     case slrc_sampler2D:
-      ral = &ract->ral_sampler2D_;
+      rra = &ract->rra_sampler2D_;
       break;
     case slrc_samplerCube:
-      ral = &ract->ral_samplerCube_;
+      rra = &ract->rra_samplerCube_;
       break;
   }
-  if (!ral) {
+  if (!rra) {
     /* Invalid category */
     assert(0);
     return -1;
@@ -571,30 +571,30 @@ int sl_reg_allocator_unlock_reg_range(struct sl_reg_allocator *ract, sl_reg_cate
     /* overflow */
     return -1;
   }
-  r = ral_range_mark_range_free(ral, from, to);
+  r = ref_range_mark_range_free(rra, from, to);
   return r;
 }
 
 int sl_reg_allocator_alloc_reg_range(struct sl_reg_allocator *ract, sl_reg_category_t cat, int array_quantity, int *result) {
-  struct ral_range_allocator *ral = NULL;
+  struct ref_range_allocator *rra = NULL;
   switch (cat) {
     case slrc_float:
-      ral = &ract->ral_floats_;
+      rra = &ract->rra_floats_;
       break;
     case slrc_int:
-      ral = &ract->ral_ints_;
+      rra = &ract->rra_ints_;
       break;
     case slrc_bool:
-      ral = &ract->ral_bools_;
+      rra = &ract->rra_bools_;
       break;
     case slrc_sampler2D:
-      ral = &ract->ral_sampler2D_;
+      rra = &ract->rra_sampler2D_;
       break;
     case slrc_samplerCube:
-      ral = &ract->ral_samplerCube_;
+      rra = &ract->rra_samplerCube_;
       break;
   }
-  if (!ral) {
+  if (!rra) {
     /* Invalid category */
     assert(0);
     return -1;
@@ -602,7 +602,7 @@ int sl_reg_allocator_alloc_reg_range(struct sl_reg_allocator *ract, sl_reg_categ
   int r;
   if (array_quantity <= 0) { return -1; /* invalid reg range */ }
   uintptr_t from = 0;
-  r = ral_range_alloc(ral, (uintptr_t)array_quantity, &from);
+  r = ref_range_alloc(rra, (uintptr_t)array_quantity, &from);
   if (r) return r;
   *result = (int)from;
   return 0;
@@ -758,18 +758,18 @@ int sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *r
 
 
 void sl_reg_allocator_init(struct sl_reg_allocator *ra) {
-  ral_range_allocator_init(&ra->ral_floats_);
-  ral_range_allocator_init(&ra->ral_ints_);
-  ral_range_allocator_init(&ra->ral_bools_);
-  ral_range_allocator_init(&ra->ral_sampler2D_);
-  ral_range_allocator_init(&ra->ral_samplerCube_);
+  ref_range_allocator_init(&ra->rra_floats_);
+  ref_range_allocator_init(&ra->rra_ints_);
+  ref_range_allocator_init(&ra->rra_bools_);
+  ref_range_allocator_init(&ra->rra_sampler2D_);
+  ref_range_allocator_init(&ra->rra_samplerCube_);
 }
 
 void sl_reg_allocator_cleanup(struct sl_reg_allocator *ra) {
-  ral_range_allocator_cleanup(&ra->ral_floats_);
-  ral_range_allocator_cleanup(&ra->ral_ints_);
-  ral_range_allocator_cleanup(&ra->ral_bools_);
-  ral_range_allocator_cleanup(&ra->ral_sampler2D_);
-  ral_range_allocator_cleanup(&ra->ral_samplerCube_);
+  ref_range_allocator_cleanup(&ra->rra_floats_);
+  ref_range_allocator_cleanup(&ra->rra_ints_);
+  ref_range_allocator_cleanup(&ra->rra_bools_);
+  ref_range_allocator_cleanup(&ra->rra_sampler2D_);
+  ref_range_allocator_cleanup(&ra->rra_samplerCube_);
 }
 

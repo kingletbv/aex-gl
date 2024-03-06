@@ -16,9 +16,9 @@
 #ifndef SL_REG_ALLOC_H
 #define SL_REG_ALLOC_H
 
-#ifndef RANGE_ALLOCATOR_H_INCLUDED
-#define RANGE_ALLOCATOR_H_INCLUDED
-#include "range_allocator.h"
+#ifndef REF_RANGE_ALLOCATOR_H_INCLUDED
+#define REF_RANGE_ALLOCATOR_H_INCLUDED
+#include "ref_range_allocator.h"
 #endif
 
 #ifdef __cplusplus
@@ -133,11 +133,11 @@ struct sl_reg_alloc {
 };
 
 struct sl_reg_allocator {
-  struct ral_range_allocator ral_floats_;
-  struct ral_range_allocator ral_ints_;
-  struct ral_range_allocator ral_bools_;
-  struct ral_range_allocator ral_sampler2D_;
-  struct ral_range_allocator ral_samplerCube_;
+  struct ref_range_allocator rra_floats_;
+  struct ref_range_allocator rra_ints_;
+  struct ref_range_allocator rra_bools_;
+  struct ref_range_allocator rra_sampler2D_;
+  struct ref_range_allocator rra_samplerCube_;
 
   size_t num_free_float_regs_;
   size_t num_free_float_regs_allocated_;
