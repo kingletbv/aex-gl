@@ -47,6 +47,9 @@ struct ref_range_allocator {
   struct ref_range *pos_seq_;
 };
 
+void ref_range_allocator_init(struct ref_range_allocator *rra);
+void ref_range_allocator_cleanup(struct ref_range_allocator *rra);
+
 /* marks the range from from (inclusive), to to (exclusive) as unavailable for allocation.
  * Returns zero upon success, non-zero upon memory failure. from must be less than to (and 
  * may not be equal.)
