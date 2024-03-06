@@ -41,7 +41,6 @@
     <ClCompile Include="..\src\sl_stmt.c" />
     <ClCompile Include="..\src\sl_execution.c" />
     <ClCompile Include="..\src\sl_reg_alloc.c" />
-    <ClCompile Include="..\src\range_allocator.c" />
     <ClCompile Include="..\src\ref_range_allocator.c" />
   </ItemGroup>
   <ItemGroup>
@@ -91,7 +90,6 @@
     <ClInclude Include="..\src\sl_execution.h" />
     <ClInclude Include="..\src\sl_binop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_reg_alloc.h" />
-    <ClInclude Include="..\src\range_allocator.h" />
     <ClInclude Include="..\src\ref_range_allocator.h" />
   </ItemGroup>
   <ItemGroup>
