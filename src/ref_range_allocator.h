@@ -41,10 +41,16 @@ struct ref_range {
 };
 
 struct ref_range_allocator {
+  /* RB tree in ascending order of size and position */
   struct ref_range *sz_root_;
   struct ref_range *sz_seq_;
+
+  /* RB tree in order of position */
   struct ref_range *pos_root_;
   struct ref_range *pos_seq_;
+  
+  /* End of highest non-zero refcount range */
+  uintptr_t watermark_;
 };
 
 void ref_range_allocator_init(struct ref_range_allocator *rra);
