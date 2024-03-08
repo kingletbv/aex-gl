@@ -622,9 +622,61 @@ static int sl_reg_allocator_alloc_descend(struct sl_reg_allocator *ract, int arr
     sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
     int n;
     for (n = 0; n < card; ++n) {
-      /* XXX: Change this out for the actual allocator */
       int base_reg = 0;
       r = sl_reg_allocator_alloc_reg_range(ract, cat, array_quantity, &base_reg);
+      if (r) {
+        /* No memory or an overflow */
+        int k;
+        for (k = 0; k < n; ++k) {
+          sl_reg_allocator_unlock_reg_range(ract, cat, ra->v_.regs_[k], array_quantity);
+        }
+        return -1;
+      }
+    }
+  }
+  return 0;
+}
+
+static int sl_reg_allocator_lock_or_alloc_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra) {
+  int r;
+  if (ra->kind_ == slrak_struct) {
+    size_t n;
+    for (n = 0; n < ra->v_.comp_.num_fields_; ++n) {
+      r = sl_reg_allocator_lock_or_alloc_descend(ract, array_quantity, ra->v_.comp_.fields_ + n);
+      if (r) {
+        /* No memory or an overflow */
+        size_t k;
+        for (k = 0; k < n; ++k) {
+          sl_reg_allocator_unlock_descend(ract, array_quantity, ra->v_.comp_.fields_ + k);
+        }
+        return -1;
+      }
+    }
+  }
+  else if (ra->kind_ == slrak_array) {
+    if (ra->v_.array_.num_elements_ >(INT_MAX / array_quantity)) {
+      /* overflow */
+      return -1;
+    }
+    array_quantity *= (int)ra->v_.array_.num_elements_;
+    r = sl_reg_allocator_lock_or_alloc_descend(ract, array_quantity, ra->v_.array_.head_);
+    if (r) {
+      return r;
+    }
+  }
+  else {
+    int card = sl_reg_alloc_get_cardinality(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    int n;
+    int is_allocated = sl_reg_alloc_is_allocated(ra);
+    for (n = 0; n < card; ++n) {
+      int base_reg = 0;
+      if (!is_allocated) {
+        r = sl_reg_allocator_alloc_reg_range(ract, cat, array_quantity, &base_reg);
+      }
+      else {
+        r = sl_reg_allocator_lock_reg_range(ract, cat, ra->v_.regs_[n], array_quantity);
+      }
       if (r) {
         /* No memory or an overflow */
         int k;
@@ -650,6 +702,9 @@ int sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *r
   return sl_reg_allocator_alloc_descend(ract, 1, ra);
 }
 
+int sl_reg_allocator_lock_or_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
+  return sl_reg_allocator_lock_or_alloc_descend(ract, 1, ra);
+}
 
 void sl_reg_allocator_init(struct sl_reg_allocator *ra) {
   ref_range_allocator_init(&ra->rra_floats_);
