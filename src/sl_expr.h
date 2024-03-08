@@ -150,9 +150,6 @@ struct sl_expr {
   /* register allocation, applicable for non-constant values. */
   struct sl_reg_alloc reg_alloc_;
   
-  /* Runtime helper during register allocation */
-  int was_prelocked_:1;
-
   /* exop_component_selection; each component_selection_[] contains
    * the ASCII letter of the component (e.g. x,y,z,w,r,g,b,a,s,t,p or q) */
   int num_components_;
