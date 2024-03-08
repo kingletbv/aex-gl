@@ -285,6 +285,8 @@ int sl_reg_alloc_is_allocated(const struct sl_reg_alloc *ra) {
 }
 
 int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src) {
+  int r = 0;
+
   dst->kind_ = src->kind_;
   if (src->kind_ == slrak_struct) {
     size_t n;
@@ -326,7 +328,6 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
       return -1;
     }
     sl_reg_alloc_init(new_element_ra);
-    int r;
     r = sl_reg_alloc_clone(new_element_ra, src->v_.array_.head_);
     if (r) {
       /* No mem */
@@ -346,6 +347,26 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
     sl_reg_alloc_init(dst);
     dst->kind_ = src->kind_;
     memcpy(dst->v_.regs_, src->v_.regs_, sizeof(dst->v_.regs_));
+  }
+  if (src->offset_) {
+    /* Clone offset */
+    if (!dst->offset_) {
+      dst->offset_ = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc));
+      if (!dst->offset_) return -1; /* no mem */
+      sl_reg_alloc_init(dst->offset_);
+    }
+    r = sl_reg_alloc_clone(dst->offset_, src->offset_);
+    if (r) return r;
+  }
+  if (src->rvalue_) {
+    /* Clone rvalue */
+    if (!dst->rvalue_) {
+      dst->rvalue_ = (struct sl_reg_alloc *)malloc(sizeof(struct sl_reg_alloc));
+      if (!dst->rvalue_) return -1; /* no mem */
+      sl_reg_alloc_init(dst->rvalue_);
+    }
+    r = sl_reg_alloc_clone(dst->rvalue_, src->rvalue_);
+    if (r) return r;
   }
   return 0;
 }
@@ -691,19 +712,39 @@ static int sl_reg_allocator_lock_or_alloc_descend(struct sl_reg_allocator *ract,
 }
 
 int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
-  return sl_reg_allocator_lock_descend(ract, 1, ra);
+  int r;
+  r = sl_reg_allocator_lock_descend(ract, 1, ra);
+  if (!r && ra->offset_) {
+    r = sl_reg_allocator_lock_descend(ract, 1, ra->offset_);
+  }
+  return r;
 }
 
 int sl_reg_allocator_unlock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
-  return sl_reg_allocator_unlock_descend(ract, 1, ra);
+  int r;
+  r = sl_reg_allocator_unlock_descend(ract, 1, ra);
+  if (!r && ra->offset_) {
+    r = sl_reg_allocator_unlock_descend(ract, 1, ra->offset_);
+  }
+  return r;
 }
 
 int sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
-  return sl_reg_allocator_alloc_descend(ract, 1, ra);
+  int r;
+  r = sl_reg_allocator_alloc_descend(ract, 1, ra);
+  if (!r && ra->offset_) {
+    r = sl_reg_allocator_alloc_descend(ract, 1, ra->offset_);
+  }
+  return r;
 }
 
 int sl_reg_allocator_lock_or_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
-  return sl_reg_allocator_lock_or_alloc_descend(ract, 1, ra);
+  int r;
+  r = sl_reg_allocator_lock_or_alloc_descend(ract, 1, ra);
+  if (!r && ra->offset_) {
+    r = sl_reg_allocator_lock_or_alloc_descend(ract, 1, ra->offset_);
+  }
+  return r;
 }
 
 void sl_reg_allocator_init(struct sl_reg_allocator *ra) {
