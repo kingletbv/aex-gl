@@ -2270,6 +2270,13 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
 
     return 0;
   }
+  else if (x->op_ == exop_variable) {
+    /* Clone the variable's reg_alloc and lock it; variables should already be locked,
+     * but locking it extra ensures the caller can unlock without consequence. */
+    r = r ? r : sl_reg_alloc_clone(&x->reg_alloc_, &x->variable_->reg_alloc_);
+    r = r ? r : sl_reg_allocator_lock(ract, &x->reg_alloc_);
+    return r;
+  }
   else if (x->op_ == exop_array_subscript) {
     for (n = 0; n < 2; ++n) {
       struct sl_expr *child = x->children_[n];
@@ -2303,45 +2310,42 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
 
     return 0;
   }
+  else if (x->op_ == exop_component_selection) {
+    // XXX:
+
+  }
+  else if (x->op_ == exop_field_selection) {
+    // XXX: 
+  }
   else if (x->op_ == exop_assign) {
     /* Recursively process each child (both lvalue and rvalue,) registers will be held locked */
-    for (n = 0; n < x->num_children_; ++n) {
-      r = sl_expr_alloc_register_main_pass(tb, ract, x->children_[n]);
-      if (r) return r;
-    }
+    r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[0]);
+    r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[1]);
 
     /* For the second child, we'd like to have an rvalue. Not so much for the first 
      * as exop_assign overwrites the destination without concern for prior contents. */
-    for (n = 1; n < x->num_children_; ++n) {
-      r = sl_expr_need_rvalue(tb, ract, x->children_[n]);
-
+    r = r ? r : sl_expr_need_rvalue(tb, ract, x->children_[1]);
+    if (x->children_[1]->reg_alloc_.rvalue_) {
       /* If this did create an rvalue_ then unlock the other value here */
-      if (x->children_[n]->reg_alloc_.rvalue_) {
-        r = r ? r : sl_reg_allocator_unlock(ract, &x->children_[n]->reg_alloc_);
-      }
-      if (r) return r;
+      r = r ? r : sl_reg_allocator_unlock(ract, &x->children_[1]->reg_alloc_);
     }
 
     /* Assume the assignment is performed here during evaluation.
      * Unlock lvalue, clone the registers for the rvalue into our own expression 
      * (and don't unlock).
      */
-    if (x->num_children_) r = r ? r : sl_reg_allocator_unlock(ract, &x->children_[0]->reg_alloc_);
-    if (x->num_children_ > 1) {
-      if (x->children_[1]->reg_alloc_.rvalue_) {
-        r = r ? r : sl_reg_alloc_clone(&x->reg_alloc_, x->children_[1]->reg_alloc_.rvalue_);
-      }
-      else {
-        r = r ? r : sl_reg_alloc_clone(&x->reg_alloc_, &x->children_[1]->reg_alloc_);
-      }
-      for (n = 2; n < x->num_children_; ++n) {
-        /* Not sure this would ever execute for assignment (more than 2 operands??) but keeps things generic */
-        r = r ? r : sl_reg_allocator_unlock(ract, &x->children_[n]->reg_alloc_);
-      }
-    }
-    if (r) return r;
+    r = r ? r : sl_reg_allocator_unlock(ract, &x->children_[0]->reg_alloc_);
 
-    return 0;
+    /* Clone the assigned right value to the result and leave it locked (so caller has us
+     * locked as expected.) */
+    if (x->children_[1]->reg_alloc_.rvalue_) {
+      r = r ? r : sl_reg_alloc_clone(&x->reg_alloc_, x->children_[1]->reg_alloc_.rvalue_);
+    }
+    else {
+      r = r ? r : sl_reg_alloc_clone(&x->reg_alloc_, &x->children_[1]->reg_alloc_);
+    }
+
+    return r;
   }
 
   /* Recursively process each child. On the return from sl_expr_alloc_register_main_pass() the
