@@ -2310,12 +2310,121 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
 
     return 0;
   }
-  else if (x->op_ == exop_component_selection) {
-    // XXX:
+  else if ((x->op_ == exop_component_selection) || (x->op_ == exop_constructor)) {
+    /* Alloc & lock registers for children */
+    for (n = 0; n < x->num_children_; ++n) {
+      r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[n]);
+    }
 
+    for (n = 0; n < x->num_components_; ++n) {
+      struct sl_component_selection *cs = x->swizzle_ + n;
+
+      sl_reg_category_t cat = slrc_invalid;
+      switch (cs->conversion_) {
+        case slcc_float_to_float:
+        case slcc_int_to_float:
+        case slcc_bool_to_float:
+          cat = slrc_float;
+          break;
+        case slcc_float_to_int:
+        case slcc_int_to_int:
+        case slcc_bool_to_int:
+          cat = slrc_int;
+          break;
+        case slcc_float_to_bool:
+        case slcc_int_to_bool:
+        case slcc_bool_to_bool:
+          cat = slrc_bool;
+          break;
+      }
+      assert((cat != slrc_invalid) && "not able to determine component scalar type");
+
+      /* Check if this can just use the children_'s register allocation directly or if we
+       * need to allocate a register for it. This means it must not be a literal value (parameter_index != -1) 
+       * and there may be no conversion (because that would require magically converting it back when used
+       * as an lvalue.) We do allow exop_constructor, but the implication is that the resulting 
+       * constructed value is never used as an lvalue (which the validation should take care of, see 
+       * sl_expr_is_lvalue() which returns 0 for exop_constructor..)
+       */
+      if ((cs->parameter_index_ != -1) &&
+          ((cs->conversion_ == slcc_float_to_float) ||
+           (cs->conversion_ == slcc_int_to_int) ||
+           (cs->conversion_ == slcc_bool_to_bool))) {
+        /* Clone component directly */
+        if (x->reg_alloc_.v_.regs_[n] == SL_REG_NONE) {
+          x->reg_alloc_.v_.regs_[n] = x->children_[cs->parameter_index_]->reg_alloc_.v_.regs_[cs->component_index_];
+        }
+        /* Make sure the individual register is locked; it should already be from x->children_, however, we will
+         * shortly unlock children_ wholesale and need to keep the actual register's x uses locked when we do so. */
+        r = r ? r : sl_reg_allocator_lock_reg_range(ract, cat, x->reg_alloc_.v_.regs_[n], 1);
+      }
+      else if (x->reg_alloc_.v_.regs_[n] == SL_REG_NONE) {
+        /* Allocate the isolated register for this component. Note that this will lock it, which
+         * is the desired behavior (otherwise our allocations would overlap.) */
+        r = r ? r : sl_reg_allocator_alloc_reg_range(ract, cat, 1, &x->reg_alloc_.v_.regs_[n]);
+        if (r) return r;
+      }
+      else {
+        /* Ensure whatever we return is locked at the same +refcount as everything either cloned or alloc'ed above. */
+        r = r ? r : sl_reg_allocator_lock_reg_range(ract, cat, x->reg_alloc_.v_.regs_[n], 1);
+      }
+      if (r) return r;
+    }
+
+    /* With our components now mapped out and locked, unlock all our children; this will leave the components that
+     * we cloned from our children locked, because they've been +ref locked on top of the children_'s lock in the loop
+     * above. */
+    for (n = 0; n < x->num_children_; ++n) {
+      r = r ? r : sl_reg_allocator_unlock(ract, &x->children_[n]->reg_alloc_);
+    }
+
+    return r;
   }
   else if (x->op_ == exop_field_selection) {
-    // XXX: 
+    // Find the reg_alloc_ of the child's field we'd like to select; then evaluate the child,
+    // copy the field's corresponding reg_alloc over as our own reg_alloc and unlock everything else.
+    struct sl_type *et = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+    if (!et) return -1;
+    
+    r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[0]);
+
+    if (r) return r;
+
+    assert((x->children_[0]->reg_alloc_.kind_ == slrak_struct) && "reg_alloc of exop_field_selection child should be slrak_struct");
+    assert((et == x->children_[0]->reg_alloc_.v_.comp_.struct_type_) && "type mismatch on child expression and reg_alloc's value");
+
+    /* Find the sequential index of the type */
+    size_t field_index = 0;
+    int field_was_found = 0;
+    struct sl_type_field *tf;
+    tf = et->fields_;
+    if (tf) {
+      do {
+        tf = tf->chain_;
+
+        if (tf == x->field_selection_) {
+          field_was_found = 1;
+          break; /* found it */
+        }
+
+        field_index++;
+      } while (tf != et->fields_);
+    }
+    assert(field_was_found && "exop_field_selection but no field was found");
+
+    /* Now de-refcount all the fields we will *not* be using... */
+    for (n = 0; n < x->children_[0]->reg_alloc_.v_.comp_.num_fields_; ++n) {
+      struct sl_reg_alloc *ra = x->children_[0]->reg_alloc_.v_.comp_.fields_ + n;
+      if (n != field_index) {
+        r = r ? r : sl_reg_allocator_unlock(ract, ra);
+      }
+    }
+    /* ... and clone the field we *will* be using, note that we keep it and it alone 
+     *     locked from the return of sl_expr_alloc_register_main_pass() so we can pass 
+     *     it along */
+    r = r ? r : sl_reg_alloc_clone(&x->reg_alloc_, x->children_[0]->reg_alloc_.v_.comp_.fields_ + field_index);
+
+    return r;
   }
   else if (x->op_ == exop_assign) {
     /* Recursively process each child (both lvalue and rvalue,) registers will be held locked */
