@@ -108,6 +108,11 @@ struct sl_frame {
   /* Pointer to the function this frame is declared for, or alternatively, NULL if
    * this is a global frame. */
   struct sl_function *function_;
+
+  /* Allocator used for allocating registers for this frame. Note that the ref_range_allocator
+   * fields in the structure maintain a watermark_ field that, after allocation has
+   * completed, contains the number of registers needed by this sl_frame. */
+  struct sl_reg_allocator ract_;
 };
 
 struct sl_function {
@@ -165,6 +170,11 @@ void sl_frame_cleanup(struct sl_frame *frame);
  * vartype must be set to the variable's type. If a memory allocation failure occurs, NULL is returned. */
 struct sl_variable *sl_frame_alloc_variable(struct sl_frame *frame, const char *name, const struct situs *loc, struct sl_type *vartype);
 
+/* Allocates the variables in the frame as registers; returns 0 upon success. Upon success,
+ * the variables of the frame will be held locked (so subsequent allocations will not overlap
+ * the variables.) */
+int sl_frame_alloc_registers(struct sl_frame *f);
+
 /* Returns non-zero if the variable is global (i.e. is declared in a global frame) */
 int sl_variable_is_global(const struct sl_variable *v);
 
@@ -192,6 +202,14 @@ int sl_function_post_process_parameters(struct sl_type_base *tb, struct sl_funct
 int sl_function_match(struct sl_function *fa, struct sl_function *fb);
 
 int sl_function_match_validation(struct diags *dx, struct sl_function *fnew, struct sl_function *fexisting);
+
+/* Allocates all variables and the temporaries needed for evaluation in function f's f->frame_.ract_
+ * register allocator. Returns non-zero upon (memory) failure, returns zero upon success.
+ * Upon success, the variables of the function will be held locked (so subsequent allocations will not overlap
+ * the variables.) The registers used by the temporaries are however released (so subsequent allocations
+ * may overlap them.) Use the f->frame_.ract_ ref_range_allocator's watermark_ field to discover how
+ * much register space was used (including the temporaries.) */
+int sl_function_alloc_registers(struct sl_type_base *tb, struct sl_function *f);
 
 /* Search the current_scope and its parents (in order) for the first function that matches f.
  * current_scope is the sym_table (scope) to begin the search at.
@@ -228,7 +246,6 @@ void sl_function_search(struct sym_table *current_scope, struct sl_function *f,
  */
 void sl_function_call_search(struct sym_table *current_scope, const char *name, size_t num_params, struct sl_type **param_types,
                              struct sym_table **ppst_found_at, struct sym **ppsym_found_at, struct sl_function **ppfunc_found);
-
 
 void sl_parameter_cleanup(struct sl_parameter *p);
 

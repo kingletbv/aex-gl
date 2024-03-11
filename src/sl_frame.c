@@ -71,6 +71,7 @@ void sl_variable_cleanup(struct sl_variable *v) {
 void sl_frame_init(struct sl_frame *frame) {
   frame->variables_ = NULL;
   frame->function_ = NULL;
+  sl_reg_allocator_init(&frame->ract_);
 }
 
 void sl_frame_cleanup(struct sl_frame *frame) {
@@ -86,6 +87,7 @@ void sl_frame_cleanup(struct sl_frame *frame) {
 
     } while (v != frame->variables_);
   }
+  sl_reg_allocator_cleanup(&frame->ract_);
 }
 
 static void sl_frame_add_variable(struct sl_frame *frame, struct sl_variable *v) {
@@ -194,6 +196,25 @@ void sl_frame_free_function(struct sl_function *f) {
   free(f);
 }
 
+int sl_frame_alloc_registers(struct sl_frame *f) {
+  int r = 0;
+  struct sl_variable *v;
+  v = f->variables_;
+  if (v) {
+    do {
+      v = v->chain_;
+
+      r = r ? r : sl_reg_alloc_set_type(&v->reg_alloc_, v->type_);
+      r = r ? r : sl_reg_allocator_alloc(&f->ract_, &v->reg_alloc_);
+
+      if (r) return r;
+
+    } while (v != f->variables_);
+  }
+
+  return r;
+}
+
 size_t sl_function_append_parameter(struct sl_function *f, const char *name, const struct situs *loc, struct sl_type *type) {
   if (f->num_parameters_ == f->num_parameters_allocated_) {
     size_t new_num_parameters_allocated = f->num_parameters_allocated_ + f->num_parameters_allocated_ + 1;
@@ -292,6 +313,15 @@ int sl_function_match_validation(struct diags *dx, struct sl_function *fnew, str
   }
 
   return 0;
+}
+
+int sl_function_alloc_registers(struct sl_type_base *tb, struct sl_function *f) {
+  int r = 0;
+  r = r ? r : sl_frame_alloc_registers(&f->frame_);
+
+  r = r ? r : sl_stmt_alloc_registers(tb, &f->frame_.ract_, f->body_);
+
+  return r;
 }
 
 void sl_function_search(struct sym_table *current_scope, struct sl_function *f, 
