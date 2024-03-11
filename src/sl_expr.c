@@ -2456,6 +2456,59 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
 
     return r;
   }
+  else if ((x->op_ == exop_mul_assign) ||
+           (x->op_ == exop_div_assign) ||
+           (x->op_ == exop_add_assign) ||
+           (x->op_ == exop_sub_assign)) {
+    /* This is like exop_assign and the regular case, but unlike exop_assign, we do need
+     * the first child to be an rvalue, and unlike the regular case, even when we convert
+     * the first child to an rvalue, we still need to keep the lvalue equivalent locked
+     * for the assignment. */
+
+    /* Recursively process each child (both lvalue and rvalue,) registers will be held locked */
+    r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[0]);
+    r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[1]);
+
+    /* For the first child, we'd like to have an rvalue *and* an lvalue. */
+    r = r ? r : sl_expr_need_rvalue(tb, ract, x->children_[0]);
+
+    /* For the second child, we'd like to have an rvalue and, unlike the first child,
+     * can let go of the lvalue if we allocated for an rvalue. */
+    r = r ? r : sl_expr_need_rvalue(tb, ract, x->children_[1]);
+    if (x->children_[1]->reg_alloc_.rvalue_) {
+      /* If this did create an rvalue_ then unlock the other value here */
+      r = r ? r : sl_reg_allocator_unlock(ract, &x->children_[1]->reg_alloc_);
+    }
+
+    /* Assume the assignment is performed here during evaluation.. can now unlock */
+
+    /* .. for the first child, we likely have both a regular (lvalue) and an rvalue_, and
+     *    need to unlock both; however we also want to pass up the result of the assignment
+     *    to the parent (for it to unlock) - we pass up the lvalue; and caller can unlock it.
+     *    (the rvalue contains the incorrect pre-operation value so we blank it temporarily.) */
+    struct sl_reg_alloc *rvalue = x->children_[0]->reg_alloc_.rvalue_;
+    x->children_[0]->reg_alloc_.rvalue_ = NULL;
+    r = r ? r : sl_reg_alloc_clone(&x->reg_alloc_, &x->children_[0]->reg_alloc_);
+    /* Fill the rvalue back in now that we've completed the clone */
+    x->children_[0]->reg_alloc_.rvalue_ = rvalue;
+    
+    if (x->children_[0]->reg_alloc_.rvalue_) {
+      /* Unlock the rvalue if we have one, leave the other parts be as we pass them
+       * up to the caller/parent */
+      r = r ? r : sl_reg_allocator_unlock(ract, x->children_[0]->reg_alloc_.rvalue_);
+    }
+    /* .. for the second child, we either have an rvalue_ (in which case the lvalue
+     *    was already unlocked) or we have an lvalue (in which case no rvalue), but not both. */
+    if (x->children_[1]->reg_alloc_.rvalue_) {
+      r = r ? r : sl_reg_allocator_unlock(ract, x->children_[1]->reg_alloc_.rvalue_);
+    }
+    else {
+      r = r ? r : sl_reg_allocator_unlock(ract, &x->children_[1]->reg_alloc_);
+    }
+
+    return r;
+  }
+
 
   /* Recursively process each child. On the return from sl_expr_alloc_register_main_pass() the
    * corresponding x->children_[n]->reg_alloc_ will be held locked. */
