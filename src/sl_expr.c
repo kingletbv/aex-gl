@@ -2149,19 +2149,6 @@ struct sl_expr *sl_expr_alloc_ternop(expr_op_t op,const struct situs *loc,struct
 }
 
 static int sl_expr_alloc_register_pre_pass(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
-  switch (x->op_) {
-    case exop_invalid:
-      return -1;
-
-    case exop_variable: {
-      /* Variables should already have a register assigned, so use it, instead of a new allocation.
-       * XXX: Note that we might, in the future, change constant values and uniform values to work
-       *      differently from having a whole register (column) assigned to each; but for now this
-       *      is the a trade-off in favor of simplicity, at the cost of memory access.
-       */
-      return sl_reg_alloc_clone(&x->reg_alloc_, &x->variable_->reg_alloc_); 
-    }
-  }
   int r;
   r = sl_reg_alloc_set_type(&x->reg_alloc_, sl_expr_type(tb, x));
   if (r) return r;
@@ -2602,15 +2589,6 @@ int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ra
   int r;
   r = sl_expr_alloc_register_pre_pass(tb, ract, x);
   if (r) return r;
-
-  if (!sl_reg_alloc_is_allocated(&x->reg_alloc_)) {
-    /* Top node of the expression has not yet been allocated. Perform the allocation here, otherwise
-     * lock the allocation */
-    sl_reg_allocator_alloc(ract, &x->reg_alloc_);
-  }
-  else {
-    sl_reg_allocator_lock(ract, &x->reg_alloc_);
-  }
 
   r = sl_expr_alloc_register_main_pass(tb, ract, x);
   if (r) return r;
