@@ -2214,6 +2214,15 @@ static int sl_expr_need_rvalue(struct sl_type_base *tb, struct sl_reg_allocator 
 
 }
 
+static int sl_expr_clone_lvalue(struct sl_reg_alloc *dst, struct sl_reg_alloc *src) {
+  struct sl_reg_alloc *rvalue = src->rvalue_;
+  src->rvalue_ = NULL;
+  int r = sl_reg_alloc_clone(dst, src);
+  /* Fill the rvalue back in now that we've completed the clone */
+  src->rvalue_ = rvalue;
+  return r;
+}
+
 static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
   size_t n;
   int r = 0;
@@ -2275,6 +2284,13 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
      * but locking it extra ensures the caller can unlock without consequence. */
     r = r ? r : sl_reg_alloc_clone(&x->reg_alloc_, &x->variable_->reg_alloc_);
     r = r ? r : sl_reg_allocator_lock(ract, &x->reg_alloc_);
+    return r;
+  }
+  else if (x->op_ == exop_literal) {
+    /* Allocate for the literal (no dependencies, the value to initialize with
+     * is in x->literal_value_, as simple as it gets) */
+    r = r ? r : sl_reg_allocator_alloc(ract, &x->reg_alloc_);
+    
     return r;
   }
   else if (x->op_ == exop_array_subscript) {
@@ -2486,12 +2502,8 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
      *    need to unlock both; however we also want to pass up the result of the assignment
      *    to the parent (for it to unlock) - we pass up the lvalue; and caller can unlock it.
      *    (the rvalue contains the incorrect pre-operation value so we blank it temporarily.) */
-    struct sl_reg_alloc *rvalue = x->children_[0]->reg_alloc_.rvalue_;
-    x->children_[0]->reg_alloc_.rvalue_ = NULL;
-    r = r ? r : sl_reg_alloc_clone(&x->reg_alloc_, &x->children_[0]->reg_alloc_);
-    /* Fill the rvalue back in now that we've completed the clone */
-    x->children_[0]->reg_alloc_.rvalue_ = rvalue;
-    
+    r = r ? r : sl_expr_clone_lvalue(&x->reg_alloc_, &x->children_[0]->reg_alloc_);
+
     if (x->children_[0]->reg_alloc_.rvalue_) {
       /* Unlock the rvalue if we have one, leave the other parts be as we pass them
        * up to the caller/parent */
@@ -2508,7 +2520,32 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
 
     return r;
   }
+  else if ((x->op_ == exop_post_inc) || (x->op_ == exop_post_dec) ||
+           (x->op_ == exop_pre_inc) || (x->op_ == exop_pre_dec)) {
+    /* Allocate the pre_XX and post_XX as if it was "x += 1", so we allocate both
+     * rvalue_ and the lvalue concurrently, and then release. Because we're doing this
+     * evaluation either prior to the main expression or following the main expression, 
+     * it is quite more stress on registers (a possible over-allocation), but is the
+     * easiest way of doing it for now. */
 
+    /* Recursively process lvalue child */
+    r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[0]);
+
+    /* Make sure we have an rvalue allocation for the increment or decrement */
+    r = r ? r : sl_expr_need_rvalue(tb, ract, x->children_[0]);
+
+    /* Clone the lvalue out to the caller (the rvalue_ (if any) is not available as
+     * that would imply a separate load operation which may not be needed.) */
+    r = r ? r : sl_expr_clone_lvalue(&x->reg_alloc_, &x->children_[0]->reg_alloc_);
+
+    /* If there is an rvalue in the child, unlock it */
+    if (x->children_[0]->reg_alloc_.rvalue_) {
+      r = r ? r : sl_reg_allocator_unlock(ract, x->children_[0]->reg_alloc_.rvalue_);
+    }
+
+    /* lvalue remains locked as it is now identical to x->reg_alloc_. */
+    return r;
+  }
 
   /* Recursively process each child. On the return from sl_expr_alloc_register_main_pass() the
    * corresponding x->children_[n]->reg_alloc_ will be held locked. */
@@ -2559,25 +2596,6 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
   /* All done; x->reg_alloc_ still held locked, but callers are expecting it
    * that way. */
   return 0;
-
-  // XXX: The rule for l-values is that they always select and pass up the register(s) that
-  //      are found in their operands. By definition, they make no copies, but only pass
-  //      up register references (e.g. they select and share one or more registers from their
-  //      operands.)
-  //      This works now, because we refcount the register locks, whereas before we could
-  //      not do that.
-  //      lvalue expression nodes include:
-  //      exop_variable,
-  //      exop_array_subscript,
-  //      exop_component_selection,
-  //      exop_field_selection
-  //      and potentially (though I don't believe for GLSL v1):
-  //      exop_assign,
-  //      exop_mul_assign,
-  //      exop_div_assign,
-  //      exop_add_assign,
-  //      exop_sub_assign.
-  //
 }
 
 int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
