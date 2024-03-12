@@ -126,7 +126,7 @@ struct sl_variable *sl_frame_alloc_variable(struct sl_frame *frame, const char *
     free(v);
     return NULL;
   }
-  if (sl_reg_alloc_set_type(&v->reg_alloc_, vartype)) {
+  if (sl_reg_alloc_set_type(&v->reg_alloc_, vartype, frame->function_ ? 1 : 0)) {
     /* Failed to init value due to memory allocation failure */
     sl_expr_temp_cleanup(&v->value_);
     sl_variable_cleanup(v);
@@ -204,7 +204,7 @@ int sl_frame_alloc_registers(struct sl_frame *f) {
     do {
       v = v->chain_;
 
-      r = r ? r : sl_reg_alloc_set_type(&v->reg_alloc_, v->type_);
+      r = r ? r : sl_reg_alloc_set_type(&v->reg_alloc_, v->type_, f->function_ ? 1 : 0);
       r = r ? r : sl_reg_allocator_alloc(&f->ract_, &v->reg_alloc_);
 
       if (r) return r;

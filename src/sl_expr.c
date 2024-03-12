@@ -2150,7 +2150,7 @@ struct sl_expr *sl_expr_alloc_ternop(expr_op_t op,const struct situs *loc,struct
 
 static int sl_expr_alloc_register_pre_pass(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
   int r;
-  r = sl_reg_alloc_set_type(&x->reg_alloc_, sl_expr_type(tb, x));
+  r = sl_reg_alloc_set_type(&x->reg_alloc_, sl_expr_type(tb, x), ract->local_frame_);
   if (r) return r;
   size_t n;
   for (n = 0; n < x->num_children_; ++n) {
@@ -2193,7 +2193,7 @@ static int sl_expr_need_rvalue(struct sl_type_base *tb, struct sl_reg_allocator 
   }
 
   int r;
-  r = sl_reg_alloc_set_type(x->reg_alloc_.rvalue_, t);
+  r = sl_reg_alloc_set_type(x->reg_alloc_.rvalue_, t, ract->local_frame_);
   if (r) return r;
 
   /* Allocate the rvalue and, importantly, leave it locked on exit */
@@ -2301,7 +2301,7 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
     if (x->children_[0]->reg_alloc_.offset_) {
       /* There already is an offset value, allocate a new register so we can
        * perform the calculation for this exop_array_subscript's offset changes. */
-      r = r ? r : sl_reg_alloc_set_type(x->reg_alloc_.offset_, &tb->int_);
+      r = r ? r : sl_reg_alloc_set_type(x->reg_alloc_.offset_, &tb->int_, ract->local_frame_);
       r = r ? r : sl_reg_allocator_alloc(ract, x->reg_alloc_.offset_);
     }
     else {

@@ -84,6 +84,11 @@ struct sl_reg_alloc_array {
 struct sl_reg_alloc {
   sl_reg_alloc_kind_t kind_;
 
+  /* If non-zero, this register allocation is for a register on a local
+   * frame. If zero, this register allocation is for a register on the global
+   * frame. */
+  int local_frame_:1;
+
   /* Optional offset_ value, in number of registers. This contains an integer
    * register that holds the number of registers (offset) from the registers 
    * specified in v_ at which to load the actual value.
@@ -133,6 +138,7 @@ struct sl_reg_alloc {
 };
 
 struct sl_reg_allocator {
+  int local_frame_:1;
   struct ref_range_allocator rra_floats_;
   struct ref_range_allocator rra_ints_;
   struct ref_range_allocator rra_bools_;
@@ -141,7 +147,7 @@ struct sl_reg_allocator {
 };
 
 void sl_reg_alloc_init(struct sl_reg_alloc *ra);
-int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t);
+int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t, int local_frame);
 void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra);
 int sl_reg_alloc_is_allocated(const struct sl_reg_alloc *ra);
 int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src);

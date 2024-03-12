@@ -90,7 +90,7 @@ void sl_reg_alloc_init(struct sl_reg_alloc *ra) {
   ra->rvalue_ = NULL;
 }
 
-int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
+int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t, int local_frame) {
   /* Clear out the old */
   if ((ra->kind_ == slrak_struct) || (ra->kind_ == slrak_array)) {
     sl_reg_alloc_cleanup(ra);
@@ -177,7 +177,7 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
     }
     sl_reg_alloc_init(ra->v_.array_.head_);
     int r;
-    r = sl_reg_alloc_set_type(ra->v_.array_.head_, tunq->derived_type_);
+    r = sl_reg_alloc_set_type(ra->v_.array_.head_, tunq->derived_type_, local_frame);
     if (r) {
       /* No memory or an overflow */
       sl_reg_alloc_cleanup(ra->v_.array_.head_);
@@ -215,7 +215,7 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
 
         int r;
         sl_reg_alloc_init(ra->v_.comp_.fields_ + field_index);
-        r = sl_reg_alloc_set_type(ra->v_.comp_.fields_ + field_index, field->type_);
+        r = sl_reg_alloc_set_type(ra->v_.comp_.fields_ + field_index, field->type_, local_frame);
         if (r) {
           /* no memory, or an overflow */
           size_t n;
@@ -240,6 +240,7 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t) {
     }
   }
   ra->kind_ = ra_kind;
+  ra->local_frame_ = !!local_frame;
   return 0;
 }
 
@@ -748,6 +749,7 @@ int sl_reg_allocator_lock_or_alloc(struct sl_reg_allocator *ract, struct sl_reg_
 }
 
 void sl_reg_allocator_init(struct sl_reg_allocator *ra) {
+  ra->local_frame_ = 0;
   ref_range_allocator_init(&ra->rra_floats_);
   ref_range_allocator_init(&ra->rra_ints_);
   ref_range_allocator_init(&ra->rra_bools_);
