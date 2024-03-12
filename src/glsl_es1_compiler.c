@@ -249,5 +249,26 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
     return GLSL_ES1_R_FAILED;
   }
   ifile->unpoppable_ = 1; /* never pop beyond toplevel input */
-  return glsl_es1_compile(cc);
+  enum glsl_es1_compiler_result cr;
+  cr = glsl_es1_compile(cc);
+  if (cr != GLSL_ES1_R_SUCCESS) return cr;
+
+  /* allocate registers */
+  int r;
+  r = sl_frame_alloc_registers(&cc->global_frame_);
+  if (r) return GLSL_ES1_R_FAILED;
+
+  struct sym *s = cc->global_scope_.seq_;
+  if (s) {
+    do {
+      if (s->kind_ == SK_FUNCTION) {
+        r = sl_function_alloc_registers(&cc->tb_, s->v_.function_);
+        if (r) return GLSL_ES1_R_FAILED;
+      }
+
+      s = s->next_;
+    } while (s != cc->global_scope_.seq_);
+  }
+
+  return 0;
 }

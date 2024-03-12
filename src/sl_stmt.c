@@ -208,11 +208,12 @@ static struct sl_stmt *sl_stmt_first_child(struct sl_stmt *s) {
 int sl_stmt_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_stmt *stmt_list) {
   struct sl_stmt *s;
   s = stmt_list;
+  if (!stmt_list) return 0;
   for (;;) {
     struct sl_stmt *child;
 
     /* Enter s */
-    int r;
+    int r = 0;
     if (s->expr_) {
       r = sl_expr_alloc_registers(tb, ract, s->expr_);
     }
