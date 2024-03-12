@@ -160,6 +160,9 @@ struct sl_function {
    * the declarations for the parameters); but the contents of that compound
    * statement will be empty. */
   struct sl_stmt *body_;
+
+  /* Runtime flag to help detect recursion while analyzing the call-graph */
+  int visited_:1;
 };
 
 void sl_frame_init(struct sl_frame *frame);

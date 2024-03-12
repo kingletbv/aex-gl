@@ -152,7 +152,7 @@ void sl_stmt_free_list(struct sl_stmt *stmt_list) {
   }
 }
 
-static struct sl_stmt *sl_stmt_next_sibling(struct sl_stmt *s) {
+struct sl_stmt *sl_stmt_next_sibling(struct sl_stmt *s) {
   /* Try and find the next sibling, or return NULL if there is no next sibling.
    * This is less trivial than it sounds because the siblings are the concatenations
    * of all child-statement lists, and these might either be lists or isolated statements
@@ -197,7 +197,7 @@ static struct sl_stmt *sl_stmt_next_sibling(struct sl_stmt *s) {
   return NULL;
 }
 
-static struct sl_stmt *sl_stmt_first_child(struct sl_stmt *s) {
+struct sl_stmt *sl_stmt_first_child(struct sl_stmt *s) {
   if (s->prep_) return s->prep_;
   if (s->prep_cond_) return s->prep_cond_;
   if (s->true_branch_) return s->true_branch_;

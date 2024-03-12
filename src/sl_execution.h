@@ -27,6 +27,16 @@ typedef enum sl_execution_point_kind {
   SLEPK_EXPR
 } sl_execution_point_kind_t;
 
+struct sl_execution_frame {
+  /* Base offsets for the local frame of this execution point; each function invocation
+   * gets its own register space sufficient for storing all locals and temps, at this offset */
+  int local_float_offset_;
+  int local_int_offset_;
+  int local_bool_offset_;
+  int local_sampler2D_offset_;
+  int local_samplerCube_offset_;
+};
+
 struct sl_execution_point {
   sl_execution_point_kind_t kind_;
 
@@ -90,6 +100,12 @@ struct sl_execution {
   size_t num_execution_points_allocated_;
   struct sl_execution_point *execution_points_;
 
+  /* Stack of all execution frames, each frame corresponds to a single function
+   * invocation, starting with the initial invocation at 0. */
+  size_t num_execution_frames_;
+  size_t num_execution_frames_allocated_;
+  struct sl_execution_frame *execution_frames_;
+
   /* Pointer to the execution chain column of data; the execution chain value 
    * is the number of rows to the next row in the same execution chain, or 0
    * as the sentinel value if this is the last row. Typically 1 if the chain
@@ -115,6 +131,16 @@ struct sl_execution {
   void **sampler_cube_regs_;
 };
 
+struct sl_exec_call_graph_results {
+  size_t num_execution_frames_;
+  size_t num_float_regs_;
+  size_t num_int_regs_;
+  size_t num_bool_regs_;
+  size_t num_sampler2D_regs_;
+  size_t num_samplerCube_regs_;
+};
+
+
 void sl_exec_init(struct sl_execution *exec);
 void sl_exec_cleanup(struct sl_execution *exec);
 
@@ -123,6 +149,11 @@ int sl_exec_prep(struct sl_execution *exec, struct sl_reg_allocator *rac);
 int sl_exec_run(struct sl_execution *exec);
 
 uint32_t sl_exec_join_chains(struct sl_execution *exec, uint32_t a, uint32_t b);
+
+void sl_exec_call_graph_results_init(struct sl_exec_call_graph_results *cgr);
+void sl_exec_call_graph_results_cleanup(struct sl_exec_call_graph_results *cgr);
+int sl_exec_call_graph_analysis(struct sl_exec_call_graph_results *cgr, struct sl_function *f);
+
 
 #ifdef __cplusplus
 } /* extern "C" */

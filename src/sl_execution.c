@@ -1657,6 +1657,8 @@ static void sl_exec_clear_ep(struct sl_execution *exec, size_t ep_index) {
 void sl_exec_init(struct sl_execution *exec) {
   exec->num_execution_points_ = exec->num_execution_points_allocated_ = 0;
   exec->execution_points_ = NULL;
+  exec->num_execution_frames_ = exec->num_execution_frames_allocated_ = 0;
+  exec->execution_frames_ = NULL;
   exec->num_float_regs_ = 0;
   exec->float_regs_ = NULL;
   exec->num_int_regs_ = 0;
@@ -1667,6 +1669,7 @@ void sl_exec_init(struct sl_execution *exec) {
 
 void sl_exec_cleanup(struct sl_execution *exec) {
   if (exec->execution_points_) free(exec->execution_points_);
+  if (exec->execution_frames_) free(exec->execution_frames_);
   if (exec->float_regs_) free(exec->float_regs_);
   if (exec->int_regs_) free(exec->int_regs_);
   if (exec->bool_regs_) free(exec->bool_regs_);
@@ -1830,6 +1833,182 @@ uint32_t sl_exec_join_chains(struct sl_execution *exec, uint32_t a, uint32_t b) 
   }
 }
 
+void sl_exec_call_graph_results_init(struct sl_exec_call_graph_results *cgr) {
+  cgr->num_execution_frames_ = 0;
+  cgr->num_float_regs_ = 0;
+  cgr->num_int_regs_ = 0;
+  cgr->num_bool_regs_ = 0;
+  cgr->num_sampler2D_regs_ = 0;
+  cgr->num_samplerCube_regs_ = 0;
+}
+
+void sl_exec_call_graph_results_cleanup(struct sl_exec_call_graph_results *cgr) {
+  cgr;
+}
+
+static int sl_exec_cga_expr(struct sl_exec_call_graph_results *cgr, struct sl_expr *x);
+
+static int sl_exec_cga_stmt_list_impl(struct sl_exec_call_graph_results *cgr, struct sl_stmt *stmt_list) {
+  struct sl_stmt *s;
+  s = stmt_list;
+  if (!s) return 0;
+  for (;;) {
+    struct sl_stmt *child;
+
+    /* Enter s */
+    int r = 0;
+    if (s->expr_) {
+      r = sl_exec_cga_expr(cgr, s->expr_);
+    }
+    if (!r && s->condition_) {
+      r = sl_exec_cga_expr(cgr, s->condition_);
+    }
+    if (!r && s->post_) {
+      r = sl_exec_cga_expr(cgr, s->post_);
+    }
+    if (r) {
+      return r;
+    }
+
+    child = sl_stmt_first_child(s);
+    if (child) {
+      s = child;
+    }
+    else {
+      /* Could not enter a child, we are at a leaf; find a sibling */
+      struct sl_stmt *next = NULL;
+
+      do {
+        next = sl_stmt_next_sibling(s);
+
+        /* Leaving s
+          * { ... } */
+
+        if (!next) {
+          if (s->parent_ == stmt_list->parent_) {
+            /* About to pop outside the statement list, we've reached the end. */
+            return 0;
+          }
+          s = s->parent_;
+        }
+      } while (!next);
+      s = next;
+    }
+  }
+}
+
+static void sl_exec_cgr_max(struct sl_exec_call_graph_results *cgr, const struct sl_exec_call_graph_results *lcgr) {
+  if (lcgr->num_execution_frames_ > cgr->num_execution_frames_)
+    cgr->num_execution_frames_ = lcgr->num_execution_frames_;
+  if (lcgr->num_float_regs_ > cgr->num_float_regs_)
+    cgr->num_float_regs_ = lcgr->num_float_regs_;
+  if (lcgr->num_int_regs_ > cgr->num_int_regs_)
+    cgr->num_int_regs_ = lcgr->num_int_regs_;
+  if (lcgr->num_bool_regs_ > cgr->num_bool_regs_)
+    cgr->num_bool_regs_ = lcgr->num_bool_regs_;
+  if (lcgr->num_sampler2D_regs_ > cgr->num_sampler2D_regs_)
+    cgr->num_sampler2D_regs_ = lcgr->num_sampler2D_regs_;
+  if (lcgr->num_samplerCube_regs_ > cgr->num_samplerCube_regs_)
+    cgr->num_samplerCube_regs_ = lcgr->num_samplerCube_regs_;
+}
+
+static int sl_exec_cga_function_impl(struct sl_exec_call_graph_results *cgr, struct sl_function *f) {
+  int r;
+  if (f->visited_) return -1; /* invalid recursion */
+  f->visited_ = 1;
+  struct sl_exec_call_graph_results invocation_cgr = { 0 };
+  r = sl_exec_cga_stmt_list_impl(&invocation_cgr, f->body_);
+  f->visited_ = 0;
+  if (r) return r;
+
+  /* Relative to the calling context, this function invocation is the point where
+   * we incur both the frame of the function to be called and the corresponding
+   * need for an execution frame. */
+  invocation_cgr.num_execution_frames_ += 1;
+  invocation_cgr.num_float_regs_ += f->frame_.ract_.rra_floats_.watermark_;
+  invocation_cgr.num_int_regs_ += f->frame_.ract_.rra_ints_.watermark_;
+  invocation_cgr.num_bool_regs_ += f->frame_.ract_.rra_bools_.watermark_;
+  invocation_cgr.num_sampler2D_regs_ += f->frame_.ract_.rra_sampler2D_.watermark_;
+  invocation_cgr.num_samplerCube_regs_ += f->frame_.ract_.rra_samplerCube_.watermark_;
+
+  sl_exec_cgr_max(cgr, &invocation_cgr);
+
+  return 0;
+}
+
+static int sl_exec_cga_expr(struct sl_exec_call_graph_results *cgr, struct sl_expr *x) {
+  int r;
+  size_t n;
+
+  for (n = 0; n < x->num_children_; ++n) {
+    struct sl_exec_call_graph_results lcgr = { 0 };
+    r = sl_exec_cga_expr(&lcgr, x->children_[n]);
+    if (r) return r;
+    sl_exec_cgr_max(cgr, &lcgr);
+  }
+
+  if (x->op_ == exop_function_call) {
+    struct sl_function *f = x->function_;
+    if (!f) {
+      /* No function */
+      return -1;
+    }
+    struct sl_exec_call_graph_results lcgr = { 0 };
+    r = sl_exec_cga_function_impl(&lcgr, f);
+    if (r) return r;
+    sl_exec_cgr_max(cgr, &lcgr);
+  }
+
+  return 0;
+}
+
+int sl_exec_call_graph_analysis(struct sl_exec_call_graph_results *cgr, struct sl_function *f) {
+  return sl_exec_cga_function_impl(cgr, f);
+}
+
+int sl_exec_push_execution_frame(struct sl_execution *exec) {
+  if (exec->num_execution_frames_ == exec->num_execution_frames_allocated_) {
+    size_t new_num_allocated = exec->num_execution_frames_allocated_ * 2 + 1;
+    if (new_num_allocated <= exec->num_execution_frames_allocated_) {
+      /* overflow */
+      return -1;
+    }
+    if (new_num_allocated >= (SIZE_MAX / sizeof(struct sl_execution_frame))) {
+      /* overflow */
+      return -1;
+    }
+    size_t new_size = new_num_allocated * sizeof(struct sl_execution_frame);
+    struct sl_execution_frame *new_execution_frames = (struct sl_execution_frame *)realloc(exec->execution_frames_, new_size);
+    if (!new_execution_frames) {
+      /* no memory */
+      return -1;
+    }
+    exec->execution_frames_ = new_execution_frames;
+    exec->num_execution_frames_allocated_ = new_num_allocated;
+  }
+  struct sl_execution_frame *ef = exec->execution_frames_ + exec->num_execution_frames_++;
+  if (exec->num_execution_frames_ == 1) {
+    ef->local_float_offset_ = 0;
+    ef->local_int_offset_ = 0;
+    ef->local_bool_offset_ = 0;
+    ef->local_sampler2D_offset_ = 0;
+    ef->local_samplerCube_offset_ = 0;
+  }
+  else {
+    /* initialize with previous frame's offsets; caller can then increment as necessary */
+    struct sl_execution_frame *pef = ef - 1;
+    ef->local_float_offset_ = pef->local_float_offset_;
+    ef->local_int_offset_ = pef->local_int_offset_;
+    ef->local_bool_offset_ = pef->local_bool_offset_;
+    ef->local_sampler2D_offset_ = pef->local_sampler2D_offset_;
+    ef->local_samplerCube_offset_ = pef->local_samplerCube_offset_;
+  }
+  return 0;
+}
+
+void sl_exec_pop_execution_frame(struct sl_execution *exec) {
+  if (exec->num_execution_frames_) exec->num_execution_frames_--;
+}
 
 int sl_exec_run(struct sl_execution *exec) {
   int r;

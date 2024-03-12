@@ -122,6 +122,10 @@ struct sl_stmt *sl_stmt_append_list(struct sl_stmt *front, struct sl_stmt *back)
  * list to the prep_, true_branch_, or false_branch_ members. */
 void sl_stmt_set_list_parent(struct sl_stmt *list, struct sl_stmt *parent);
 
+/* Helper functions for iterating through all statements in a function */
+struct sl_stmt *sl_stmt_next_sibling(struct sl_stmt *s);
+struct sl_stmt *sl_stmt_first_child(struct sl_stmt *s);
+
 int sl_stmt_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_stmt *stmt_list);
 
 #ifdef __cplusplus
