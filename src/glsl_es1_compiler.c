@@ -63,6 +63,7 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   st_init(&cc->global_scope_, NULL);
   cc->current_scope_ = &cc->global_scope_;
   sl_frame_init(&cc->global_frame_);
+  cc->global_frame_.ract_.local_frame_ = 0;
   cc->current_frame_ = &cc->global_frame_;
 }
 
