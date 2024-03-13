@@ -654,6 +654,7 @@ static int sl_reg_allocator_alloc_descend(struct sl_reg_allocator *ract, int arr
         }
         return -1;
       }
+      ra->v_.regs_[n] = base_reg;
     }
   }
   return 0;
@@ -695,6 +696,7 @@ static int sl_reg_allocator_lock_or_alloc_descend(struct sl_reg_allocator *ract,
       int base_reg = 0;
       if (!is_allocated) {
         r = sl_reg_allocator_alloc_reg_range(ract, cat, array_quantity, &base_reg);
+        if (!r) ra->v_.regs_[n] = base_reg;
       }
       else {
         r = sl_reg_allocator_lock_reg_range(ract, cat, ra->v_.regs_[n], array_quantity);
