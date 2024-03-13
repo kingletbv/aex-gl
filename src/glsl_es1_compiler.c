@@ -48,6 +48,10 @@
 #include "pp_input_file.h"
 #endif
 
+#ifndef SL_EXECUTION_H_INCLUDED
+#define SL_EXECUTION_H_INCLUDED
+#include "sl_execution.h"
+#endif
 
 void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   dx_diags_init(&cc->default_dx_);
@@ -270,8 +274,7 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
     if (r) return GLSL_ES1_R_FAILED;
   }
 
-
-  /* allocate registers */
+  /* allocate registers for each individual frame (global and each function) */
   r = sl_frame_alloc_registers(&cc->global_frame_);
   if (r) return GLSL_ES1_R_FAILED;
 
@@ -286,6 +289,25 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
       s = s->next_;
     } while (s != cc->global_scope_.seq_);
   }
+
+  struct sl_exec_call_graph_results cgr;
+  sl_exec_call_graph_results_init(&cgr);
+
+  s = cc->global_scope_.seq_;
+  if (s) {
+    do {
+      if (s->kind_ == SK_FUNCTION) {
+
+        r = sl_exec_call_graph_analysis(&cgr, s->v_.function_);
+        if (r) return GLSL_ES1_R_FAILED;
+      }
+
+      s = s->next_;
+    } while (s != cc->global_scope_.seq_);
+  }
+
+  sl_exec_call_graph_results_cleanup(&cgr);
+   
 
   return 0;
 }
