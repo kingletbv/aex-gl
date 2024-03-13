@@ -299,7 +299,10 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
       if (s->kind_ == SK_FUNCTION) {
 
         r = sl_exec_call_graph_analysis(&cgr, s->v_.function_);
-        if (r) return GLSL_ES1_R_FAILED;
+        if (r) {
+          sl_exec_call_graph_results_cleanup(&cgr);
+          return GLSL_ES1_R_FAILED;
+        }
       }
 
       s = s->next_;
