@@ -254,12 +254,26 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
   cr = glsl_es1_compile(cc);
   if (cr != GLSL_ES1_R_SUCCESS) return cr;
 
-  /* allocate registers */
+  /* validate the call graph */
   int r;
+  struct sym *s = cc->global_scope_.seq_;
+  if (s) {
+    do {
+      if (s->kind_ == SK_FUNCTION) {
+        r = sl_function_call_graph_validation(cc->dx_, s->v_.function_);
+        if (r) return GLSL_ES1_R_FAILED;
+      }
+
+      s = s->next_;
+    } while (s != cc->global_scope_.seq_);
+  }
+
+
+  /* allocate registers */
   r = sl_frame_alloc_registers(&cc->global_frame_);
   if (r) return GLSL_ES1_R_FAILED;
 
-  struct sym *s = cc->global_scope_.seq_;
+  s = cc->global_scope_.seq_;
   if (s) {
     do {
       if (s->kind_ == SK_FUNCTION) {

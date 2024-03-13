@@ -48,6 +48,11 @@
 #include "sl_stmt.h"
 #endif
 
+#ifndef SL_EXPR_H_INCLUDED
+#define SL_EXPR_H_INCLUDED
+#include "sl_expr.h"
+#endif
+
 void sl_variable_init(struct sl_variable *v) {
   v->name_ = NULL;
   situs_init(&v->location_);
@@ -425,3 +430,87 @@ void sl_function_call_search(struct sym_table *current_scope, const char *name, 
 
   /* Not found */
 }
+
+static int sl_function_expr_call_graph_validation(struct diags *dx, struct sl_expr *x) {
+  int r;
+  size_t n;
+
+  for (n = 0; n < x->num_children_; ++n) {
+    r = sl_function_expr_call_graph_validation(dx, x->children_[n]);
+    if (r) return r;
+  }
+
+  if (x->op_ == exop_function_call) {
+    struct sl_function *f = x->function_;
+    if (!f) {
+      /* No function */
+      dx_error_loc(dx, &x->op_loc_, "no function found");
+      return -1;
+    }
+    if (f->visited_) {
+      /* Invalid recursion */
+      dx_error_loc(dx, &x->op_loc_, "recursion is not permitted");
+      return -1;
+    }
+
+    r = sl_function_call_graph_validation(dx, f);
+
+    if (r) return r;
+  }
+  return 0;
+}
+
+int sl_function_call_graph_validation(struct diags *dx, struct sl_function *f) {
+  struct sl_stmt *s;
+  s = f->body_;
+  if (!s) {
+    return 0;
+  }
+  f->visited_ = 1;
+  for (;;) {
+    struct sl_stmt *child;
+
+    /* Enter s */
+    int r = 0;
+    if (s->expr_) {
+      r = sl_function_expr_call_graph_validation(dx, s->expr_);
+    }
+    if (!r && s->condition_) {
+      r = sl_function_expr_call_graph_validation(dx, s->condition_);
+    }
+    if (!r && s->post_) {
+      r = sl_function_expr_call_graph_validation(dx, s->post_);
+    }
+    if (r) {
+      f->visited_ = 0;
+      return r;
+    }
+
+    child = sl_stmt_first_child(s);
+    if (child) {
+      s = child;
+    }
+    else {
+      /* Could not enter a child, we are at a leaf; find a sibling */
+      struct sl_stmt *next = NULL;
+
+      do {
+        next = sl_stmt_next_sibling(s);
+
+        /* Leaving s
+          * { ... } */
+
+        if (!next) {
+          if (s->parent_ == NULL) {
+            /* About to pop outside the statement list, we've reached the end. */
+            f->visited_ = 0;
+            return 0;
+          }
+          s = s->parent_;
+        }
+      } while (!next);
+      s = next;
+    }
+  }
+}
+

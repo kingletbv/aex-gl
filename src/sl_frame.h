@@ -252,6 +252,11 @@ void sl_function_call_search(struct sym_table *current_scope, const char *name, 
 
 void sl_parameter_cleanup(struct sl_parameter *p);
 
+/* Validates the call graph starting at function f, ensuring it has no recursion and
+ * that no function is undefined.
+ * Returns 0 if the function passes validation, non-zero otherwise. */
+int sl_function_call_graph_validation(struct diags *dx, struct sl_function *f);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
