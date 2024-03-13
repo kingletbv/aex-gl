@@ -168,8 +168,10 @@ struct sl_expr {
   /* exop_field_selection */
   struct sl_type_field *field_selection_;
 
-  /* exop_function_call - the function called */
+  /* exop_function_call - the function called, and sibling exop_function_call
+   * expressions calling the same function (cyclic). */
   struct sl_function *function_;
+  struct sl_expr *next_caller_, *prev_caller_;
 
   /* exop_constructor, the type constructed */
   struct sl_type *constructor_type_;
@@ -226,6 +228,14 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
  * or an internal error.)
  */
 int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x);
+
+/* Attached the expression to the function, setting function_. Detaches from any old function. */
+void sl_expr_attach_caller(struct sl_expr *x, struct sl_function *f);
+
+/* Detaches the expression (presumably an exop_function_call) from the function it calls, and clears
+ * sl_expr::function_; If this is not an exop_function_call, or if function_ is currently set to NULL,
+ * this does nothing. */
+void sl_expr_detach_caller(struct sl_expr *x);
 
 #ifdef __cplusplus
 } /* extern "C" */

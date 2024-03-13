@@ -49,6 +49,7 @@ void sl_expr_init(struct sl_expr *x) {
   memset(x->component_selection_, 0, sizeof(x->component_selection_));
   x->field_selection_ = NULL;
   x->function_ = NULL;
+  x->next_caller_ = x->prev_caller_ = NULL;
   x->constructor_type_ = NULL;
   x->variable_ = NULL;
 }
@@ -62,6 +63,7 @@ void sl_expr_cleanup(struct sl_expr *x) {
   }
   sl_expr_temp_cleanup(&x->literal_value_);
   sl_reg_alloc_cleanup(&x->reg_alloc_);
+  sl_expr_detach_caller(x);
 }
 
 void sl_expr_free(struct sl_expr *x) {
@@ -2034,7 +2036,6 @@ struct sl_expr *sl_expr_alloc_bool_lit(int b, const struct situs *loc) {
 struct sl_expr *sl_expr_alloc_function_call(struct sl_function *f, const struct situs *loc, struct sl_expr **pexpr, size_t pexpr_stride) {
   struct sl_expr *x = sl_expr_alloc(exop_function_call, loc);
   if (!x) return NULL;
-  x->function_ = f;
   x->num_children_ = f->num_parameters_;
   x->children_ = (struct sl_expr **)malloc(sizeof(struct sl_expr *) * x->num_children_);
   if (!x->children_) {
@@ -2046,6 +2047,7 @@ struct sl_expr *sl_expr_alloc_function_call(struct sl_function *f, const struct 
     x->children_[n] = *pexpr; 
     pexpr = (struct sl_expr **)(((char *)pexpr) + pexpr_stride);
   }
+  sl_expr_attach_caller(x, f); /* this sets function_ */
   return x;
 }
 
@@ -2596,4 +2598,36 @@ int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ra
   sl_reg_allocator_unlock(ract, &x->reg_alloc_);
   
   return 0;
+}
+
+void sl_expr_attach_caller(struct sl_expr *x, struct sl_function *f) {
+  if (x->function_) sl_expr_detach_caller(x);
+  if (f->callers_) {
+    x->next_caller_ = f->callers_;
+    x->prev_caller_ = x->next_caller_->prev_caller_;
+    x->next_caller_->prev_caller_ = x->prev_caller_->next_caller_ = x;
+    x->function_ = f;
+  }
+  else {
+    x->next_caller_ = x->prev_caller_ = x;
+    f->callers_ = x;
+    x->function_ = f;
+  }
+}
+
+void sl_expr_detach_caller(struct sl_expr *x) {
+  if (!x->function_) return;
+  if (x->next_caller_ == x) {
+    assert(x->function_->callers_ == x);
+    x->function_->callers_ = NULL;
+  }
+  else {
+    x->next_caller_->prev_caller_ = x->prev_caller_;
+    x->prev_caller_->next_caller_ = x->next_caller_;
+    if (x->function_->callers_ == x) {
+      x->function_->callers_ = x->next_caller_;
+    }
+  }
+  x->next_caller_ = x->prev_caller_ = NULL;
+  x->function_ = NULL;
 }

@@ -1034,23 +1034,27 @@ int glsl_es1_process_function_prototype(struct glsl_es1_compiler *cc, struct sl_
           free(previous_return_type);
           return -1;
         }
-        if (!is_definition) {
-          /* Prototype declaration, disregard this one, keep the original declaration; allow caller to free *pf */
-          return 0;
-        }
-        else {
-          /* Function already declared, now we start a definition for it */
-          int r = glsl_es1_start_function_definition(cc, f);
-          if (r) return r;
-        
-          /* Set symbol to the new function definition, overwriting the function declaration */
-          struct sl_function *old_fn = existing_sym->v_.function_;
-          existing_sym->v_.function_ = f;
-          sl_frame_free_function(old_fn);
-          *pf = NULL;
+        /* Function already declared, now we start a definition for it */
+        int r = glsl_es1_start_function_definition(cc, f);
+        if (r) return r;
 
-          return 0;
+        /* Keep the function prototype declaration; add the definition to the existing chain */
+        struct sl_function *old_fn = existing_sym->v_.function_;
+        existing_sym->v_.function_ = f;
+
+        f->overload_chain_ = existing_sym->v_.function_->overload_chain_;
+        existing_sym->v_.function_->overload_chain_ = f;
+
+        /* Exchange the function prototype for the function definition for any and all
+         * prior invocations */
+        while (existing_fn->callers_) {
+          /* this also detaches the sl_expr from existing_fn .. */
+          sl_expr_attach_caller(existing_fn->callers_, f);
         }
+
+        *pf = NULL;
+
+        return 0;
       }
     }
   }

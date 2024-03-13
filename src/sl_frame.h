@@ -161,6 +161,9 @@ struct sl_function {
    * statement will be empty. */
   struct sl_stmt *body_;
 
+  /* All exop_function_call expressions invoking this function. */
+  struct sl_expr *callers_;
+
   /* Runtime flag to help detect recursion while analyzing the call-graph */
   int visited_:1;
 };

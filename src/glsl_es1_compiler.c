@@ -255,17 +255,19 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
   if (cr != GLSL_ES1_R_SUCCESS) return cr;
 
   /* validate the call graph */
-  int r;
+  int r = 0;
   struct sym *s = cc->global_scope_.seq_;
   if (s) {
     do {
       if (s->kind_ == SK_FUNCTION) {
-        r = sl_function_call_graph_validation(cc->dx_, s->v_.function_);
-        if (r) return GLSL_ES1_R_FAILED;
+        /* Keep going on error, we'd like to find all recursion problems */
+        int rv = sl_function_call_graph_validation(cc->dx_, s->v_.function_);
+        if (rv) r = rv;
       }
 
       s = s->next_;
     } while (s != cc->global_scope_.seq_);
+    if (r) return GLSL_ES1_R_FAILED;
   }
 
 

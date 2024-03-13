@@ -178,6 +178,7 @@ struct sl_function *sl_frame_alloc_function(const char *name, const struct situs
   f->frame_.function_ = f;
   f->frame_.ract_.local_frame_ = 1;
   f->body_ = NULL;
+  f->callers_ = NULL;
   f->visited_ = 0;
   return f;
 }
@@ -199,6 +200,10 @@ void sl_frame_free_function(struct sl_function *f) {
   situs_cleanup(&f->location_);
   if (f->name_) free(f->name_);
   sl_stmt_free_list(f->body_);
+  while (f->callers_) {
+    /* Detach caller */
+    sl_expr_detach_caller(f->callers_);
+  }
   sl_frame_cleanup(&f->frame_);
   free(f);
 }
@@ -411,11 +416,20 @@ void sl_function_call_search(struct sym_table *current_scope, const char *name, 
               if (ppst_found_at) *ppst_found_at = st;
               if (ppsym_found_at) *ppsym_found_at = s;
               if (ppfunc_found) *ppfunc_found = cf;
-              return;
+              if (cf->body_) {
+                /* Found a matching function definition, don't
+                 * need to keep searching because any other match
+                 * can only be a prototype (and we'd prefer the
+                 * definition over the prototype.) */
+                return;
+              }
             }
 
           } while (cf != s->v_.function_);
         }
+        /* Either nothing was matched, or a prototype was matched which
+         * we already returned. */
+        return;
       }
       else {
         /* Not a function, but its presence occludes our vision of
