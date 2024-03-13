@@ -944,6 +944,7 @@ start-scope: {
   st_init(st, cc->current_scope_);
   $$.st_ = st;
   $$.cc_ = cc;
+  cc->current_scope_ = st;
 }
 
 compound-statement-with-scope: LEFT_BRACE RIGHT_BRACE {
@@ -1369,4 +1370,13 @@ function-definition-setup: function-prototype {
   }
 }
 
-function-definition: function-definition-setup compound-statement-no-new-scope;
+function-definition: function-definition-setup compound-statement-no-new-scope {
+  if ($0) {
+    if ($0->body_) {
+      sl_stmt_set_list_parent($1, $0->body_);
+      $0->body_->true_branch_ = sl_stmt_append_list($0->body_->true_branch_, $1);
+      $1 = NULL;
+    }
+  }
+}
+
