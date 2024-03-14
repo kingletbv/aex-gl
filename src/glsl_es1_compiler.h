@@ -51,6 +51,8 @@
 #include "sl_execution.h"
 #endif
 
+struct sl_compilation_unit;
+
 enum glsl_es1_compiler_result {
   GLSL_ES1_R_SUCCESS,
   GLSL_ES1_R_NEED_INPUT,
@@ -98,18 +100,26 @@ struct glsl_es1_compiler {
    * definition may need to be merged. */
   struct sl_function *current_function_prototype_;
 
-  /* The symbol table representing the global scope. */
-  struct sym_table global_scope_;
-
   /* Pointer to the current scope, initially this is a pointer to the global_scope_ */
   struct sym_table *current_scope_;
-
-  /* The global frame (containing all function definitions and global variables) */
-  struct sl_frame global_frame_;
 
   /* The current frame, when outside functions, this is the global_frame_, when
    * inside, it is the local frame of the function */
   struct sl_frame *current_frame_;
+
+  /* The result of compilation (the concept here is that of a C compilation unit.)
+   * This should be set prior to starting compilation, if not, then one is created.
+   * If, when glsl_es1_compiler_cleanup() is called, the cu_ is non-NULL, then it
+   * is assumed that the glsl_es1_compiler was responsible for the cu_ and it will
+   * be cleaned up.
+   */
+  struct sl_compilation_unit *cu_;
+
+  /* The symbol table representing the global scope. */
+  struct sym_table global_scope_X;
+
+  /* The global frame (containing all function definitions and global variables) */
+  struct sl_frame global_frame_X;
 
   /* The number of registers needed to execute any of the functions. */
   struct sl_exec_call_graph_results register_counts_;

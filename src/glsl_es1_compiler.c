@@ -53,6 +53,11 @@
 #include "sl_execution.h"
 #endif
 
+#ifndef SL_COMPILATION_UNIT_H_INCLUDED
+#define SL_COMPILATION_UNIT_H_INCLUDED
+#include "sl_compilation_unit.h"
+#endif
+
 void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   dx_diags_init(&cc->default_dx_);
   cc->dx_ = &cc->default_dx_;
@@ -64,21 +69,26 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   cc->is_typename_permitted_ = 1;
   cc->last_type_specifier_ = NULL;
   cc->current_function_prototype_ = NULL;
-  st_init(&cc->global_scope_, NULL);
-  cc->current_scope_ = &cc->global_scope_;
-  sl_frame_init(&cc->global_frame_);
-  cc->global_frame_.ract_.local_frame_ = 0;
-  cc->current_frame_ = &cc->global_frame_;
+  cc->cu_ = NULL;
+  st_init(&cc->global_scope_X, NULL);
+  sl_frame_init(&cc->global_frame_X);
+  cc->global_frame_X.ract_.local_frame_ = 0;
+  cc->current_scope_ = NULL;
+  cc->current_frame_ = NULL;
   sl_exec_call_graph_results_init(&cc->register_counts_);
 }
 
 void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *cc) {
-  st_cleanup(&cc->global_scope_);
-  sl_frame_cleanup(&cc->global_frame_);
+  st_cleanup(&cc->global_scope_X);
+  sl_frame_cleanup(&cc->global_frame_X);
   sl_type_base_cleanup(&cc->tb_);
   pp_cleanup(&cc->pp_);
   glsl_es1_stack_cleanup(&cc->parser_);
   dx_diags_cleanup(&cc->default_dx_);
+  if (cc->cu_) {
+    sl_compilation_unit_cleanup(cc->cu_);
+    free(cc->cu_);
+  }
   sl_exec_call_graph_results_cleanup(&cc->register_counts_);
 }
 
@@ -213,6 +223,19 @@ preprocessor:
 enum glsl_es1_compiler_result glsl_es1_compile(struct glsl_es1_compiler *cc) {
   enum glsl_es1_compiler_result cr;
 
+  if (!cc->cu_) {
+    struct sl_compilation_unit *cu = (struct sl_compilation_unit *)malloc(sizeof(struct sl_compilation_unit));
+    if (!cu) {
+      dx_no_memory(cc->dx_);
+      return GLSL_ES1_R_FAILED;
+    }
+    sl_compilation_unit_init(cu);
+    cc->cu_ = cu;
+  }
+
+  cc->current_scope_ = &cc->global_scope_X;
+  cc->current_frame_ = &cc->global_frame_X;
+
   do {
     glsl_es1_compiler_skip_template_cruft(cc);
 
@@ -262,7 +285,7 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
 
   /* validate the call graph */
   int r = 0;
-  struct sym *s = cc->global_scope_.seq_;
+  struct sym *s = cc->global_scope_X.seq_;
   if (s) {
     do {
       if (s->kind_ == SK_FUNCTION) {
@@ -272,15 +295,15 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
       }
 
       s = s->next_;
-    } while (s != cc->global_scope_.seq_);
+    } while (s != cc->global_scope_X.seq_);
     if (r) return GLSL_ES1_R_FAILED;
   }
 
   /* allocate registers for each individual frame (global and each function) */
-  r = sl_frame_alloc_registers(&cc->global_frame_);
+  r = sl_frame_alloc_registers(&cc->global_frame_X);
   if (r) return GLSL_ES1_R_FAILED;
 
-  s = cc->global_scope_.seq_;
+  s = cc->global_scope_X.seq_;
   if (s) {
     do {
       if (s->kind_ == SK_FUNCTION) {
@@ -289,24 +312,24 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
       }
 
       s = s->next_;
-    } while (s != cc->global_scope_.seq_);
+    } while (s != cc->global_scope_X.seq_);
   }
 
   struct sl_exec_call_graph_results cgr;
   sl_exec_call_graph_results_init(&cgr);
 
-  s = cc->global_scope_.seq_;
+  s = cc->global_scope_X.seq_;
   if (s) {
     do {
       if (s->kind_ == SK_FUNCTION) {
         struct sl_exec_call_graph_results lcgr;
         sl_exec_call_graph_results_init(&lcgr);
 
-        lcgr.num_float_regs_ += cc->global_frame_.ract_.rra_floats_.watermark_;
-        lcgr.num_int_regs_ += cc->global_frame_.ract_.rra_ints_.watermark_;
-        lcgr.num_bool_regs_ += cc->global_frame_.ract_.rra_bools_.watermark_;
-        lcgr.num_sampler2D_regs_ += cc->global_frame_.ract_.rra_sampler2D_.watermark_;
-        lcgr.num_samplerCube_regs_ += cc->global_frame_.ract_.rra_samplerCube_.watermark_;
+        lcgr.num_float_regs_ += cc->global_frame_X.ract_.rra_floats_.watermark_;
+        lcgr.num_int_regs_ += cc->global_frame_X.ract_.rra_ints_.watermark_;
+        lcgr.num_bool_regs_ += cc->global_frame_X.ract_.rra_bools_.watermark_;
+        lcgr.num_sampler2D_regs_ += cc->global_frame_X.ract_.rra_sampler2D_.watermark_;
+        lcgr.num_samplerCube_regs_ += cc->global_frame_X.ract_.rra_samplerCube_.watermark_;
 
         r = sl_exec_call_graph_analysis(&lcgr, s->v_.function_);
 
@@ -320,7 +343,7 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
       }
 
       s = s->next_;
-    } while (s != cc->global_scope_.seq_);
+    } while (s != cc->global_scope_X.seq_);
   }
 
   sl_exec_cgr_swap(&cc->register_counts_, &cgr);

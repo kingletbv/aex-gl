@@ -68,6 +68,11 @@
 #include "glsl_es1_assist.h"
 #endif
 
+#ifndef SL_COMPILATION_UNIT_H_INCLUDED
+#define SL_COMPILATION_UNIT_H_INCLUDED
+#include "sl_compilation_unit.h"
+#endif
+
 /* Index by uint8, returns a uint8 of which the high nibble is the
  * name set and the low nibble is the component index.
  * You can't mix name sets, for instance:
@@ -871,7 +876,7 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
                                  struct sl_stmt **pinitializer_stmt) {
   int initializer_must_be_constant = 0;
   int is_const = !!(sl_type_qualifiers(var->type_) & SL_TYPE_QUALIFIER_CONST);
-  int is_global = cc->current_frame_ == &cc->global_frame_;
+  int is_global = cc->current_frame_ == &cc->cu_->global_frame_;
   /* If the variable is declared as "const" then the initializer must be a constant.
    * Additionally, if the variable is declared at the global scope, then the initializer
    * must also be a constant (for we don't "execute" any code to initialize it.) */

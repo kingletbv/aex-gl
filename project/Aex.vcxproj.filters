@@ -42,6 +42,7 @@
     <ClCompile Include="..\src\sl_execution.c" />
     <ClCompile Include="..\src\sl_reg_alloc.c" />
     <ClCompile Include="..\src\ref_range_allocator.c" />
+    <ClCompile Include="..\src\sl_compilation_unit.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -91,6 +92,7 @@
     <ClInclude Include="..\src\sl_binop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_reg_alloc.h" />
     <ClInclude Include="..\src\ref_range_allocator.h" />
+    <ClInclude Include="..\src\sl_compilation_unit.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
