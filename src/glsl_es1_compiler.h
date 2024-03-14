@@ -115,12 +115,6 @@ struct glsl_es1_compiler {
    */
   struct sl_compilation_unit *cu_;
 
-  /* The symbol table representing the global scope. */
-  struct sym_table global_scope_X;
-
-  /* The global frame (containing all function definitions and global variables) */
-  struct sl_frame global_frame_X;
-
   /* The number of registers needed to execute any of the functions. */
   struct sl_exec_call_graph_results register_counts_;
 };
