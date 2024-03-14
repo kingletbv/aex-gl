@@ -46,7 +46,10 @@
 #include "sl_frame.h"
 #endif
 
-
+#ifndef SL_EXECUTION_H_INCLUDED
+#define SL_EXECUTION_H_INCLUDED
+#include "sl_execution.h"
+#endif
 
 enum glsl_es1_compiler_result {
   GLSL_ES1_R_SUCCESS,
@@ -107,6 +110,9 @@ struct glsl_es1_compiler {
   /* The current frame, when outside functions, this is the global_frame_, when
    * inside, it is the local frame of the function */
   struct sl_frame *current_frame_;
+
+  /* The number of registers needed to execute any of the functions. */
+  struct sl_exec_call_graph_results register_counts_;
 };
 
 void glsl_es1_compiler_init(struct glsl_es1_compiler *compiler);

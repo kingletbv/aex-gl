@@ -153,7 +153,8 @@ uint32_t sl_exec_join_chains(struct sl_execution *exec, uint32_t a, uint32_t b);
 void sl_exec_call_graph_results_init(struct sl_exec_call_graph_results *cgr);
 void sl_exec_call_graph_results_cleanup(struct sl_exec_call_graph_results *cgr);
 int sl_exec_call_graph_analysis(struct sl_exec_call_graph_results *cgr, struct sl_function *f);
-
+void sl_exec_cgr_max(struct sl_exec_call_graph_results *cgr, const struct sl_exec_call_graph_results *lcgr);
+void sl_exec_cgr_swap(struct sl_exec_call_graph_results *a, struct sl_exec_call_graph_results *b);
 
 #ifdef __cplusplus
 } /* extern "C" */

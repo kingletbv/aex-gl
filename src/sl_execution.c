@@ -1897,7 +1897,7 @@ static int sl_exec_cga_stmt_list_impl(struct sl_exec_call_graph_results *cgr, st
   }
 }
 
-static void sl_exec_cgr_max(struct sl_exec_call_graph_results *cgr, const struct sl_exec_call_graph_results *lcgr) {
+void sl_exec_cgr_max(struct sl_exec_call_graph_results *cgr, const struct sl_exec_call_graph_results *lcgr) {
   if (lcgr->num_execution_frames_ > cgr->num_execution_frames_)
     cgr->num_execution_frames_ = lcgr->num_execution_frames_;
   if (lcgr->num_float_regs_ > cgr->num_float_regs_)
@@ -1910,6 +1910,12 @@ static void sl_exec_cgr_max(struct sl_exec_call_graph_results *cgr, const struct
     cgr->num_sampler2D_regs_ = lcgr->num_sampler2D_regs_;
   if (lcgr->num_samplerCube_regs_ > cgr->num_samplerCube_regs_)
     cgr->num_samplerCube_regs_ = lcgr->num_samplerCube_regs_;
+}
+
+void sl_exec_cgr_swap(struct sl_exec_call_graph_results *a, struct sl_exec_call_graph_results *b) {
+  struct sl_exec_call_graph_results t = *a;
+  *a = *b;
+  *b = t;
 }
 
 static int sl_exec_cga_function_impl(struct sl_exec_call_graph_results *cgr, struct sl_function *f) {
