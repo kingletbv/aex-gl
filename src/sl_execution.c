@@ -48,6 +48,11 @@
 #include "sl_execution.h"
 #endif
 
+#ifndef SL_COMPILATION_UNIT_H_INCLUDED
+#define SL_COMPILATION_UNIT_H_INCLUDED
+#include "sl_compilation_unit.h"
+#endif
+
 void sl_exec_f_add(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
 #define BINOP_SNIPPET_OPERATOR(left, right) left + right
 #define BINOP_SNIPPET_TYPE float
@@ -1675,36 +1680,36 @@ void sl_exec_cleanup(struct sl_execution *exec) {
   if (exec->bool_regs_) free(exec->bool_regs_);
 }
 
-int sl_exec_prep(struct sl_execution *exec, struct sl_reg_allocator *rac) {
+int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu, struct sl_function *f) {
   void *new_float_regs = NULL;
   void *new_int_regs = NULL;
   void *new_bool_regs = NULL;
   void *new_sampler2D_regs = NULL;
   void *new_samplerCube_regs = NULL;
-  if (rac->rra_floats_.watermark_) {
-    new_float_regs = malloc(sizeof(float *) * rac->rra_floats_.watermark_);
+  if (cu->register_counts_.num_float_regs_) {
+    new_float_regs = malloc(sizeof(float *) * cu->register_counts_.num_float_regs_);
     if (!new_float_regs) goto fail;
-    memset(new_float_regs, 0, sizeof(float *) * rac->rra_floats_.watermark_);
+    memset(new_float_regs, 0, sizeof(float *) * cu->register_counts_.num_float_regs_);
   }
-  if (rac->rra_ints_.watermark_) {
-    new_int_regs = malloc(sizeof(int64_t *) * rac->rra_ints_.watermark_);
+  if (cu->register_counts_.num_int_regs_) {
+    new_int_regs = malloc(sizeof(int64_t *) * cu->register_counts_.num_int_regs_);
     if (!new_int_regs) goto fail;
-    memset(new_int_regs, 0, sizeof(int64_t *) * rac->rra_ints_.watermark_);
+    memset(new_int_regs, 0, sizeof(int64_t *) * cu->register_counts_.num_int_regs_);
   }
-  if (rac->rra_bools_.watermark_) {
-    new_bool_regs = malloc(sizeof(unsigned char *) * rac->rra_bools_.watermark_);
+  if (cu->register_counts_.num_bool_regs_) {
+    new_bool_regs = malloc(sizeof(unsigned char *) * cu->register_counts_.num_bool_regs_);
     if (!new_bool_regs) goto fail;
-    memset(new_bool_regs, 0, sizeof(int *) * rac->rra_bools_.watermark_);
+    memset(new_bool_regs, 0, sizeof(int *) * cu->register_counts_.num_bool_regs_);
   }
-  if (rac->rra_sampler2D_.watermark_) {
-    new_sampler2D_regs = malloc(sizeof(void *) * rac->rra_sampler2D_.watermark_);
+  if (cu->register_counts_.num_sampler2D_regs_) {
+    new_sampler2D_regs = malloc(sizeof(void *) * cu->register_counts_.num_sampler2D_regs_);
     if (!new_sampler2D_regs) goto fail;
-    memset(new_sampler2D_regs, 0, sizeof(void *) * rac->rra_sampler2D_.watermark_);
+    memset(new_sampler2D_regs, 0, sizeof(void *) * cu->register_counts_.num_sampler2D_regs_);
   }
-  if (rac->rra_samplerCube_.watermark_) {
-    new_samplerCube_regs = malloc(sizeof(void *) * rac->rra_samplerCube_.watermark_);
+  if (cu->register_counts_.num_samplerCube_regs_) {
+    new_samplerCube_regs = malloc(sizeof(void *) * cu->register_counts_.num_samplerCube_regs_);
     if (!new_samplerCube_regs) goto fail;
-    memset(new_samplerCube_regs, 0, sizeof(void *) * rac->rra_samplerCube_.watermark_);
+    memset(new_samplerCube_regs, 0, sizeof(void *) * cu->register_counts_.num_samplerCube_regs_);
   }
 
   if (exec->float_regs_) free(exec->float_regs_);
@@ -1713,19 +1718,19 @@ int sl_exec_prep(struct sl_execution *exec, struct sl_reg_allocator *rac) {
   if (exec->sampler_2D_regs_) free(exec->sampler_2D_regs_);
   if (exec->sampler_cube_regs_) free(exec->sampler_cube_regs_);
 
-  exec->num_float_regs_ = (size_t)rac->rra_floats_.watermark_;
+  exec->num_float_regs_ = (size_t)cu->register_counts_.num_float_regs_;
   exec->float_regs_ = (float **)new_float_regs;
 
-  exec->num_int_regs_ = (size_t)rac->rra_ints_.watermark_;
+  exec->num_int_regs_ = (size_t)cu->register_counts_.num_int_regs_;
   exec->int_regs_ = (int64_t **)new_int_regs;
 
-  exec->num_bool_regs_ = (size_t)rac->rra_bools_.watermark_;
+  exec->num_bool_regs_ = (size_t)cu->register_counts_.num_bool_regs_;
   exec->bool_regs_ = (unsigned char **)new_bool_regs;
 
-  exec->num_sampler_2D_regs_ = (size_t)rac->rra_sampler2D_.watermark_;
+  exec->num_sampler_2D_regs_ = (size_t)cu->register_counts_.num_sampler2D_regs_;
   exec->sampler_2D_regs_ = (void **)new_sampler2D_regs;
 
-  exec->num_sampler_cube_regs_ = (size_t)rac->rra_samplerCube_.watermark_;
+  exec->num_sampler_cube_regs_ = (size_t)cu->register_counts_.num_samplerCube_regs_;
   exec->sampler_cube_regs_ = (void **)new_samplerCube_regs;
 
   return 0;
@@ -1748,6 +1753,15 @@ void sl_exec_set_expr(struct sl_execution *exec, size_t ep_index, struct sl_expr
   ep->continue_chain_ptr_ = continuation_ptr;
 }
 
+void sl_exec_set_stmt(struct sl_execution *exec, size_t ep_index, struct sl_stmt *stmt, uint32_t chain, size_t continuation_ptr) {
+  sl_exec_clear_ep(exec, ep_index);
+  struct sl_execution_point *ep = exec->execution_points_ + ep_index;
+  ep->kind_ = SLEPK_STMT;
+  ep->v_.stmt_ = stmt;
+  ep->enter_chain_ = chain;
+  ep->continue_chain_ptr_ = continuation_ptr;
+}
+
 int sl_exec_push_expr(struct sl_execution *exec, struct sl_expr *expr, uint32_t chain, size_t continuation_ptr) {
   int r;
   r = sl_exec_reserve_n(exec, 1);
@@ -1757,6 +1771,17 @@ int sl_exec_push_expr(struct sl_execution *exec, struct sl_expr *expr, uint32_t 
 
   return 0;
 }
+
+int sl_exec_push_stmt(struct sl_execution *exec, struct sl_stmt *stmt, uint32_t chain, size_t continuation_ptr) {
+  int r;
+  r = sl_exec_reserve_n(exec, 1);
+  if (r) return r;
+
+  sl_exec_set_stmt(exec, exec->num_execution_points_++, stmt, chain, continuation_ptr);
+
+  return 0;
+}
+
 
 void sl_exec_pop_ep(struct sl_execution *exec) {
   assert(exec->num_execution_points_);
@@ -2395,6 +2420,21 @@ int sl_exec_run(struct sl_execution *exec) {
       else {
         sl_exec_pop_ep(exec);
       }
+    }
+    else if (eps[epi].kind_ == SLEPK_BOOTSTRAP) {
+      /* Bootstrap is a special case, it's the first thing that happens when we start running the execution. */
+      if (eps[epi].enter_chain_ != SL_EXEC_NO_CHAIN) {
+        r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].post_chain_));
+        if (r) return r;
+        eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+      }
+      else {
+        sl_exec_pop_ep(exec);
+      }
+    }
+    else {
+      /* Invalid execution point kind */
+      assert(0);
     }
   }
 

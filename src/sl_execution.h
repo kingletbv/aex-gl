@@ -23,6 +23,7 @@ struct sl_reg_allocator;
 
 typedef enum sl_execution_point_kind {
   SLEPK_NONE,
+  SLEPK_BOOTSTRAP,
   SLEPK_STMT,
   SLEPK_EXPR
 } sl_execution_point_kind_t;
@@ -144,7 +145,7 @@ struct sl_exec_call_graph_results {
 void sl_exec_init(struct sl_execution *exec);
 void sl_exec_cleanup(struct sl_execution *exec);
 
-int sl_exec_prep(struct sl_execution *exec, struct sl_reg_allocator *rac);
+int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu, struct sl_function *f);
 
 int sl_exec_run(struct sl_execution *exec);
 
