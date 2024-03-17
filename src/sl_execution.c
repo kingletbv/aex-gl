@@ -2049,37 +2049,226 @@ int sl_exec_run(struct sl_execution *exec) {
     struct sl_execution_point *eps = exec->execution_points_;
 #define CHAIN_REF(x) (((uintptr_t)&(x)) - (uintptr_t)exec->execution_points_)
     if (eps[epi].kind_ == SLEPK_STMT) {
-      switch (eps[epi].v_.stmt_->kind_) {
-        case slsk_expression: {
-          if (eps[epi].enter_chain_ != SL_EXEC_NO_CHAIN) {
+      if (eps[epi].enter_chain_ != SL_EXEC_NO_CHAIN) {
+        switch (eps[epi].v_.stmt_->kind_) {
+          case slsk_expression: {
             r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->expr_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].post_chain_));
             if (r) return r;
             eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;  
           }
-          break;
+          case slsk_if:
+            /* Evaluate the condition, then come back on the revisit chain to determine what to do */
+            r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->condition_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].revisit_chain_));
+            if (r) return r;
+            break;
+          case slsk_while: {
+            /* Evaluate the condition, then come back on the revisit chain to determine what to do
+             * note that we have to potentially execute an initializer first, e.g.:
+             *   while (bool b = true) { .. }
+             * is valid. */
+            size_t condition_eval_index = exec->num_execution_points_;
+            r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->condition_, SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
+            if (r) return r;
+            size_t condition_prep_stmt_index = exec->num_execution_points_;
+            /* Check if we have a preparatory statement for the condition (an initializer) and execute it prior to the condition expression,
+             * if so. Otherwise wire the enter_chain_ to directly go into the expression. */
+            if (eps[epi].v_.stmt_->prep_cond_) {
+              r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->prep_cond_, eps[epi].enter_chain_, CHAIN_REF(eps[condition_eval_index].enter_chain_));
+              if (r) return r;
+            }
+            else {
+              eps[condition_eval_index].enter_chain_ = eps[epi].enter_chain_;
+            }
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+
+            break;
+          }
+          case slsk_do: {
+            /* Execute the body, then return onto the revisit_chain_ to evaluate the condition */
+            size_t condition_eval_index = exec->num_execution_points_;
+            r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->condition_, SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
+            if (r) return r;
+            /* Put continuation of the body onto the expression, the expressino will then continue on our revisit_chain_ */
+            r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->true_branch_, eps[epi].enter_chain_, CHAIN_REF(eps[condition_eval_index].enter_chain_));
+            if (r) return r;
+            break;
+          }
+          case slsk_for:
+            /* Execute preparatory statements, then execute the condition preparatory statements, and evaluate the condition */
+            /* Execute preparatory statements, have that flow into the revisit_chain which will test the condition */
+            if (eps[epi].v_.stmt_->prep_) {
+              r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->prep_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].revisit_chain_));
+              if (r) return r;
+            }
+            else {
+              eps[epi].revisit_chain_ = eps[epi].enter_chain_;
+            }
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+            break;
+          case slsk_continue:
+            // XXX: Scan upwards
+            break;
+          case slsk_break:
+            // XXX: Scan upwards
+            break;
+          case slsk_return:
+            // XXX: Scan upwards
+            break;
+          case slsk_discard:
+            // XXX: Scan upwards
+            break;
+          case slsk_compound: {
+            /* If there are inner statements (true_branch_) then execute and continue on the post_chain, otherwise,
+             * just directly move onto the post_chain */
+            if (eps[epi].v_.stmt_->true_branch_) {
+              r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->true_branch_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].post_chain_));
+              if (r) return r;
+            }
+            else {
+              eps[epi].post_chain_ = eps[epi].enter_chain_;
+            }
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+            break;
+          }
         }
-        case slsk_if:
-          break;
-        case slsk_while:
-          break;
-        case slsk_do:
-          break;
-        case slsk_for:
-          break;
-        case slsk_continue:
-          break;
-        case slsk_break:
-          break;
-        case slsk_return:
-          break;
-        case slsk_discard:
-          break;
-        case slsk_compound:
-          break;
+        if (r) return r;
+      }
+      else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
+        switch (eps[epi].v_.stmt_->kind_) {
+          case slsk_if: {
+            /* Split execution into a true and false chain, then evaluate children selectively accordingly. */
+            uint32_t true_chain = SL_EXEC_NO_CHAIN;
+            uint32_t false_chain = SL_EXEC_NO_CHAIN;
+            sl_exec_split_chains_by_bool(exec, &eps[epi].v_.expr_->children_[0]->reg_alloc_, eps[epi].revisit_chain_,
+                                         &true_chain, &false_chain);
+            eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+            if (true_chain != SL_EXEC_NO_CHAIN) {
+              r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->true_branch_, true_chain, CHAIN_REF(eps[epi].post_chain_));
+            }
+            if (false_chain != SL_EXEC_NO_CHAIN) {
+              if (eps[epi].v_.stmt_->false_branch_) {
+                r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->false_branch_, true_chain, CHAIN_REF(eps[epi].post_chain_));
+              }
+              else {
+                eps[epi].post_chain_ = sl_exec_join_chains(exec, false_chain, eps[epi].post_chain_);
+              }
+            }
+            if (r) return r;
+            break;
+          }
+          case slsk_while: {
+            /* Split execution into the chain going into the body, surfacing back on the enter_chain_, and
+             * the post_chain_. */
+            uint32_t true_chain = SL_EXEC_NO_CHAIN;
+            uint32_t false_chain = SL_EXEC_NO_CHAIN;
+            sl_exec_split_chains_by_bool(exec, &eps[epi].v_.stmt_->condition_->reg_alloc_, eps[epi].revisit_chain_,
+                                         &true_chain, &false_chain);
+            eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+            if (true_chain != SL_EXEC_NO_CHAIN) {
+              /* Come back onto the enter_chain after executing the body (true_branch) so we can re-evaluate
+               * the condition expression. */
+              sl_exec_push_stmt(exec, eps[epi].v_.stmt_->true_branch_, true_chain, CHAIN_REF(eps[epi].enter_chain_));
+            }
+            /* Any false evaluations of the while condition go straight into the post_chain_ for moving to
+             * the statement after the current (while) statement */
+            eps[epi].post_chain_ = sl_exec_join_chains(exec, false_chain, eps[epi].post_chain_);
+            break;
+          }
+          case slsk_do: {
+            /* Split on the condition; true enters body again, false goes onto post chain. */
+            uint32_t true_chain = SL_EXEC_NO_CHAIN;
+            uint32_t false_chain = SL_EXEC_NO_CHAIN;
+            sl_exec_split_chains_by_bool(exec, &eps[epi].v_.stmt_->condition_->reg_alloc_, eps[epi].revisit_chain_,
+                                         &true_chain, &false_chain);
+            eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+            /* Put true_chain_ on the enter_chain_ for re-evaluation, note that this is slightly inefficient
+             * as we could just set things up now, but prevents code duplication */
+            assert(eps[epi].enter_chain_ == SL_EXEC_NO_CHAIN && "enter_chain should be empty when we evaluate revisit_chain");
+            eps[epi].enter_chain_ = true_chain;
+            /* Any false evaluations of the while condition go straight into the post_chain_ for moving to
+             * the statement after the current (while) statement */
+            eps[epi].post_chain_ = sl_exec_join_chains(exec, false_chain, eps[epi].post_chain_);
+            break;
+          }
+          case slsk_for: {
+            /* Evaluate the condition, then come back on the alt chain to determine what to do
+             * note that we have to potentially execute an initializer first, e.g.:
+             *   while (bool b = true) { .. }
+             * is valid. */
+            size_t condition_eval_index = exec->num_execution_points_;
+            r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->condition_, SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].alt_chain_));
+            if (r) return r;
+            size_t condition_prep_stmt_index = exec->num_execution_points_;
+            /* Check if we have a preparatory statement for the condition (an initializer) and execute it prior to the condition expression,
+             * if so. Otherwise wire the enter_chain_ to directly go into the expression. */
+            if (eps[epi].v_.stmt_->prep_cond_) {
+              r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->prep_cond_, eps[epi].revisit_chain_, CHAIN_REF(eps[condition_eval_index].enter_chain_));
+              if (r) return r;
+            }
+            else {
+              eps[condition_eval_index].enter_chain_ = eps[epi].revisit_chain_;
+            }
+            eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+
+            break;
+          }
+        }
+      }
+      else if (eps[epi].alt_chain_ != SL_EXEC_NO_CHAIN) {
+        switch (eps[epi].v_.stmt_->kind_) {
+          case slsk_for: {
+            /* Coming back from condition evaluation, split execution flows, true branch goes into the body,
+             * false branch goes into post */
+            uint32_t true_chain = SL_EXEC_NO_CHAIN;
+            uint32_t false_chain = SL_EXEC_NO_CHAIN;
+            sl_exec_split_chains_by_bool(exec, &eps[epi].v_.stmt_->condition_->reg_alloc_, eps[epi].alt_chain_,
+                                        &true_chain, &false_chain);
+            eps[epi].alt_chain_ = SL_EXEC_NO_CHAIN;
+            if (true_chain) {
+              /* Set up the true chain, this involves the following:
+               * - First execute the body
+               * - Then execute the post_ expression (if any)
+               * - Then return to the revisit_chain_ on the slsk_for and have it set up the condition check and body execution */
+              if (eps[epi].v_.stmt_->post_) {
+                size_t post_expr = exec->num_execution_points_;
+                r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->post_, SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
+                r = r ? r : sl_exec_push_stmt(exec, eps[epi].v_.stmt_->true_branch_, true_chain, CHAIN_REF(eps[post_expr].enter_chain_));
+                if (r) return r;
+              }
+              else {
+                /* No post expression, so re-wire the body to continue on our revisit chain directly. */
+                r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->true_branch_, true_chain, CHAIN_REF(eps[epi].revisit_chain_));
+                if (r) return r;
+              }
+            }
+
+            /* False chain joins up on the post */
+            eps[epi].post_chain_ = sl_exec_join_chains(exec, false_chain, eps[epi].post_chain_);
+            break;
+          }
+        }
+      }
+      else if (eps[epi].post_chain_ != SL_EXEC_NO_CHAIN) {
+        /* Step to next by transforming current SLEPK_STMT to point to next */
+        struct sl_stmt *next = sl_stmt_next_sibling(eps[epi].v_.stmt_);
+        if (next) {
+          eps[epi].v_.stmt_ = next;
+          eps[epi].enter_chain_ = eps[epi].post_chain_;
+          eps[epi].post_chain_ = SL_EXEC_NO_CHAIN;
+        }
+        else {
+          /* No next, pop current */
+          uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
+          *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].post_chain_);
+          eps[epi].post_chain_ = SL_EXEC_NO_CHAIN;
+
+          sl_exec_pop_ep(exec);
+        }
       }
     }
     else if (eps[epi].kind_ == SLEPK_EXPR) {
+      int dont_pop = 0;
       if (eps[epi].enter_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.expr_->op_) {
           case exop_invalid: {
@@ -2100,10 +2289,11 @@ int sl_exec_run(struct sl_execution *exec) {
           }
           case exop_array_subscript: {
             /* Push children first, post evaluate the subscript */
-            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[1], SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
+            r = sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[1], SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
             /* Now push the first child, its continuation is the second child's evaluation */
-            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
+            r = r ? r : sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
             eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+            if (r) return r;
             break;
           }
 
@@ -2133,10 +2323,11 @@ int sl_exec_run(struct sl_execution *exec) {
             /* Evaluate both branches first, then come back to evaluate this expression node on the revisit_chain_.. */
 
             /* Push 2nd child first, it will be evaluated last (LIFO) */
-            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[1], SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
+            r = sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[1], SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
             /* Now push the first child, its continuation is the second child's evaluation */
-            sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
+            r = r ? r : sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
             eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+            if (r) return r;
             break;
           }
 
@@ -2182,7 +2373,6 @@ int sl_exec_run(struct sl_execution *exec) {
         }
       }
       else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
-        int dont_pop = 0;
         switch (eps[epi].v_.expr_->op_) {
           case exop_array_subscript: {
             sl_exec_array_subscript_load(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, 
@@ -2365,9 +2555,8 @@ int sl_exec_run(struct sl_execution *exec) {
 
           case exop_conditional: {
             /* Split execution into a true and false chain, then evaluate children selectively accordingly. */
-            /* XXX: How do we return here? In particular, we'd like to move the registers from the true_chain,
-             *      and then separately move the registers from the false_chain (because they're moving from 
-             *      different registers respectively, potentially...) */
+            /* The true branch returns on post_chain_ (and we move the true subset into registers there.)
+             * the false branch returns on alt_chain_ (and we move the false subset into registers there.) */
             uint32_t true_chain = SL_EXEC_NO_CHAIN;
             uint32_t false_chain = SL_EXEC_NO_CHAIN;
             sl_exec_split_chains_by_bool(exec, &eps[epi].v_.expr_->children_[0]->reg_alloc_, eps[epi].revisit_chain_,
@@ -2390,6 +2579,12 @@ int sl_exec_run(struct sl_execution *exec) {
       }
       else if (eps[epi].post_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.expr_->op_) {
+          case exop_conditional: {
+            /* Move true results into our own register; register allocation tries to make this the same register
+             * but can't guarantee it (e.g. if the true branch is a variable, it'll have a different reg.) */
+            sl_exec_move(exec, eps[epi].post_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+            break;
+          }
           case exop_logical_or:
           case exop_logical_and: {
             /* Move result from second child into result of logical-and or logical-or expression node */
@@ -2400,8 +2595,6 @@ int sl_exec_run(struct sl_execution *exec) {
         uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
         *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].post_chain_);
         eps[epi].post_chain_ = SL_EXEC_NO_CHAIN;
-
-        sl_exec_pop_ep(exec);
       }
       else if (eps[epi].alt_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.expr_->op_) {
@@ -2414,8 +2607,6 @@ int sl_exec_run(struct sl_execution *exec) {
         uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
         *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].alt_chain_);
         eps[epi].alt_chain_ = SL_EXEC_NO_CHAIN;
-
-        sl_exec_pop_ep(exec);
       }
       else {
         sl_exec_pop_ep(exec);
