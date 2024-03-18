@@ -927,24 +927,31 @@ static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl
 }
 
 
-static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_expr_temp *src) {
+static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_expr_temp *src, int offset) {
   int num_components = 0;
   int n;
 
   switch (src->kind_) {
     case slrak_array: {
-      // XXX: Implement
+      if ((INT_MAX / dst->v_.array_.num_elements_) < offset) {
+        /* overflow */
+        return ;
+      }
+      int array_start = offset * (int)dst->v_.array_.num_elements_;
+      for (n = 0; n < dst->v_.array_.num_elements_; ++n) {
+        sl_exec_init_literal(exec, row, dst, src->v_.comp_.elements_ + n, array_start + n);
+      }
       break;
     }
     case slrak_struct: {
       size_t index;
       for (index = 0; index < src->v_.comp_.num_elements_; ++index) {
-        sl_exec_init_literal(exec, row, dst->v_.comp_.fields_ + index, src->v_.comp_.elements_ + index);
+        sl_exec_init_literal(exec, row, dst->v_.comp_.fields_ + index, src->v_.comp_.elements_ + index, offset);
       }
       break;
     }
     case slrak_float:
-      sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[0]], src->v_.f_);
+      sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[0] + offset], src->v_.f_);
       break;
     case slrak_vec2:
     case slrak_vec3:
@@ -959,7 +966,7 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
           break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[n]], src->v_.v_[n]);
+        sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[n] + offset], src->v_.v_[n]);
       }
       break;
     }
@@ -977,12 +984,12 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
           break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[n]], src->v_.m_[n]);
+        sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[n] + offset], src->v_.m_[n]);
       }
       break;
     }
     case slrak_int:
-      sl_exec_i_init(row, exec->exec_chain_reg_, exec->int_regs_[dst->v_.regs_[0]], src->v_.i_);
+      sl_exec_i_init(row, exec->exec_chain_reg_, exec->int_regs_[dst->v_.regs_[0] + offset], src->v_.i_);
       break;
     case slrak_ivec2:
     case slrak_ivec3:
@@ -993,12 +1000,12 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
         case slrak_ivec4: num_components = 4; break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_i_init(row, exec->exec_chain_reg_, exec->int_regs_[dst->v_.regs_[n]], src->v_.iv_[n]);
+        sl_exec_i_init(row, exec->exec_chain_reg_, exec->int_regs_[dst->v_.regs_[n] + offset], src->v_.iv_[n]);
       }
       break;
     }
     case slrak_bool:
-      sl_exec_b_init(row, exec->exec_chain_reg_, exec->bool_regs_[dst->v_.regs_[0]], src->v_.b_);
+      sl_exec_b_init(row, exec->exec_chain_reg_, exec->bool_regs_[dst->v_.regs_[0] + offset], src->v_.b_);
       break;
     case slrak_bvec2:
     case slrak_bvec3:
@@ -1009,7 +1016,7 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
         case slrak_bvec4: num_components = 4; break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_b_init(row, exec->exec_chain_reg_, exec->bool_regs_[dst->v_.regs_[n]], src->v_.bv_[n]);
+        sl_exec_b_init(row, exec->exec_chain_reg_, exec->bool_regs_[dst->v_.regs_[n] + offset], src->v_.bv_[n]);
       }
       break;
     }
@@ -2405,7 +2412,7 @@ int sl_exec_run(struct sl_execution *exec) {
           }
           case exop_literal: {
             /* Load constant value into the register */
-            sl_exec_init_literal(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->literal_value_);
+            sl_exec_init_literal(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->literal_value_, 0);
             break;
           }
           case exop_array_subscript: {
