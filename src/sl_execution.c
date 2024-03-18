@@ -53,6 +53,19 @@
 #include "sl_compilation_unit.h"
 #endif
 
+/* pass in reg_alloc_ptr, a pointer to the sl_reg_alloc to load the register pointer for, and element_index, an index of the element/or component (e.g. the XYZ for a vec3, 0 for a scalar).
+ * returns a pointer to the corresponding register for XXX_REG_PTR, and the index of the actual register (after frame corrections) for XXX_REG_INDEX */
+#define FLOAT_REG_INDEX(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_float_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
+#define INT_REG_INDEX(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_int_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
+#define BOOL_REG_INDEX(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_bool_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
+
+#define FLOAT_REG_PTR(reg_alloc_ptr, element_index) exec->float_regs_[FLOAT_REG_INDEX(reg_alloc_ptr, element_index)]
+#define INT_REG_PTR(reg_alloc_ptr, element_index) exec->int_regs_[INT_REG_INDEX(reg_alloc_ptr, element_index)]
+#define BOOL_REG_PTR(reg_alloc_ptr, element_index) exec->bool_regs_[BOOL_REG_INDEX(reg_alloc_ptr, element_index)]
+
+
+static int sl_exec_push_execution_frame(struct sl_execution *exec);
+
 void sl_exec_f_add(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
 #define BINOP_SNIPPET_OPERATOR(left, right) left + right
 #define BINOP_SNIPPET_TYPE float
@@ -693,7 +706,7 @@ static void sl_exec_split_chains_by_bool(struct sl_execution *exec, struct sl_re
   uint8_t row;
   if (input_chain == SL_EXEC_NO_CHAIN) return;
   row = (uint8_t)input_chain;
-  const uint8_t * restrict cond_col = exec->bool_regs_[cond->v_.regs_[0]];
+  const uint8_t * restrict cond_col = BOOL_REG_PTR(cond, 0);
   uint8_t * restrict chain_col = exec->exec_chain_reg_;
   uint32_t true_chain = SL_EXEC_NO_CHAIN, false_chain = SL_EXEC_NO_CHAIN;
   uint8_t true_tail;
@@ -951,7 +964,7 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
       break;
     }
     case slrak_float:
-      sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[0] + offset], src->v_.f_);
+      sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[FLOAT_REG_INDEX(dst, 0) + offset], src->v_.f_);
       break;
     case slrak_vec2:
     case slrak_vec3:
@@ -966,7 +979,7 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
           break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[n] + offset], src->v_.v_[n]);
+        sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[FLOAT_REG_INDEX(dst, n) + offset], src->v_.v_[n]);
       }
       break;
     }
@@ -984,12 +997,12 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
           break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[n] + offset], src->v_.m_[n]);
+        sl_exec_f_init(row, exec->exec_chain_reg_, exec->float_regs_[FLOAT_REG_INDEX(dst, n) + offset], src->v_.m_[n]);
       }
       break;
     }
     case slrak_int:
-      sl_exec_i_init(row, exec->exec_chain_reg_, exec->int_regs_[dst->v_.regs_[0] + offset], src->v_.i_);
+      sl_exec_i_init(row, exec->exec_chain_reg_, exec->int_regs_[INT_REG_INDEX(dst, 0) + offset], src->v_.i_);
       break;
     case slrak_ivec2:
     case slrak_ivec3:
@@ -1000,12 +1013,12 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
         case slrak_ivec4: num_components = 4; break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_i_init(row, exec->exec_chain_reg_, exec->int_regs_[dst->v_.regs_[n] + offset], src->v_.iv_[n]);
+        sl_exec_i_init(row, exec->exec_chain_reg_, exec->int_regs_[INT_REG_INDEX(dst, n) + offset], src->v_.iv_[n]);
       }
       break;
     }
     case slrak_bool:
-      sl_exec_b_init(row, exec->exec_chain_reg_, exec->bool_regs_[dst->v_.regs_[0] + offset], src->v_.b_);
+      sl_exec_b_init(row, exec->exec_chain_reg_, exec->bool_regs_[BOOL_REG_INDEX(dst, 0) + offset], src->v_.b_);
       break;
     case slrak_bvec2:
     case slrak_bvec3:
@@ -1016,7 +1029,7 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
         case slrak_bvec4: num_components = 4; break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_b_init(row, exec->exec_chain_reg_, exec->bool_regs_[dst->v_.regs_[n] + offset], src->v_.bv_[n]);
+        sl_exec_b_init(row, exec->exec_chain_reg_, exec->bool_regs_[BOOL_REG_INDEX(dst, n) + offset], src->v_.bv_[n]);
       }
       break;
     }
@@ -1087,11 +1100,11 @@ static void sl_exec_array_subscript_load(struct sl_execution *exec, uint8_t row,
   switch (arr->kind_) {
     case slrak_float: {
       sl_exec_f_array_subscript_load(exec->exec_chain_reg_, row, 
-                                     exec->float_regs_[dst->v_.regs_[0]], 
+                                     FLOAT_REG_PTR(dst, 0), 
                                      exec->float_regs_,
                                      index->v_.regs_,
                                      sizeof(*index),
-                                     exec->int_regs_[index->v_.regs_[0]]);
+                                     INT_REG_PTR(index, 0));
       break;
     }
     case slrak_vec2: {
@@ -1100,20 +1113,20 @@ static void sl_exec_array_subscript_load(struct sl_execution *exec, uint8_t row,
     }
     case slrak_int: {
       sl_exec_i_array_subscript_load(exec->exec_chain_reg_, row,
-                                     exec->int_regs_[dst->v_.regs_[0]],
+                                     INT_REG_PTR(dst, 0),
                                      exec->int_regs_,
                                      index->v_.regs_,
                                      sizeof(*index),
-                                     exec->int_regs_[index->v_.regs_[0]]);
+                                     INT_REG_PTR(index, 0));
       break;
     }
     case slrak_bool: {
       sl_exec_b_array_subscript_load(exec->exec_chain_reg_, row,
-                                     exec->bool_regs_[dst->v_.regs_[0]],
+                                     BOOL_REG_PTR(dst, 0),
                                      exec->bool_regs_,
                                      index->v_.regs_,
                                      sizeof(*index),
-                                     exec->int_regs_[index->v_.regs_[0]]);
+                                     INT_REG_PTR(index, 0));
       break;
     }
   }
@@ -1125,109 +1138,109 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     switch (left->kind_) {
       case slrak_float:
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[0]], 
-                      exec->float_regs_[left->v_.regs_[0]],
-                      exec->float_regs_[right->v_.regs_[0]]);
+                      FLOAT_REG_PTR(dst, 0),
+                      FLOAT_REG_PTR(left, 0),
+                      FLOAT_REG_PTR(right, 0));
         break;
       case slrak_int:
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[0]], 
-                      exec->int_regs_[left->v_.regs_[0]],
-                      exec->int_regs_[right->v_.regs_[0]]);
+                      INT_REG_PTR(dst, 0),
+                      INT_REG_PTR(left, 0),
+                      INT_REG_PTR(right, 0));
         break;
       case slrak_vec2:
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[0]], 
-                      exec->float_regs_[left->v_.regs_[0]],
-                      exec->float_regs_[right->v_.regs_[0]]);
+                      FLOAT_REG_PTR(dst, 0),
+                      FLOAT_REG_PTR(left, 0),
+                      FLOAT_REG_PTR(right, 0));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[1]], 
-                      exec->float_regs_[left->v_.regs_[1]],
-                      exec->float_regs_[right->v_.regs_[1]]);
+                      FLOAT_REG_PTR(dst, 1),
+                      FLOAT_REG_PTR(left, 1),
+                      FLOAT_REG_PTR(right, 1));
         break;
       case slrak_vec3:
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[0]], 
-                      exec->float_regs_[left->v_.regs_[0]],
-                      exec->float_regs_[right->v_.regs_[0]]);
+                      FLOAT_REG_PTR(dst, 0),
+                      FLOAT_REG_PTR(left, 0),
+                      FLOAT_REG_PTR(right, 0));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[1]], 
-                      exec->float_regs_[left->v_.regs_[1]],
-                      exec->float_regs_[right->v_.regs_[1]]);
+                      FLOAT_REG_PTR(dst, 1),
+                      FLOAT_REG_PTR(left, 1),
+                      FLOAT_REG_PTR(right, 1));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[2]], 
-                      exec->float_regs_[left->v_.regs_[2]],
-                      exec->float_regs_[right->v_.regs_[2]]);
+                      FLOAT_REG_PTR(dst, 2),
+                      FLOAT_REG_PTR(left, 2),
+                      FLOAT_REG_PTR(right, 2));
         break;
       case slrak_vec4:
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[0]], 
-                      exec->float_regs_[left->v_.regs_[0]],
-                      exec->float_regs_[right->v_.regs_[0]]);
+                      FLOAT_REG_PTR(dst, 0),
+                      FLOAT_REG_PTR(left, 0),
+                      FLOAT_REG_PTR(right, 0));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[1]], 
-                      exec->float_regs_[left->v_.regs_[1]],
-                      exec->float_regs_[right->v_.regs_[1]]);
+                      FLOAT_REG_PTR(dst, 1),
+                      FLOAT_REG_PTR(left, 1),
+                      FLOAT_REG_PTR(right, 1));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[2]], 
-                      exec->float_regs_[left->v_.regs_[2]],
-                      exec->float_regs_[right->v_.regs_[2]]);
+                      FLOAT_REG_PTR(dst, 2),
+                      FLOAT_REG_PTR(left, 2),
+                      FLOAT_REG_PTR(right, 2));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      exec->float_regs_[dst->v_.regs_[3]], 
-                      exec->float_regs_[left->v_.regs_[3]],
-                      exec->float_regs_[right->v_.regs_[3]]);
+                      FLOAT_REG_PTR(dst, 3),
+                      FLOAT_REG_PTR(left, 3),
+                      FLOAT_REG_PTR(right, 3));
         break;
       case slrak_ivec2:
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[0]],
-                      exec->int_regs_[left->v_.regs_[0]],
-                      exec->int_regs_[right->v_.regs_[0]]);
+                      INT_REG_PTR(dst, 0),
+                      INT_REG_PTR(left, 0),
+                      INT_REG_PTR(right, 0));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[1]],
-                      exec->int_regs_[left->v_.regs_[1]],
-                      exec->int_regs_[right->v_.regs_[1]]);
+                      INT_REG_PTR(dst, 1),
+                      INT_REG_PTR(left, 1),
+                      INT_REG_PTR(right, 1));
         break;
       case slrak_ivec3:
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[0]],
-                      exec->int_regs_[left->v_.regs_[0]],
-                      exec->int_regs_[right->v_.regs_[0]]);
+                      INT_REG_PTR(dst, 0),
+                      INT_REG_PTR(left, 0),
+                      INT_REG_PTR(right, 0));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[1]],
-                      exec->int_regs_[left->v_.regs_[1]],
-                      exec->int_regs_[right->v_.regs_[1]]);
+                      INT_REG_PTR(dst, 1),
+                      INT_REG_PTR(left, 1),
+                      INT_REG_PTR(right, 1));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[2]],
-                      exec->int_regs_[left->v_.regs_[2]],
-                      exec->int_regs_[right->v_.regs_[2]]);
+                      INT_REG_PTR(dst, 2),
+                      INT_REG_PTR(left, 2),
+                      INT_REG_PTR(right, 2));
         break;
       case slrak_ivec4:
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[0]],
-                      exec->int_regs_[left->v_.regs_[0]],
-                      exec->int_regs_[right->v_.regs_[0]]);
+                      INT_REG_PTR(dst, 0),
+                      INT_REG_PTR(left, 0),
+                      INT_REG_PTR(right, 0));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[1]],
-                      exec->int_regs_[left->v_.regs_[1]],
-                      exec->int_regs_[right->v_.regs_[1]]);
+                      INT_REG_PTR(dst, 1),
+                      INT_REG_PTR(left, 1),
+                      INT_REG_PTR(right, 1));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[2]],
-                      exec->int_regs_[left->v_.regs_[2]],
-                      exec->int_regs_[right->v_.regs_[2]]);
+                      INT_REG_PTR(dst, 2),
+                      INT_REG_PTR(left, 2),
+                      INT_REG_PTR(right, 2));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      exec->int_regs_[dst->v_.regs_[3]],
-                      exec->int_regs_[left->v_.regs_[3]],
-                      exec->int_regs_[right->v_.regs_[3]]);
+                      INT_REG_PTR(dst, 3),
+                      INT_REG_PTR(left, 3),
+                      INT_REG_PTR(right, 3));
         break;
       case slrak_mat2:
         for (c = 0; c < 2; ++c) {
           for (r = 0; r < 2; ++r) {
             sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
-                                   exec->float_regs_[dst->v_.regs_[c * 2 + r]],
-                                   exec->float_regs_[left->v_.regs_[r + 0]], 
-                                   exec->float_regs_[left->v_.regs_[r + 2]],
-                                   exec->float_regs_[right->v_.regs_[c * 2 + 0]], 
-                                   exec->float_regs_[right->v_.regs_[c * 2 + 1]]);
+                                   FLOAT_REG_PTR(dst, c*2+r),
+                                   FLOAT_REG_PTR(left, r+0),
+                                   FLOAT_REG_PTR(left, r+2),
+                                   FLOAT_REG_PTR(right, c*2 + 0),                                
+                                   FLOAT_REG_PTR(right, c*2 + 1));
           }
         }
         break;
@@ -1235,13 +1248,13 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
         for (c = 0; c < 3; ++c) {
           for (r = 0; r < 3; ++r) {
             sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
-                                   exec->float_regs_[dst->v_.regs_[c * 3 + r]],
-                                   exec->float_regs_[left->v_.regs_[r + 0]], 
-                                   exec->float_regs_[left->v_.regs_[r + 3]],
-                                   exec->float_regs_[left->v_.regs_[r + 6]],
-                                   exec->float_regs_[right->v_.regs_[c * 3 + 0]], 
-                                   exec->float_regs_[right->v_.regs_[c * 3 + 1]],
-                                   exec->float_regs_[right->v_.regs_[c * 3 + 2]]);
+                                   FLOAT_REG_PTR(dst, c*3+r),
+                                   FLOAT_REG_PTR(left, r+0),
+                                   FLOAT_REG_PTR(left, r+3),
+                                   FLOAT_REG_PTR(left, r+6),
+                                   FLOAT_REG_PTR(right, c*3 + 0),                                
+                                   FLOAT_REG_PTR(right, c*3 + 1),
+                                   FLOAT_REG_PTR(right, c*3 + 2));
           }
         }
         break;
@@ -1249,15 +1262,15 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
         for (c = 0; c < 4; ++c) {
           for (r = 0; r < 4; ++r) {
             sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
-                                   exec->float_regs_[dst->v_.regs_[c * 4 + r]],
-                                   exec->float_regs_[left->v_.regs_[r + 0]], 
-                                   exec->float_regs_[left->v_.regs_[r + 4]],
-                                   exec->float_regs_[left->v_.regs_[r + 8]],
-                                   exec->float_regs_[left->v_.regs_[r + 12]],
-                                   exec->float_regs_[right->v_.regs_[c * 4 + 0]], 
-                                   exec->float_regs_[right->v_.regs_[c * 4 + 1]],
-                                   exec->float_regs_[right->v_.regs_[c * 4 + 2]],
-                                   exec->float_regs_[right->v_.regs_[c * 4 + 3]]);
+                                   FLOAT_REG_PTR(dst, c*4+r),
+                                   FLOAT_REG_PTR(left, r+0),
+                                   FLOAT_REG_PTR(left, r+4),
+                                   FLOAT_REG_PTR(left, r+8),
+                                   FLOAT_REG_PTR(left, r+12),
+                                   FLOAT_REG_PTR(right, c*4 + 0),                                
+                                   FLOAT_REG_PTR(right, c*4 + 1),
+                                   FLOAT_REG_PTR(right, c*4 + 2),
+                                   FLOAT_REG_PTR(right, c*4 + 3));
           }
         }
         break;
@@ -1275,9 +1288,9 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_coords; ++r) {
       sl_exec_f_mul(row, exec->exec_chain_reg_,
-                    exec->float_regs_[dst->v_.regs_[r]], 
-                    exec->float_regs_[left->v_.regs_[0]],
-                    exec->float_regs_[right->v_.regs_[r]]);
+                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR(left, 0),
+                    FLOAT_REG_PTR(right, r));
     }
   }
   else if (right->kind_ == slrak_float) {
@@ -1292,9 +1305,9 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_coords; ++r) {
       sl_exec_f_mul(row, exec->exec_chain_reg_,
-                    exec->float_regs_[dst->v_.regs_[r]], 
-                    exec->float_regs_[left->v_.regs_[r]],
-                    exec->float_regs_[right->v_.regs_[0]]);
+                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR(left, r),
+                    FLOAT_REG_PTR(right, 0));
     }
   }
   else if (left->kind_ == slrak_int) {
@@ -1306,9 +1319,9 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_coords; ++r) {
       sl_exec_i_mul(row, exec->exec_chain_reg_,
-                    exec->int_regs_[dst->v_.regs_[r]], 
-                    exec->int_regs_[left->v_.regs_[0]],
-                    exec->int_regs_[right->v_.regs_[r]]);
+                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR(left, 0),
+                    INT_REG_PTR(right, r));
     }
   }
   else if (right->kind_ == slrak_int) {
@@ -1320,81 +1333,81 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_coords; ++r) {
       sl_exec_i_mul(row, exec->exec_chain_reg_,
-                    exec->int_regs_[dst->v_.regs_[r]],
-                    exec->int_regs_[left->v_.regs_[r]],
-                    exec->int_regs_[right->v_.regs_[0]]);
+                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR(left, r),
+                    INT_REG_PTR(right, 0));
     }
   }
   else if ((left->kind_ == slrak_vec2) && (right->kind_ == slrak_mat2)) {
     for (r = 0; r < 2; ++r) {
       sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
-                             exec->float_regs_[dst->v_.regs_[r]],
-                             exec->float_regs_[left->v_.regs_[0]],
-                             exec->float_regs_[left->v_.regs_[1]],
-                             exec->float_regs_[right->v_.regs_[0 + r * 2]],
-                             exec->float_regs_[right->v_.regs_[1 + r * 2]]);
+                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR(left, 0),
+                             FLOAT_REG_PTR(left, 1),
+                             FLOAT_REG_PTR(right, 0 + r * 2),
+                             FLOAT_REG_PTR(right, 1 + r * 2));
     }
   }
   else if ((left->kind_ == slrak_mat2) && (right->kind_ == slrak_vec2)) {
     for (r = 0; r < 2; ++r) {
       sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
-                             exec->float_regs_[dst->v_.regs_[r]],
-                             exec->float_regs_[left->v_.regs_[0 + r]],
-                             exec->float_regs_[left->v_.regs_[2 + r]],
-                             exec->float_regs_[right->v_.regs_[0]],
-                             exec->float_regs_[right->v_.regs_[1]]);
+                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR(left, 0 + r),
+                             FLOAT_REG_PTR(left, 2 + r),
+                             FLOAT_REG_PTR(right, 0),
+                             FLOAT_REG_PTR(right, 1));
     }
   }
   else if ((left->kind_ == slrak_vec3) && (right->kind_ == slrak_mat3)) {
     for (r = 0; r < 3; ++r) {
       sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
-                             exec->float_regs_[dst->v_.regs_[r]],
-                             exec->float_regs_[left->v_.regs_[0]],
-                             exec->float_regs_[left->v_.regs_[1]],
-                             exec->float_regs_[left->v_.regs_[2]],
-                             exec->float_regs_[right->v_.regs_[0 + r * 3]],
-                             exec->float_regs_[right->v_.regs_[1 + r * 3]],
-                             exec->float_regs_[right->v_.regs_[2 + r * 3]]);
+                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR(left, 0),
+                             FLOAT_REG_PTR(left, 1),
+                             FLOAT_REG_PTR(left, 2),
+                             FLOAT_REG_PTR(right, 0 + r * 3),
+                             FLOAT_REG_PTR(right, 1 + r * 3),
+                             FLOAT_REG_PTR(right, 2 + r * 3));
     }
   }
   else if ((left->kind_ == slrak_mat3) && (right->kind_ == slrak_vec3)) {
     for (r = 0; r < 3; ++r) {
       sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
-                             exec->float_regs_[dst->v_.regs_[r]],
-                             exec->float_regs_[left->v_.regs_[0 + r]],
-                             exec->float_regs_[left->v_.regs_[3 + r]],
-                             exec->float_regs_[left->v_.regs_[6 + r]],
-                             exec->float_regs_[right->v_.regs_[0]],
-                             exec->float_regs_[right->v_.regs_[1]],
-                             exec->float_regs_[right->v_.regs_[2]]);
+                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR(left, 0 + r),
+                             FLOAT_REG_PTR(left, 3 + r),
+                             FLOAT_REG_PTR(left, 6 + r),
+                             FLOAT_REG_PTR(right, 0),
+                             FLOAT_REG_PTR(right, 1),
+                             FLOAT_REG_PTR(right, 2));
     }
   }
   else if ((left->kind_ == slrak_vec4) && (right->kind_ == slrak_mat4)) {
     for (r = 0; r < 4; ++r) {
       sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
-                             exec->float_regs_[dst->v_.regs_[r]],
-                             exec->float_regs_[left->v_.regs_[0]],
-                             exec->float_regs_[left->v_.regs_[1]],
-                             exec->float_regs_[left->v_.regs_[2]],
-                             exec->float_regs_[left->v_.regs_[3]],
-                             exec->float_regs_[right->v_.regs_[0 + r * 4]],
-                             exec->float_regs_[right->v_.regs_[1 + r * 4]],
-                             exec->float_regs_[right->v_.regs_[2 + r * 4]],
-                             exec->float_regs_[right->v_.regs_[3 + r * 4]]);
+                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR(left, 0),
+                             FLOAT_REG_PTR(left, 1),
+                             FLOAT_REG_PTR(left, 2),
+                             FLOAT_REG_PTR(left, 3),
+                             FLOAT_REG_PTR(right, 0 + r * 4),
+                             FLOAT_REG_PTR(right, 1 + r * 4),
+                             FLOAT_REG_PTR(right, 2 + r * 4),
+                             FLOAT_REG_PTR(right, 3 + r * 4));
     }
   }
   else if ((left->kind_ == slrak_mat4) && (right->kind_ == slrak_vec4)) {
     for (r = 0; r < 4; ++r) {
       sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
-                             exec->float_regs_[dst->v_.regs_[r]],
-                             exec->float_regs_[left->v_.regs_[0 + r]],
-                             exec->float_regs_[left->v_.regs_[4 + r]],
-                             exec->float_regs_[left->v_.regs_[8 + r]],
-                             exec->float_regs_[left->v_.regs_[12 + r]],
-                             exec->float_regs_[right->v_.regs_[0]],
-                             exec->float_regs_[right->v_.regs_[1]],
-                             exec->float_regs_[right->v_.regs_[2]],
-                             exec->float_regs_[right->v_.regs_[3]]);
+                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR(left, 0 + r),
+                             FLOAT_REG_PTR(left, 4 + r),
+                             FLOAT_REG_PTR(left, 8 + r),
+                             FLOAT_REG_PTR(left, 12 + r),
+                             FLOAT_REG_PTR(right, 0),
+                             FLOAT_REG_PTR(right, 1),
+                             FLOAT_REG_PTR(right, 2),
+                             FLOAT_REG_PTR(right, 3));
     }
   }
 }
@@ -1423,9 +1436,9 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_reg_al
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_f_div(row, exec->exec_chain_reg_, 
-                        exec->float_regs_[dst->v_.regs_[r]],
-                        exec->float_regs_[left->v_.regs_[r]],
-                        exec->float_regs_[right->v_.regs_[r]]);
+                        FLOAT_REG_PTR(dst, r),
+                        FLOAT_REG_PTR(left, r),
+                        FLOAT_REG_PTR(right, r));
         }
         break;
       }
@@ -1442,9 +1455,9 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_reg_al
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_i_div(row, exec->exec_chain_reg_, 
-                        exec->int_regs_[dst->v_.regs_[r]],
-                        exec->int_regs_[left->v_.regs_[r]],
-                        exec->int_regs_[right->v_.regs_[r]]);
+                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR(left, r),
+                        INT_REG_PTR(right, r));
         }
         break;
       }
@@ -1462,9 +1475,9 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_div(row, exec->exec_chain_reg_, 
-                    exec->float_regs_[dst->v_.regs_[r]],
-                    exec->float_regs_[left->v_.regs_[0]],
-                    exec->float_regs_[right->v_.regs_[r]]);
+                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR(left, 0),
+                    FLOAT_REG_PTR(right, r));
     }
   }
   else if (right->kind_ == slrak_float) {
@@ -1479,9 +1492,9 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_div(row, exec->exec_chain_reg_, 
-                    exec->float_regs_[dst->v_.regs_[r]],
-                    exec->float_regs_[left->v_.regs_[r]],
-                    exec->float_regs_[right->v_.regs_[0]]);
+                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR(left, r),
+                    FLOAT_REG_PTR(right, 0));
     }
   }
   else if (left->kind_ == slrak_int) {
@@ -1493,9 +1506,9 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_div(row, exec->exec_chain_reg_,
-                    exec->int_regs_[dst->v_.regs_[r]],
-                    exec->int_regs_[left->v_.regs_[0]],
-                    exec->int_regs_[right->v_.regs_[r]]);
+                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR(left, 0),
+                    INT_REG_PTR(right, r));
     }
   }
   else if (right->kind_ == slrak_int) {
@@ -1507,9 +1520,9 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_div(row, exec->exec_chain_reg_,
-                    exec->int_regs_[dst->v_.regs_[r]],
-                    exec->int_regs_[left->v_.regs_[r]],
-                    exec->int_regs_[right->v_.regs_[0]]);
+                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR(left, r),
+                    INT_REG_PTR(right, 0));
     }
   }
 }
@@ -1538,9 +1551,9 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_reg_al
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_f_add(row, exec->exec_chain_reg_, 
-                        exec->float_regs_[dst->v_.regs_[r]],
-                        exec->float_regs_[left->v_.regs_[r]],
-                        exec->float_regs_[right->v_.regs_[r]]);
+                        FLOAT_REG_PTR(dst, r),
+                        FLOAT_REG_PTR(left, r),
+                        FLOAT_REG_PTR(right, r));
         }
         break;
       }
@@ -1557,9 +1570,9 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_reg_al
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_i_add(row, exec->exec_chain_reg_, 
-                        exec->int_regs_[dst->v_.regs_[r]],
-                        exec->int_regs_[left->v_.regs_[r]],
-                        exec->int_regs_[right->v_.regs_[r]]);
+                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR(left, r),
+                        INT_REG_PTR(right, r));
         }
         break;
       }
@@ -1577,9 +1590,9 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_add(row, exec->exec_chain_reg_, 
-                    exec->float_regs_[dst->v_.regs_[r]],
-                    exec->float_regs_[left->v_.regs_[0]],
-                    exec->float_regs_[right->v_.regs_[r]]);
+                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR(left, 0),
+                    FLOAT_REG_PTR(right, r));
     }
   }
   else if (right->kind_ == slrak_float) {
@@ -1594,9 +1607,9 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_add(row, exec->exec_chain_reg_, 
-                    exec->float_regs_[dst->v_.regs_[r]],
-                    exec->float_regs_[left->v_.regs_[r]],
-                    exec->float_regs_[right->v_.regs_[0]]);
+                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR(left, r),
+                    FLOAT_REG_PTR(right, 0));
     }
   }
   else if (left->kind_ == slrak_int) {
@@ -1608,9 +1621,9 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_add(row, exec->exec_chain_reg_,
-                    exec->int_regs_[dst->v_.regs_[r]],
-                    exec->int_regs_[left->v_.regs_[0]],
-                    exec->int_regs_[right->v_.regs_[r]]);
+                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR(left, 0),
+                    INT_REG_PTR(right, r));
     }
   }
   else if (right->kind_ == slrak_int) {
@@ -1622,9 +1635,9 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_add(row, exec->exec_chain_reg_,
-                    exec->int_regs_[dst->v_.regs_[r]],
-                    exec->int_regs_[left->v_.regs_[r]],
-                    exec->int_regs_[right->v_.regs_[0]]);
+                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR(left, r),
+                    INT_REG_PTR(right, 0));
     }
   }
 }
@@ -1653,9 +1666,9 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_reg_al
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_f_sub(row, exec->exec_chain_reg_, 
-                        exec->float_regs_[dst->v_.regs_[r]],
-                        exec->float_regs_[left->v_.regs_[r]],
-                        exec->float_regs_[right->v_.regs_[r]]);
+                        FLOAT_REG_PTR(dst, r),
+                        FLOAT_REG_PTR(left, r),
+                        FLOAT_REG_PTR(right, r));
         }
         break;
       }
@@ -1672,9 +1685,9 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_reg_al
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_i_sub(row, exec->exec_chain_reg_, 
-                        exec->int_regs_[dst->v_.regs_[r]],
-                        exec->int_regs_[left->v_.regs_[r]],
-                        exec->int_regs_[right->v_.regs_[r]]);
+                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR(left, r),
+                        INT_REG_PTR(right, r));
         }
         break;
       }
@@ -1692,9 +1705,9 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_sub(row, exec->exec_chain_reg_, 
-                    exec->float_regs_[dst->v_.regs_[r]],
-                    exec->float_regs_[left->v_.regs_[0]],
-                    exec->float_regs_[right->v_.regs_[r]]);
+                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR(left, 0),
+                    FLOAT_REG_PTR(right, r));
     }
   }
   else if (right->kind_ == slrak_float) {
@@ -1709,9 +1722,9 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_sub(row, exec->exec_chain_reg_, 
-                    exec->float_regs_[dst->v_.regs_[r]],
-                    exec->float_regs_[left->v_.regs_[r]],
-                    exec->float_regs_[right->v_.regs_[0]]);
+                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR(left, r),
+                    FLOAT_REG_PTR(right, 0));
     }
   }
   else if (left->kind_ == slrak_int) {
@@ -1723,9 +1736,9 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_sub(row, exec->exec_chain_reg_,
-                    exec->int_regs_[dst->v_.regs_[r]],
-                    exec->int_regs_[left->v_.regs_[0]],
-                    exec->int_regs_[right->v_.regs_[r]]);
+                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR(left, 0),
+                        INT_REG_PTR(right, r));
     }
   }
   else if (right->kind_ == slrak_int) {
@@ -1737,9 +1750,9 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_reg_al
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_sub(row, exec->exec_chain_reg_,
-                    exec->int_regs_[dst->v_.regs_[r]],
-                    exec->int_regs_[left->v_.regs_[r]],
-                    exec->int_regs_[right->v_.regs_[0]]);
+                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR(left, r),
+                        INT_REG_PTR(right, 0));
     }
   }
 }
@@ -1859,6 +1872,11 @@ int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu, stru
 
   exec->num_sampler_cube_regs_ = (size_t)cu->register_counts_.num_samplerCube_regs_;
   exec->sampler_cube_regs_ = (void **)new_samplerCube_regs;
+
+  int r = 0;
+  exec->num_execution_frames_ = 0;
+  r = sl_exec_push_execution_frame(exec);
+  if (r) return r;
 
   return 0;
 fail:
@@ -2124,7 +2142,7 @@ int sl_exec_call_graph_analysis(struct sl_exec_call_graph_results *cgr, struct s
   return sl_exec_cga_function_impl(cgr, f);
 }
 
-int sl_exec_push_execution_frame(struct sl_execution *exec) {
+static int sl_exec_push_execution_frame(struct sl_execution *exec) {
   if (exec->num_execution_frames_ == exec->num_execution_frames_allocated_) {
     size_t new_num_allocated = exec->num_execution_frames_allocated_ * 2 + 1;
     if (new_num_allocated <= exec->num_execution_frames_allocated_) {
@@ -2561,60 +2579,60 @@ int sl_exec_run(struct sl_execution *exec) {
           case exop_lt: {
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_lt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
               sl_exec_i_lt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             break;
           }
           case exop_le: {
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_le((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
               sl_exec_i_le((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             break;
           }
           case exop_ge: {
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_ge((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
               sl_exec_i_ge((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             break;
           }
           case exop_gt: {
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_gt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
               sl_exec_i_gt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             break;
           }
@@ -2622,39 +2640,39 @@ int sl_exec_run(struct sl_execution *exec) {
           case exop_eq: {
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_eq((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
               sl_exec_i_eq((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             break;
           }
           case exop_ne: {
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_ne((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->float_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           FLOAT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             else if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_int) {
               sl_exec_i_ne((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                           exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                           exec->int_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                           BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                           INT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             }
             break;
           }
 
           case exop_logical_xor: {
             sl_exec_logical_or((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
-                                exec->bool_regs_[eps[epi].v_.expr_->reg_alloc_.v_.regs_[0]], 
-                                exec->bool_regs_[eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.regs_[0]],
-                                exec->bool_regs_[eps[epi].v_.expr_->children_[1]->reg_alloc_.v_.regs_[0]]);
+                               BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
+                               BOOL_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
+                               BOOL_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
             break;
           }
 
