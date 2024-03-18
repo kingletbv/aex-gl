@@ -29,6 +29,8 @@ typedef enum sl_execution_point_kind {
 } sl_execution_point_kind_t;
 
 struct sl_execution_frame {
+  /* Function for which this frame is built */
+  struct sl_function *f_;
   /* Base offsets for the local frame of this execution point; each function invocation
    * gets its own register space sufficient for storing all locals and temps, at this offset */
   int local_float_offset_;
