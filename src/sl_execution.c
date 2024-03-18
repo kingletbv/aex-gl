@@ -737,18 +737,25 @@ static void sl_exec_split_chains_by_bool(struct sl_execution *exec, struct sl_re
   *pfalse_chain = false_chain;
 }
 
-static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *src) {
+static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *src, int array_quantity) {
   int num_components = 0;
   int n;
+  struct sl_execution_frame *ef = exec->execution_frames_ + exec->num_execution_frames_ - 1;
 
   switch (src->kind_) {
     case slrak_array: {
-      // XXX: Implement
+      if (dst->v_.array_.num_elements_ > (INT_MAX / array_quantity)) {
+        /* overflow */
+        return;
+      }
+      array_quantity *= (int)dst->v_.array_.num_elements_;
+      sl_exec_move(exec, row, dst->v_.array_.head_, src->v_.array_.head_, array_quantity);
+      break;
     }
     case slrak_struct: {
       size_t index;
       for (index = 0; index < src->v_.comp_.num_fields_; ++index) {
-        sl_exec_move(exec, row, dst->v_.comp_.fields_ + index, src->v_.comp_.fields_ + index);
+        sl_exec_move(exec, row, dst->v_.comp_.fields_ + index, src->v_.comp_.fields_ + index, array_quantity);
       }
       break;
     }
@@ -770,7 +777,13 @@ static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_a
           break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_f_move(row, exec->exec_chain_reg_, exec->float_regs_[dst->v_.regs_[n]], exec->float_regs_[src->v_.regs_[n]]);
+        int dst_reg = dst->local_frame_ ? ef->local_float_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
+        int src_reg = src->local_frame_ ? ef->local_float_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
+
+        int k;
+        for (k = 0; k < array_quantity; ++k) {
+          sl_exec_f_move(row, exec->exec_chain_reg_, exec->float_regs_[dst_reg + k], exec->float_regs_[src_reg + k]);
+        }
       }
       break;
     }
@@ -785,7 +798,13 @@ static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_a
         case slrak_ivec4: num_components = 4; break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_i_move(row, exec->exec_chain_reg_, exec->int_regs_[dst->v_.regs_[n]], exec->int_regs_[src->v_.regs_[n]]);
+        int dst_reg = dst->local_frame_ ? ef->local_int_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
+        int src_reg = src->local_frame_ ? ef->local_int_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
+
+        int k;
+        for (k = 0; k < array_quantity; ++k) {
+          sl_exec_i_move(row, exec->exec_chain_reg_, exec->int_regs_[dst_reg + k], exec->int_regs_[src_reg + k]);
+        }
       }
       break;
     }
@@ -800,25 +819,37 @@ static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_a
         case slrak_bvec4: num_components = 4; break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_b_move(row, exec->exec_chain_reg_, exec->bool_regs_[dst->v_.regs_[n]], exec->bool_regs_[src->v_.regs_[n]]);
+        int dst_reg = dst->local_frame_ ? ef->local_bool_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
+        int src_reg = src->local_frame_ ? ef->local_bool_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
+
+        int k;
+        for (k = 0; k < array_quantity; ++k) {
+          sl_exec_b_move(row, exec->exec_chain_reg_, exec->bool_regs_[dst_reg + k], exec->bool_regs_[src_reg + k]);
+        }
       }
       break;
     }
   }
 }
 
-static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl_execution_frame *dst_ef, struct sl_reg_alloc *dst, struct sl_execution_frame *src_ef, struct sl_reg_alloc *src) {
+static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl_execution_frame *dst_ef, struct sl_reg_alloc *dst, struct sl_execution_frame *src_ef, struct sl_reg_alloc *src, int array_quantity) {
   int num_components = 0;
   int n;
 
   switch (src->kind_) {
     case slrak_array: {
-      // XXX: Implement
+      if (dst->v_.array_.num_elements_ > (INT_MAX / array_quantity)) {
+        /* overflow */
+        return;
+      }
+      array_quantity *= (int)dst->v_.array_.num_elements_;
+      sl_exec_move_param(exec, row, dst_ef, dst->v_.array_.head_, src_ef, src->v_.array_.head_, array_quantity);
+      break;
     }
     case slrak_struct: {
       size_t index;
       for (index = 0; index < src->v_.comp_.num_fields_; ++index) {
-        sl_exec_move_param(exec, row, dst_ef, dst->v_.comp_.fields_ + index, src_ef, src->v_.comp_.fields_ + index);
+        sl_exec_move_param(exec, row, dst_ef, dst->v_.comp_.fields_ + index, src_ef, src->v_.comp_.fields_ + index, array_quantity);
       }
       break;
     }
@@ -840,11 +871,13 @@ static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl
           break;
       }
       for (n = 0; n < num_components; ++n) {
-        int src_reg, dst_reg;
-        src_reg = src->local_frame_ ? src_ef->local_float_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
-        dst_reg = dst->local_frame_ ? dst_ef->local_float_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
+        int dst_reg = dst->local_frame_ ? dst_ef->local_float_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
+        int src_reg = src->local_frame_ ? src_ef->local_float_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
 
-        sl_exec_f_move(row, exec->exec_chain_reg_, exec->float_regs_[dst_reg], exec->float_regs_[src_reg]);
+        int k;
+        for (k = 0; k < array_quantity; ++k) {
+          sl_exec_f_move(row, exec->exec_chain_reg_, exec->float_regs_[dst_reg + k], exec->float_regs_[src_reg + k]);
+        }
       }
       break;
     }
@@ -859,11 +892,13 @@ static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl
         case slrak_ivec4: num_components = 4; break;
       }
       for (n = 0; n < num_components; ++n) {
-        int src_reg, dst_reg;
-        src_reg = src->local_frame_ ? src_ef->local_int_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
-        dst_reg = dst->local_frame_ ? dst_ef->local_int_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
+        int dst_reg = dst->local_frame_ ? dst_ef->local_int_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
+        int src_reg = src->local_frame_ ? src_ef->local_int_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
 
-        sl_exec_i_move(row, exec->exec_chain_reg_, exec->int_regs_[dst_reg], exec->int_regs_[src_reg]);
+        int k;
+        for (k = 0; k < array_quantity; ++k) {
+          sl_exec_i_move(row, exec->exec_chain_reg_, exec->int_regs_[dst_reg + k], exec->int_regs_[src_reg + k]);
+        }
       }
       break;
     }
@@ -878,19 +913,19 @@ static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl
         case slrak_bvec4: num_components = 4; break;
       }
       for (n = 0; n < num_components; ++n) {
-        sl_exec_b_move(row, exec->exec_chain_reg_, exec->bool_regs_[dst->v_.regs_[n]], exec->bool_regs_[src->v_.regs_[n]]);
+        int dst_reg = dst->local_frame_ ? dst_ef->local_bool_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
+        int src_reg = src->local_frame_ ? src_ef->local_bool_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
 
-        int src_reg, dst_reg;
-        src_reg = src->local_frame_ ? src_ef->local_bool_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
-        dst_reg = dst->local_frame_ ? dst_ef->local_bool_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
-
-        sl_exec_b_move(row, exec->exec_chain_reg_, exec->bool_regs_[dst_reg], exec->bool_regs_[src_reg]);
-
+        int k;
+        for (k = 0; k < array_quantity; ++k) {
+          sl_exec_b_move(row, exec->exec_chain_reg_, exec->bool_regs_[dst_reg + k], exec->bool_regs_[src_reg + k]);
+        }
       }
       break;
     }
   }
 }
+
 
 static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_expr_temp *src) {
   int num_components = 0;
@@ -2365,7 +2400,7 @@ int sl_exec_run(struct sl_execution *exec) {
           case exop_variable: {
             /* The value is already in the appropriate registers; do the move anyway, as, though
              * it will turn into a no-op, it reduces coupling. */
-            sl_exec_move(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->variable_->reg_alloc_);
+            sl_exec_move(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->variable_->reg_alloc_, 1);
             break;
           }
           case exop_literal: {
@@ -2626,7 +2661,7 @@ int sl_exec_run(struct sl_execution *exec) {
                                          &true_chain, &false_chain);
             eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
             /* Child 0 == false ? Move child 0 result to our result and pass on to continuation. */
-            sl_exec_move(exec, false_chain, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_move(exec, false_chain, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_, 1);
             uint32_t *chain_ptr = (uint32_t *)(((uintptr_t)exec->execution_points_) + eps[epi].continue_chain_ptr_);
             *chain_ptr = sl_exec_join_chains(exec, *chain_ptr, false_chain);
             
@@ -2649,7 +2684,7 @@ int sl_exec_run(struct sl_execution *exec) {
                                          &true_chain, &false_chain);
             eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
             /* Child 0 == true ? Move child 0 result to our result and pass on to continuation */
-            sl_exec_move(exec, true_chain, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_move(exec, true_chain, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_, 1);
             uint32_t *chain_ptr = (uint32_t *)(((uintptr_t)exec->execution_points_) + eps[epi].continue_chain_ptr_);
             *chain_ptr = sl_exec_join_chains(exec, *chain_ptr, true_chain);
 
@@ -2703,7 +2738,7 @@ int sl_exec_run(struct sl_execution *exec) {
               struct sl_reg_alloc *param_ra = &ef->f_->parameters_[n].variable_->reg_alloc_;
               struct sl_reg_alloc *call_arg_ra = &eps[epi].v_.expr_->children_[n]->reg_alloc_;
 
-              sl_exec_move_param(exec, eps[epi].revisit_chain_, ef, param_ra, parent, call_arg_ra);
+              sl_exec_move_param(exec, eps[epi].revisit_chain_, ef, param_ra, parent, call_arg_ra, 1);
             }
 
             r = sl_exec_push_stmt(exec, ef->f_->body_, eps[epi].revisit_chain_, CHAIN_REF(eps[epi].alt_chain_));
@@ -2728,13 +2763,13 @@ int sl_exec_run(struct sl_execution *exec) {
           case exop_conditional: {
             /* Move true results into our own register; register allocation tries to make this the same register
              * but can't guarantee it (e.g. if the true branch is a variable, it'll have a different reg.) */
-            sl_exec_move(exec, eps[epi].post_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+            sl_exec_move(exec, eps[epi].post_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[1]->reg_alloc_, 1);
             break;
           }
           case exop_logical_or:
           case exop_logical_and: {
             /* Move result from second child into result of logical-and or logical-or expression node */
-            sl_exec_move(exec, eps[epi].post_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+            sl_exec_move(exec, eps[epi].post_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[1]->reg_alloc_, 1);
             break;
           }
         }
@@ -2746,7 +2781,7 @@ int sl_exec_run(struct sl_execution *exec) {
         switch (eps[epi].v_.expr_->op_) {
           case exop_conditional: {
             /* Handle completion of the false branch's execution */
-            sl_exec_move(exec, eps[epi].alt_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[2]->reg_alloc_);
+            sl_exec_move(exec, eps[epi].alt_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[2]->reg_alloc_, 1);
             break;
           }
           case exop_function_call: {
@@ -2763,7 +2798,7 @@ int sl_exec_run(struct sl_execution *exec) {
               struct sl_type *param_type = param->type_;
               int qualifiers = sl_type_qualifiers(param_type);
               if ((qualifiers & SL_PARAMETER_QUALIFIER_OUT) && (qualifiers & SL_PARAMETER_QUALIFIER_INOUT)) {
-                sl_exec_move_param(exec, eps[epi].revisit_chain_, parent_frame, call_arg_ra, func_frame, param_ra);
+                sl_exec_move_param(exec, eps[epi].revisit_chain_, parent_frame, call_arg_ra, func_frame, param_ra, 1);
               }
             }
             exec->num_execution_frames_--;
