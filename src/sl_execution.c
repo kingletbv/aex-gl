@@ -2945,12 +2945,12 @@ int sl_exec_run(struct sl_execution *exec) {
                                   &eps[epi].v_.expr_->reg_alloc_,
                                   &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                                   eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_);
-              /* Inc/Decrement the rvalue into the R value */
+              /* Inc/Decrement the value from the result into the R value of the child */
               if (eps[epi].v_.expr_->op_ == exop_post_inc) {
-                sl_exec_increment(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->reg_alloc_.rvalue_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+                sl_exec_increment(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[0]->reg_alloc_.rvalue_, &eps[epi].v_.expr_->reg_alloc_);
               }
               else /* (eps[epi].v_->expr_->op_ == exop_pre_dec) */ {
-                sl_exec_decrement(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->reg_alloc_.rvalue_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+                sl_exec_decrement(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[0]->reg_alloc_.rvalue_, &eps[epi].v_.expr_->reg_alloc_);
               }
               /* The result will now hold the original value, the R-value of the child now holds the
                * incremented value. Store the R-Value of the child into the child's L-Value (at the offset). */
@@ -2992,7 +2992,7 @@ int sl_exec_run(struct sl_execution *exec) {
                 sl_exec_decrement(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_, eps[epi].v_.expr_->children_[0]->reg_alloc_.rvalue_);
               }
               
-              /* Store the result value into the original L-value */
+              /* Store the result value into the original child's l-value */
               sl_exec_offset_store(exec, eps[epi].revisit_chain_,
                                    &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                                    eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_,
