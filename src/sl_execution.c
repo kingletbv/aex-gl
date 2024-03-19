@@ -184,6 +184,22 @@ void sl_exec_i_mul(uint8_t row, uint8_t *restrict chain_column, int64_t *restric
 #undef BINOP_SNIPPET_TYPE
 }
 
+void sl_exec_i_mul_constant(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const int64_t *restrict opd_column, int64_t constant_val) {
+#define UNOP_SNIPPET_OPERATOR(opd) (opd * constant_val)
+#define UNOP_SNIPPET_TYPE int64_t
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_mul_constant_and_add(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const int64_t *restrict left_column, const int64_t *restrict right_column, int64_t constant_val) {
+#define BINOP_SNIPPET_OPERATOR(left, right) left * constant_val + right
+#define BINOP_SNIPPET_TYPE int64_t
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
 void sl_exec_f_div(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
 #define BINOP_SNIPPET_OPERATOR(left, right) left / right
 #define BINOP_SNIPPET_TYPE float
@@ -2927,13 +2943,40 @@ int sl_exec_run(struct sl_execution *exec) {
       else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.expr_->op_) {
           case exop_array_subscript: {
-            // XXX: This is not what you're supposed to do here for you'll lose the L-Value that you might still need.
-            // XXX: Take the fixed array size that this subscript indexes, if the array child has an offset_, multiply
-            //      the offset value to form the new offset, then be done. We don't need to do anything on the lvalue
-            //      itself as the register allocator has ensured it is the correct field subset.
-            sl_exec_offset_load(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, 
-                                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
-                                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+            // Take the fixed array size that this subscript indexes, if the array child has an offset_, multiply
+            // the offset value to form the new offset, then be done. We don't need to do anything on the lvalue
+            // itself as the register allocator has ensured it is the correct field subset.
+            if (eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_) {
+              if (&eps[epi].v_.expr_->children_[1]->reg_alloc_.offset_) {
+                sl_exec_offset_load(exec, eps[epi].revisit_chain_, 
+                                    eps[epi].v_.expr_->children_[1]->reg_alloc_.rvalue_,
+                                    &eps[epi].v_.expr_->children_[1]->reg_alloc_,
+                                    eps[epi].v_.expr_->children_[1]->reg_alloc_.offset_);
+              }
+              
+              /* New offset = old-offset * array-size + array-subscript-index */
+              sl_exec_i_mul_constant_and_add(eps[epi].revisit_chain_, exec->exec_chain_reg_,
+                                             INT_REG_PTR_NRV(eps[epi].v_.expr_->reg_alloc_.offset_, 0),
+                                             INT_REG_PTR_NRV(eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_, 0),
+                                             INT_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0),
+                                             (int64_t)eps[epi].v_.expr_->children_[0]->reg_alloc_.v_.array_.num_elements_);
+
+            }
+            else {
+              if (&eps[epi].v_.expr_->children_[1]->reg_alloc_.offset_) {
+                /* Don't allow recursive offset_, load directly from offseted child entry into offset_ so we can
+                 * compute with it directly from here on out. */
+                sl_exec_offset_load(exec, eps[epi].revisit_chain_, 
+                                    eps[epi].v_.expr_->reg_alloc_.offset_,
+                                    &eps[epi].v_.expr_->children_[1]->reg_alloc_,
+                                    eps[epi].v_.expr_->children_[1]->reg_alloc_.offset_);
+              }
+              else {
+                sl_exec_move(exec, eps[epi].revisit_chain_, 
+                             eps[epi].v_.expr_->reg_alloc_.offset_, 
+                             &eps[epi].v_.expr_->children_[1]->reg_alloc_, 1);
+              }
+            }
             break;
           }
 
