@@ -2959,6 +2959,21 @@ int sl_exec_run(struct sl_execution *exec) {
                                    eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_,
                                    eps[epi].v_.expr_->children_[0]->reg_alloc_.rvalue_);
             }
+            else {
+              /* Move the pre-existing value into the result */
+              sl_exec_move(exec, eps[epi].revisit_chain_, 
+                           &eps[epi].v_.expr_->reg_alloc_, 
+                           &eps[epi].v_.expr_->children_[0]->reg_alloc_,
+                           1);
+
+              /* And then Inc/Decrement the value from the result (the pre-existing one) into the child's l-value */
+              if (eps[epi].v_.expr_->op_ == exop_post_inc) {
+                sl_exec_increment(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_, &eps[epi].v_.expr_->reg_alloc_);
+              }
+              else /* (eps[epi].v_->expr_->op_ == exop_pre_dec) */ {
+                sl_exec_decrement(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_, &eps[epi].v_.expr_->reg_alloc_);
+              }
+            }
             break;
           }
           case exop_pre_inc:
