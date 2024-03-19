@@ -2509,33 +2509,7 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
 
     return r;
   }
-  else if ((x->op_ == exop_post_inc) || (x->op_ == exop_post_dec) ||
-           (x->op_ == exop_pre_inc) || (x->op_ == exop_pre_dec)) {
-    /* Allocate the pre_XX and post_XX as if it was "x += 1", so we allocate both
-     * rvalue_ and the lvalue concurrently, and then release. Because we're doing this
-     * evaluation either prior to the main expression or following the main expression, 
-     * it is quite more stress on registers (a possible over-allocation), but is the
-     * easiest way of doing it for now. */
-
-    /* Recursively process lvalue child */
-    r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[0]);
-
-    /* Make sure we have an rvalue allocation for the increment or decrement */
-    r = r ? r : sl_expr_need_rvalue(tb, ract, x->children_[0]);
-
-    /* Clone the lvalue out to the caller (the rvalue_ (if any) is not available as
-     * that would imply a separate load operation which may not be needed.) */
-    r = r ? r : sl_expr_clone_lvalue(&x->reg_alloc_, &x->children_[0]->reg_alloc_);
-
-    /* If there is an rvalue in the child, unlock it */
-    if (x->children_[0]->reg_alloc_.rvalue_) {
-      r = r ? r : sl_reg_allocator_unlock(ract, x->children_[0]->reg_alloc_.rvalue_);
-    }
-
-    /* lvalue remains locked as it is now identical to x->reg_alloc_. */
-    return r;
-  }
-
+  
   /* Recursively process each child. On the return from sl_expr_alloc_register_main_pass() the
    * corresponding x->children_[n]->reg_alloc_ will be held locked. */
   for (n = 0; n < x->num_children_; ++n) {
