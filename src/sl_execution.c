@@ -53,15 +53,29 @@
 #include "sl_compilation_unit.h"
 #endif
 
+/* pass in a reg_alloc and return the reg_alloc representing its r-value; this depends on whether it has an offset_,
+ * if it has an offset (a number of registers beyond the base register) then the value should have been loaded into
+ * a separate r-value. */
+#define REG_ALLOC_RVALUE(reg_alloc_ptr) ((reg_alloc_ptr)->offset_ ? (reg_alloc_ptr)->rvalue_ : (reg_alloc_ptr))
+
 /* pass in reg_alloc_ptr, a pointer to the sl_reg_alloc to load the register pointer for, and element_index, an index of the element/or component (e.g. the XYZ for a vec3, 0 for a scalar).
  * returns a pointer to the corresponding register for XXX_REG_PTR, and the index of the actual register (after frame corrections) for XXX_REG_INDEX */
-#define FLOAT_REG_INDEX(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_float_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
-#define INT_REG_INDEX(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_int_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
-#define BOOL_REG_INDEX(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_bool_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
+#define FLOAT_REG_INDEX(reg_alloc_ptr, element_index) (REG_ALLOC_RVALUE(reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_float_offset_ + REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index] : REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index])
+#define INT_REG_INDEX(reg_alloc_ptr, element_index) (REG_ALLOC_RVALUE(reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_int_offset_ + REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index] : REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index])
+#define BOOL_REG_INDEX(reg_alloc_ptr, element_index) (REG_ALLOC_RVALUE(reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_bool_offset_ + REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index] : REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index])
 
 #define FLOAT_REG_PTR(reg_alloc_ptr, element_index) exec->float_regs_[FLOAT_REG_INDEX(reg_alloc_ptr, element_index)]
 #define INT_REG_PTR(reg_alloc_ptr, element_index) exec->int_regs_[INT_REG_INDEX(reg_alloc_ptr, element_index)]
 #define BOOL_REG_PTR(reg_alloc_ptr, element_index) exec->bool_regs_[BOOL_REG_INDEX(reg_alloc_ptr, element_index)]
+
+/* Same as above, but ignoring offset and rvalue; use these for manually working with the offsets and rvalues */
+#define FLOAT_REG_INDEX_NRV(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_float_offset_ + REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index] : REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index])
+#define INT_REG_INDEX_NRV(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_int_offset_ + REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index] : REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index])
+#define BOOL_REG_INDEX_NRV(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_bool_offset_ + REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index] : REG_ALLOC_RVALUE(reg_alloc_ptr)->v_.regs_[element_index])
+
+#define FLOAT_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->float_regs_[FLOAT_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
+#define INT_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->int_regs_[INT_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
+#define BOOL_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->bool_regs_[BOOL_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
 
 
 static int sl_exec_push_execution_frame(struct sl_execution *exec);
@@ -96,6 +110,62 @@ void sl_exec_i_sub(uint8_t row, uint8_t *restrict chain_column, int64_t *restric
 #include "sl_binop_snippet_inc.h"
 #undef BINOP_SNIPPET_OPERATOR
 #undef BINOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_increment(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) (opd + 1.f)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_increment(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const int64_t *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) (opd + 1)
+#define UNOP_SNIPPET_TYPE int64_t
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_decrement(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) (opd - 1.f)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_decrement(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const int64_t *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) (opd - 1)
+#define UNOP_SNIPPET_TYPE int64_t
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_b_logical_not(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const uint8_t *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) !opd
+#define UNOP_SNIPPET_TYPE uint8_t
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_negate(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) -opd
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_negate(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const int64_t *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) -opd
+#define UNOP_SNIPPET_TYPE int64_t
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
 }
 
 void sl_exec_f_mul(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict left_column, const float *restrict right_column) {
@@ -1036,102 +1106,412 @@ static void sl_exec_init_literal(struct sl_execution *exec, uint8_t row, struct 
   }
 }
 
-static void sl_exec_f_array_subscript_load(uint8_t *restrict chain_column,
-                                           uint8_t row,
-                                           float * restrict dst,
-                                           const float * restrict * restrict float_regs,
-                                           const int * restrict array_indirections,
-                                           const size_t array_indirections_stride,
-                                           const int64_t * restrict index) {
+static void sl_exec_f_offset_load(uint8_t * restrict chain_column,
+                                  uint8_t row,
+                                  float * restrict dst,
+                                  const float * restrict * restrict float_regs,
+                                  int base_reg,
+                                  const int64_t * restrict indices) {
   for (;;) {
-    /* Not trying to evoke auto-vectorization, just get it done. */
-    float *restrict result = dst + row;
-    const float *restrict src = float_regs[*(const int * restrict)(((const char * restrict)array_indirections) + array_indirections_stride * index[row])];
-    *result = *src;
+    float * restrict dst_row = dst + row;
+    const float * restrict src_row = float_regs[base_reg + indices[row]];
+    
+    *dst_row = *src_row;
+
     uint8_t delta = chain_column[row];
-    if (!delta) goto done;
+    if (!delta) return;
     row += delta;
   }
-done:;
 }
 
-static void sl_exec_i_array_subscript_load(uint8_t *restrict chain_column,
-                                           uint8_t row,
-                                           int64_t * restrict dst,
-                                           const int64_t * restrict * restrict int_regs,
-                                           const int * restrict array_indirections,
-                                           const size_t array_indirections_stride,
-                                           const int64_t * restrict index) {
+static void sl_exec_i_offset_load(uint8_t * restrict chain_column,
+                                  uint8_t row,
+                                  int64_t * restrict dst,
+                                  const int64_t * restrict * restrict int_regs,
+                                  int base_reg,
+                                  const int64_t * restrict indices) {
   for (;;) {
-    /* Not trying to evoke auto-vectorization, just get it done. */
-    int64_t *restrict result = dst + row;
-    const int64_t *restrict src = int_regs[*(const int * restrict)(((const char * restrict)array_indirections) + array_indirections_stride * index[row])];
-    *result = *src;
+    int64_t * restrict dst_row = dst + row;
+    const int64_t * restrict src_row = int_regs[base_reg + indices[row]];
+    
+    *dst_row = *src_row;
+
     uint8_t delta = chain_column[row];
-    if (!delta) goto done;
+    if (!delta) return;
     row += delta;
   }
-done:;
 }
 
-static void sl_exec_b_array_subscript_load(uint8_t *restrict chain_column,
-                                           uint8_t row,
-                                           uint8_t * restrict dst,
-                                           const uint8_t * restrict * restrict bool_regs,
-                                           const int * restrict array_indirections,
-                                           const size_t array_indirections_stride,
-                                           const int64_t * restrict index) {
+static void sl_exec_b_offset_load(uint8_t * restrict chain_column,
+                                  uint8_t row,
+                                  uint8_t * restrict dst,
+                                  const uint8_t * restrict * restrict bool_regs,
+                                  int base_reg,
+                                  const int64_t * restrict indices) {
   for (;;) {
-    /* Not trying to evoke auto-vectorization, just get it done. */
-    uint8_t *restrict result = dst + row;
-    const uint8_t *restrict src = bool_regs[*(const int * restrict)(((const char * restrict)array_indirections) + array_indirections_stride * index[row])];
-    *result = *src;
+    uint8_t * restrict dst_row = dst + row;
+    const uint8_t * restrict src_row = bool_regs[base_reg + indices[row]];
+    
+    *dst_row = *src_row;
+
     uint8_t delta = chain_column[row];
-    if (!delta) goto done;
+    if (!delta) return;
     row += delta;
   }
-done:;
 }
 
-static void sl_exec_array_subscript_load(struct sl_execution *exec, uint8_t row, 
-                                         struct sl_reg_alloc *dst,
-                                         const struct sl_reg_alloc *arr,
-                                         const struct sl_reg_alloc *index) {
+static void sl_exec_offset_load(struct sl_execution *exec, uint8_t row, 
+                                struct sl_reg_alloc *dst,
+                                const struct sl_reg_alloc *arr,
+                                const struct sl_reg_alloc *index) {
+  size_t num_components = 0;
+  size_t n;
   switch (arr->kind_) {
-    case slrak_float: {
-      sl_exec_f_array_subscript_load(exec->exec_chain_reg_, row, 
-                                     FLOAT_REG_PTR(dst, 0), 
-                                     exec->float_regs_,
-                                     index->v_.regs_,
-                                     sizeof(*index),
-                                     INT_REG_PTR(index, 0));
+    case slrak_float:
+    case slrak_vec2:
+    case slrak_vec3:
+    case slrak_vec4:
+    case slrak_mat2:
+    case slrak_mat3:
+    case slrak_mat4: {
+      switch (arr->kind_) {
+        case slrak_float: num_components = 1; break;
+        case slrak_vec2: num_components = 2; break;
+        case slrak_vec3: num_components = 3; break;
+        case slrak_vec4: num_components = 4; break;
+        case slrak_mat2: num_components = 4; break;
+        case slrak_mat3: num_components = 9; break;
+        case slrak_mat4: num_components = 16; break;
+      }
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_f_offset_load(exec->exec_chain_reg_, row,
+                                       FLOAT_REG_PTR(dst, n),
+                                       exec->float_regs_,
+                                       INT_REG_INDEX_NRV(arr, n),
+                                       INT_REG_PTR_NRV(index, 0));
+      }
       break;
     }
-    case slrak_vec2: {
-      // .... hmmmmm ......
+
+    case slrak_int:
+    case slrak_ivec2:
+    case slrak_ivec3:
+    case slrak_ivec4: {
+      switch (arr->kind_) {
+        case slrak_int: num_components = 1; break;
+        case slrak_ivec2: num_components = 2; break;
+        case slrak_ivec3: num_components = 3; break;
+        case slrak_ivec4: num_components = 4; break;
+      }
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_i_offset_load(exec->exec_chain_reg_, row,
+                                       INT_REG_PTR(dst, n),
+                                       exec->int_regs_,
+                                       INT_REG_INDEX_NRV(arr, n),
+                                       INT_REG_PTR_NRV(index, 0));
+      }
       break;
     }
-    case slrak_int: {
-      sl_exec_i_array_subscript_load(exec->exec_chain_reg_, row,
-                                     INT_REG_PTR(dst, 0),
-                                     exec->int_regs_,
-                                     index->v_.regs_,
-                                     sizeof(*index),
-                                     INT_REG_PTR(index, 0));
-      break;
-    }
-    case slrak_bool: {
-      sl_exec_b_array_subscript_load(exec->exec_chain_reg_, row,
-                                     BOOL_REG_PTR(dst, 0),
-                                     exec->bool_regs_,
-                                     index->v_.regs_,
-                                     sizeof(*index),
-                                     INT_REG_PTR(index, 0));
+    case slrak_bool:
+    case slrak_bvec2:
+    case slrak_bvec3:
+    case slrak_bvec4: {
+      switch (arr->kind_) {
+        case slrak_bool: num_components = 1; break;
+        case slrak_bvec2: num_components = 2; break;
+        case slrak_bvec3: num_components = 3; break;
+        case slrak_bvec4: num_components = 4; break;
+      }
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_b_offset_load(exec->exec_chain_reg_, row,
+                                       BOOL_REG_PTR(dst, n),
+                                       exec->bool_regs_,
+                                       INT_REG_INDEX_NRV(arr, n),
+                                       INT_REG_PTR_NRV(index, 0));
+      }
       break;
     }
   }
 }
-   
+
+static void sl_exec_f_offset_store(uint8_t * restrict chain_column,
+                                   uint8_t row,
+                                   float * restrict * restrict float_regs,
+                                   int base_reg,
+                                   const int64_t * restrict indices,
+                                   const float * restrict src) {
+  for (;;) {
+    float * restrict dst_row = float_regs[base_reg + indices[row]];
+    const float * restrict src_row = src + row;
+    
+    *dst_row = *src_row;
+
+    uint8_t delta = chain_column[row];
+    if (!delta) return;
+    row += delta;
+  }
+}
+
+static void sl_exec_i_offset_store(uint8_t * restrict chain_column,
+                                   uint8_t row,
+                                   int64_t * restrict * restrict int_regs,
+                                   int base_reg,
+                                   const int64_t * restrict indices,
+                                   const int64_t * restrict src) {
+  for (;;) {
+    int64_t * restrict dst_row = int_regs[base_reg + indices[row]];
+    const int64_t * restrict src_row = src + row;
+    
+    *dst_row = *src_row;
+
+    uint8_t delta = chain_column[row];
+    if (!delta) return;
+    row += delta;
+  }
+}
+
+static void sl_exec_b_offset_store(uint8_t * restrict chain_column,
+                                   uint8_t row,
+                                   uint8_t * restrict * restrict bool_regs,
+                                   int base_reg,
+                                   const int64_t * restrict indices,
+                                   const uint8_t * restrict src) {
+  for (;;) {
+    uint8_t * restrict dst_row = bool_regs[base_reg + indices[row]];
+    const uint8_t * restrict src_row = src + row;
+    
+    *dst_row = *src_row;
+
+    uint8_t delta = chain_column[row];
+    if (!delta) return;
+    row += delta;
+  }
+}
+
+
+static void sl_exec_offset_store(struct sl_execution *exec, uint8_t row, 
+                                 struct sl_reg_alloc *dst_arr,
+                                 struct sl_reg_alloc *dst_index,
+                                 const struct sl_reg_alloc *src) {
+  size_t num_components = 0;
+  size_t n;
+  switch (dst_arr->kind_) {
+    case slrak_float:
+    case slrak_vec2:
+    case slrak_vec3:
+    case slrak_vec4:
+    case slrak_mat2:
+    case slrak_mat3:
+    case slrak_mat4: {
+      switch (dst_arr->kind_) {
+        case slrak_float: num_components = 1; break;
+        case slrak_vec2: num_components = 2; break;
+        case slrak_vec3: num_components = 3; break;
+        case slrak_vec4: num_components = 4; break;
+        case slrak_mat2: num_components = 4; break;
+        case slrak_mat3: num_components = 9; break;
+        case slrak_mat4: num_components = 16; break;
+      }
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_f_offset_store(exec->exec_chain_reg_, row,
+                               exec->float_regs_,
+                               INT_REG_INDEX_NRV(dst_arr, n),
+                               INT_REG_PTR(dst_index, 0),
+                               FLOAT_REG_PTR(src, n));
+      }
+      break;
+    }
+
+    case slrak_int:
+    case slrak_ivec2:
+    case slrak_ivec3:
+    case slrak_ivec4: {
+      switch (dst_arr->kind_) {
+        case slrak_int: num_components = 1; break;
+        case slrak_ivec2: num_components = 2; break;
+        case slrak_ivec3: num_components = 3; break;
+        case slrak_ivec4: num_components = 4; break;
+      }
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_i_offset_store(exec->exec_chain_reg_, row,
+                               exec->int_regs_,
+                               INT_REG_INDEX_NRV(dst_arr, n),
+                               INT_REG_PTR(dst_index, 0),
+                               INT_REG_PTR(src, n));
+      }
+      break;
+    }
+    case slrak_bool:
+    case slrak_bvec2:
+    case slrak_bvec3:
+    case slrak_bvec4: {
+      switch (dst_arr->kind_) {
+        case slrak_bool: num_components = 1; break;
+        case slrak_bvec2: num_components = 2; break;
+        case slrak_bvec3: num_components = 3; break;
+        case slrak_bvec4: num_components = 4; break;
+      }
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_b_offset_store(exec->exec_chain_reg_, row,
+                               exec->bool_regs_,
+                               INT_REG_INDEX_NRV(dst_arr, n),
+                               INT_REG_PTR(dst_index, 0),
+                               BOOL_REG_PTR(src, n));
+      }
+      break;
+    }
+  }
+}
+
+static void sl_exec_decrement(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *opd) {
+  switch (opd->kind_) {
+    case slrak_float:
+    case slrak_vec2:
+    case slrak_vec3:
+    case slrak_vec4:
+    case slrak_mat2:
+    case slrak_mat3:
+    case slrak_mat4: {
+      size_t num_components = 0;
+      switch (opd->kind_) {
+        case slrak_float: num_components = 1; break;
+        case slrak_vec2: num_components = 2; break;
+        case slrak_vec3: num_components = 3; break;
+        case slrak_vec4: num_components = 4; break;
+        case slrak_mat2: num_components = 4; break;
+        case slrak_mat3: num_components = 9; break;
+        case slrak_mat4: num_components = 16; break;
+      }
+      size_t n;
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_f_decrement(row, exec->exec_chain_reg_, FLOAT_REG_PTR(dst, n), FLOAT_REG_PTR(opd, n));
+      }
+      break;
+    }
+    case slrak_int:
+    case slrak_ivec2:
+    case slrak_ivec3:
+    case slrak_ivec4: {
+      size_t num_components = 0;
+      switch (opd->kind_) {
+        case slrak_int:  num_components = 1; break;
+        case slrak_ivec2:num_components = 2; break;
+        case slrak_ivec3:num_components = 3; break;
+        case slrak_ivec4:num_components = 4; break;
+      }
+      size_t n;
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_i_decrement(row, exec->exec_chain_reg_, INT_REG_PTR(dst, n), INT_REG_PTR(opd, n));
+      }
+      break;
+    }
+  }
+}
+
+static void sl_exec_increment(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *opd) {
+  switch (opd->kind_) {
+    case slrak_float:
+    case slrak_vec2:
+    case slrak_vec3:
+    case slrak_vec4:
+    case slrak_mat2:
+    case slrak_mat3:
+    case slrak_mat4: {
+      size_t num_components = 0;
+      switch (opd->kind_) {
+        case slrak_float: num_components = 1; break;
+        case slrak_vec2: num_components = 2; break;
+        case slrak_vec3: num_components = 3; break;
+        case slrak_vec4: num_components = 4; break;
+        case slrak_mat2: num_components = 4; break;
+        case slrak_mat3: num_components = 9; break;
+        case slrak_mat4: num_components = 16; break;
+      }
+      size_t n;
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_f_increment(row, exec->exec_chain_reg_, FLOAT_REG_PTR(dst, n), FLOAT_REG_PTR(opd, n));
+      }
+      break;
+    }
+    case slrak_int:
+    case slrak_ivec2:
+    case slrak_ivec3:
+    case slrak_ivec4: {
+      size_t num_components = 0;
+      switch (opd->kind_) {
+        case slrak_int:  num_components = 1; break;
+        case slrak_ivec2:num_components = 2; break;
+        case slrak_ivec3:num_components = 3; break;
+        case slrak_ivec4:num_components = 4; break;
+      }
+      size_t n;
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_i_increment(row, exec->exec_chain_reg_, INT_REG_PTR(dst, n), INT_REG_PTR(opd, n));
+      }
+      break;
+    }
+  }
+}
+
+static void sl_exec_negate(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *opd) {
+  switch (opd->kind_) {
+    case slrak_float:
+    case slrak_vec2:
+    case slrak_vec3:
+    case slrak_vec4:
+    case slrak_mat2:
+    case slrak_mat3:
+    case slrak_mat4: {
+      size_t num_components = 0;
+      switch (opd->kind_) {
+        case slrak_float: num_components = 1; break;
+        case slrak_vec2: num_components = 2; break;
+        case slrak_vec3: num_components = 3; break;
+        case slrak_vec4: num_components = 4; break;
+        case slrak_mat2: num_components = 4; break;
+        case slrak_mat3: num_components = 9; break;
+        case slrak_mat4: num_components = 16; break;
+      }
+      size_t n;
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_f_negate(row, exec->exec_chain_reg_, FLOAT_REG_PTR(dst, n), FLOAT_REG_PTR(opd, n));
+      }
+      break;
+    }
+    case slrak_int:
+    case slrak_ivec2:
+    case slrak_ivec3:
+    case slrak_ivec4: {
+      size_t num_components = 0;
+      switch (opd->kind_) {
+        case slrak_int:  num_components = 1; break;
+        case slrak_ivec2:num_components = 2; break;
+        case slrak_ivec3:num_components = 3; break;
+        case slrak_ivec4:num_components = 4; break;
+      }
+      size_t n;
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_i_negate(row, exec->exec_chain_reg_, INT_REG_PTR(dst, n), INT_REG_PTR(opd, n));
+      }
+      break;
+    }
+  }
+}
+
+static void sl_exec_logical_not(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *opd) {
+  size_t num_components = 0;
+  switch (opd->kind_) {
+    case slrak_bool:  num_components = 1; break;
+    case slrak_bvec2: num_components = 2; break;
+    case slrak_bvec3: num_components = 3; break;
+    case slrak_bvec4: num_components = 4; break;
+  }
+  size_t n;
+  for (n = 0; n < num_components; ++n) {
+    sl_exec_b_logical_not(row, exec->exec_chain_reg_, BOOL_REG_PTR(dst, n), BOOL_REG_PTR(opd, n));
+  }
+}
+
 static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *left, struct sl_reg_alloc *right) {
   int r, c;
   if (left->kind_ == right->kind_) {
@@ -2445,13 +2825,17 @@ int sl_exec_run(struct sl_execution *exec) {
 
           case exop_component_selection:
           case exop_field_selection:
+            break;
+
           case exop_post_inc:
           case exop_post_dec:
           case exop_pre_inc:
           case exop_pre_dec:
-
           case exop_negate:
           case exop_logical_not: {
+            /* Evaluate child, then come back on revisit_chain_, */
+            r = sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(eps[epi].revisit_chain_));
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
           }
 
@@ -2543,9 +2927,85 @@ int sl_exec_run(struct sl_execution *exec) {
       else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.expr_->op_) {
           case exop_array_subscript: {
-            sl_exec_array_subscript_load(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, 
+            // XXX: This is not what you're supposed to do here for you'll lose the L-Value that you might still need.
+            // XXX: Take the fixed array size that this subscript indexes, if the array child has an offset_, multiply
+            //      the offset value to form the new offset, then be done. We don't need to do anything on the lvalue
+            //      itself as the register allocator has ensured it is the correct field subset.
+            sl_exec_offset_load(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->reg_alloc_, 
                                          &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                                          &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+            break;
+          }
+
+          case exop_post_inc:
+          case exop_post_dec: {
+            if (eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_) {
+              /* Child is offsetted; load at an offset into the result */
+              sl_exec_offset_load(exec, eps[epi].revisit_chain_,
+                                  &eps[epi].v_.expr_->reg_alloc_,
+                                  &eps[epi].v_.expr_->children_[0]->reg_alloc_,
+                                  eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_);
+              /* Inc/Decrement the rvalue into the R value */
+              if (eps[epi].v_.expr_->op_ == exop_post_inc) {
+                sl_exec_increment(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->reg_alloc_.rvalue_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+              }
+              else /* (eps[epi].v_->expr_->op_ == exop_pre_dec) */ {
+                sl_exec_decrement(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->reg_alloc_.rvalue_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+              }
+              /* The result will now hold the original value, the R-value of the child now holds the
+               * incremented value. Store the R-Value of the child into the child's L-Value (at the offset). */
+              sl_exec_offset_store(exec, eps[epi].revisit_chain_,
+                                   &eps[epi].v_.expr_->children_[0]->reg_alloc_,
+                                   eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_,
+                                   eps[epi].v_.expr_->children_[0]->reg_alloc_.rvalue_);
+            }
+            break;
+          }
+          case exop_pre_inc:
+          case exop_pre_dec: {
+            if (eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_) {
+              /* Child is offsetted; load via rvalue */
+              sl_exec_offset_load(exec, eps[epi].revisit_chain_,
+                                  eps[epi].v_.expr_->children_[0]->reg_alloc_.rvalue_,
+                                  &eps[epi].v_.expr_->children_[0]->reg_alloc_,
+                                  eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_);
+              /* Inc/Decrement the rvalue into the result value */
+              if (eps[epi].v_.expr_->op_ == exop_pre_inc) {
+                sl_exec_increment(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_, eps[epi].v_.expr_->children_[0]->reg_alloc_.rvalue_);
+              }
+              else /* (eps[epi].v_->expr_->op_ == exop_pre_dec) */ {
+                sl_exec_decrement(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_, eps[epi].v_.expr_->children_[0]->reg_alloc_.rvalue_);
+              }
+              
+              /* Store the result value into the original L-value */
+              sl_exec_offset_store(exec, eps[epi].revisit_chain_,
+                                   &eps[epi].v_.expr_->children_[0]->reg_alloc_,
+                                   eps[epi].v_.expr_->children_[0]->reg_alloc_.offset_,
+                                   &eps[epi].v_.expr_->reg_alloc_);
+            }
+            else {
+              /* Child can be used directly. */
+              /* Inc/Decrement the child's value into the result value */
+              if (eps[epi].v_.expr_->op_ == exop_pre_inc) {
+                sl_exec_increment(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+              }
+              else /* (eps[epi].v_->expr_->op_ == exop_pre_dec) */ {
+                sl_exec_decrement(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+              }
+              /* Store the result value back into the original child's register */
+              sl_exec_move(exec, eps[epi].revisit_chain_, 
+                           &eps[epi].v_.expr_->children_[0]->reg_alloc_, 
+                           &eps[epi].v_.expr_->reg_alloc_, 1);
+
+            }
+            break;
+          }
+          case exop_negate: {
+            sl_exec_negate(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            break;
+          }
+          case exop_logical_not: {
+            sl_exec_logical_not(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
             break;
           }
 
