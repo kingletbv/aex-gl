@@ -2583,6 +2583,20 @@ void sl_exec_pop_execution_frame(struct sl_execution *exec) {
   if (exec->num_execution_frames_) exec->num_execution_frames_--;
 }
 
+static void sl_exec_need_rvalue(struct sl_execution *exec, uint32_t chain, struct sl_reg_alloc *ra) {
+  /* XXX: Shouldn't need_rvalue dive deep into the bowels ?
+   * Q: should the rvalue be at the top, or should it be inside the lvalue ?
+   */ 
+  if (ra->offset_) {
+     /* Child is offsetted; load via rvalue */
+    // XXX: This is wrong, only works for scalars, vec and mats 
+    sl_exec_offset_load(exec, chain,
+                        ra->rvalue_,
+                        ra,
+                        ra->offset_);
+  }
+}
+
 int sl_exec_run(struct sl_execution *exec) {
   int r;
   while (exec->num_execution_points_) {
@@ -2679,6 +2693,7 @@ int sl_exec_run(struct sl_execution *exec) {
       else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.stmt_->kind_) {
           case slsk_if: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
             /* Split execution into a true and false chain, then evaluate children selectively accordingly. */
             uint32_t true_chain = SL_EXEC_NO_CHAIN;
             uint32_t false_chain = SL_EXEC_NO_CHAIN;
@@ -2700,6 +2715,7 @@ int sl_exec_run(struct sl_execution *exec) {
             break;
           }
           case slsk_while: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.stmt_->condition_->reg_alloc_);
             /* Split execution into the chain going into the body, surfacing back on the enter_chain_, and
              * the post_chain_. */
             uint32_t true_chain = SL_EXEC_NO_CHAIN;
@@ -2718,6 +2734,7 @@ int sl_exec_run(struct sl_execution *exec) {
             break;
           }
           case slsk_do: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.stmt_->condition_->reg_alloc_);
             /* Split on the condition; true enters body again, false goes onto post chain. */
             uint32_t true_chain = SL_EXEC_NO_CHAIN;
             uint32_t false_chain = SL_EXEC_NO_CHAIN;
@@ -2760,6 +2777,7 @@ int sl_exec_run(struct sl_execution *exec) {
       else if (eps[epi].alt_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.stmt_->kind_) {
           case slsk_for: {
+            sl_exec_need_rvalue(exec, eps[epi].alt_chain_, &eps[epi].v_.stmt_->condition_->reg_alloc_);
             /* Coming back from condition evaluation, split execution flows, true branch goes into the body,
              * false branch goes into post */
             uint32_t true_chain = SL_EXEC_NO_CHAIN;
@@ -3059,21 +3077,31 @@ int sl_exec_run(struct sl_execution *exec) {
             break;
           }
           case exop_negate: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+
             sl_exec_negate(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
             break;
           }
           case exop_logical_not: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+
             sl_exec_logical_not(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
             break;
           }
 
           case exop_multiply: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             sl_exec_mul(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
             break;
           }
           case exop_divide: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             sl_exec_div(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
@@ -3081,6 +3109,9 @@ int sl_exec_run(struct sl_execution *exec) {
           }
 
           case exop_add: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             sl_exec_add(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
@@ -3088,6 +3119,9 @@ int sl_exec_run(struct sl_execution *exec) {
           }
 
           case exop_subtract: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             sl_exec_sub(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->reg_alloc_,
                         &eps[epi].v_.expr_->children_[0]->reg_alloc_,
                         &eps[epi].v_.expr_->children_[1]->reg_alloc_);
@@ -3095,6 +3129,9 @@ int sl_exec_run(struct sl_execution *exec) {
           }
 
           case exop_lt: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_lt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
                            BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
@@ -3110,6 +3147,9 @@ int sl_exec_run(struct sl_execution *exec) {
             break;
           }
           case exop_le: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_le((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
                            BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
@@ -3125,6 +3165,9 @@ int sl_exec_run(struct sl_execution *exec) {
             break;
           }
           case exop_ge: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_ge((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
                            BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
@@ -3140,6 +3183,9 @@ int sl_exec_run(struct sl_execution *exec) {
             break;
           }
           case exop_gt: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_gt((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
                            BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
@@ -3156,6 +3202,9 @@ int sl_exec_run(struct sl_execution *exec) {
           }
 
           case exop_eq: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_eq((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
                            BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
@@ -3171,6 +3220,9 @@ int sl_exec_run(struct sl_execution *exec) {
             break;
           }
           case exop_ne: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
             if (eps[epi].v_.expr_->children_[0]->reg_alloc_.kind_ == slrak_float) {
               sl_exec_f_ne((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
                            BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
@@ -3187,7 +3239,10 @@ int sl_exec_run(struct sl_execution *exec) {
           }
 
           case exop_logical_xor: {
-            sl_exec_logical_or((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[1]->reg_alloc_);
+
+            sl_exec_logical_or((uint8_t)eps[epi].revisit_chain_, exec->exec_chain_reg_,
                                BOOL_REG_PTR(&eps[epi].v_.expr_->reg_alloc_, 0),
                                BOOL_REG_PTR(&eps[epi].v_.expr_->children_[0]->reg_alloc_, 0),
                                BOOL_REG_PTR(&eps[epi].v_.expr_->children_[1]->reg_alloc_, 0));
@@ -3195,6 +3250,8 @@ int sl_exec_run(struct sl_execution *exec) {
           }
 
           case exop_logical_and: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+
             /* We get here when child 0 has been evaluated, make a selection and evaluate for child 1,
              * false child 0 means the overal result is false and we can return, true child 0 means the
              * result for child 1 determines the outcome. */
@@ -3218,6 +3275,8 @@ int sl_exec_run(struct sl_execution *exec) {
           }
 
           case exop_logical_or: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+
             /* Like the logical-and, child 0 has been evaluated. If child 0 is true, the result is true and
              * the second child must not be evaluated. Conversely, if child 0 is false, the result is the
              * evaluation of the second branch */
@@ -3240,6 +3299,8 @@ int sl_exec_run(struct sl_execution *exec) {
           }
 
           case exop_conditional: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->reg_alloc_);
+
             /* Split execution into a true and false chain, then evaluate children selectively accordingly. */
             /* The true branch returns on post_chain_ (and we move the true subset into registers there.)
              * the false branch returns on alt_chain_ (and we move the false subset into registers there.) */
@@ -3280,6 +3341,7 @@ int sl_exec_run(struct sl_execution *exec) {
             for (n = 0; n < ef->f_->num_parameters_; ++n) {
               struct sl_reg_alloc *param_ra = &ef->f_->parameters_[n].variable_->reg_alloc_;
               struct sl_reg_alloc *call_arg_ra = &eps[epi].v_.expr_->children_[n]->reg_alloc_;
+              sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, call_arg_ra);
 
               sl_exec_move_param(exec, eps[epi].revisit_chain_, ef, param_ra, parent, call_arg_ra, 1);
             }
