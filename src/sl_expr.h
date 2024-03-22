@@ -147,9 +147,66 @@ struct sl_expr {
   /* exop_literal */
   struct sl_expr_temp literal_value_;
 
-  /* register allocation, applicable for non-constant values. */
-  struct sl_reg_alloc reg_alloc_;
-  
+  /* The result of a sub-expression may be an lvalue, meaning we need to keep track
+   * of the actual registers to modify when we with to assign, increment or decrement
+   * it. This can be accomplished with a straightforward copying of a subset of register 
+   * allocations from a sub-expression's child to itself, for all operations that return
+   * an lvalue.... All operations except array subscription that is. For an array
+   * subscription, the register to be returned is determined at runtime. The following
+   * fields allow these registers-at-an-offset-of-a-base-register to be modeled at
+   * runtime and at allocation time.
+   * base_regs_: the base register holding the value of the sl_expr (which may be
+   *             a compound, like a struct, hence plural, base_regS_). If no arrays
+   *             are involved, base_regs_ holds the registers holding the value of
+   *             the sub-expression after evaluation.
+   * offset_reg_: if offset_reg_.kind_ != slrak_void, it holds a slrak_int register
+   *              that, after evaluation of the sub-expression, contains the offset
+   *              from the base register to the register holding the value of the
+   *              sub-expression after evaluation. This is used to describe the 
+   *              lvalue following an array subscript operation. For instance, for
+   *              the array "float x[5];", the expression "x[3]" would have the
+   *              base_regs_ pointing to the register for "x[0]" and have the
+   *              offset_reg_ pointing to a register that, after evaluation of the
+   *              sub-expression, holds the value "3" (for an offset of 3 from the
+   *              base register at 0.) This gets more complicated with nested arrays,
+   *              for instance, "float y[5][7]" (an array of 5 arrays containing 7
+   *              elements), y[5] has base_regs_ pointing to y[0][0] and an offset
+   *              of 5 - this reflects that it is the fifth element from the base.
+   *              However, that fifth element will still be multiplied by the size
+   *              of the element, e.g. y[5][0] has base_regs_ pointing to y[0][0]
+   *              and an offset of 35 (the element is now a float, and no longer
+   *              an array of 7 floats.)
+   * offset_limit_: because the offset_reg_ holds the index as a runtime value, we
+   *                don't know what that value might be at compile time. 
+   *                Consequently, for register allocation, locking, and release, 
+   *                purposes, we need a hint as to what the total range of registers
+   *                starting from the base registers might be. offset_limit_ offers
+   *                that range, measured in the element size of the type of the
+   *                sub-expression. At runtime, when all register allocations have
+   *                been performed and are set in stone, this field has no purpose.
+   *                If no arrays are involved, this value is "1".
+   * rvalue_: most, if not almost all, operations work on one or more input registers
+   *          and output into an output register. Very few can work on a register 
+   *          specified as a base register and an offset number of registers to count
+   *          from that base register. Often, we will need to load from a base 
+   *          register at an offset, into another, temporary, register, prior to 
+   *          completing the operation. That temporary register is allocated in the
+   *          rvalue_ field. (rvalue = right-value, lvalue = left-value, corresponding
+   *          to the sides of an assignment.)
+   *          If offset_reg_.kind_ == slrak_void (the default) then no rvalue_ is 
+   *          needed as the base_regs_ can be used directly (you could say the 
+   *          offset_reg_.kind_ of slrak_void corresponds to the value 0.)
+   *          If, however, there is an offset_reg_, then, depending on how the sub-
+   *          expression's child is used, an rvalue_ may need to be allocated.
+   *          This is determined during allocation. After allocation has
+   *          completed, it suffices to check (rvalue_.kind_ != slrak_void) to see
+   *          if an rvalue was allocated, and to use base_regs_ otherwise.
+   */
+  struct sl_reg_alloc base_regs_;
+  struct sl_reg_alloc offset_reg_;
+  int64_t offset_limit_;
+  struct sl_reg_alloc rvalue_;
+
   /* exop_component_selection; each component_selection_[] contains
    * the ASCII letter of the component (e.g. x,y,z,w,r,g,b,a,s,t,p or q) */
   int num_components_;

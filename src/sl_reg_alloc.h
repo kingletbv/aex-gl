@@ -89,47 +89,6 @@ struct sl_reg_alloc {
    * frame. */
   int local_frame_:1;
 
-  /* Optional offset_ value, in number of registers. This contains an integer
-   * register that holds the number of registers (offset) from the registers 
-   * specified in v_ at which to load the actual value.
-   * For instance, for expression:
-   *   float f[10];
-   *   f[3];
-   * The offset_ will contain a register that holds the value '3', and v_
-   * will hold the register corresponding to f[0].
-   * This combines in non-trivial ways, e.g.:
-   *   struct { float a_, b_[7]; } c[5];
-   *   c[3].b_[2];
-   *   c[3].a_;
-   * For the expression "c[3].b_[2]" the offset_ is an integer register whose 
-   * value evaluates to "3 * 7 + 2" (=23), and v_ will hold the register
-   * corresponding to c[0].b_[0].
-   * For the expression "c[3].a_" the offset_ is an integer whose value is "3",
-   * and v_ will hold the register corresponding to c[0].a_.
-   * In other words, the array layout into registers is by field, in a
-   * "struct of arrays with registers" sort of way, and not an "array of structs with
-   * registers" sort of way.
-   */
-  struct sl_reg_alloc *offset_;
-
-  /* Optional rvalue_ value, matching the type and kind_ of this sl_reg_alloc.
-   * The rvalue_ is set when both offset_ is non-NULL, and, the value is accessed
-   * as an rvalue_ (it is read from as part of an expression.)
-   * In this particular case, we need to have the value at reg[v_+offset_] into
-   * a register of its own so the operator implementations do not have to deal 
-   * with the complexity of loading registers at an offset.
-   * For instance:
-   *   float f[10];
-   *   f[3] += 2.;
-   * The expression f[3] is needed twice, once to load reg[f+3] into its own
-   * register, so it can be added to the constant literal 2., and once to store
-   * the result of that computation back into reg[f+3]. The load of reg[f+3]
-   * has to go into a register of its own, so it can be fed into the "add"
-   * operator. That register also needs to be allocated and that allocation 
-   * resides in rvalue_.
-   */
-  struct sl_reg_alloc *rvalue_;
-
   union {
     int regs_[16];
     struct sl_reg_alloc_compound comp_;   /* struct */
@@ -148,6 +107,7 @@ struct sl_reg_allocator {
 
 void sl_reg_alloc_init(struct sl_reg_alloc *ra);
 int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t, int local_frame);
+void sl_reg_alloc_void(struct sl_reg_alloc *ra); /* set type to void */
 void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra);
 int sl_reg_alloc_is_allocated(const struct sl_reg_alloc *ra);
 int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src);
@@ -158,6 +118,11 @@ void sl_reg_allocator_cleanup(struct sl_reg_allocator *ra);
 int sl_reg_allocator_lock_reg_range(struct sl_reg_allocator *ract, sl_reg_category_t cat, int head_reg, int array_quantity);
 int sl_reg_allocator_unlock_reg_range(struct sl_reg_allocator *ract, sl_reg_category_t cat, int head_reg, int array_quantity);
 int sl_reg_allocator_alloc_reg_range(struct sl_reg_allocator *ract, sl_reg_category_t cat, int array_quantity, int *result);
+
+int sl_reg_allocator_lock_or_alloc_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra);
+int sl_reg_allocator_alloc_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra);
+int sl_reg_allocator_lock_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra);
+int sl_reg_allocator_unlock_descend(struct sl_reg_allocator *ract, int array_quantity, struct sl_reg_alloc *ra);
 
 int sl_reg_allocator_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
