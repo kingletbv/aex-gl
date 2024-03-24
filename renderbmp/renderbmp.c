@@ -83,6 +83,16 @@
 #include "fragment_buffer.h"
 #endif
 
+#ifndef SL_EXECUTION_H_INCLUDED
+#define SL_EXECUTION_H_INCLUDED
+#include "sl_execution.h"
+#endif
+
+#ifndef SL_COMPILATION_UNIT_H_INCLUDED
+#define SL_COMPILATION_UNIT_H_INCLUDED
+#include "sl_compilation_unit.h"
+#endif
+
 int test(void) {
   struct glsl_es1_compiler compiler, *cc;
   cc = &compiler;
@@ -99,13 +109,104 @@ int test(void) {
     "#if defined(defined)\n"
     "#error Hello\n"
     "#endif\n"
-    "vec2 a;\n"
+    "const vec2 a;\n"
     "vec4 b = vec4(1.0, 2.0, 3.0, 4.0);\n"
     "vec4 c = vec4(a, 1.0, 2.0);\n"
+    "void main() {\n"
+    "}\n"
     "\n";
   ccr = glsl_es1_compiler_compile_mem(cc, "input.frag", input_frag, strlen(input_frag));
     
-   glsl_es1_compiler_cleanup(cc);
+  if (ccr != GLSL_ES1_R_SUCCESS) {
+    fprintf(stderr, "Failed compilation (%d)\n", ccr);
+    glsl_es1_compiler_cleanup(cc);
+    return -1;
+  }
+
+  struct sl_function *f = sl_compilation_unit_find_function(cc->cu_, "main");
+  if (!f) {
+    fprintf(stderr, "main() function not found\n");
+    glsl_es1_compiler_cleanup(cc);
+    return -1;
+  }
+
+  struct sl_execution exec;
+  sl_exec_init(&exec);
+
+  int r;
+  r = sl_exec_prep(&exec, cc->cu_, f);
+
+  if (r) {
+    fprintf(stderr, "failed to prepare execution (%d)\n", r);
+    sl_exec_cleanup(&exec);
+    glsl_es1_compiler_cleanup(cc);
+    return -1;
+  }
+
+  /* Prepare one row of registers */
+  float *float_bank = NULL;
+  int64_t *int_bank = NULL;
+  uint8_t *bool_bank = NULL;
+  void **sampler2D_bank = NULL;
+  void **samplerCube_bank = NULL;
+  uint8_t *chain_bank = NULL;
+
+  size_t num_rows = 1;
+  if (exec.num_float_regs_) float_bank = (float *)malloc(sizeof(float) * num_rows * exec.num_float_regs_);
+  if (exec.num_int_regs_) int_bank = (int64_t *)malloc(sizeof(int64_t) * num_rows * exec.num_int_regs_);
+  if (exec.num_bool_regs_) bool_bank = (uint8_t *)malloc(sizeof(uint8_t) * num_rows * exec.num_bool_regs_);
+  if (exec.num_sampler_2D_regs_) sampler2D_bank = (void **)malloc(sizeof(void *) * num_rows * exec.num_sampler_2D_regs_);
+  if (exec.num_sampler_cube_regs_) samplerCube_bank = (void **)malloc(sizeof(void *) * num_rows * exec.num_sampler_cube_regs_);
+  chain_bank = (uint8_t *)malloc(sizeof(uint8_t) * num_rows * 1);
+  if ((exec.num_float_regs_ && !float_bank) || 
+      (exec.num_int_regs_ && !int_bank) || 
+      (exec.num_bool_regs_ && !bool_bank) || 
+      !chain_bank) {
+    fprintf(stderr, "failed to allocate register banks\n");
+    if (exec.num_float_regs_ && float_bank) free(float_bank);
+    if (exec.num_int_regs_ && int_bank) free(int_bank);
+    if (exec.num_bool_regs_ && bool_bank) free(bool_bank);
+    if (exec.num_sampler_2D_regs_ && sampler2D_bank) free(sampler2D_bank);
+    if (exec.num_sampler_cube_regs_ && samplerCube_bank) free(samplerCube_bank);
+    if (chain_bank) free(chain_bank);
+    sl_exec_cleanup(&exec);
+    glsl_es1_compiler_cleanup(cc);
+    return -1;
+  }
+
+  if (exec.float_regs_) exec.float_regs_[0] = float_bank;
+  if (exec.int_regs_) exec.int_regs_[0] = int_bank;
+  if (exec.bool_regs_) exec.bool_regs_[0] = bool_bank;
+  if (exec.sampler_2D_regs_) exec.sampler_2D_regs_[0] = sampler2D_bank;
+  if (exec.sampler_cube_regs_) exec.sampler_cube_regs_[0] = samplerCube_bank;
+  exec.exec_chain_reg_ = chain_bank;
+  size_t n;
+  for (n = 1; n < exec.num_float_regs_; n++) {
+    exec.float_regs_[n] = exec.float_regs_[n - 1] + num_rows;
+  }
+  for (n = 1; n < exec.num_int_regs_; n++) {
+    exec.int_regs_[n] = exec.int_regs_[n - 1] + num_rows;
+  }
+  for (n = 1; n < exec.num_bool_regs_; n++) {
+    exec.bool_regs_[n] = exec.bool_regs_[n - 1] + num_rows;
+  }
+  for (n = 1; n < exec.num_sampler_2D_regs_; n++) {
+    exec.sampler_2D_regs_[n] = exec.sampler_2D_regs_[n - 1] + num_rows;
+  }
+  for (n = 1; n < exec.num_sampler_cube_regs_; n++) {
+    exec.sampler_cube_regs_[n] = exec.sampler_cube_regs_[n - 1] + num_rows;
+  }
+
+  sl_exec_run(&exec);
+
+  if (exec.num_float_regs_ && float_bank) free(float_bank);
+  if (exec.num_int_regs_ && int_bank) free(int_bank);
+  if (exec.num_bool_regs_ && bool_bank) free(bool_bank);
+  if (exec.num_sampler_2D_regs_ && sampler2D_bank) free(sampler2D_bank);
+  if (exec.num_sampler_cube_regs_ && samplerCube_bank) free(samplerCube_bank);
+
+  sl_exec_cleanup(&exec);
+  glsl_es1_compiler_cleanup(cc);
 
   return 0;
 }
