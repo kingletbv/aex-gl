@@ -328,6 +328,7 @@
     <ClInclude Include="..\src\sl_reg_alloc.h" />
     <ClInclude Include="..\src\sl_stmt.h" />
     <ClInclude Include="..\src\sl_types.h" />
+    <ClInclude Include="..\src\sl_unop_snippet_inc.h" />
     <ClInclude Include="..\src\sym_table.h" />
     <ClInclude Include="..\src\viewport_transformation.h" />
   </ItemGroup>

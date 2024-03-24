@@ -93,6 +93,7 @@
     <ClInclude Include="..\src\sl_reg_alloc.h" />
     <ClInclude Include="..\src\ref_range_allocator.h" />
     <ClInclude Include="..\src\sl_compilation_unit.h" />
+    <ClInclude Include="..\src\sl_unop_snippet_inc.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
