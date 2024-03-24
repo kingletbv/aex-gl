@@ -114,9 +114,6 @@ struct glsl_es1_compiler {
    * be cleaned up.
    */
   struct sl_compilation_unit *cu_;
-
-  /* The number of registers needed to execute any of the functions. */
-  struct sl_exec_call_graph_results register_counts_;
 };
 
 void glsl_es1_compiler_init(struct glsl_es1_compiler *compiler);

@@ -72,7 +72,6 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   cc->cu_ = NULL;
   cc->current_scope_ = NULL;
   cc->current_frame_ = NULL;
-  sl_exec_call_graph_results_init(&cc->register_counts_);
 }
 
 void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *cc) {
@@ -84,7 +83,6 @@ void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *cc) {
     sl_compilation_unit_cleanup(cc->cu_);
     free(cc->cu_);
   }
-  sl_exec_call_graph_results_cleanup(&cc->register_counts_);
 }
 
 
@@ -342,7 +340,7 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
     } while (s != cc->cu_->global_scope_.seq_);
   }
 
-  sl_exec_cgr_swap(&cc->register_counts_, &cgr);
+  sl_exec_cgr_swap(&cc->cu_->register_counts_, &cgr);
 
   sl_exec_call_graph_results_cleanup(&cgr);
    
