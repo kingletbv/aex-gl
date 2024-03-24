@@ -18,6 +18,10 @@
 #include "sl_compilation_unit.h"
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
 
 void sl_compilation_unit_init(struct sl_compilation_unit *cu) {
   st_init(&cu->global_scope_, NULL);
@@ -31,3 +35,9 @@ void sl_compilation_unit_cleanup(struct sl_compilation_unit *cu) {
   st_cleanup(&cu->global_scope_);
 }
 
+struct sl_function *sl_compilation_unit_find_function(struct sl_compilation_unit *cu, const char *name) {
+  struct sym *s;
+  s = st_find(&cu->global_scope_, name, strlen(name));
+  if (s && (s->kind_ == SK_FUNCTION)) return s->v_.function_;
+  return NULL;
+}
