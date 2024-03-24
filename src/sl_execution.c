@@ -2212,20 +2212,28 @@ void sl_exec_init(struct sl_execution *exec) {
   exec->execution_points_ = NULL;
   exec->num_execution_frames_ = exec->num_execution_frames_allocated_ = 0;
   exec->execution_frames_ = NULL;
+  exec->exec_chain_reg_ = NULL;
   exec->num_float_regs_ = 0;
   exec->float_regs_ = NULL;
   exec->num_int_regs_ = 0;
   exec->int_regs_ = NULL;
   exec->num_bool_regs_ = 0;
   exec->bool_regs_ = NULL;
+  exec->num_sampler_2D_regs_ = 0;
+  exec->sampler_2D_regs_ = NULL;
+  exec->num_sampler_cube_regs_ = 0;
+  exec->sampler_cube_regs_ = NULL;
 }
 
 void sl_exec_cleanup(struct sl_execution *exec) {
   if (exec->execution_points_) free(exec->execution_points_);
   if (exec->execution_frames_) free(exec->execution_frames_);
+  if (exec->exec_chain_reg_) free(exec->exec_chain_reg_);
   if (exec->float_regs_) free(exec->float_regs_);
   if (exec->int_regs_) free(exec->int_regs_);
   if (exec->bool_regs_) free(exec->bool_regs_);
+  if (exec->sampler_2D_regs_) free(exec->sampler_2D_regs_);
+  if (exec->sampler_cube_regs_) free(exec->sampler_cube_regs_);
 }
 
 int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu, struct sl_function *f) {
