@@ -128,10 +128,10 @@ struct sl_execution {
   unsigned char **bool_regs_;
 
   size_t num_sampler_2D_regs_;
-  void **sampler_2D_regs_;
+  void ***sampler_2D_regs_;
 
   size_t num_sampler_cube_regs_;
-  void **sampler_cube_regs_;
+  void ***sampler_cube_regs_;
 };
 
 struct sl_exec_call_graph_results {
