@@ -601,7 +601,7 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
       }
 
       if (num_src_components == 1) {
-        struct sl_type *pt = sl_expr_type(tb, fs->parameters_->expr_);
+        struct sl_type *pt = sl_type_unqualified(sl_expr_type(tb, fs->parameters_->expr_));
         sl_component_conversion_t conv = glsl_es1_sl_type_component_conversion(pt, t);
         /* This also implies only 1 parameter as parameters with 0
          * components are an error */
@@ -677,7 +677,7 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
         int current_component = 0;
         for (n = 0; n < fs->num_parameters_; ++n) {
           // Note that we already checked that the parameter has components
-          struct sl_type *pt = sl_expr_type(tb, fs->parameters_[n].expr_);
+          struct sl_type *pt = sl_type_unqualified(sl_expr_type(tb, fs->parameters_[n].expr_));
           sl_component_conversion_t conv = glsl_es1_sl_type_component_conversion(pt, t);
           int num_param_components = glsl_es1_sl_type_num_components(pt);
           int param_comp;
