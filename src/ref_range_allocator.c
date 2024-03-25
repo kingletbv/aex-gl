@@ -1258,18 +1258,21 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
               nrp->pos_left_ = new_rr;
             }
             new_rr->pos_parent_ = nrp;
+            new_rr->pos_next_ = rr_next;
+            new_rr->pos_prev_ = rr_next->pos_prev_;
+            new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
           }
           else {
             /* No further existing edges after next_range_edge; append new ref_range to the end */
             new_rr->pos_parent_ = rra->pos_seq_->pos_prev_;
             rra->pos_seq_->pos_prev_->pos_right_ = new_rr;
+            new_rr->pos_next_ = rra->pos_seq_ ? rra->pos_seq_ : new_rr;
+            new_rr->pos_prev_ = new_rr->pos_next_->pos_prev_;
+            new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
           }
           new_rr->pos_is_red_ = 1;
           new_rr->at_ = next_range_edge;
           new_rr->refcount_ = this_range_refcount;
-          new_rr->pos_next_ = rr_next;
-          new_rr->pos_prev_ = rr_next->pos_prev_;
-          new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
           ref_range_pos_process_insert(rra, new_rr);
           rr = new_rr;
         }
@@ -1308,18 +1311,21 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
               nrp->pos_left_ = new_rr;
             }
             new_rr->pos_parent_ = nrp;
+            new_rr->pos_next_ = rr_next;
+            new_rr->pos_prev_ = rr_next->pos_prev_;
+            new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
           }
           else {
             /* No further existing edges after next_range_edge; append new ref_range to the end */
             new_rr->pos_parent_ = rra->pos_seq_->pos_prev_;
             rra->pos_seq_->pos_prev_->pos_right_ = new_rr;
+            new_rr->pos_next_ = rra->pos_seq_ ? rra->pos_seq_ : new_rr;
+            new_rr->pos_prev_ = new_rr->pos_next_->pos_prev_;
+            new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
           }
           new_rr->pos_is_red_ = 1;
           new_rr->at_ = next_range_edge;
           new_rr->refcount_ = this_range_refcount;
-          new_rr->pos_next_ = rr_next;
-          new_rr->pos_prev_ = rr_next->pos_prev_;
-          new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
           ref_range_pos_process_insert(rra, new_rr);
           rr = new_rr;
         }
@@ -1583,12 +1589,28 @@ static int ref_range_sanity_check(struct ref_range_allocator *rra) {
 }
 
 int ref_range_test(void) {
+  int r;
   srand(123);
 
   struct ref_range_allocator rra;
   ref_range_allocator_init(&rra);
 
-  int r;
+  r = ref_range_apply_ref(&rra, 0, 2, 1);
+  if (r) {
+    fprintf(stderr, "ref_range_test(): failed ref_range_apply_ref()\n");
+    return r;
+  }
+
+  r = ref_range_apply_ref(&rra, 1, 2, 1);
+  if (r) {
+    fprintf(stderr, "ref_range_test(): failed ref_range_apply_ref()\n");
+    return r;
+  }
+
+  ref_range_allocator_cleanup(&rra);
+
+  ref_range_allocator_init(&rra);
+
   uintptr_t result1 = UINTPTR_MAX;
   r = ref_range_alloc(&rra, 1000, &result1);
   if (r) {
