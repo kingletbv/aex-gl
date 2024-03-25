@@ -319,12 +319,6 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
         struct sl_exec_call_graph_results lcgr;
         sl_exec_call_graph_results_init(&lcgr);
 
-        lcgr.num_float_regs_ += cc->cu_->global_frame_.ract_.rra_floats_.watermark_;
-        lcgr.num_int_regs_ += cc->cu_->global_frame_.ract_.rra_ints_.watermark_;
-        lcgr.num_bool_regs_ += cc->cu_->global_frame_.ract_.rra_bools_.watermark_;
-        lcgr.num_sampler2D_regs_ += cc->cu_->global_frame_.ract_.rra_sampler2D_.watermark_;
-        lcgr.num_samplerCube_regs_ += cc->cu_->global_frame_.ract_.rra_samplerCube_.watermark_;
-
         r = sl_exec_call_graph_analysis(&lcgr, s->v_.function_);
 
         if (r) {
@@ -332,6 +326,13 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
           sl_exec_call_graph_results_cleanup(&cgr);
           return GLSL_ES1_R_FAILED;
         }
+
+        lcgr.num_float_regs_ += cc->cu_->global_frame_.ract_.rra_floats_.watermark_;
+        lcgr.num_int_regs_ += cc->cu_->global_frame_.ract_.rra_ints_.watermark_;
+        lcgr.num_bool_regs_ += cc->cu_->global_frame_.ract_.rra_bools_.watermark_;
+        lcgr.num_sampler2D_regs_ += cc->cu_->global_frame_.ract_.rra_sampler2D_.watermark_;
+        lcgr.num_samplerCube_regs_ += cc->cu_->global_frame_.ract_.rra_samplerCube_.watermark_;
+
         sl_exec_cgr_max(&cgr, &lcgr);
         sl_exec_call_graph_results_cleanup(&lcgr);
       }
