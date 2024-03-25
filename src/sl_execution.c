@@ -2896,6 +2896,11 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           sl_exec_pop_ep(exec);
         }
       }
+      else {
+        /* No chains whatsoever.. Suppose no execution chain returns back to this statement (e.g. they all
+         * discard or return or whatnot), then the best thing we can do here is pop the statement. */
+        sl_exec_pop_ep(exec);
+      }
     }
     else if (eps[epi].kind_ == SLEPK_EXPR) {
       int dont_pop = 0;
@@ -2909,12 +2914,24 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           case exop_variable: {
             /* The value is already in the appropriate registers; do the move anyway, as, though
              * it will turn into a no-op, it reduces coupling. */
-            sl_exec_move(exec, eps[epi].enter_chain_, EXPR_RVALUE(eps[epi].v_.expr_), &eps[epi].v_.expr_->variable_->reg_alloc_, 1);
+            assert((eps[epi].v_.expr_->offset_reg_.kind_ == slrak_void) && "variable sub-expression's lvalue should not be offset based");
+            sl_exec_move(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->base_regs_, &eps[epi].v_.expr_->variable_->reg_alloc_, 1);
+
+            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
+            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].enter_chain_);
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+            sl_exec_pop_ep(exec);
             break;
           }
           case exop_literal: {
             /* Load constant value into the register */
-            sl_exec_init_literal(exec, eps[epi].enter_chain_, EXPR_RVALUE(eps[epi].v_.expr_), &eps[epi].v_.expr_->literal_value_, 0);
+            assert((eps[epi].v_.expr_->offset_reg_.kind_ == slrak_void) && "literal sub-expression's lvalue should not be offset based");
+            sl_exec_init_literal(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->base_regs_, &eps[epi].v_.expr_->literal_value_, 0);
+
+            uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
+            *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].enter_chain_);
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+            sl_exec_pop_ep(exec);
             break;
           }
           case exop_array_subscript: {
@@ -3101,7 +3118,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
               if (eps[epi].v_.expr_->op_ == exop_post_inc) {
                 sl_exec_increment(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->base_regs_);
               }
-              else /* (eps[epi].v_->expr_->op_ == exop_pre_dec) */ {
+              else /* (eps[epi].v_->expr_->op_ == exop_post_dec) */ {
                 sl_exec_decrement(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->base_regs_);
               }
             }
