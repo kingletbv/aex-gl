@@ -2196,10 +2196,14 @@ static int sl_expr_clone_lvalue(struct sl_expr *dst, struct sl_expr *src) {
 
 static int sl_expr_regs_lock(struct sl_reg_allocator *ract, struct sl_expr *x) {
   int r = 0;
-  if (x->offset_limit_ > INT_MAX) return -1; /* overflow */
-  r = sl_reg_allocator_lock_descend(ract, (int)x->offset_limit_, &x->base_regs_);
+  if (x->base_regs_.local_frame_) {
+    if (x->offset_limit_ > INT_MAX) return -1; /* overflow */
+    r = sl_reg_allocator_lock_descend(ract, (int)x->offset_limit_, &x->base_regs_);
+  }
   if (x->offset_reg_.kind_ != slrak_void) {
-    r = r ? r : sl_reg_allocator_lock(ract, &x->offset_reg_);
+    if (x->offset_reg_.local_frame_) {
+      r = r ? r : sl_reg_allocator_lock(ract, &x->offset_reg_);
+    }
   }
   return r;
 }
