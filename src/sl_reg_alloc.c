@@ -285,6 +285,7 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
   int r = 0;
 
   dst->kind_ = src->kind_;
+  dst->local_frame_ = src->local_frame_;
   if (src->kind_ == slrak_struct) {
     size_t n;
     if (!src->v_.comp_.fields_) {
