@@ -123,18 +123,11 @@ int test(void) {
     return -1;
   }
 
-  struct sl_function *f = sl_compilation_unit_find_function(cc->cu_, "main");
-  if (!f) {
-    fprintf(stderr, "main() function not found\n");
-    glsl_es1_compiler_cleanup(cc);
-    return -1;
-  }
-
   struct sl_execution exec;
   sl_exec_init(&exec);
 
   int r;
-  r = sl_exec_prep(&exec, cc->cu_, f);
+  r = sl_exec_prep(&exec, cc->cu_);
 
   if (r) {
     fprintf(stderr, "failed to prepare execution (%d)\n", r);
@@ -181,6 +174,12 @@ int test(void) {
   if (exec.sampler_cube_regs_) exec.sampler_cube_regs_[0] = samplerCube_bank;
   exec.exec_chain_reg_ = chain_bank;
   size_t n;
+
+  for (n = 0; n < (num_rows - 1); ++n) {
+    exec.exec_chain_reg_[n] = 1;
+  }
+  exec.exec_chain_reg_[num_rows - 1] = 0;
+
   for (n = 1; n < exec.num_float_regs_; n++) {
     exec.float_regs_[n] = exec.float_regs_[n - 1] + num_rows;
   }
@@ -197,7 +196,38 @@ int test(void) {
     exec.sampler_cube_regs_[n] = exec.sampler_cube_regs_[n - 1] + num_rows;
   }
 
-  sl_exec_run(&exec);
+  struct sl_function *f = sl_compilation_unit_find_function(cc->cu_, "main");
+  if (!f) {
+    fprintf(stderr, "main() function not found\n");
+    glsl_es1_compiler_cleanup(cc);
+    return -1;
+  }
+
+  struct sl_variable *v = sl_compilation_unit_find_variable(cc->cu_, "c");
+  if (!v) {
+    fprintf(stderr, "variable \"c\" not found\n");
+    glsl_es1_compiler_cleanup(cc);
+    return -1;
+  }
+
+  r = sl_exec_run(&exec, f, 0);
+  if (r) {
+    fprintf(stderr, "failed to run execution (%d)\n", r);
+  }
+  else {
+    if (v->reg_alloc_.kind_ == slrak_vec4) {
+      fprintf(stdout, "c = vec4(%f, %f, %f, %f)\n", 
+              (exec.float_regs_[v->reg_alloc_.v_.regs_[0]])[0],
+              (exec.float_regs_[v->reg_alloc_.v_.regs_[1]])[0],
+              (exec.float_regs_[v->reg_alloc_.v_.regs_[2]])[0],
+              (exec.float_regs_[v->reg_alloc_.v_.regs_[3]])[0]);
+    }
+    else {
+      fprintf(stderr, "expected \"c\" to be slrak_vec4 (%d)\n", r);
+    }
+    switch (v->reg_alloc_.kind_) {
+    }
+  }
 
   if (exec.num_float_regs_ && float_bank) free(float_bank);
   if (exec.num_int_regs_ && int_bank) free(int_bank);
@@ -208,7 +238,7 @@ int test(void) {
   sl_exec_cleanup(&exec);
   glsl_es1_compiler_cleanup(cc);
 
-  return 0;
+  return r;
 }
 
 size_t fpack(FILE *fp, const char *format, ...) {
