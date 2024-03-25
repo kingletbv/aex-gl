@@ -101,9 +101,10 @@ int sl_expr_is_lvalue(struct sl_type_base *tb, const struct sl_expr *x) {
       if (!is_child_lvalue) return 0;
       size_t n;
       if (!x->num_components_) return 0;
-      for (n = 0; n < x->num_components_; ++x) {
+      for (n = 0; n < x->num_components_; ++n) {
         size_t dup_check;
         for (dup_check = 0; dup_check < x->num_components_; ++dup_check) {
+          if (n == dup_check) continue;
           if (x->swizzle_[n].component_index_ == x->swizzle_[dup_check].component_index_) {
             /* Duplicate column - hence not an lvalue (GLSL 1 5.8 assignments p46) */
             return 0;
