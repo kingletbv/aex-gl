@@ -93,10 +93,14 @@ struct sl_execution_point {
   union {
     struct sl_expr *expr_;
     struct sl_stmt *stmt_;
+    struct sl_function *f_;
   } v_;
 };
 
 struct sl_execution {
+  /* Compilation unit being executed */
+  struct sl_compilation_unit *cu_;
+
   /* Stack of all active execution points, the current execution point to be
    * executed is at the top of the stack. */
   size_t num_execution_points_;
@@ -147,9 +151,9 @@ struct sl_exec_call_graph_results {
 void sl_exec_init(struct sl_execution *exec);
 void sl_exec_cleanup(struct sl_execution *exec);
 
-int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu, struct sl_function *f);
+int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu);
 
-int sl_exec_run(struct sl_execution *exec);
+int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain);
 
 uint32_t sl_exec_join_chains(struct sl_execution *exec, uint32_t a, uint32_t b);
 

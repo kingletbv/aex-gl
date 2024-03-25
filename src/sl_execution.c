@@ -2208,6 +2208,7 @@ static void sl_exec_clear_ep(struct sl_execution *exec, size_t ep_index) {
 }
 
 void sl_exec_init(struct sl_execution *exec) {
+  exec->cu_ = NULL;
   exec->num_execution_points_ = exec->num_execution_points_allocated_ = 0;
   exec->execution_points_ = NULL;
   exec->num_execution_frames_ = exec->num_execution_frames_allocated_ = 0;
@@ -2236,7 +2237,7 @@ void sl_exec_cleanup(struct sl_execution *exec) {
   if (exec->sampler_cube_regs_) free(exec->sampler_cube_regs_);
 }
 
-int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu, struct sl_function *f) {
+int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu) {
   void *new_float_regs = NULL;
   void *new_int_regs = NULL;
   void *new_bool_regs = NULL;
@@ -2274,6 +2275,8 @@ int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu, stru
   if (exec->sampler_2D_regs_) free(exec->sampler_2D_regs_);
   if (exec->sampler_cube_regs_) free(exec->sampler_cube_regs_);
 
+  exec->cu_ = cu;
+
   exec->num_float_regs_ = (size_t)cu->register_counts_.num_float_regs_;
   exec->float_regs_ = (float **)new_float_regs;
 
@@ -2284,15 +2287,10 @@ int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu, stru
   exec->bool_regs_ = (unsigned char **)new_bool_regs;
 
   exec->num_sampler_2D_regs_ = (size_t)cu->register_counts_.num_sampler2D_regs_;
-  exec->sampler_2D_regs_ = (void **)new_sampler2D_regs;
+  exec->sampler_2D_regs_ = (void ***)new_sampler2D_regs;
 
   exec->num_sampler_cube_regs_ = (size_t)cu->register_counts_.num_samplerCube_regs_;
-  exec->sampler_cube_regs_ = (void **)new_samplerCube_regs;
-
-  int r = 0;
-  exec->num_execution_frames_ = 0;
-  r = sl_exec_push_execution_frame(exec);
-  if (r) return r;
+  exec->sampler_cube_regs_ = (void ***)new_samplerCube_regs;
 
   return 0;
 fail:
@@ -2323,6 +2321,16 @@ void sl_exec_set_stmt(struct sl_execution *exec, size_t ep_index, struct sl_stmt
   ep->continue_chain_ptr_ = continuation_ptr;
 }
 
+void sl_exec_set_bootstrap(struct sl_execution *exec, size_t ep_index, struct sl_function *f, uint32_t chain, size_t continuation_ptr) {
+  sl_exec_clear_ep(exec, ep_index);
+  struct sl_execution_point *ep = exec->execution_points_ + ep_index;
+  ep->kind_ = SLEPK_BOOTSTRAP;
+  
+  ep->v_.f_ = f;
+  ep->enter_chain_ = chain;
+  ep->continue_chain_ptr_ = continuation_ptr;
+}
+
 int sl_exec_push_expr(struct sl_execution *exec, struct sl_expr *expr, uint32_t chain, size_t continuation_ptr) {
   int r;
   r = sl_exec_reserve_n(exec, 1);
@@ -2339,6 +2347,16 @@ int sl_exec_push_stmt(struct sl_execution *exec, struct sl_stmt *stmt, uint32_t 
   if (r) return r;
 
   sl_exec_set_stmt(exec, exec->num_execution_points_++, stmt, chain, continuation_ptr);
+
+  return 0;
+}
+
+int sl_exec_push_bootstrap(struct sl_execution *exec, struct sl_function *f, uint32_t chain, size_t continuation_ptr) {
+  int r;
+  r = sl_exec_reserve_n(exec, 1);
+  if (r) return r;
+
+  sl_exec_set_bootstrap(exec, exec->num_execution_points_++, f, chain, continuation_ptr);
 
   return 0;
 }
@@ -2613,11 +2631,47 @@ static void sl_exec_need_rvalue(struct sl_execution *exec, uint32_t chain, struc
   }
 }
 
-int sl_exec_run(struct sl_execution *exec) {
+static void sl_exec_initialize_globals(struct sl_execution *exec) {
+  struct sl_variable *v;
+  v = exec->cu_->global_frame_.variables_;
+  if (v) {
+    do {
+      v = v->chain_;
+
+      sl_exec_init_literal(exec, 0, &v->reg_alloc_, &v->value_, 0);
+
+    } while (v != exec->cu_->global_frame_.variables_);
+  }
+}
+
+static int sl_exec_prepare_run(struct sl_execution *exec, struct sl_function *f, int exec_chain) {
+  int r = 0;
+  exec->num_execution_frames_ = 0;
+  r = sl_exec_push_execution_frame(exec);
+  if (r) return r;
+
+  struct sl_execution_frame *ef = exec->execution_frames_;
+  ef->f_ = f;
+  ef->local_float_offset_ = (int)exec->cu_->global_frame_.ract_.rra_floats_.watermark_;
+  ef->local_int_offset_ = (int)exec->cu_->global_frame_.ract_.rra_ints_.watermark_;
+  ef->local_bool_offset_ = (int)exec->cu_->global_frame_.ract_.rra_bools_.watermark_;
+  ef->local_sampler2D_offset_ = (int)exec->cu_->global_frame_.ract_.rra_sampler2D_.watermark_;
+  ef->local_samplerCube_offset_ = (int)exec->cu_->global_frame_.ract_.rra_samplerCube_.watermark_;
+
+  r = sl_exec_push_bootstrap(exec, f, exec_chain, 0);
+  if (r) return r;
+
+  return 0;
+}
+
+int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain) {
   int r;
+  sl_exec_initialize_globals(exec);
+  r = sl_exec_prepare_run(exec, f, exec_chain);
+  if (r) return r;
   while (exec->num_execution_points_) {
     /* Build "eps[epi]" shorthand for exec->execution_points_[exec->num_execution_points_ - 1] as we'll be referencing it, a lot. */
-    size_t epi = exec->num_execution_points_;
+    size_t epi = exec->num_execution_points_ - 1;
     struct sl_execution_point *eps = exec->execution_points_;
 #define CHAIN_REF(x) (((uintptr_t)&(x)) - (uintptr_t)exec->execution_points_)
     if (eps[epi].kind_ == SLEPK_STMT) {
@@ -3445,7 +3499,7 @@ int sl_exec_run(struct sl_execution *exec) {
     else if (eps[epi].kind_ == SLEPK_BOOTSTRAP) {
       /* Bootstrap is a special case, it's the first thing that happens when we start running the execution. */
       if (eps[epi].enter_chain_ != SL_EXEC_NO_CHAIN) {
-        r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].post_chain_));
+        r = sl_exec_push_stmt(exec, eps[epi].v_.f_->body_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].post_chain_));
         if (r) return r;
         eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
       }
