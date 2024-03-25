@@ -41,3 +41,10 @@ struct sl_function *sl_compilation_unit_find_function(struct sl_compilation_unit
   if (s && (s->kind_ == SK_FUNCTION)) return s->v_.function_;
   return NULL;
 }
+
+struct sl_variable *sl_compilation_unit_find_variable(struct sl_compilation_unit *cu, const char *name) {
+  struct sym *s;
+  s = st_find(&cu->global_scope_, name, strlen(name));
+  if (s && (s->kind_ == SK_VARIABLE)) return s->v_.variable_;
+  return NULL;
+}

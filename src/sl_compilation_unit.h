@@ -52,6 +52,7 @@ void sl_compilation_unit_init(struct sl_compilation_unit *cu);
 void sl_compilation_unit_cleanup(struct sl_compilation_unit *cu);
 
 struct sl_function *sl_compilation_unit_find_function(struct sl_compilation_unit *cu, const char *name);
+struct sl_variable *sl_compilation_unit_find_variable(struct sl_compilation_unit *cu, const char *name);
 
 #ifdef __cplusplus
 } /* extern "C" */
