@@ -43,6 +43,11 @@
 #include <errno.h>
 #endif
 
+#ifndef INTTYPES_H_INCLUDED
+#define INTTYPES_H_INCLUDED
+#include <inttypes.h>
+#endif
+
 #ifndef GLSL_ES1_TOKENS_H_INCLUDED
 #define GLSL_ES1_TOKENS_H_INCLUDED
 #include "glsl_es1_tokens.h"
@@ -93,7 +98,20 @@
 #include "sl_compilation_unit.h"
 #endif
 
+#ifndef REF_RANGE_ALLOCATOR_H_INCLUDED
+#define REF_RANGE_ALLOCATOR_H_INCLUDED
+#include "ref_range_allocator.h"
+#endif
+
 int test(void) {
+  int r = 0;
+
+  r = ref_range_test();
+  if (r) {
+    fprintf(stderr, "ref_range_test failed (%d)\n", r);
+    return r;
+  }
+
   struct glsl_es1_compiler compiler, *cc;
   cc = &compiler;
   glsl_es1_compiler_init(cc);
@@ -112,7 +130,11 @@ int test(void) {
     "const vec2 a;\n"
     "vec4 b = vec4(1.0, 2.0, 3.0, 4.0);\n"
     "vec4 c = vec4(a, 1.0, 2.0);\n"
+    "int d = 123;\n"
     "void main() {\n"
+    //"  c.x = 1.f;\n"
+    //"  c.x++;\n"
+    "  d++;\n"
     "}\n"
     "\n";
   ccr = glsl_es1_compiler_compile_mem(cc, "input.frag", input_frag, strlen(input_frag));
@@ -126,7 +148,6 @@ int test(void) {
   struct sl_execution exec;
   sl_exec_init(&exec);
 
-  int r;
   r = sl_exec_prep(&exec, cc->cu_);
 
   if (r) {
@@ -203,9 +224,16 @@ int test(void) {
     return -1;
   }
 
-  struct sl_variable *v = sl_compilation_unit_find_variable(cc->cu_, "c");
-  if (!v) {
+  struct sl_variable *v_c = sl_compilation_unit_find_variable(cc->cu_, "c");
+  if (!v_c) {
     fprintf(stderr, "variable \"c\" not found\n");
+    glsl_es1_compiler_cleanup(cc);
+    return -1;
+  }
+
+  struct sl_variable *v_d = sl_compilation_unit_find_variable(cc->cu_, "d");
+  if (!v_d) {
+    fprintf(stderr, "variable \"d\" not found\n");
     glsl_es1_compiler_cleanup(cc);
     return -1;
   }
@@ -215,17 +243,21 @@ int test(void) {
     fprintf(stderr, "failed to run execution (%d)\n", r);
   }
   else {
-    if (v->reg_alloc_.kind_ == slrak_vec4) {
+    if (v_c->reg_alloc_.kind_ == slrak_vec4) {
       fprintf(stdout, "c = vec4(%f, %f, %f, %f)\n", 
-              (exec.float_regs_[v->reg_alloc_.v_.regs_[0]])[0],
-              (exec.float_regs_[v->reg_alloc_.v_.regs_[1]])[0],
-              (exec.float_regs_[v->reg_alloc_.v_.regs_[2]])[0],
-              (exec.float_regs_[v->reg_alloc_.v_.regs_[3]])[0]);
+              (exec.float_regs_[v_c->reg_alloc_.v_.regs_[0]])[0],
+              (exec.float_regs_[v_c->reg_alloc_.v_.regs_[1]])[0],
+              (exec.float_regs_[v_c->reg_alloc_.v_.regs_[2]])[0],
+              (exec.float_regs_[v_c->reg_alloc_.v_.regs_[3]])[0]);
     }
     else {
       fprintf(stderr, "expected \"c\" to be slrak_vec4 (%d)\n", r);
     }
-    switch (v->reg_alloc_.kind_) {
+    if (v_d->reg_alloc_.kind_ == slrak_int) {
+      fprintf(stdout, "d = %" PRId64 "\n", (exec.int_regs_[v_d->reg_alloc_.v_.regs_[0]])[0]);
+    }
+    else {
+      fprintf(stderr, "expected \"d\" to be slrak_int (%d)\n", r);
     }
   }
 
