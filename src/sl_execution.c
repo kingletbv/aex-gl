@@ -112,6 +112,67 @@ void sl_exec_i_sub(uint8_t row, uint8_t *restrict chain_column, int64_t *restric
 #undef BINOP_SNIPPET_TYPE
 }
 
+void sl_exec_i_to_f_move(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const int64_t *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) ((float)opd)
+#define UNOP_SNIPPET_RESULT_TYPE float
+#define UNOP_SNIPPET_TYPE int64_t
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_RESULT_TYPE
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_b_to_f_move(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const uint8_t *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) ((float)!!opd)
+#define UNOP_SNIPPET_RESULT_TYPE float
+#define UNOP_SNIPPET_TYPE uint8_t
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_RESULT_TYPE
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_to_i_move(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const float *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) ((int64_t)opd)
+#define UNOP_SNIPPET_RESULT_TYPE int64_t
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_RESULT_TYPE
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_b_to_i_move(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const uint8_t *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) ((int64_t)opd)
+#define UNOP_SNIPPET_RESULT_TYPE int64_t
+#define UNOP_SNIPPET_TYPE uint8_t
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_RESULT_TYPE
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_f_to_b_move(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const float *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) ((uint8_t)(opd != 0.f))
+#define UNOP_SNIPPET_RESULT_TYPE uint8_t
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_RESULT_TYPE
+#undef UNOP_SNIPPET_TYPE
+}
+
+void sl_exec_i_to_b_move(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const int64_t *restrict opd_column) {
+#define UNOP_SNIPPET_OPERATOR(opd) ((uint8_t)(!!opd))
+#define UNOP_SNIPPET_RESULT_TYPE uint8_t
+#define UNOP_SNIPPET_TYPE int64_t
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_RESULT_TYPE
+#undef UNOP_SNIPPET_TYPE
+}
+
+
 void sl_exec_f_increment(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const float *restrict opd_column) {
 #define UNOP_SNIPPET_OPERATOR(opd) (opd + 1.f)
 #define UNOP_SNIPPET_TYPE float
@@ -2944,10 +3005,6 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             break;
           }
 
-          case exop_component_selection:
-          case exop_field_selection:
-            break;
-
           case exop_post_inc:
           case exop_post_dec:
           case exop_pre_inc:
@@ -2982,6 +3039,8 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             break;
           }
 
+          case exop_component_selection:
+          case exop_field_selection:
           case exop_function_call:
           case exop_constructor: {
             /* Evaluate all children first; then continue to revisit_chain_ to perform the invocation */
@@ -3402,7 +3461,133 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             break;
           }
 
+          case exop_field_selection: {
+            break;
+          }
+
+          case exop_component_selection:
           case exop_constructor: {
+            size_t ci; 
+            for (ci = 0; ci < eps[epi].v_.expr_->num_components_; ++ci) {
+              struct sl_component_selection *cs = eps[epi].v_.expr_->swizzle_ + ci;
+              if (cs->parameter_index_ != -1) {
+                struct sl_expr *param = eps[epi].v_.expr_->children_[cs->parameter_index_];
+                struct sl_reg_alloc *param_ra;
+                if (param->offset_reg_.kind_ != slrak_void) {
+                  sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, param);
+                  param_ra = &param->rvalue_;
+                }
+                else {
+                  param_ra = &param->base_regs_;
+                }
+                
+                /* Note that, for lvalues (exop_component_selection), the source and the destination
+                 * registers will be teh same, the sl_exec_XXX_move() function detects this and it
+                 * degenerates into a no-op. */
+                switch (cs->conversion_) {
+                  case slcc_float_to_float:
+                    sl_exec_f_move(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                   FLOAT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                   FLOAT_REG_PTR_NRV(param_ra, cs->component_index_));
+                    break;
+                  case slcc_int_to_float:
+                    sl_exec_i_to_f_move(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                        FLOAT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                        INT_REG_PTR_NRV(param_ra, cs->component_index_));
+                    break;
+                  case slcc_bool_to_float:
+                    sl_exec_b_to_f_move(eps[epi].revisit_chain_, exec->exec_chain_reg_,
+                                        FLOAT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                        BOOL_REG_PTR_NRV(param_ra, cs->component_index_));
+                    break;
+                  case slcc_float_to_int:
+                    sl_exec_f_to_i_move(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                        INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                        FLOAT_REG_PTR_NRV(param_ra, cs->component_index_));
+                    break;
+                  case slcc_int_to_int:
+                    sl_exec_i_move(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                   INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                   INT_REG_PTR_NRV(param_ra, cs->component_index_));
+                    break;
+                  case slcc_bool_to_int:
+                    sl_exec_b_to_i_move(eps[epi].revisit_chain_, exec->exec_chain_reg_,
+                                        INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                        BOOL_REG_PTR_NRV(param_ra, cs->component_index_));
+                    break;
+                  case slcc_float_to_bool:
+                    sl_exec_f_to_b_move(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                        BOOL_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                        FLOAT_REG_PTR_NRV(param_ra, cs->component_index_));
+                    break;
+                  case slcc_int_to_bool:
+                    sl_exec_i_to_b_move(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                        BOOL_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                        INT_REG_PTR_NRV(param_ra, cs->component_index_));
+                    break;
+                  case slcc_bool_to_bool:
+                    sl_exec_b_move(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                        BOOL_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                        BOOL_REG_PTR_NRV(param_ra, cs->component_index_));
+                    break;
+                }
+              }
+              else {
+                /* Initialize with a constant */
+                switch (cs->component_index_) {
+                  case 0:
+                    switch (cs->conversion_) {
+                      case slcc_float_to_float:
+                      case slcc_int_to_float:
+                      case slcc_bool_to_float:
+                        sl_exec_f_init(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                       FLOAT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                       0.0f);
+                        break;
+                      case slcc_float_to_int:
+                      case slcc_int_to_int:
+                      case slcc_bool_to_int:
+                        sl_exec_i_init(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                       INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                       0);
+                        break;
+                      case slcc_float_to_bool:
+                      case slcc_int_to_bool:
+                      case slcc_bool_to_bool:
+                        sl_exec_b_init(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                       BOOL_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                       0);
+                        break;
+                    }
+                    break;
+                  case 1:
+                    switch (cs->conversion_) {
+                      case slcc_float_to_float:
+                      case slcc_int_to_float:
+                      case slcc_bool_to_float:
+                        sl_exec_f_init(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                       FLOAT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                       1.0f);
+                        break;
+                      case slcc_float_to_int:
+                      case slcc_int_to_int:
+                      case slcc_bool_to_int:
+                        sl_exec_i_init(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                       INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                       1);
+                        break;
+                      case slcc_float_to_bool:
+                      case slcc_int_to_bool:
+                      case slcc_bool_to_bool:
+                        sl_exec_b_init(eps[epi].revisit_chain_, exec->exec_chain_reg_, 
+                                       BOOL_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, ci),
+                                       1);
+                        break;
+                    }
+                    break;
+                }
+              }
+            }
             break;
           }
 

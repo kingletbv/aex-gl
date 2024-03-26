@@ -2397,6 +2397,11 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
       if (!can_lvalue) break;
     }
 
+    /* Alloc & lock registers for children */
+    for (n = 0; n < x->num_children_; ++n) {
+      r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[n]);
+    }
+
     if (can_lvalue) {
       struct sl_component_selection *first_cs = x->swizzle_;
       struct sl_expr *first_expr = x->children_[first_cs->parameter_index_];
@@ -2435,22 +2440,37 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
       }
     }
 
+    /* Check that all components are either from the global frame, or from a local frame;
+     * if not, then we cannot produce an lvalue (because we cannot determine a local_frame_
+     * flag that would be consistent.) */
+    int is_local_frame = 1;
+    if (can_lvalue) {
+      for (n = 0; n < x->num_components_; ++n) {
+        struct sl_component_selection *cs = x->swizzle_ + n;
+        struct sl_expr *child = x->children_[cs->parameter_index_];
+        if (!n) {
+          is_local_frame = child->base_regs_.local_frame_;
+        }
+        else if (child->base_regs_.local_frame_ != is_local_frame) {
+          /* Inconsistent local vs. global mix */
+          can_lvalue = 0;
+          break;
+        }
+      }
+    }
+
     if (!can_lvalue && (x->op_ == exop_component_selection)) {
       /* Cannot lvalue and this is a component selection e.g. "vec2 v; v.xy", this is fatal. */
       assert(0 && "Failed to produce lvalue for an exop_component_selection");
       return -1;
     }
 
-    /* Alloc & lock registers for children */
-    for (n = 0; n < x->num_children_; ++n) {
-      r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[n]);
-    }
-
     if (can_lvalue) {
       /* Clone according to the swizzles; following the checks above we know this should work */
+      x->base_regs_.local_frame_ = is_local_frame;
       for (n = 0; n < x->num_components_; ++n) {
         struct sl_component_selection *cs = x->swizzle_ + n;
-
+        
         if (x->base_regs_.v_.regs_[n] == SL_REG_NONE) {
           x->base_regs_.v_.regs_[n] = x->children_[cs->parameter_index_]->base_regs_.v_.regs_[cs->component_index_];
         }
