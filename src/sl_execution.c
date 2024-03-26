@@ -3027,7 +3027,12 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           case exop_gt:
           case exop_eq:
           case exop_ne:
-          case exop_logical_xor: {
+          case exop_logical_xor:
+          case exop_assign:
+          case exop_mul_assign:
+          case exop_div_assign:
+          case exop_add_assign:
+          case exop_sub_assign: {
             /* Evaluate both branches first, then come back to evaluate this expression node on the revisit_chain_.. */
 
             /* Push 2nd child first, it will be evaluated last (LIFO) */
@@ -3074,13 +3079,6 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(eps[epi].revisit_chain_));
             break;
           }
-
-          case exop_assign:
-          case exop_mul_assign:
-          case exop_div_assign:
-          case exop_add_assign:
-          case exop_sub_assign:
-            break;
 
           case exop_sequence: {
             /* The sequence is implied in the evaluation of its children */
@@ -3235,6 +3233,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             break;
           }
 
+          case exop_mul_assign:
           case exop_multiply: {
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[0]);
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
@@ -3242,8 +3241,22 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             sl_exec_mul(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_,
                         eps[epi].v_.expr_->children_[0],
                         eps[epi].v_.expr_->children_[1]);
+
+            if (eps[epi].v_.expr_->op_ == exop_mul_assign) {
+              /* Store the result value into the original child's l-value */
+              if (eps[epi].v_.expr_->children_[0]->offset_reg_.kind_ != slrak_void) {
+                sl_exec_offset_store(exec, eps[epi].revisit_chain_,
+                                     &eps[epi].v_.expr_->children_[0]->base_regs_,
+                                     &eps[epi].v_.expr_->children_[0]->offset_reg_,
+                                     eps[epi].v_.expr_);
+              }
+              else {
+                sl_exec_move(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_), 1);
+              }
+            }
             break;
           }
+          case exop_div_assign:
           case exop_divide: {
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[0]);
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
@@ -3251,9 +3264,22 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             sl_exec_div(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_,
                         eps[epi].v_.expr_->children_[0],
                         eps[epi].v_.expr_->children_[1]);
+            if (eps[epi].v_.expr_->op_ == exop_div_assign) {
+              /* Store the result value into the original child's l-value */
+              if (eps[epi].v_.expr_->children_[0]->offset_reg_.kind_ != slrak_void) {
+                sl_exec_offset_store(exec, eps[epi].revisit_chain_,
+                                     &eps[epi].v_.expr_->children_[0]->base_regs_,
+                                     &eps[epi].v_.expr_->children_[0]->offset_reg_,
+                                     eps[epi].v_.expr_);
+              }
+              else {
+                sl_exec_move(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_), 1);
+              }
+            }
             break;
           }
 
+          case exop_add_assign:
           case exop_add: {
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[0]);
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
@@ -3261,9 +3287,24 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             sl_exec_add(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_,
                         eps[epi].v_.expr_->children_[0],
                         eps[epi].v_.expr_->children_[1]);
+
+            if (eps[epi].v_.expr_->op_ == exop_add_assign) {
+              /* Store the result value into the original child's l-value */
+              if (eps[epi].v_.expr_->children_[0]->offset_reg_.kind_ != slrak_void) {
+                sl_exec_offset_store(exec, eps[epi].revisit_chain_,
+                                     &eps[epi].v_.expr_->children_[0]->base_regs_,
+                                     &eps[epi].v_.expr_->children_[0]->offset_reg_,
+                                     eps[epi].v_.expr_);
+              }
+              else {
+                sl_exec_move(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_), 1);
+              }
+            }
+
             break;
           }
 
+          case exop_sub_assign:
           case exop_subtract: {
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[0]);
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
@@ -3271,6 +3312,19 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             sl_exec_sub(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_,
                         eps[epi].v_.expr_->children_[0],
                         eps[epi].v_.expr_->children_[1]);
+
+            if (eps[epi].v_.expr_->op_ == exop_sub_assign) {
+              /* Store the result value into the original child's l-value */
+              if (eps[epi].v_.expr_->children_[0]->offset_reg_.kind_ != slrak_void) {
+                sl_exec_offset_store(exec, eps[epi].revisit_chain_,
+                                     &eps[epi].v_.expr_->children_[0]->base_regs_,
+                                     &eps[epi].v_.expr_->children_[0]->offset_reg_,
+                                     eps[epi].v_.expr_);
+              }
+              else {
+                sl_exec_move(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_), 1);
+              }
+            }
             break;
           }
 
@@ -3392,6 +3446,23 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                            BOOL_REG_PTR(eps[epi].v_.expr_, 0),
                            BOOL_REG_PTR(eps[epi].v_.expr_->children_[0], 0),
                            BOOL_REG_PTR(eps[epi].v_.expr_->children_[1], 0));
+            break;
+          }
+
+          case exop_assign: {
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
+
+            if (eps[epi].v_.expr_->children_[0]->offset_reg_.kind_ != slrak_void) {
+              /* Store the result value into the original child's l-value */
+              sl_exec_offset_store(exec, eps[epi].revisit_chain_,
+                                   &eps[epi].v_.expr_->children_[0]->base_regs_,
+                                   &eps[epi].v_.expr_->children_[0]->offset_reg_,
+                                   eps[epi].v_.expr_->children_[1]);
+            }
+            else {
+              sl_exec_move(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->children_[0]->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), 1);
+            }
+
             break;
           }
 

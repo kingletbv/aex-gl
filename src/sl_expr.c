@@ -2609,10 +2609,13 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
 
     /* Assume the assignment is performed here during evaluation.. can now unlock */
 
-    /* Clone the lvalue as our result; then lock that lvalue so that when we unlock
-     * child 0 we effectively only unlock its rvalue */
-    r = r ? r : sl_expr_clone_lvalue(x, x->children_[0]);
-    r = r ? r : sl_expr_regs_lock(ract, x);
+    /* The op-assign operators produce a result, even if the language does not support it,
+     * their operation does require a result-register to be available.
+     * (Reason is, in "a += b", both "a" and "b" may be arrays, but are needed as rvalues so
+     * the operation can succeed. In addition, we'd like to piggy-back on the simpler + - * /
+     * binary operator logic as these are non-trivial. Having the exop_XXX_assign allocate its
+     * own register helps facilitate this. */
+    r = sl_expr_regs_alloc(ract, x);
 
     r = r ? r : sl_expr_regs_unlock(ract, x->children_[0]);
     r = r ? r : sl_expr_regs_unlock(ract, x->children_[1]);
