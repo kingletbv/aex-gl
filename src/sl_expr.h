@@ -224,6 +224,7 @@ struct sl_expr {
 
   /* exop_field_selection */
   struct sl_type_field *field_selection_;
+  size_t field_index_;
 
   /* exop_function_call - the function called, and sibling exop_function_call
    * expressions calling the same function (cyclic). */
@@ -250,7 +251,7 @@ struct sl_expr *sl_expr_alloc_function_call(struct sl_function *f, const struct 
 struct sl_expr *sl_expr_alloc_constructor(struct sl_type *t, const struct situs *loc, size_t num_params, struct sl_expr **pexpr, size_t pexpr_stride);
 struct sl_expr *sl_expr_alloc_variable(struct sl_variable *v, const struct situs *loc);
 struct sl_expr *sl_expr_alloc_swizzle_selection(struct sl_expr *x, size_t num_tgt_components, uint8_t *component_selection, const struct situs *field_loc);
-struct sl_expr *sl_expr_alloc_field_selection(struct sl_expr *x, struct sl_type_field *field, const struct situs *field_loc);
+struct sl_expr *sl_expr_alloc_field_selection(struct sl_expr *x, struct sl_type_field *field, size_t field_index, const struct situs *field_loc);
 
 /* Allocate a unary operator expression, op and loc are operator and situs location of the
  * expression. The opd is a pointer to the pointer of the operand. If the function succeeds,

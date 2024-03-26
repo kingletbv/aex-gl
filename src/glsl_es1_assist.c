@@ -247,6 +247,7 @@ struct sl_expr *glsl_es1_field_or_swizzle_selection(struct diags *dx, struct sl_
   if (t->kind_ == sltk_struct) {
     /* Look for a matching field */
     struct sl_type_field *tf;
+    size_t field_index = 0;
     tf = t->fields_;
     if (tf) {
       do {
@@ -254,13 +255,14 @@ struct sl_expr *glsl_es1_field_or_swizzle_selection(struct diags *dx, struct sl_
 
         if (!strcmp(tf->ident_, field_id)) {
           /* Found a match */
-          struct sl_expr *field_expr = sl_expr_alloc_field_selection(x, tf, field_loc);
+          struct sl_expr *field_expr = sl_expr_alloc_field_selection(x, tf, field_index, field_loc);
           if (!field_expr) {
             dx_no_memory(dx);
             return NULL;
           }
           return field_expr;
         }
+        field_index++;
       } while (tf != t->fields_);
     }
 

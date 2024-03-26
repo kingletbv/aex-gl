@@ -349,6 +349,36 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
   return 0;
 }
 
+int sl_reg_alloc_are_equal(const struct sl_reg_alloc *a, const struct sl_reg_alloc *b) {
+  if (a->kind_ != b->kind_) {
+    return 0;
+  }
+  if (a->local_frame_ != b->local_frame_) {
+    return 0;
+  }
+  if (a->kind_ == slrak_struct) {
+    if (a->v_.comp_.num_fields_ != b->v_.comp_.num_fields_) {
+      return 0;
+    }
+    size_t n;
+    for (n = 0; n < a->v_.comp_.num_fields_; ++n) {
+      if (!sl_reg_alloc_are_equal(a->v_.comp_.fields_ + n, b->v_.comp_.fields_ + n)) {
+        return 0;
+      }
+    }
+    return 1;
+  }
+  else if (a->kind_ == slrak_array) {
+    if (a->v_.array_.num_elements_ != b->v_.array_.num_elements_) {
+      return 0;
+    }
+    return sl_reg_alloc_are_equal(a->v_.array_.head_, b->v_.array_.head_);
+  }
+  else {
+    return memcmp(a->v_.regs_, b->v_.regs_, sizeof(a->v_.regs_)) == 0;
+  }
+}
+
 static sl_reg_category_t sl_reg_alloc_get_category(sl_reg_alloc_kind_t kind) {
   switch (kind) {
     case slrak_void:

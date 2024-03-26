@@ -51,6 +51,7 @@ void sl_expr_init(struct sl_expr *x) {
   x->num_components_ = 0;
   memset(x->component_selection_, 0, sizeof(x->component_selection_));
   x->field_selection_ = NULL;
+  x->field_index_ = 0;
   x->function_ = NULL;
   x->next_caller_ = x->prev_caller_ = NULL;
   x->constructor_type_ = NULL;
@@ -2097,7 +2098,7 @@ struct sl_expr *sl_expr_alloc_swizzle_selection(struct sl_expr *vec_expr, size_t
   return x;
 }
 
-struct sl_expr *sl_expr_alloc_field_selection(struct sl_expr *expr, struct sl_type_field *field, const struct situs *field_loc) {
+struct sl_expr *sl_expr_alloc_field_selection(struct sl_expr *expr, struct sl_type_field *field, size_t field_index, const struct situs *field_loc) {
   struct sl_expr *x = sl_expr_alloc(exop_field_selection, field_loc);
   if (!x) return NULL;
   x->num_children_ = 1;
@@ -2108,6 +2109,7 @@ struct sl_expr *sl_expr_alloc_field_selection(struct sl_expr *expr, struct sl_ty
   }
   x->children_[0] = expr;
   x->field_selection_ = field;
+  x->field_index_ = field_index;
   return x;
 }
 

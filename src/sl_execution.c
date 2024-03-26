@@ -3462,6 +3462,37 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           }
 
           case exop_field_selection: {
+            /* Field selection should be a no-op, however, if a parent of the field selection has determined
+             * a destination register, then it still needs a move. That's an edge case, in the common case
+             * this move will degrade into a no-op. */
+            size_t field_index = 0;
+            struct sl_expr *x = eps[epi].v_.expr_;
+            struct sl_expr *sx = eps[epi].v_.expr_->children_[0];
+            struct sl_reg_alloc *child_field = &sx->base_regs_.v_.comp_.fields_[x->field_index_];
+            if (x->offset_reg_.kind_ != slrak_void) {
+              /* Check that the offset and base registers are the same for the child as they are for the
+               * exop_field_selection expression. This *should* be the case, as there is no way a parent
+               * could impose an offsetted base register on a child, and exop_field_selection won't put
+               * in an offset unless it is from its own child. */
+              if (x->offset_limit_ != sx->offset_limit_) {
+                assert(0);
+                return -1;
+              }
+              if (!sl_reg_alloc_are_equal(&x->offset_reg_, &sx->offset_reg_)) {
+                assert(0);
+                return -1;
+              }
+              if (!sl_reg_alloc_are_equal(&x->base_regs_, &sx->base_regs_)) {
+                assert(0);
+                return -1;
+              }
+              /* ok done, no copy needed. */
+            }
+            else {
+              /* Child not at an offset, just perform a move; this will likely be a no-op unless the
+               * parent of the exop_field_selection interfered during register allocation. */
+              sl_exec_move(exec, eps[epi].revisit_chain_, &x->base_regs_, child_field, 1);
+            }
             break;
           }
 

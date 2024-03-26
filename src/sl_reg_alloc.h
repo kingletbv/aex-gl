@@ -111,6 +111,7 @@ void sl_reg_alloc_void(struct sl_reg_alloc *ra); /* set type to void */
 void sl_reg_alloc_cleanup(struct sl_reg_alloc *ra);
 int sl_reg_alloc_is_allocated(const struct sl_reg_alloc *ra);
 int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src);
+int sl_reg_alloc_are_equal(const struct sl_reg_alloc *a, const struct sl_reg_alloc *b);
 
 void sl_reg_allocator_init(struct sl_reg_allocator *ra);
 void sl_reg_allocator_cleanup(struct sl_reg_allocator *ra);
