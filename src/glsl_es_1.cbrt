@@ -339,7 +339,7 @@ constructor-identifier: IVEC4 { $$ =  &cc->tb_.ivec4_; }
 constructor-identifier: MAT2 { $$ =  &cc->tb_.mat2_; }
 constructor-identifier: MAT3 { $$ =  &cc->tb_.mat3_; }
 constructor-identifier: MAT4 { $$ =  &cc->tb_.mat4_; }
-constructor-identifier: TYPE_NAME { $$ =  $0; }
+constructor-identifier: TYPE_NAME { $$ = $0; cc->is_typename_permitted_ = 1; }
 
 unary-expression: postfix-expression  { $$ = $0; $0 = NULL; }
 unary-expression: INC_OP unary-expression { $$ = sl_expr_alloc_unop(exop_pre_inc, &${0}, &$1); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
@@ -503,7 +503,7 @@ declaration: function-prototype SEMICOLON {
 }
 
 declaration: init-declarator-list SEMICOLON {
-  $$ = $0; $0 = NULL;
+  $$ = $0; $0 = NULL; cc->is_typename_permitted_ = 1;
 }
 declaration: PRECISION precision-qualifier type-specifier-no-prec SEMICOLON;
 
@@ -840,6 +840,7 @@ struct-declaration: type-specifier struct-declarator-list SEMICOLON {
    * through cc->last_type_specifier_ ; so just pass along the struct-declarator-list */
   $$ = $1;
   $1 = NULL;
+  cc->is_typename_permitted_ = 1;
 }
 
 struct-declarator-list: struct-declarator {

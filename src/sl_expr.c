@@ -1396,6 +1396,9 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
           sl_expr_temp_cleanup(&tmp);
           return -1;
         }
+        for (n = 0; n < x->num_children_; ++n) {
+          sl_expr_temp_init(children + n, NULL);
+        }
       }
 
       for (n = 0; n < x->num_children_; ++n) {
@@ -1421,7 +1424,7 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
           return 0; /* easy. */
         case sletk_array:
         case sletk_struct: {
-          if (x->num_components_ != x->num_children_) {
+          if (tmp.v_.comp_.num_elements_ != x->num_children_) {
             for (n = 0; n < x->num_children_; ++n) {
               sl_expr_temp_cleanup(children + n);
             }
@@ -1429,7 +1432,7 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
             sl_expr_temp_cleanup(&tmp);
             return -1;
           }
-          for (n = 0; n < x->num_components_; ++n) {
+          for (n = 0; n < x->num_children_; ++n) {
             if (sl_expr_temp_copy(tmp.v_.comp_.elements_ + n, children + n)) {
               for (n = 0; n < x->num_children_; ++n) {
                 sl_expr_temp_cleanup(children + n);
@@ -1652,7 +1655,7 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
       if (!failed) {
         failed = sl_expr_temp_copy(r, &tmp);
       }
-      for (n = 0; n < x->num_children_; ++x) {
+      for (n = 0; n < x->num_children_; ++n) {
         sl_expr_temp_cleanup(children + n);
       }
       if (children) free(children);
