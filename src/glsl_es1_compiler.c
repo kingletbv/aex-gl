@@ -346,5 +346,5 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
   sl_exec_call_graph_results_cleanup(&cgr);
    
 
-  return 0;
+  return cc->dx_->have_error_ ? GLSL_ES1_R_HAVE_ERRORS : GLSL_ES1_R_SUCCESS;
 }
