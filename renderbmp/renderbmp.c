@@ -123,6 +123,10 @@ int test(void) {
 
   enum glsl_es1_compiler_result ccr;
   const char *input_frag =
+    "struct blah {\n"
+    "  vec4 x;\n"
+    "  vec4 y;\n"
+    "};\n"
     "#define defined\n"
     "#if defined(defined)\n"
     "#error Hello\n"
@@ -131,13 +135,22 @@ int test(void) {
     "vec4 b = vec4(1.0, 2.0, 3.0, 4.0);\n"
     "vec4 c = vec4(a, 1.0, 2.0);\n"
     "int d = 123;\n"
+    "blah e = blah(\n"
+    "  vec4(1., 3., 5., 7.),\n"
+    "  vec4(2., 4., 8., 10.)\n"
+    ");\n"
     "void main() {\n"
     //"  c.x = 1.f;\n"
     "  c.xy++;\n"
     "  c.yz++;\n"
     "  c.zw++;\n"
     "  c.w++;\n"
-    "  d++;\n"
+    "  int n;\n"
+    "  d = 0;\n"
+    "  for (n = 0; n < 10; ++n) {\n"
+    "    d++;\n"
+    "  }\n"
+    "  e.x.x++;\n"
     "}\n"
     "\n";
   ccr = glsl_es1_compiler_compile_mem(cc, "input.frag", input_frag, strlen(input_frag));

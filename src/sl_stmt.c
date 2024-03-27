@@ -197,6 +197,29 @@ struct sl_stmt *sl_stmt_next_sibling(struct sl_stmt *s) {
   return NULL;
 }
 
+struct sl_stmt *sl_stmt_next_execution_sibling(struct sl_stmt *s) {
+  /* Try and find the next sibling for execution, or return NULL if there is no
+   * such sibling. This is different from sl_stmt_next_sibling() in that we don't
+   * want to go across the different branches of a statement (e.g. in the case of
+   * an if statement, we don't want to go from the true branch to the false branch,
+   * but want NULL at the end of either true or false branch so we can go back to
+   * if statement itself. */
+  if (!s->parent_) {
+    /* No sibling if not in parent as we cannot tell where the list starts and ends without
+     * a parent's head pointer. */
+    return NULL;
+  }
+  struct sl_stmt *next = s->next_;
+  if (next &&
+      (next != s->parent_->prep_) &&
+      (next != s->parent_->prep_cond_) &&
+      (next != s->parent_->true_branch_) &&
+      (next != s->parent_->false_branch_)) {
+    return next;
+  }
+  return NULL;
+}
+
 struct sl_stmt *sl_stmt_first_child(struct sl_stmt *s) {
   if (s->prep_) return s->prep_;
   if (s->prep_cond_) return s->prep_cond_;

@@ -2916,7 +2916,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             sl_exec_split_chains_by_bool(exec, eps[epi].v_.stmt_->condition_, eps[epi].alt_chain_,
                                         &true_chain, &false_chain);
             eps[epi].alt_chain_ = SL_EXEC_NO_CHAIN;
-            if (true_chain) {
+            if (true_chain != SL_EXEC_NO_CHAIN) {
               /* Set up the true chain, this involves the following:
                * - First execute the body
                * - Then execute the post_ expression (if any)
@@ -2942,7 +2942,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
       }
       else if (eps[epi].post_chain_ != SL_EXEC_NO_CHAIN) {
         /* Step to next by transforming current SLEPK_STMT to point to next */
-        struct sl_stmt *next = sl_stmt_next_sibling(eps[epi].v_.stmt_);
+        struct sl_stmt *next = sl_stmt_next_execution_sibling(eps[epi].v_.stmt_);
         if (next) {
           eps[epi].v_.stmt_ = next;
           eps[epi].enter_chain_ = eps[epi].post_chain_;
@@ -3084,12 +3084,13 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             /* The sequence is implied in the evaluation of its children */
             size_t our_continue_ptr = eps[epi].continue_chain_ptr_;
             struct sl_expr *seq_expr = eps[epi].v_.expr_;
+            uint32_t enter_chain = eps[epi].enter_chain_;
             sl_exec_pop_ep(exec); /* pop exop_sequence, we're realizing it on the stack */
 
             /* Push the 2nd child on the stack first (LIFO); its continuation is our (exop_sequence) continuation */
             sl_exec_push_expr(exec, seq_expr->children_[1], SL_EXEC_NO_CHAIN, our_continue_ptr);
             /* Now push the 1st child on the stack, to be evaluated first; its continuation is our second child. */
-            sl_exec_push_expr(exec, seq_expr->children_[0], eps[epi].enter_chain_, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
+            sl_exec_push_expr(exec, seq_expr->children_[0], enter_chain, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
             
             break;
           }
