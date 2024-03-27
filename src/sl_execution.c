@@ -2748,6 +2748,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             /* Evaluate the condition, then come back on the revisit chain to determine what to do */
             r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->condition_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].revisit_chain_));
             if (r) return r;
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
           case slsk_while: {
             /* Evaluate the condition, then come back on the revisit chain to determine what to do
@@ -2825,11 +2826,11 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
       else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.stmt_->kind_) {
           case slsk_if: {
-            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[0]);
+            sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.stmt_->condition_);
             /* Split execution into a true and false chain, then evaluate children selectively accordingly. */
             uint32_t true_chain = SL_EXEC_NO_CHAIN;
             uint32_t false_chain = SL_EXEC_NO_CHAIN;
-            sl_exec_split_chains_by_bool(exec, eps[epi].v_.expr_->children_[0], eps[epi].revisit_chain_,
+            sl_exec_split_chains_by_bool(exec, eps[epi].v_.stmt_->condition_, eps[epi].revisit_chain_,
                                          &true_chain, &false_chain);
             eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
             if (true_chain != SL_EXEC_NO_CHAIN) {
