@@ -2779,6 +2779,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             /* Put continuation of the body onto the expression, the expressino will then continue on our revisit_chain_ */
             r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->true_branch_, eps[epi].enter_chain_, CHAIN_REF(eps[condition_eval_index].enter_chain_));
             if (r) return r;
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
           }
           case slsk_for:
