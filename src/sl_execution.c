@@ -2773,12 +2773,8 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             break;
           }
           case slsk_do: {
-            /* Execute the body, then return onto the revisit_chain_ to evaluate the condition */
-            size_t condition_eval_index = exec->num_execution_points_;
-            r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->condition_, SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
-            if (r) return r;
-            /* Put continuation of the body onto the expression, the expressino will then continue on our revisit_chain_ */
-            r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->true_branch_, eps[epi].enter_chain_, CHAIN_REF(eps[condition_eval_index].enter_chain_));
+            /* Execute the body, then return onto the alt_chain_ to evaluate the condition */
+            r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->true_branch_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].alt_chain_));
             if (r) return r;
             eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
@@ -2795,12 +2791,75 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             }
             eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
-          case slsk_continue:
-            // XXX: Scan upwards
+          case slsk_continue: {
+            /* continue should break out to nearest loop, and continue execution after the loop body, but before
+             * the loop is re-evaluated again. This is not a consistent chain location between while/do/for so 
+             * some care is needed. */
+            size_t pepi = epi - 1;
+            while (pepi) {
+              if (eps[pepi].kind_ == SLEPK_STMT) {
+                if (eps[pepi].v_.stmt_->kind_ == slsk_while) {
+                  /* slsk_while: stick it on the enter_chain (it'll schedule the condition) */
+                  eps[pepi].enter_chain_ = sl_exec_join_chains(exec, eps[pepi].enter_chain_, eps[epi].enter_chain_);
+                  break;
+                }
+                else if (eps[pepi].v_.stmt_->kind_ == slsk_do) {
+                  /* slsk_do: stick it on the alt_chain (it'll schedule the condition) */
+                  eps[pepi].alt_chain_ = sl_exec_join_chains(exec, eps[pepi].alt_chain_, eps[epi].enter_chain_);
+                  break;
+                }
+                else if (eps[pepi].v_.stmt_->kind_ == slsk_for) {
+                  /* slsk_for: stick it on the revisit_chain (it'll schedule the condition) */
+                  eps[pepi].revisit_chain_ = sl_exec_join_chains(exec, eps[pepi].revisit_chain_, eps[epi].enter_chain_);
+                  break;
+                }
+              }
+              else if (eps[pepi].kind_ == SLEPK_EXPR) {
+                if (eps[pepi].v_.expr_->op_ == exop_function_call) {
+                  /* exop_function_call: stick it on the alt_chain; this is where the function is about to return to
+                   *                     caller (and copies out any parameters and the like). */
+                  eps[pepi].alt_chain_ = sl_exec_join_chains(exec, eps[pepi].alt_chain_, eps[epi].enter_chain_);
+                  break;
+                }
+              }
+              else if (eps[pepi].kind_ == SLEPK_BOOTSTRAP) {
+                eps[pepi].post_chain_ = sl_exec_join_chains(exec, eps[pepi].post_chain_, eps[epi].enter_chain_);
+                break;
+              }
+              pepi--;
+            }
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
+
+
             break;
-          case slsk_break:
-            // XXX: Scan upwards
+          }
+          case slsk_break: {
+            /* Continue on the post chain of the loop, or bootstrap */
+            size_t pepi = epi - 1;
+            while (pepi) {
+              if (eps[pepi].kind_ == SLEPK_STMT) {
+                if (eps[pepi].v_.stmt_->kind_ == slsk_while || eps[pepi].v_.stmt_->kind_ == slsk_do || eps[pepi].v_.stmt_->kind_ == slsk_for) {
+                    eps[pepi].post_chain_ = sl_exec_join_chains(exec, eps[pepi].post_chain_, eps[epi].enter_chain_);
+                  break;
+                }
+              }
+              else if (eps[pepi].kind_ == SLEPK_EXPR) {
+                if (eps[pepi].v_.expr_->op_ == exop_function_call) {
+                  /* exop_function_call: stick it on the alt_chain; this is where the function is about to return to
+                   *                     caller (and copies out any parameters and the like). */
+                  eps[pepi].alt_chain_ = sl_exec_join_chains(exec, eps[pepi].alt_chain_, eps[epi].enter_chain_);
+                  break;
+                }
+              }
+              else if (eps[pepi].kind_ == SLEPK_BOOTSTRAP) {
+                eps[pepi].post_chain_ = sl_exec_join_chains(exec, eps[pepi].post_chain_, eps[epi].enter_chain_);
+                break;
+              }
+              pepi--;
+            }
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
+          }
           case slsk_return:
             // XXX: Scan upwards
             break;
@@ -2942,6 +3001,13 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
 
             /* False chain joins up on the post */
             eps[epi].post_chain_ = sl_exec_join_chains(exec, false_chain, eps[epi].post_chain_);
+            break;
+          }
+          case slsk_do: {
+            /* Schedule the condition evaluation; then proceed to the revisit_chain_ to decide what to do */
+            r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->condition_, eps[epi].alt_chain_, CHAIN_REF(eps[epi].revisit_chain_));
+            if (r) return r;
+            eps[epi].alt_chain_ = SL_EXEC_NO_CHAIN;
             break;
           }
         }

@@ -127,14 +127,11 @@ int test(void) {
     "  vec4 x;\n"
     "  vec4 y;\n"
     "};\n"
-    "#define defined\n"
-    "#if defined(defined)\n"
-    "#error Hello\n"
-    "#endif\n"
     "const vec2 a;\n"
     "vec4 b = vec4(1.0, 2.0, 3.0, 4.0);\n"
     "vec4 c = vec4(a, 1.0, 2.0);\n"
     "int d = 123;\n"
+    "int x = 0;\n"
     "blah e = blah(\n"
     "  vec4(1., 3., 5., 7.),\n"
     "  vec4(2., 4., 8., 10.)\n"
@@ -148,13 +145,13 @@ int test(void) {
     "  d = 0;\n"
     "  int n;\n"
     "  n = 10;\n"
+    "  x = 0;\n"
     "  do {\n"
-    "    if (n > 5) {\n"
-    "      d++;\n"
+    "    if (n <= 5) {\n"
+    "      x++;\n"
+    "      continue;\n"
     "    }\n"
-    "    else {\n"
-    "      discard;\n"
-    "    }\n"
+    "    d++;\n"
     "  } while (--n > 0);\n"
     "  e.x.x++;\n"
     "}\n"
@@ -260,6 +257,13 @@ int test(void) {
     return -1;
   }
 
+  struct sl_variable *v_x = sl_compilation_unit_find_variable(cc->cu_, "x");
+  if (!v_x) {
+    fprintf(stderr, "variable \"d\" not found\n");
+    glsl_es1_compiler_cleanup(cc);
+    return -1;
+  }
+
   r = sl_exec_run(&exec, f, 0);
   if (r) {
     fprintf(stderr, "failed to run execution (%d)\n", r);
@@ -280,6 +284,12 @@ int test(void) {
     }
     else {
       fprintf(stderr, "expected \"d\" to be slrak_int (%d)\n", r);
+    }
+    if (v_x->reg_alloc_.kind_ == slrak_int) {
+      fprintf(stdout, "x = %" PRId64 "\n", (exec.int_regs_[v_x->reg_alloc_.v_.regs_[0]])[0]);
+    }
+    else {
+      fprintf(stderr, "expected \"x\" to be slrak_int (%d)\n", r);
     }
   }
 
