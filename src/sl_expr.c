@@ -18,6 +18,11 @@
 #include <stdlib.h>
 #endif
 
+#ifndef STDIO_H_INCLUDED
+#define STDIO_H_INCLUDED
+#include <stdio.h>
+#endif
+
 #ifndef STRING_H_INCLUDED
 #define STRING_H_INCLUDED
 #include <string.h>
@@ -2174,7 +2179,7 @@ static int sl_expr_is_assignment(struct sl_expr *x) {
 }
 
 static int sl_expr_need_rvalue(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
-  if (!x->offset_reg_.kind_ == slrak_void) {
+  if (x->offset_reg_.kind_ == slrak_void) {
     /* No need for separate rvalue as the registers for x can be used directly,
      * (are not at an offset and so don't need a separate load.) */
     sl_reg_alloc_void(&x->rvalue_);
@@ -2237,11 +2242,15 @@ static int sl_expr_regs_lock_or_alloc(struct sl_reg_allocator *ract, struct sl_e
 }
 
 static int sl_expr_regs_unlock(struct sl_reg_allocator *ract, struct sl_expr *x) {
-  int r;
+  int r = 0;
   if (x->offset_limit_ > INT_MAX) return -1; /* overflow */
-  r = sl_reg_allocator_unlock_descend(ract, (int)x->offset_limit_, &x->base_regs_);
-  if (x->offset_reg_.kind_ != slrak_void) {
-    r = r ? r : sl_reg_allocator_unlock(ract, &x->offset_reg_);
+  if (x->base_regs_.local_frame_) {
+    r = sl_reg_allocator_unlock_descend(ract, (int)x->offset_limit_, &x->base_regs_);
+  }
+  if (x->offset_reg_.local_frame_) {
+    if (x->offset_reg_.kind_ != slrak_void) {
+      r = r ? r : sl_reg_allocator_unlock(ract, &x->offset_reg_);
+    }
   }
   return r;
 }
@@ -2622,7 +2631,7 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
 
     return r;
   }
-  
+
   /* Recursively process each child. On the return from sl_expr_alloc_register_main_pass() the
    * corresponding x->children_[n]->reg_alloc_ will be held locked. */
   for (n = 0; n < x->num_children_; ++n) {
