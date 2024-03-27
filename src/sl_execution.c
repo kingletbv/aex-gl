@@ -2804,9 +2804,13 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           case slsk_return:
             // XXX: Scan upwards
             break;
-          case slsk_discard:
-            // XXX: Scan upwards
+          case slsk_discard: {
+            /* Drop whatever we're doing and re-join on the alt-chain of the bootstrap */
+            assert(eps[0].kind_ == SLEPK_BOOTSTRAP);
+            eps[0].alt_chain_ = sl_exec_join_chains(exec, eps[0].alt_chain_, eps[epi].enter_chain_);
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
+          }
           case slsk_compound: {
             /* If there are inner statements (true_branch_) then execute and continue on the post_chain, otherwise,
              * just directly move onto the post_chain */
