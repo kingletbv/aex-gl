@@ -1378,6 +1378,11 @@ function-definition: function-definition-setup compound-statement-no-new-scope {
       $0->body_->true_branch_ = sl_stmt_append_list($0->body_->true_branch_, $1);
       $1 = NULL;
     }
+    /* pop scope */
+    if ($0->body_ && $0->body_->scope_) {
+      assert((cc->current_scope_ == $0->body_->scope_) && "scope should be set or restored to top-level scope of the function");
+      cc->current_scope_ = $0->body_->scope_->parent_;
+    }
   }
 }
 
