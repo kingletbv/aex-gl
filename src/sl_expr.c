@@ -2688,13 +2688,18 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
   return 0;
 }
 
-int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
+int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x, int needs_rvalue) {
   int r;
   r = sl_expr_alloc_register_pre_pass(tb, ract, x);
   if (r) return r;
 
   r = sl_expr_alloc_register_main_pass(tb, ract, x);
   if (r) return r;
+
+  if (needs_rvalue) {
+    r = sl_expr_need_rvalue(tb, ract, x);
+    r = r ? r : sl_reg_allocator_unlock(ract, &x->rvalue_);
+  }
 
   sl_expr_regs_unlock(ract, x);
   

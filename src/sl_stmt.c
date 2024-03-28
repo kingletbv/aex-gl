@@ -238,13 +238,17 @@ int sl_stmt_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ra
     /* Enter s */
     int r = 0;
     if (s->expr_) {
-      r = sl_expr_alloc_registers(tb, ract, s->expr_);
+      int need_rvalue = 0;
+      if (s->kind_ == slsk_return) {
+        need_rvalue = 1;
+      }
+      r = sl_expr_alloc_registers(tb, ract, s->expr_, need_rvalue);
     }
     if (!r && s->condition_) {
-      r = sl_expr_alloc_registers(tb, ract, s->condition_);
+      r = sl_expr_alloc_registers(tb, ract, s->condition_, 0);
     }
     if (!r && s->post_) {
-      r = sl_expr_alloc_registers(tb, ract, s->post_);
+      r = sl_expr_alloc_registers(tb, ract, s->post_, 0);
     }
     if (r) {
       return r;

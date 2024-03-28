@@ -280,12 +280,18 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
 int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
 /* Allocate temp registers for all expression nodes in the expression x, while respecting 
- * existing allocations made for some of the nodes and/or variables.
+ * existing allocations made for some of the nodes and/or variables. All sub-expressions are
+ * allocated locally. The ract allocator is used as the allocator for the local frame.
+ * If needs_rvalue is non-zero, then the expression x itself will have its rvalue_ member
+ * initialized to an allocated value if, and only if, ract->base_regs_ corresponds to an
+ * offseted array (that is to say, it's an lvalue with an offset_reg_.kind_ != slrak_void, 
+ * which means it's not a known fixed register, but the register is determined at runtime) -
+ * use this when the code using x needs to access or copy out of a fixed register.
  * Make sure any existing allocations are locked to prevent inappropriate double-use.
  * Returns 0 upon success, non-zero should be treated as a fatal error (typically memory, overflow
  * or an internal error.)
  */
-int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x);
+int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x, int needs_rvalue);
 
 /* Attached the expression to the function, setting function_. Detaches from any old function. */
 void sl_expr_attach_caller(struct sl_expr *x, struct sl_function *f);
