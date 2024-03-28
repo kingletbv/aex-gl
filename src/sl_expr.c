@@ -2318,6 +2318,38 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
 
     return 0;
   }
+  else if (x->op_ == exop_sequence) {
+    /* The value of a sequence (the comma operator) is the last value of that sequence; ideally we'd
+     * like that last value to be in the same registers as the sequence's value, so try if possible. */
+    
+    /* Do first child and drop registers on the floor as we don't care for results */
+    r = r?  r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[0]);
+    r = r ? r : sl_expr_regs_unlock(ract, x->children_[0]);
+
+    /* Do the 2nd child, try and use those registers for the exop_sequence as well, if possible. */
+    if (!sl_expr_regs_is_allocated(x)) {
+      /* Re-use the registers for exop_sequence and leave em locked */
+      r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[1]);
+      r = r ? r : sl_expr_clone_lvalue(x, x->children_[1]);
+    }
+    else {
+      /* x already allocated, clone registers; if at all possible */
+      if (!sl_expr_regs_is_allocated(x->children_[1])) {
+        r = r ? r : sl_expr_clone_lvalue(x->children_[1], x);
+      }
+      else {
+        /* x already allocated, x->children_[1] already allocated, cannot share anything. */
+      }
+      /* Enter sub-expression allocation for last child; lock x, unlock sub-expression, those
+       * might be the same. */
+      r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[1]);
+      r = r ? r : sl_expr_regs_lock(ract, x);
+      r = r ? r : sl_expr_regs_unlock(ract, x->children_[1]);
+    }
+
+    if (r) return r;
+    return 0;
+  }
   else if (x->op_ == exop_variable) {
     /* Clone the variable's reg_alloc and lock it; variables should already be locked,
      * but locking it extra ensures the caller can unlock without consequence. */
