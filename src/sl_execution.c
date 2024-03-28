@@ -3190,10 +3190,10 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             size_t our_continue_ptr = eps[epi].continue_chain_ptr_;
             struct sl_expr *seq_expr = eps[epi].v_.expr_;
             uint32_t enter_chain = eps[epi].enter_chain_;
-            sl_exec_pop_ep(exec); /* pop exop_sequence, we're realizing it on the stack */
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
 
             /* Push the 2nd child on the stack first (LIFO); its continuation is our (exop_sequence) continuation */
-            sl_exec_push_expr(exec, seq_expr->children_[1], SL_EXEC_NO_CHAIN, our_continue_ptr);
+            sl_exec_push_expr(exec, seq_expr->children_[1], SL_EXEC_NO_CHAIN, CHAIN_REF(eps[epi].revisit_chain_));
             /* Now push the 1st child on the stack, to be evaluated first; its continuation is our second child. */
             sl_exec_push_expr(exec, seq_expr->children_[0], enter_chain, CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_));
             
@@ -3619,6 +3619,16 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[1], false_chain, CHAIN_REF(eps[epi].post_chain_));
 
             break;
+          }
+
+          case exop_sequence: {
+            if (!sl_reg_alloc_are_equal(&eps[epi].v_.expr_->base_regs_, &eps[epi].v_.expr_->children_[1]->base_regs_)) {
+              sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
+              sl_exec_move(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), 1);
+            }
+            else {
+              /* eps[epi].v_.expr_ shares registers with second child, we're already done even if both are lvalues */
+            }
           }
 
           case exop_conditional: {

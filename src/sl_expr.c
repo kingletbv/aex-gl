@@ -2215,6 +2215,11 @@ static int sl_expr_regs_lock(struct sl_reg_allocator *ract, struct sl_expr *x) {
       r = r ? r : sl_reg_allocator_lock(ract, &x->offset_reg_);
     }
   }
+  if (x->rvalue_.kind_ != slrak_void) {
+    if (x->rvalue_.local_frame_) {
+      r = r ? r : sl_reg_allocator_lock(ract, &x->rvalue_);
+    }
+  }
   return r;
 }
 
@@ -2250,6 +2255,11 @@ static int sl_expr_regs_unlock(struct sl_reg_allocator *ract, struct sl_expr *x)
   if (x->offset_reg_.local_frame_) {
     if (x->offset_reg_.kind_ != slrak_void) {
       r = r ? r : sl_reg_allocator_unlock(ract, &x->offset_reg_);
+    }
+  }
+  if (x->rvalue_.kind_ != slrak_void) {
+    if (x->rvalue_.local_frame_) {
+      r = r ? r : sl_reg_allocator_lock(ract, &x->rvalue_);
     }
   }
   return r;
@@ -2336,13 +2346,16 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
       /* x already allocated, clone registers; if at all possible */
       if (!sl_expr_regs_is_allocated(x->children_[1])) {
         r = r ? r : sl_expr_clone_lvalue(x->children_[1], x);
+        r = r ? r : sl_expr_regs_lock(ract, x);
       }
       else {
-        /* x already allocated, x->children_[1] already allocated, cannot share anything. */
+        /* x already allocated, x->children_[1] already allocated, cannot share anything; make sure
+         * the child has an rvalue if needed */
+        r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[1]);
+        r = r ? r : sl_expr_need_rvalue(tb, ract, x->children_[1]);
       }
       /* Enter sub-expression allocation for last child; lock x, unlock sub-expression, those
        * might be the same. */
-      r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[1]);
       r = r ? r : sl_expr_regs_lock(ract, x);
       r = r ? r : sl_expr_regs_unlock(ract, x->children_[1]);
     }
@@ -2606,16 +2619,13 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
     /* For the second child, we'd like to have an rvalue. Not so much for the first 
      * as exop_assign overwrites the destination without concern for prior contents. */
     r = r ? r : sl_expr_need_rvalue(tb, ract, x->children_[1]);
-    if (x->children_[1]->rvalue_.kind_ != slrak_void) {
-      /* If this did create an rvalue_ then unlock the other value here */
-      r = r ? r : sl_reg_allocator_unlock(ract, &x->children_[1]->base_regs_);
-    }
 
     /* Assume the assignment is performed here during evaluation.
      * Unlock lvalue, clone the registers for the rvalue into our own expression 
      * (and don't unlock).
      */
     r = r ? r : sl_expr_regs_unlock(ract, x->children_[0]);
+    r = r ? r : sl_expr_regs_unlock(ract, x->children_[1]);
 
     /* Clone the assigned right value to the result and leave it locked (so caller has us
      * locked as expected.) */
@@ -2625,6 +2635,8 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
     else {
       r = r ? r : sl_reg_alloc_clone(&x->base_regs_, &x->children_[1]->base_regs_);
     }
+
+    r = r ? r : sl_expr_regs_lock(ract, x);
 
     return r;
   }
@@ -2730,7 +2742,6 @@ int sl_expr_alloc_registers(struct sl_type_base *tb, struct sl_reg_allocator *ra
 
   if (needs_rvalue) {
     r = sl_expr_need_rvalue(tb, ract, x);
-    r = r ? r : sl_reg_allocator_unlock(ract, &x->rvalue_);
   }
 
   sl_expr_regs_unlock(ract, x);
