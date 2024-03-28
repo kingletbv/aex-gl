@@ -207,7 +207,15 @@ void sl_type_field_free_chain(struct sl_type_field *chain);
 /* Returns the type with any qualifiers removed */
 #define sl_type_unqualified(t) ((t) && ((t)->kind_ == sltk_qualifier) ? (t)->derived_type_ : (t))
 
-/* Converts the type to a string for debugging purposes, string should be freed using free() */
+/* Converts the type to a string for debugging purposes, the string should be allocated by
+ * the caller and passed in as output_str. To discover the number of bytes needed for the
+ * string, the caller may pass in NULL for output_str. The return value is the number of bytes
+ * needed for the string, excluding any NULL terminator. The caller should typically add a NULL 
+ * terminator to the end of the string. */
+size_t sl_type_dump(const struct sl_type *t, char *output_str);
+
+/* Converts the type to a string for debugging purposes, string should be freed using free()
+ * Convenience function, internally uses sl_type_dump(). */
 char *sl_type_to_str(const struct sl_type *t);
 
 /* sl_buf_printf() writes to *p and advances the *p pointer (thus, to create output, we may call
@@ -225,6 +233,7 @@ char *sl_type_to_str(const struct sl_type *t);
  * The return value is always the total_needed value; there is no way to detect errors (errors should
  * not occur if the fmt is not malformed.) */
 size_t sl_buf_printf(char **p, size_t *buf_size_remaining, size_t *total_needed, const char *fmt, ...);
+
 
 #define sl_type_qualifiers(t) (((t)->kind_) == sltk_qualifier ? (t)->qualifiers_ : 0)
 

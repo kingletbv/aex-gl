@@ -384,6 +384,123 @@ void sl_type_field_free_chain(struct sl_type_field *chain) {
   }
 }
 
+static size_t sl_type_str_dump(const char *s, char *output_str, size_t at) {
+  size_t len = strlen(s);
+  if (output_str) memcpy(output_str + at, s, len);
+  return at + len;
+}
+
+size_t sl_type_dump(const struct sl_type *t, char *output_str) {
+  size_t str_size = 0;
+  switch (t->kind_) {
+    case sltk_invalid:
+      str_size = sl_type_str_dump("@INVALID", output_str, str_size);
+      break;
+    case sltk_qualifier: {
+      int q = t->qualifiers_;
+
+      /* invariant-qualifier */
+      if (q & SL_TYPE_QUALIFIER_INVARIANT) {
+        str_size = sl_type_str_dump("invariant ", output_str, str_size);
+      }
+
+      /* storage qualifiers */
+      if (q & SL_TYPE_QUALIFIER_CONST) {
+        str_size = sl_type_str_dump("const ", output_str, str_size);
+      }
+      if (q & SL_TYPE_QUALIFIER_ATTRIBUTE) {
+        str_size = sl_type_str_dump("attribute ", output_str, str_size);
+      }
+      if (q & SL_TYPE_QUALIFIER_UNIFORM) {
+        str_size = sl_type_str_dump("uniform ", output_str, str_size);
+      }
+      if (q & SL_TYPE_QUALIFIER_VARYING) {
+        str_size = sl_type_str_dump("varying ", output_str, str_size);
+      }
+
+      /* parameter-qualifiers */
+      if (q & SL_PARAMETER_QUALIFIER_IN) {
+        str_size = sl_type_str_dump("in ", output_str, str_size);
+      }
+      if (q & SL_PARAMETER_QUALIFIER_OUT) {
+        str_size = sl_type_str_dump("out ", output_str, str_size);
+      }
+      if (q & SL_PARAMETER_QUALIFIER_INOUT) {
+        str_size = sl_type_str_dump("inout ", output_str, str_size);
+      }
+
+      /* precision-qualifiers */
+      if (q & SL_TYPE_QUALIFIER_HIGH_PRECISION) {
+        str_size = sl_type_str_dump("highp ", output_str, str_size);
+      }
+      if (q & SL_TYPE_QUALIFIER_MEDIUM_PRECISION) {
+        str_size = sl_type_str_dump("mediump ", output_str, str_size);
+      }
+      if (q & SL_TYPE_QUALIFIER_LOW_PRECISION) {
+        str_size = sl_type_str_dump("lowp ", output_str, str_size);
+      }
+
+      str_size += sl_type_dump(t->derived_type_, output_str ? output_str + str_size : NULL);
+      break;
+    }
+
+    case sltk_array: {
+      struct sl_type *non_array_child = t->derived_type_;
+      while (non_array_child->kind_ == sltk_array) {
+        non_array_child = non_array_child->derived_type_;
+      }
+      str_size += sl_type_dump(non_array_child, output_str ? output_str + str_size : NULL);
+      while (t->kind_ == sltk_array) {
+        str_size = sl_type_str_dump("[", output_str, str_size);
+        char digits[21] = { 0 };
+        sprintf(digits, "%" PRIu64, t->array_size_);
+        str_size = sl_type_str_dump(digits, output_str, str_size);
+        str_size = sl_type_str_dump("]", output_str, str_size);
+
+        t = t->derived_type_;
+      }
+      break;
+    }
+    case sltk_struct: {
+      str_size = sl_type_str_dump(t->tag_, output_str, str_size);
+      break;
+    }
+
+    case sltk_void:
+    case sltk_float:
+    case sltk_int:
+    case sltk_bool:
+    case sltk_vec2:
+    case sltk_vec3:
+    case sltk_vec4:
+    case sltk_bvec2:
+    case sltk_bvec3:
+    case sltk_bvec4:
+    case sltk_ivec2:
+    case sltk_ivec3:
+    case sltk_ivec4:
+    case sltk_mat2:
+    case sltk_mat3:
+    case sltk_mat4:
+    case sltk_sampler2D:
+    case sltk_samplerCube:
+      str_size = sl_type_str_dump(t->name_, output_str, str_size);
+      break;
+  }
+  return str_size;
+}
+
+
+char *sl_type_to_str(const struct sl_type *t) {
+  size_t size_needed = sl_type_dump(t, NULL);
+  char *buf = (char *)malloc(size_needed + 1 /* NULL terminator */);
+  if (!buf) return NULL;
+  sl_type_dump(t, buf);
+  buf[size_needed] = '\0';
+
+  return buf;
+}
+
 size_t sl_buf_printf(char **p, size_t *buf_size_remaining, size_t *total_needed, const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
@@ -404,99 +521,4 @@ size_t sl_buf_printf(char **p, size_t *buf_size_remaining, size_t *total_needed,
     *buf_size_remaining = 0;
   }
   return *total_needed;
-}
-
-static size_t sl_type_to_string_buf(char **p, size_t *buf_size_remaining, size_t *total_needed, const struct sl_type *t) {
-  if (!t) return sl_buf_printf(p, buf_size_remaining, total_needed, "(null)");
-  switch (t->kind_) {
-    default:
-      assert(0);
-    case sltk_invalid:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "(invalid)");
-    case sltk_void:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "void");
-    case sltk_float:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "float");
-    case sltk_int:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "int");
-    case sltk_bool:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "bool");
-    case sltk_vec2:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "vec2");
-    case sltk_vec3:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "vec3");
-    case sltk_vec4:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "vec4");
-    case sltk_bvec2:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "bvec2");
-    case sltk_bvec3:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "bvec3");
-    case sltk_bvec4:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "bvec4");
-    case sltk_ivec2:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "ivec2");
-    case sltk_ivec3:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "ivec3");
-    case sltk_ivec4:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "ivec4");
-    case sltk_mat2:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "mat2");
-    case sltk_mat3:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "mat3");
-    case sltk_mat4:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "mat4");
-    case sltk_sampler2D:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "sampler2D");
-    case sltk_samplerCube:
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "samplerCube");
-    case sltk_array:
-      sl_type_to_string_buf(p, buf_size_remaining, total_needed, t->derived_type_);
-      return sl_buf_printf(p, buf_size_remaining, total_needed, "[%"PRIu64"]", t->array_size_);
-    case sltk_qualifier:
-      /* Order matches section 4.7 Order of Qualification in GLSL v1.00 (p. 45) */
-
-      /* invariant-qualifier */
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_INVARIANT) sl_buf_printf(p, buf_size_remaining, total_needed, "invariant ");
-
-      /* storage-qualifier */
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_CONST) sl_buf_printf(p, buf_size_remaining, total_needed, "const ");
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_ATTRIBUTE) sl_buf_printf(p, buf_size_remaining, total_needed, "attribute ");
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_VARYING) sl_buf_printf(p, buf_size_remaining, total_needed, "varying ");
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_UNIFORM) sl_buf_printf(p, buf_size_remaining, total_needed, "uniform ");
-
-      /* parameter-qualifier */
-      if (t->qualifiers_ & SL_PARAMETER_QUALIFIER_IN) sl_buf_printf(p, buf_size_remaining, total_needed, "in ");
-      if (t->qualifiers_ & SL_PARAMETER_QUALIFIER_OUT) sl_buf_printf(p, buf_size_remaining, total_needed, "out ");
-      if (t->qualifiers_ & SL_PARAMETER_QUALIFIER_INOUT) sl_buf_printf(p, buf_size_remaining, total_needed, "inout ");
-
-      /* precision-qualifier */
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_HIGH_PRECISION) sl_buf_printf(p, buf_size_remaining, total_needed, "highp ");
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_MEDIUM_PRECISION) sl_buf_printf(p, buf_size_remaining, total_needed, "mediump ");
-      if (t->qualifiers_ & SL_TYPE_QUALIFIER_LOW_PRECISION) sl_buf_printf(p, buf_size_remaining, total_needed, "lowp ");
-
-      sl_type_to_string_buf(p, buf_size_remaining, total_needed, t->derived_type_);
-      return *total_needed;
-    case sltk_struct:
-      if (t->tag_) {
-        sl_buf_printf(p, buf_size_remaining, total_needed, "%s", t->tag_);
-      }
-      else {
-        sl_buf_printf(p, buf_size_remaining, total_needed, "struct");
-      }
-      return *total_needed;
-  }
-}
-
-char *sl_type_to_str(const struct sl_type *t) {
-  size_t size_needed = 1 /* always need at least 1 for NULL terminator */;
-  size_t buf_size_remaining = 0;
-  char *p = NULL;
-  sl_type_to_string_buf(&p, &buf_size_remaining, &size_needed, t);
-  char *buf = (char *)malloc(size_needed);
-  if (!buf) return NULL;
-  p = buf;
-  buf_size_remaining = size_needed;
-  size_needed = 0;
-  sl_type_to_string_buf(&p, &buf_size_remaining, &size_needed, t);
-  return buf;
 }
