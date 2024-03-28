@@ -2860,9 +2860,17 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
           }
-          case slsk_return:
-            // XXX: Scan upwards
+          case slsk_return: {
+            if (eps[epi].v_.stmt_->expr_) {
+              r = sl_exec_push_expr(exec, eps[epi].v_.stmt_->expr_, eps[epi].enter_chain_, CHAIN_REF(eps[epi].revisit_chain_));
+              if (r) return r;
+            }
+            else {
+              eps[epi].revisit_chain_ = sl_exec_join_chains(exec, eps[epi].revisit_chain_, eps[epi].enter_chain_);
+            }
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
+          }
           case slsk_discard: {
             /* Drop whatever we're doing and re-join on the alt-chain of the bootstrap */
             assert(eps[0].kind_ == SLEPK_BOOTSTRAP);
@@ -2966,6 +2974,31 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             }
             eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
 
+            break;
+          }
+
+          case slsk_return: {
+            /* Copy the return value (if any) into the caller exop_function_call result. */
+            size_t pepi = epi - 1;
+            while (pepi) {
+              if (eps[pepi].kind_ == SLEPK_EXPR) {
+                if (eps[pepi].v_.expr_->op_ == exop_function_call) {
+                  sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.stmt_->expr_);
+                  sl_exec_move_param(exec, eps[epi].revisit_chain_, 
+                                     exec->execution_frames_ + exec->num_execution_frames_ - 2, &eps[pepi].v_.expr_->base_regs_,
+                                     exec->execution_frames_ + exec->num_execution_frames_ - 1, EXPR_RVALUE(eps[epi].v_.stmt_->expr_), 1);
+                  eps[pepi].alt_chain_ = sl_exec_join_chains(exec, eps[pepi].alt_chain_, eps[epi].revisit_chain_);
+                  break;
+                }
+              }
+              pepi--;
+            }
+            if (!pepi) {
+              /* No function call found, re-join the post_chain of the bootstrap so the execution chain is not lost */
+              assert(eps[0].kind_ == SLEPK_BOOTSTRAP);
+              eps[0].post_chain_ = sl_exec_join_chains(exec, eps[0].post_chain_, eps[epi].revisit_chain_);
+            }
+            eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
             break;
           }
         }
@@ -3797,6 +3830,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             if (r) return r;
             
             eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+            dont_pop = 1;
 
             break;
           }
