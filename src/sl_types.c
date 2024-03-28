@@ -390,6 +390,31 @@ static size_t sl_type_str_dump(const char *s, char *output_str, size_t at) {
   return at + len;
 }
 
+size_t sl_type_dump_array_of_element(const struct sl_type *t, uint64_t array_size, char *output_str) {
+  size_t str_size = 0;
+
+  struct sl_type *non_array_child = t;
+  while (non_array_child->kind_ == sltk_array) {
+    non_array_child = non_array_child->derived_type_;
+  }
+  str_size += sl_type_dump(non_array_child, output_str ? output_str + str_size : NULL);
+
+  char digits[21] = { 0 };
+  str_size = sl_type_str_dump("[", output_str, str_size);
+  sprintf(digits, "%" PRIu64, t->array_size_);
+  str_size = sl_type_str_dump(digits, output_str, str_size);
+  str_size = sl_type_str_dump("]", output_str, str_size);
+
+  while (t->kind_ == sltk_array) {
+    str_size = sl_type_str_dump("[", output_str, str_size);
+    sprintf(digits, "%" PRIu64, t->array_size_);
+    str_size = sl_type_str_dump(digits, output_str, str_size);
+    str_size = sl_type_str_dump("]", output_str, str_size);
+
+    t = t->derived_type_;
+  }
+}
+
 size_t sl_type_dump(const struct sl_type *t, char *output_str) {
   size_t str_size = 0;
   switch (t->kind_) {

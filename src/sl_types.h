@@ -214,6 +214,12 @@ void sl_type_field_free_chain(struct sl_type_field *chain);
  * terminator to the end of the string. */
 size_t sl_type_dump(const struct sl_type *t, char *output_str);
 
+/* Specialist function used where we'd like to dump an array of typed elements of a certain size,
+ * and we know the element type (which, itself, could be an array), and we know the size of the 
+ * outer array type, but we don't have the outer array type as a whole and cannot (for whatever
+ * reason) construct it. This convenience function lets us debug dump such a type nonetheless. */
+size_t sl_type_dump_array_of_element(const struct sl_type *t, uint64_t array_size, char *output_str);
+
 /* Converts the type to a string for debugging purposes, string should be freed using free()
  * Convenience function, internally uses sl_type_dump(). */
 char *sl_type_to_str(const struct sl_type *t);

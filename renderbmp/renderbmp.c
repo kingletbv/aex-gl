@@ -273,23 +273,38 @@ int test(void) {
   }
   else {
     if (v_c->reg_alloc_.kind_ == slrak_vec4) {
+      fprintf(stdout, "c = ");
+      sl_exec_dumpf(&exec, stdout, 0, &v_c->reg_alloc_);
+      fprintf(stdout, "\n");
+#if 0
       fprintf(stdout, "c = vec4(%f, %f, %f, %f)\n", 
               (exec.float_regs_[v_c->reg_alloc_.v_.regs_[0]])[0],
               (exec.float_regs_[v_c->reg_alloc_.v_.regs_[1]])[0],
               (exec.float_regs_[v_c->reg_alloc_.v_.regs_[2]])[0],
               (exec.float_regs_[v_c->reg_alloc_.v_.regs_[3]])[0]);
+#endif
     }
     else {
       fprintf(stderr, "expected \"c\" to be slrak_vec4 (%d)\n", r);
     }
     if (v_d->reg_alloc_.kind_ == slrak_int) {
+      fprintf(stdout, "d = ");
+      sl_exec_dumpf(&exec, stdout, 0, &v_d->reg_alloc_);
+      fprintf(stdout, "\n");
+#if 0
       fprintf(stdout, "d = %" PRId64 "\n", (exec.int_regs_[v_d->reg_alloc_.v_.regs_[0]])[0]);
+#endif
     }
     else {
       fprintf(stderr, "expected \"d\" to be slrak_int (%d)\n", r);
     }
     if (v_x->reg_alloc_.kind_ == slrak_int) {
+      fprintf(stdout, "x = ");
+      sl_exec_dumpf(&exec, stdout, 0, &v_d->reg_alloc_);
+      fprintf(stdout, "\n");
+#if 0
       fprintf(stdout, "x = %" PRId64 "\n", (exec.int_regs_[v_x->reg_alloc_.v_.regs_[0]])[0]);
+#endif
     }
     else {
       fprintf(stderr, "expected \"x\" to be slrak_int (%d)\n", r);

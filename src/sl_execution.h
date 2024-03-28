@@ -1,6 +1,11 @@
 #ifndef SL_EXECUTION_H
 #define SL_EXECUTION_H
 
+#ifndef STDIO_H_INCLUDED
+#define STDIO_H_INCLUDED
+#include <stdio.h>
+#endif
+
 #ifndef STDINT_H_INCLUDED
 #define STDINT_H_INCLUDED
 #include <stdint.h>
@@ -162,6 +167,53 @@ void sl_exec_call_graph_results_cleanup(struct sl_exec_call_graph_results *cgr);
 int sl_exec_call_graph_analysis(struct sl_exec_call_graph_results *cgr, struct sl_function *f);
 void sl_exec_cgr_max(struct sl_exec_call_graph_results *cgr, const struct sl_exec_call_graph_results *lcgr);
 void sl_exec_cgr_swap(struct sl_exec_call_graph_results *a, struct sl_exec_call_graph_results *b);
+
+/* Dump the value in the registers determined by "ra" to the output string "output_str" and return the
+ * length of that string, excluding NULL terminators. If output_str is NULL, the length is still computed
+ * and returned but no output is written. single_row specifies the single row whose output for ra is dumped.
+ * Internally uses sl_exec_offset_dump_strided. */
+size_t sl_exec_dump(struct sl_execution *exec, char *output_str, 
+                    uint8_t single_row, const struct sl_reg_alloc *ra);
+
+/* Dumps the value in the registered determined by the arr, index, index_stride and array_offset combinations.
+ * Serializes this value in human readable form to output_str and returns the size of the string in bytes, 
+ * excluding any NULL terminator (the function does not write a NULL terminator, caller has to terminate if
+ * necessary.)
+ * arr contains the base registers and the datatype; the base registers are typically the first element of
+ * an array (hence "arr") if the value being dumped is part of an array, or just the reg_alloc if not part of
+ * an array.
+ * index is the offset, measured in index_stride times registers, from the first registers in arr, to the
+ * register to be dumped. Note that index is, itself, an int reg_alloc and is stored in a register. If index
+ * is NULL, or if it is of type slrak_void, then it is deemed a constant 0 (e.g. no offset from the arr
+ * registers.)
+ * index_stride is the number of registers between two consecutive entries of the same type in arr; it
+ * helps address elements deep within nested arrays, but when not doing so, should be set to 1 (and 
+ * definitely not 0).
+ * array_offset is the offset from the base registers in arr, it is the static equivalent of the runtime
+ * index field. When not dumping elements inside arrays, it should be set to 0.
+ * For ease of use, the sl_exec_dump() function performs the same function for the common case of no
+ * deep array introspection. */
+static size_t sl_exec_offset_dump_strided(struct sl_execution *exec, 
+                                          char *output_str,
+                                          uint8_t single_row, 
+                                          const struct sl_reg_alloc *arr,
+                                          const struct sl_reg_alloc *index,
+                                          int index_stride,
+                                          int array_offset);
+
+/* Convenience wrapper around sl_exec_offset_dump_strided that writes to FILE pointer fp instead
+ * of memory. */
+void sl_exec_offset_dumpf_strided(struct sl_execution *exec, 
+                                  FILE *fp,
+                                  uint8_t single_row, 
+                                  const struct sl_reg_alloc *arr,
+                                  const struct sl_reg_alloc *index,
+                                  int index_stride,
+                                  int array_offset);
+
+/* Convenience wrapper analogous to sl_exec_dump which sends its output to fp */
+void sl_exec_dumpf(struct sl_execution *exec, FILE *fp,
+                    uint8_t single_row, const struct sl_reg_alloc *ra);
 
 #ifdef __cplusplus
 } /* extern "C" */

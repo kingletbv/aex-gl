@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+#ifndef STDIO_H_INCLUDED
+#define STDIO_H_INCLUDED
+#include <stdio.h>
+#endif
+
 #ifndef STDLIB_H_INCLUDED
 #define STDLIB_H_INCLUDED
 #include <stdlib.h>
@@ -26,6 +31,11 @@
 #ifndef STDINT_H_INCLUDED
 #define STDINT_H_INCLUDED
 #include <stdint.h>
+#endif
+
+#ifndef INTTYPES_H_INCLUDED
+#define INTTYPES_H_INCLUDED
+#include <inttypes.h>
 #endif
 
 #ifndef ASSERT_H_INCLUDED
@@ -1347,7 +1357,7 @@ static void sl_exec_offset_load_strided(struct sl_execution *exec, uint8_t row,
         sl_exec_f_offset_load_strided(exec->exec_chain_reg_, row,
                                       FLOAT_REG_PTR_NRV(dst, n),
                                       exec->float_regs_,
-                                      INT_REG_INDEX_NRV(arr, n),
+                                      FLOAT_REG_INDEX_NRV(arr, n),
                                       INT_REG_PTR_NRV(index, 0),
                                       index_stride,
                                       array_offset);
@@ -1390,7 +1400,7 @@ static void sl_exec_offset_load_strided(struct sl_execution *exec, uint8_t row,
         sl_exec_b_offset_load_strided(exec->exec_chain_reg_, row,
                                       BOOL_REG_PTR_NRV(dst, n),
                                       exec->bool_regs_,
-                                      INT_REG_INDEX_NRV(arr, n),
+                                      BOOL_REG_INDEX_NRV(arr, n),
                                       INT_REG_PTR_NRV(index, 0),
                                       index_stride,
                                       array_offset);
@@ -1794,6 +1804,185 @@ static void sl_exec_offset_store(struct sl_execution *exec, uint8_t row,
       break;
     }
   }
+}
+
+static size_t sl_exec_str_dump(const char *s, char *output_str, size_t at) {
+  size_t len = strlen(s);
+  if (output_str) memcpy(output_str + at, s, len);
+  return at + len;
+}
+
+
+size_t sl_exec_offset_dump_strided(struct sl_execution *exec, 
+                                   char *output_str,
+                                   uint8_t single_row, 
+                                   const struct sl_reg_alloc *arr,
+                                   const struct sl_reg_alloc *index,
+                                   int index_stride,
+                                   int array_offset) {
+  char digits[100];
+  int have_index = index && (index->kind_ != slrak_void);
+  size_t num_components = 0;
+  size_t str_size = 0;
+  size_t n;
+  switch (arr->kind_) {
+    case slrak_struct: {
+      str_size += sl_type_dump(arr->v_.comp_.struct_type_, output_str ? output_str + str_size : NULL);
+      str_size = sl_exec_str_dump("(", output_str, str_size);
+
+      for (n = 0; n < arr->v_.comp_.num_fields_; ++n) {
+        if (n) {
+          str_size = sl_exec_str_dump(", ", output_str, str_size);
+        }
+        str_size += sl_exec_offset_dump_strided(exec, output_str ? output_str + str_size : NULL, single_row, arr->v_.comp_.fields_ + n, index, index_stride, array_offset);
+      }
+      str_size = sl_exec_str_dump(")", output_str, str_size);
+      break;
+    }
+    case slrak_array: {
+      str_size += sl_type_dump_array_of_element(arr->v_.array_.element_type_, arr->v_.array_.num_elements_, output_str ? output_str + str_size : NULL);
+      str_size = sl_exec_str_dump("(", output_str, str_size);
+      int new_index_stride;
+      int new_array_offset;
+      if (arr->v_.array_.num_elements_ > (INT_MAX/index_stride)) {
+        /* overflow -- in such a fatal case of internal corruption, we just abort; any attempt
+         * to then allocate and print will result in a truncated output at the point of the 
+         * problem (as it'll abort at the same place again). */
+        return str_size;
+      }
+      new_index_stride = (int)(index_stride * arr->v_.array_.num_elements_);
+      new_array_offset = (int)(array_offset * arr->v_.array_.num_elements_);
+      for (n = 0; n < arr->v_.array_.num_elements_; ++n) {
+        if (n) {
+          str_size = sl_exec_str_dump(", ", output_str, str_size);
+        }
+        str_size += sl_exec_offset_dump_strided(exec, output_str ? output_str + str_size : NULL, single_row, arr->v_.array_.head_, index, new_index_stride, (int)(new_array_offset + n));
+      }
+      str_size = sl_exec_str_dump(")", output_str, str_size);
+      break;
+    }
+    case slrak_float:
+    case slrak_vec2:
+    case slrak_vec3:
+    case slrak_vec4:
+    case slrak_mat2:
+    case slrak_mat3:
+    case slrak_mat4: {
+      const char *sltype = "??";
+      switch (arr->kind_) {
+        case slrak_float: num_components = 1; sltype = ""; break;
+        case slrak_vec2:  num_components = 2; sltype = "vec2"; break;
+        case slrak_vec3:  num_components = 3; sltype = "vec3"; break;
+        case slrak_vec4:  num_components = 4; sltype = "vec4"; break;
+        case slrak_mat2:  num_components = 4; sltype = "mat2"; break;
+        case slrak_mat3:  num_components = 9; sltype = "mat3"; break;
+        case slrak_mat4:  num_components = 16; sltype = "mat4"; break;
+      }
+      str_size = sl_exec_str_dump(sltype, output_str, str_size);
+      if (arr->kind_ != slrak_float) str_size = sl_exec_str_dump("(", output_str, str_size);
+      for (n = 0; n < num_components; ++n) {
+        int base_reg = FLOAT_REG_INDEX_NRV(arr, n);
+        int64_t *index_rows = have_index ? INT_REG_PTR_NRV(index, 0) : NULL;
+        int reg = base_reg + (index_rows ? ((int)index_rows[single_row]) * index_stride : 0) + array_offset;
+        float component = exec->float_regs_[reg][single_row];
+        if (n) {
+          snprintf(digits, sizeof(digits), ", %f", component);
+        }
+        else {
+          snprintf(digits, sizeof(digits), "%f", component);
+        }
+        str_size = sl_exec_str_dump(digits, output_str, str_size);
+      }
+      if (arr->kind_ != slrak_float) str_size = sl_exec_str_dump(")", output_str, str_size);
+      break;
+    }
+
+    case slrak_int:
+    case slrak_ivec2:
+    case slrak_ivec3:
+    case slrak_ivec4: {
+      const char *sltype = "??";
+      switch (arr->kind_) {
+        case slrak_int: num_components = 1; sltype = ""; break;
+        case slrak_ivec2:  num_components = 2; sltype = "ivec2"; break;
+        case slrak_ivec3:  num_components = 3; sltype = "ivec3"; break;
+        case slrak_ivec4:  num_components = 4; sltype = "ivec4"; break;
+      }
+      str_size = sl_exec_str_dump(sltype, output_str, str_size);
+      if (arr->kind_ != slrak_int) str_size = sl_exec_str_dump("(", output_str, str_size);
+      for (n = 0; n < num_components; ++n) {
+        int base_reg = INT_REG_INDEX_NRV(arr, n);
+        int64_t *index_rows = have_index ? INT_REG_PTR_NRV(index, 0) : NULL;
+        int reg = base_reg + (index_rows ? ((int)index_rows[single_row]) * index_stride : 0) + array_offset;
+        int64_t component = exec->int_regs_[reg][single_row];
+        if (n) {
+          snprintf(digits, sizeof(digits), ", %" PRId64, component);
+        }
+        else {
+          snprintf(digits, sizeof(digits), "%" PRId64, component);
+        }
+        str_size = sl_exec_str_dump(digits, output_str, str_size);
+      }
+      if (arr->kind_ != slrak_int) str_size = sl_exec_str_dump(")", output_str, str_size);
+      break;
+    }
+    case slrak_bool:
+    case slrak_bvec2:
+    case slrak_bvec3:
+    case slrak_bvec4: {
+      const char *sltype = "??";
+      switch (arr->kind_) {
+        case slrak_bool: num_components = 1; sltype = ""; break;
+        case slrak_bvec2:  num_components = 2; sltype = "bvec2"; break;
+        case slrak_bvec3:  num_components = 3; sltype = "bvec3"; break;
+        case slrak_bvec4:  num_components = 4; sltype = "bvec4"; break;
+      }
+      str_size = sl_exec_str_dump(sltype, output_str, str_size);
+      if (arr->kind_ != slrak_bool) str_size = sl_exec_str_dump("(", output_str, str_size);
+      for (n = 0; n < num_components; ++n) {
+        int base_reg = BOOL_REG_INDEX_NRV(arr, n);
+        int64_t *index_rows = have_index ? INT_REG_PTR_NRV(index, 0) : NULL;
+        int reg = base_reg + (index_rows ? ((int)index_rows[single_row]) * index_stride : 0) + array_offset;
+        uint8_t component = exec->bool_regs_[reg][single_row];
+        const char *value = NULL;
+        if (n) {
+          value = component ? ", true" : ", false";
+        }
+        else {
+          value = component ? "true" : "false";
+        }
+        str_size = sl_exec_str_dump(value, output_str, str_size);
+      }
+      if (arr->kind_ != slrak_bool) str_size = sl_exec_str_dump(")", output_str, str_size);
+      break;
+    }
+  }
+  return str_size;
+}
+
+size_t sl_exec_dump(struct sl_execution *exec, char *output_str, 
+                    uint8_t single_row, const struct sl_reg_alloc *ra) {
+  return sl_exec_offset_dump_strided(exec, output_str, single_row, ra, NULL, 1, 0);
+}
+
+void sl_exec_offset_dumpf_strided(struct sl_execution *exec, 
+                                  FILE *fp,
+                                  uint8_t single_row, 
+                                  const struct sl_reg_alloc *arr,
+                                  const struct sl_reg_alloc *index,
+                                  int index_stride,
+                                  int array_offset) {
+  size_t len_needed = sl_exec_offset_dump_strided(exec, NULL, single_row, arr, index, index_stride, array_offset);
+  char *m = (char *)malloc(len_needed);
+  if (!m) return;
+  sl_exec_offset_dump_strided(exec, m, single_row, arr, index, index_stride, array_offset);
+  fwrite(m, 1, len_needed, fp);
+  free(m);
+}
+
+void sl_exec_dumpf(struct sl_execution *exec, FILE *fp,
+                    uint8_t single_row, const struct sl_reg_alloc *ra) {
+  sl_exec_offset_dumpf_strided(exec, fp, single_row, ra, NULL, 1, 0);
 }
 
 static void sl_exec_decrement(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst, struct sl_reg_alloc *opd) {
