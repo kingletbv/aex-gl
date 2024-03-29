@@ -103,8 +103,8 @@
 %nt relational-expression equality-expression and-expression exclusive-or-expression inclusive-or-expression
 %nt logical-and-expression logical-xor-expression logical-or-expression conditional-expression
 %nt assignment-expression assignment-operator expression constant-expression declaration
-%nt function-prototype function-declarator function-header-with-parameters function-header
-%nt parameter-declarator parameter-declaration parameter-qualifier parameter-type-specifier
+%nt function-prototype-decl function-prototype function-declarator function-header-with-parameters 
+%nt function-header parameter-declarator parameter-declaration parameter-qualifier parameter-type-specifier
 %nt init-declarator-list single-declaration fully-specified-type type-qualifier type-specifier
 %nt type-specifier-no-prec precision-qualifier struct-specifier struct-declaration-list
 %nt struct-declaration struct-declarator-list struct-declarator initializer declaration-statement 
@@ -494,8 +494,15 @@ constant-expression: conditional-expression  {
 %move $$ = $0; $0 = NULL;
 %destructor if ($$) sl_stmt_free_list($$);
 
-declaration: function-prototype SEMICOLON {
-  int r = glsl_es1_process_function_prototype(cc, &$0, 0 /* function declaration */);
+/* Move function-prototype declarations into its own non-terminal, reason being that we need to process
+ * the function prototype declaration with SEMICOLON as a lookahead, and not as a shifted symbol. If we
+ * wait for the symbol to be shifted, then we need the token *after* the SEMICOLON as a lookahead. This
+ * would confuse matters when we adorn builtin function declarations (which compile a little piece at
+ * a time) with their builtin flags, based on "the last prototype we parsed." */
+declaration: function-prototype-decl SEMICOLON;
+
+function-prototype-decl: function-prototype {
+ int r = glsl_es1_process_function_prototype(cc, &$0, 0 /* function declaration */);
   if (r == _GLSL_ES1_NO_MEMORY) return r;
   if (!r) {
     $0 = NULL;

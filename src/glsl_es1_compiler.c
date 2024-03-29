@@ -170,7 +170,7 @@ c_parser_input:
           /* Skip whitespace as input -- step to next tk */
           glsl_es1_compiler_next_token(cc);
         }
-      } while (sym == GLSL_ES1_WHITESPACE);\
+      } while (sym == GLSL_ES1_WHITESPACE);
       r = glsl_es1_parse(&cc->parser_, sym, cc, cc->pp_.pp_output_);
 
       if ((r == _GLSL_ES1_SYNTAX_ERROR) || (r == _GLSL_ES1_FEED_ME)) {
@@ -265,15 +265,60 @@ static struct pp_input_file *glsl_es1_compiler_push_input_file_mem(struct glsl_e
   return &ifile->if_;
 }
 
+static int glsl_es1_compiler_file_mem_snippet_input_request_callback(void *baton, struct pp_input_file *ifile) {
+  struct glsl_es1_compiler_mem_input_file *mif = (struct glsl_es1_compiler_mem_input_file *)ifile;
+  if_set_input(ifile, mif->mem_, mif->memsize_, 1);
+  return 0;
+}
+
+static struct pp_input_file *glsl_es1_compiler_push_input_file_mem_snippet(struct glsl_es1_compiler *cc, const char *filename, const void *mem, size_t memsize) {
+  struct glsl_es1_compiler_mem_input_file *ifile;
+  ifile = (struct glsl_es1_compiler_mem_input_file *)pp_push_input_file(&cc->pp_, filename, sizeof(struct glsl_es1_compiler_mem_input_file) - sizeof(struct pp_input_file));
+  ifile->if_.input_request_fn_ = glsl_es1_compiler_file_mem_snippet_input_request_callback;
+  ifile->mem_ = mem;
+  ifile->memsize_ = memsize;
+  return &ifile->if_;
+}
 
 enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_compiler *cc, const char *glsl_input_filename, const char *glsl_input_text, size_t glsl_input_text_len) {
+  enum glsl_es1_compiler_result cr;
+
   struct pp_input_file *ifile = glsl_es1_compiler_push_input_file_mem(cc, glsl_input_filename, glsl_input_text, glsl_input_text_len);
   if (!ifile) {
     dx_no_memory(cc->dx_);
     return GLSL_ES1_R_FAILED;
   }
   ifile->unpoppable_ = 1; /* never pop beyond toplevel input */
-  enum glsl_es1_compiler_result cr;
+
+  /* Parse each of the builtin function prototypes */
+  /* Notice that we rely on C string concatenation to append a little space, that space is important, the macro-expander
+   * phase of the preprocessor will latch a token as a lookahead, consequently, we would not see the semicolon that ends the
+   * prototype as a lookahead in the GLSL parser, and because of that, not reduce the function-prototype-decl non-terminal
+   * in the grammar. Appending the space causes a whitespace token to be latched in the macro-expander, which is harmless and
+   * helps flush through the semicolon so the behavior is as expected (we complete parsing the prototype and can rely on it
+   * being the last function prototype parsed.) */
+#define xx(proto) , proto " "
+  const char *proto_snippets[] = {
+    NULL
+#include "builtins_binding_inc.h"
+  };
+#undef xx
+
+  struct pp_input_file *snippet;
+  size_t builtin_idx;
+  for (builtin_idx = 1; builtin_idx < (sizeof(proto_snippets)/sizeof(*proto_snippets)); ++builtin_idx) {
+    snippet = glsl_es1_compiler_push_input_file_mem_snippet(cc, "(builtins)", proto_snippets[builtin_idx], strlen(proto_snippets[builtin_idx]));
+    cr = glsl_es1_compile(cc);
+    if (cc->dx_->have_error_) {
+      fprintf(stderr, "Failed parsing builtin: %s\n", proto_snippets[builtin_idx]);
+      cc->dx_->have_error_ = 0;
+    }
+    if ((cr != GLSL_ES1_R_SUCCESS) && (cr != GLSL_ES1_R_OLD_INCLUDE)) {
+      fprintf(stderr, "Failed parsing builtin: %s\n", proto_snippets[builtin_idx]);
+      return cr;
+    }
+  }
+
   cr = glsl_es1_compile(cc);
   if (cr != GLSL_ES1_R_SUCCESS) return cr;
 

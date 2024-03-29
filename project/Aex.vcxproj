@@ -303,6 +303,7 @@
   <ItemGroup>
     <ClInclude Include="..\src\attrib_set.h" />
     <ClInclude Include="..\src\blend.h" />
+    <ClInclude Include="..\src\builtins_binding_inc.h" />
     <ClInclude Include="..\src\clipping_stage.h" />
     <ClInclude Include="..\src\fragment_buffer.h" />
     <ClInclude Include="..\src\glsl_es1_assist.h" />
