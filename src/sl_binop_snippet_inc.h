@@ -37,6 +37,8 @@
 
 for (;;) {
   uint64_t chain;
+  uint8_t delta;
+
   if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
     do {
       BINOP_SNIPPET_RESULT_TYPE *restrict result = result_column + row;
@@ -48,8 +50,8 @@ for (;;) {
         result[n] = BINOP_SNIPPET_OPERATOR((left[n]), (right[n]));
       }
 
-      uint8_t delta = (chain & 0xFF00000000000000) >> 56;
-      if (!delta) goto done;
+      delta = (chain & 0xFF00000000000000) >> 56;
+      if (!delta) break;
       row += 7 + delta;
     } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
   }
@@ -63,8 +65,8 @@ for (;;) {
       for (n = 0; n < 4; n++) {
         result[n] = BINOP_SNIPPET_OPERATOR((left[n]), (right[n]));
       }
-      uint8_t delta = (chain & 0xFF000000) >> 24;
-      if (!delta) goto done;
+      delta = (chain & 0xFF000000) >> 24;
+      if (!delta) break;
       row += 3 + delta;
     } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
   }
@@ -72,13 +74,13 @@ for (;;) {
     do {
       /* Not trying to evoke auto-vectorization, just get it done. */
       result_column[row] = BINOP_SNIPPET_OPERATOR((left_column[row]), (right_column[row]));
-      uint8_t delta = chain_column[row];
-      if (!delta) goto done;
+      delta = chain_column[row];
+      if (!delta) break;
       row += delta;
     } while (row & 3);
   }
+  if (!delta) break;
 }
-done: ;
 #ifdef BINOP_SNIPPET_UNDEF_RESULT_TYPE
 #undef BINOP_SNIPPET_UNDEF_RESULT_TYPE
 #undef BINOP_SNIPPET_RESULT_TYPE
