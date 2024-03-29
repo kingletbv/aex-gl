@@ -306,17 +306,27 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
 
   struct pp_input_file *snippet;
   size_t builtin_idx;
+  int error_initializing = 0;;
   for (builtin_idx = 1; builtin_idx < (sizeof(proto_snippets)/sizeof(*proto_snippets)); ++builtin_idx) {
     snippet = glsl_es1_compiler_push_input_file_mem_snippet(cc, "(builtins)", proto_snippets[builtin_idx], strlen(proto_snippets[builtin_idx]));
     cr = glsl_es1_compile(cc);
     if (cc->dx_->have_error_) {
-      fprintf(stderr, "Failed parsing builtin: %s\n", proto_snippets[builtin_idx]);
+      dx_error(cc->dx_, "Failed parsing builtin: %s\n", proto_snippets[builtin_idx]);
+      /* Reset error to try and keep going and get a complete list of builtin parsing failures. */
       cc->dx_->have_error_ = 0;
+      error_initializing = 1;
     }
     if ((cr != GLSL_ES1_R_SUCCESS) && (cr != GLSL_ES1_R_OLD_INCLUDE)) {
-      fprintf(stderr, "Failed parsing builtin: %s\n", proto_snippets[builtin_idx]);
+      dx_error(cc->dx_, "Failed parsing builtin: %s\n", proto_snippets[builtin_idx]);
       return cr;
     }
+  }
+
+  if (error_initializing) {
+    /* Restore error flag */
+    cc->dx_->have_error_ = 1;
+    cc->dx_->fatal_error_ = 1;
+    return GLSL_ES1_R_FAILED;
   }
 
   cr = glsl_es1_compile(cc);
