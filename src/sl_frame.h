@@ -36,6 +36,11 @@
 #include "sl_reg_alloc.h"
 #endif
 
+#ifndef BUILTINS_H_INCLUDED
+#define BUILTINS_H_INCLUDED
+#include "builtins.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -160,6 +165,11 @@ struct sl_function {
    * the declarations for the parameters); but the contents of that compound
    * statement will be empty. */
   struct sl_stmt *body_;
+
+  /* For builtin functions, these pointers are non-NULL and are invoked instead
+   * of the statement body */
+  builtin_runtime_fn builtin_runtime_fn_;
+  builtin_eval_fn builtin_eval_fn_;
 
   /* All exop_function_call expressions invoking this function. */
   struct sl_expr *callers_;

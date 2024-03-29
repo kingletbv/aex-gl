@@ -33,6 +33,11 @@
 #include <stdarg.h>
 #endif
 
+#ifndef ASSERT_H_INCLUDED
+#define ASSERT_H_INCLUDED
+#include <assert.h>
+#endif
+
 #ifndef GLSL_ES1_COMPILER_H_INCLUDED
 #define GLSL_ES1_COMPILER_H_INCLUDED
 #include "glsl_es1_compiler.h"
@@ -297,9 +302,13 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
    * in the grammar. Appending the space causes a whitespace token to be latched in the macro-expander, which is harmless and
    * helps flush through the semicolon so the behavior is as expected (we complete parsing the prototype and can rely on it
    * being the last function prototype parsed.) */
-#define xx(proto) , proto " "
-  const char *proto_snippets[] = {
-    NULL
+#define xx(proto, runtime_fn, eval_fn) , { proto " ", runtime_fn, eval_fn }
+  struct {
+    const char *prototype_;
+    builtin_runtime_fn runtime_fn_;
+    builtin_eval_fn eval_fn_;
+  } proto_snippets[] = {
+    { NULL }
 #include "builtins_binding_inc.h"
   };
 #undef xx
@@ -308,17 +317,27 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
   size_t builtin_idx;
   int error_initializing = 0;;
   for (builtin_idx = 1; builtin_idx < (sizeof(proto_snippets)/sizeof(*proto_snippets)); ++builtin_idx) {
-    snippet = glsl_es1_compiler_push_input_file_mem_snippet(cc, "(builtins)", proto_snippets[builtin_idx], strlen(proto_snippets[builtin_idx]));
+    snippet = glsl_es1_compiler_push_input_file_mem_snippet(cc, "(builtins)", proto_snippets[builtin_idx].prototype_, strlen(proto_snippets[builtin_idx].prototype_));
     cr = glsl_es1_compile(cc);
-    if (cc->dx_->have_error_) {
+    if (cr != GLSL_ES1_R_OLD_INCLUDE) {
+      dx_error(cc->dx_, "Failed parsing builtin: %s\n", proto_snippets[builtin_idx]);
+      return cr;
+    }
+    else if (cc->dx_->have_error_) {
       dx_error(cc->dx_, "Failed parsing builtin: %s\n", proto_snippets[builtin_idx]);
       /* Reset error to try and keep going and get a complete list of builtin parsing failures. */
       cc->dx_->have_error_ = 0;
       error_initializing = 1;
     }
-    if ((cr != GLSL_ES1_R_SUCCESS) && (cr != GLSL_ES1_R_OLD_INCLUDE)) {
-      dx_error(cc->dx_, "Failed parsing builtin: %s\n", proto_snippets[builtin_idx]);
-      return cr;
+    else {
+      /* Last declaration emited is our function; attach the hardwired builtin functions to it */
+      assert(cc->cu_->global_scope_.seq_);
+      assert(cc->cu_->global_scope_.seq_->prev_->kind_ == SK_FUNCTION);
+      struct sl_function *f = cc->cu_->global_scope_.seq_->prev_->v_.function_;
+      assert(f);
+      assert(!f->builtin_eval_fn_ && !f->builtin_runtime_fn_ && "builtins already set??");
+      f->builtin_eval_fn_ = proto_snippets[builtin_idx].eval_fn_;
+      f->builtin_runtime_fn_ = proto_snippets[builtin_idx].runtime_fn_;
     }
   }
 
