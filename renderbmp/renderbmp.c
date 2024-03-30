@@ -300,7 +300,7 @@ int test(void) {
     }
     if (v_x->reg_alloc_.kind_ == slrak_int) {
       fprintf(stdout, "x = ");
-      sl_exec_dumpf(&exec, stdout, 0, &v_d->reg_alloc_);
+      sl_exec_dumpf(&exec, stdout, 0, &v_x->reg_alloc_);
       fprintf(stdout, "\n");
 #if 0
       fprintf(stdout, "x = %" PRId64 "\n", (exec.int_regs_[v_x->reg_alloc_.v_.regs_[0]])[0]);
