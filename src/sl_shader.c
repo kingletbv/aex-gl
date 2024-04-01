@@ -48,6 +48,11 @@
 #include "sl_execution.h"
 #endif
 
+#ifndef GLSL_ES1_COMPILER_H_INCLUDED
+#define GLSL_ES1_COMPILER_H_INCLUDED
+#include "glsl_es1_compiler.h"
+#endif
+
 void sl_shader_init(struct sl_shader *sh) {
   sh->type_ = SLST_INVALID_SHADER;
   sh->source_length_ = 0;
@@ -111,3 +116,87 @@ int sl_shader_set_source(struct sl_shader *sh, size_t num_strings, const char **
 }
 
 
+int sl_shader_compile(struct sl_shader *sh) {
+  int r = SL_ERR_OK;
+  struct glsl_es1_compiler cc;
+  glsl_es1_compiler_init(&cc);
+
+  /* Have glsl_es1_compiler use sl_shader's compilation-unit instead of creating its own */
+  cc.cu_ = &sh->cu_;
+
+  enum glsl_es1_compiler_result cr;
+  if (sh->type_ == SLST_INVALID_SHADER) {
+    r = SL_ERR_INVALID_ARG;
+    goto cleanup;
+  }
+  
+  /* Declare built-in constants for GLSL v1 shaders */
+  /* NOTE: Below are the minimums, see page 61 of GLSL ES Specification 1.00  -- we want to upgrade this to something more sensible. */
+  cr = glsl_es1_compile_builtin_prologue(&cc,
+    "const mediump int gl_MaxVertexAttribs = 8;\n"
+    "const mediump int gl_MaxVertexUniformVectors = 128;\n"
+    "const mediump int gl_MaxVaryingVectors = 8;\n"
+    "const mediump int gl_MaxVertexTextureImageUnits = 0;\n"
+    "const mediump int gl_MaxCombinedTextureImageUnits = 8;\n"
+    "const mediump int gl_MaxTextureImageUnits = 8;\n"
+    "const mediump int gl_MaxFragmentUniformVectors = 16;\n"
+    "const mediump int gl_MaxDrawBuffers = 1;\n");
+  if (cr != GLSL_ES1_R_SUCCESS) {
+    r = SL_ERR_INTERNAL;
+    goto cleanup;
+  }
+
+  /* Built-in uniform state */
+  cr = glsl_es1_compile_builtin_prologue(&cc,
+    "/* Depth range in window coordinates */\n"
+    "struct gl_DepthRangeParameters {\n"
+    "  highp float near;  // n\n"
+    "  highp float far;   // f\n"
+    "  highp float diff;  // f - n\n"
+    "};"
+    "uniform gl_DepthRangeParameters gl_DepthRange;\n");
+  if (cr != GLSL_ES1_R_SUCCESS) {
+    r = SL_ERR_INTERNAL;
+    goto cleanup;
+  }
+
+  if (sh->type_ == SLST_VERTEX_SHADER) {
+    /* No built-in variables for the vertex shader */
+  }
+  else if (sh->type_ == SLST_FRAGMENT_SHADER) {
+    /* Declare builtins for the GLSL v1 fragment shader */
+    cr = glsl_es1_compile_builtin_prologue(&cc, 
+      "mediump vec4 gl_FragCoord;\n"
+      "        bool gl_FrontFacing;\n"
+      "mediump vec4 gl_FragColor;\n"
+      "mediump vec4 gl_FragData[gl_MaxDrawBuffers];\n"
+      "mediump vec2 gl_PointCoord;\n");
+
+    if (cr != GLSL_ES1_R_SUCCESS) {
+      r = SL_ERR_INTERNAL;
+      goto cleanup;
+    }
+  }
+
+  const char *filename = (sh->type_ == SLST_FRAGMENT_SHADER) ? "fragment-shader" : "vertex-shader";
+  cr = glsl_es1_compiler_compile_mem(&cc, filename, sh->source_, sh->source_length_);
+  if (cr != GLSL_ES1_R_SUCCESS) {
+    switch (cr) {
+      case GLSL_ES1_R_HAVE_ERRORS:
+        r = SL_ERR_HAD_ERRORS;
+        break;
+      case GLSL_ES1_R_FAILED:
+      default:
+        r = SL_ERR_INTERNAL;
+        break;
+    }
+    goto cleanup;
+  }
+
+cleanup:
+  /* Set to NULL so the compilation-unit of the shader is not cleaned up */
+  cc.cu_ = NULL;
+  glsl_es1_compiler_cleanup(&cc);
+
+  return r;
+}

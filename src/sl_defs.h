@@ -19,5 +19,7 @@
 #define SL_ERR_INVALID_ARG -1
 #define SL_ERR_OVERFLOW    -2
 #define SL_ERR_NO_MEM      -3
+#define SL_ERR_INTERNAL    -4
+#define SL_ERR_HAD_ERRORS  -5 /* compilation errors */
 
 #endif /* SL_DEFS_H */

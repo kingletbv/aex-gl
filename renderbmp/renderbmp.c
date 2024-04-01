@@ -103,6 +103,16 @@
 #include "ref_range_allocator.h"
 #endif
 
+#ifndef SL_DEFS_H_INCLUDED
+#define SL_DEFS_H_INCLUDED
+#include "sl_defs.h"
+#endif
+
+#ifndef SL_SHADER_H_INCLUDED
+#define SL_SHADER_H_INCLUDED
+#include "sl_shader.h"
+#endif
+
 int test(void) {
   int r = 0;
 
@@ -111,6 +121,30 @@ int test(void) {
     fprintf(stderr, "ref_range_test failed (%d)\n", r);
     return r;
   }
+
+  struct sl_shader sh;
+  sl_shader_init(&sh);
+  sl_shader_set_type(&sh, SLST_VERTEX_SHADER);
+  //sl_shader_set_type(&sh, SLST_FRAGMENT_SHADER);
+  const char *src = "void main() {\n"
+                    "hork a bork;\n"
+                    "};\n";
+  int src_len = (int)strlen(src);
+  sl_shader_set_source(&sh, 1, &src, &src_len);
+  r = sl_shader_compile(&sh);
+  if (r) {
+    const char *err = "???";
+    switch (r) {
+      case SL_ERR_OK: err = "SL_ERR_OK"; break;
+      case SL_ERR_INVALID_ARG: err = "SL_ERR_INVALID_ARG"; break;
+      case SL_ERR_OVERFLOW: err = "SL_ERR_OVERFLOW"; break;
+      case SL_ERR_NO_MEM: err = "SL_ERR_NO_MEM"; break;
+      case SL_ERR_INTERNAL: err = "SL_ERR_INTERNAL"; break;
+      case SL_ERR_HAD_ERRORS: err = "SL_ERR_HAD_ERRORS"; break;
+    }
+    fprintf(stderr, "Failed (%d): %s\n", r, err);
+  }
+  sl_shader_cleanup(&sh);
 
   struct glsl_es1_compiler compiler, *cc;
   cc = &compiler;

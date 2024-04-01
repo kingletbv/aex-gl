@@ -65,6 +65,7 @@ void sl_shader_cleanup(struct sl_shader *sh);
 void sl_shader_set_type(struct sl_shader *sh, enum sl_shader_type typ);
 int sl_shader_set_source(struct sl_shader *sh, size_t num_strings, const char **string_ptrs, const int *lengths);
 
+int sl_shader_compile(struct sl_shader *sh);
 
 #ifdef __cplusplus
 } /* extern "C" */
