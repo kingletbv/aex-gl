@@ -203,6 +203,7 @@
     <ClCompile Include="..\src\sl_expr.c" />
     <ClCompile Include="..\src\sl_expr_temp.c" />
     <ClCompile Include="..\src\sl_frame.c" />
+    <ClCompile Include="..\src\sl_info_log.c" />
     <ClCompile Include="..\src\sl_reg_alloc.c" />
     <ClCompile Include="..\src\sl_shader.c" />
     <ClCompile Include="..\src\sl_stmt.c" />
@@ -330,6 +331,7 @@
     <ClInclude Include="..\src\sl_expr.h" />
     <ClInclude Include="..\src\sl_expr_temp.h" />
     <ClInclude Include="..\src\sl_frame.h" />
+    <ClInclude Include="..\src\sl_info_log.h" />
     <ClInclude Include="..\src\sl_reg_alloc.h" />
     <ClInclude Include="..\src\sl_shader.h" />
     <ClInclude Include="..\src\sl_stmt.h" />

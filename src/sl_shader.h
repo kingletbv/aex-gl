@@ -25,6 +25,11 @@
 #include "sl_execution.h"
 #endif
 
+#ifndef SL_INFO_LOG_H_INCLUDED
+#define SL_INFO_LOG_H_INCLUDED
+#include "sl_info_log.h"
+#endif
+
 enum sl_shader_type {
   SLST_INVALID_SHADER,
   SLST_VERTEX_SHADER,
@@ -54,9 +59,9 @@ struct sl_shader {
   int gl_delete_status_:1;
   int gl_last_compile_status_:1;
 
-  size_t gl_info_log_size_;
-  size_t gl_info_log_size_allocated_;
-  char *gl_info_log_;
+  /* Info log for shader compilation */
+  struct sl_info_log gl_info_log_;
+
 };
 
 void sl_shader_init(struct sl_shader *sh);

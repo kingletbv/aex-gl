@@ -63,15 +63,14 @@ void sl_shader_init(struct sl_shader *sh) {
   sh->gl_shader_object_name_ = 0; /* no name assigned yet */
   sh->gl_delete_status_ = 0;
   sh->gl_last_compile_status_ = 0;
-  sh->gl_info_log_size_ = sh->gl_info_log_size_allocated_ = 0;
-  sh->gl_info_log_ = NULL;
+  sl_info_log_init(&sh->gl_info_log_);
 }
 
 void sl_shader_cleanup(struct sl_shader *sh) {
   sl_exec_cleanup(&sh->exec_);
   sl_compilation_unit_cleanup(&sh->cu_);
   if (sh->source_) free(sh->source_);
-  if (sh->gl_info_log_) free(sh->gl_info_log_);
+  sl_info_log_cleanup(&sh->gl_info_log_);
 }
 
 void sl_shader_set_type(struct sl_shader *sh, enum sl_shader_type typ) {
@@ -120,6 +119,9 @@ int sl_shader_compile(struct sl_shader *sh) {
   int r = SL_ERR_OK;
   struct glsl_es1_compiler cc;
   glsl_es1_compiler_init(&cc);
+
+  /* Overwrite default dx in favor of info log dx */
+  cc.dx_ = &sh->gl_info_log_.dx_;
 
   /* Have glsl_es1_compiler use sl_shader's compilation-unit instead of creating its own */
   cc.cu_ = &sh->cu_;
