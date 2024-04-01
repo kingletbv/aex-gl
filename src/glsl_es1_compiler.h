@@ -119,6 +119,8 @@ struct glsl_es1_compiler {
 void glsl_es1_compiler_init(struct glsl_es1_compiler *compiler);
 void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *compiler);
 
+enum glsl_es1_compiler_result glsl_es1_compile_builtin_prologue(struct glsl_es1_compiler *cc, const char *glsl_input_text);
+
 enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_compiler *cc, const char *glsl_input_filename, const char *glsl_input_text, size_t glsl_input_text_len);
 
 #endif /* GLSL_ES1_COMPILER_H */

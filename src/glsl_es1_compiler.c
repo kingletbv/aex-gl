@@ -285,6 +285,18 @@ static struct pp_input_file *glsl_es1_compiler_push_input_file_mem_snippet(struc
   return &ifile->if_;
 }
 
+enum glsl_es1_compiler_result glsl_es1_compile_builtin_prologue(struct glsl_es1_compiler *cc, const char *glsl_input_text) {
+  enum glsl_es1_compiler_result cr;
+  struct pp_input_file *prologue_snippet;
+  prologue_snippet = glsl_es1_compiler_push_input_file_mem_snippet(cc, "(builtins)", glsl_input_text, strlen(glsl_input_text));
+  cr = glsl_es1_compile(cc);
+  if (cr != GLSL_ES1_R_OLD_INCLUDE) {
+    dx_error(cc->dx_, "Failed parsing builtin: %s\n", glsl_input_text);
+    return cr;
+  }
+  return GLSL_ES1_R_SUCCESS;
+}
+
 enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_compiler *cc, const char *glsl_input_filename, const char *glsl_input_text, size_t glsl_input_text_len) {
   enum glsl_es1_compiler_result cr;
 
