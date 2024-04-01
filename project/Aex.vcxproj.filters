@@ -44,6 +44,7 @@
     <ClCompile Include="..\src\ref_range_allocator.c" />
     <ClCompile Include="..\src\sl_compilation_unit.c" />
     <ClCompile Include="..\src\builtins.c" />
+    <ClCompile Include="..\src\sl_shader.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -97,6 +98,8 @@
     <ClInclude Include="..\src\sl_unop_snippet_inc.h" />
     <ClInclude Include="..\src\builtins_binding_inc.h" />
     <ClInclude Include="..\src\builtins.h" />
+    <ClInclude Include="..\src\sl_shader.h" />
+    <ClInclude Include="..\src\sl_defs.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">

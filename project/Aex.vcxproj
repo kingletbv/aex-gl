@@ -204,6 +204,7 @@
     <ClCompile Include="..\src\sl_expr_temp.c" />
     <ClCompile Include="..\src\sl_frame.c" />
     <ClCompile Include="..\src\sl_reg_alloc.c" />
+    <ClCompile Include="..\src\sl_shader.c" />
     <ClCompile Include="..\src\sl_stmt.c" />
     <ClCompile Include="..\src\sl_types.c" />
     <ClCompile Include="..\src\sym_table.c" />
@@ -324,11 +325,13 @@
     <ClInclude Include="..\src\ref_range_allocator.h" />
     <ClInclude Include="..\src\sl_binop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_compilation_unit.h" />
+    <ClInclude Include="..\src\sl_defs.h" />
     <ClInclude Include="..\src\sl_execution.h" />
     <ClInclude Include="..\src\sl_expr.h" />
     <ClInclude Include="..\src\sl_expr_temp.h" />
     <ClInclude Include="..\src\sl_frame.h" />
     <ClInclude Include="..\src\sl_reg_alloc.h" />
+    <ClInclude Include="..\src\sl_shader.h" />
     <ClInclude Include="..\src\sl_stmt.h" />
     <ClInclude Include="..\src\sl_types.h" />
     <ClInclude Include="..\src\sl_unop_snippet_inc.h" />
