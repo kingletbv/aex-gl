@@ -40,9 +40,19 @@ enum sl_shader_type {
 extern "C" {
 #endif
 
+struct sl_program;
+
 struct sl_shader {
   /* Type of shader */
   enum sl_shader_type type_;
+
+  /* Shader can be set as only one kind (e.g. vertex or fragment) for a program,
+   * but can be used in multiple programs.
+   * Depending on the kind of shader, this will chain all programs using this shader
+   * via sl_program::next/prev_program_using_vertex_shader_ or
+   * sl_program::next/prev_program_using_fragment_shader_ 
+   */
+  struct sl_program *programs_;
 
   /* Sourcecode for the shader */
   size_t source_length_;

@@ -48,6 +48,11 @@
 #include "sl_execution.h"
 #endif
 
+#ifndef SL_PROGRAM_H_INCLUDED
+#define SL_PROGRAM_H_INCLUDED
+#include "sl_program.h"
+#endif
+
 #ifndef GLSL_ES1_COMPILER_H_INCLUDED
 #define GLSL_ES1_COMPILER_H_INCLUDED
 #include "glsl_es1_compiler.h"
@@ -71,6 +76,9 @@ void sl_shader_cleanup(struct sl_shader *sh) {
   sl_compilation_unit_cleanup(&sh->cu_);
   if (sh->source_) free(sh->source_);
   sl_info_log_cleanup(&sh->gl_info_log_);
+  while (sh->programs_) {
+    sl_program_detach_shader(sh->programs_, sh);
+  }
 }
 
 void sl_shader_set_type(struct sl_shader *sh, enum sl_shader_type typ) {
@@ -183,6 +191,7 @@ int sl_shader_compile(struct sl_shader *sh) {
   const char *filename = (sh->type_ == SLST_FRAGMENT_SHADER) ? "fragment-shader" : "vertex-shader";
   cr = glsl_es1_compiler_compile_mem(&cc, filename, sh->source_, sh->source_length_);
   if (cr != GLSL_ES1_R_SUCCESS) {
+    sh->gl_last_compile_status_ = 0;
     switch (cr) {
       case GLSL_ES1_R_HAVE_ERRORS:
         r = SL_ERR_HAD_ERRORS;
@@ -193,6 +202,9 @@ int sl_shader_compile(struct sl_shader *sh) {
         break;
     }
     goto cleanup;
+  }
+  else {
+    sh->gl_last_compile_status_ = 1;
   }
 
 cleanup:

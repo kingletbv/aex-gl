@@ -46,6 +46,7 @@
     <ClCompile Include="..\src\builtins.c" />
     <ClCompile Include="..\src\sl_shader.c" />
     <ClCompile Include="..\src\sl_info_log.c" />
+    <ClCompile Include="..\src\sl_program.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -102,6 +103,7 @@
     <ClInclude Include="..\src\sl_shader.h" />
     <ClInclude Include="..\src\sl_defs.h" />
     <ClInclude Include="..\src\sl_info_log.h" />
+    <ClInclude Include="..\src\sl_program.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
