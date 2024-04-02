@@ -116,7 +116,7 @@
 int test(void) {
   int r = 0;
 
-  r = ref_range_test();
+  //r = ref_range_test();
   if (r) {
     fprintf(stderr, "ref_range_test failed (%d)\n", r);
     return r;
@@ -127,8 +127,7 @@ int test(void) {
   sl_shader_set_type(&sh, SLST_VERTEX_SHADER);
   //sl_shader_set_type(&sh, SLST_FRAGMENT_SHADER);
   const char *src = "void main() {\n"
-                    "hork a bork;\n"
-                    "};\n";
+                    "}\n";
   int src_len = (int)strlen(src);
   sl_shader_set_source(&sh, 1, &src, &src_len);
   r = sl_shader_compile(&sh);

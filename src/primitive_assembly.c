@@ -71,6 +71,7 @@
 void primitive_assembly_init(struct primitive_assembly *pa) {
   pa->num_rows_ = 0;
   pa->num_cols_ = 0;
+  pa->num_cols_allocated_ = 0;
   pa->column_descriptors_ = NULL;
   pa->column_data_ = NULL;
   pa->slab_ = NULL;
@@ -133,44 +134,81 @@ static void primitive_assembly_update_column_data_ptrs(struct primitive_assembly
   }
 }
 
-int primitive_assembly_alloc_buffers(struct primitive_assembly *pa) {
-  pa->num_rows_ = 0;
-
-  if (!pa->num_cols_) {
-    /* First-time initialization of the column,
-     * initialize with execution-chain + XYZW */
-    size_t num_cols = PAC_IDX_NUM_FIXED_IDX;
-    if (pa->column_descriptors_) free(pa->column_descriptors_);
-    pa->column_descriptors_ = (struct primitive_assembly_column_descriptor *)malloc(sizeof(struct primitive_assembly_column_descriptor) * num_cols);
-    if (!pa->column_descriptors_) {
+int primitive_assembly_init_fixed_columns(struct primitive_assembly *pa) {
+  /* First-time initialization of the column,
+   * initialize with execution-chain + XYZW */
+  if (pa->num_cols_allocated_ < PAC_IDX_NUM_FIXED_IDX) {
+    size_t num_cols_to_allocate = (PAC_IDX_NUM_FIXED_IDX < 16) ? 16 : PAC_IDX_NUM_FIXED_IDX;
+    struct primitive_assembly_column_descriptor *ncd = (struct primitive_assembly_column_descriptor *)malloc(sizeof(struct primitive_assembly_column_descriptor) * num_cols_to_allocate);
+    if (!ncd) {
       return -1;
     }
-    pa->num_cols_ = num_cols;
-    pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].col_type_ = PACT_EXECUTION_CHAIN;
-    pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].data_type_ = PADT_UINT8;
-    pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].attrib_element_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].attrib_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POSITION_X].col_type_ = PACT_POSITION_X;
-    pa->column_descriptors_[PAC_IDX_POSITION_X].data_type_ = PADT_FLOAT;
-    pa->column_descriptors_[PAC_IDX_POSITION_X].attrib_element_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POSITION_X].attrib_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POSITION_Y].col_type_ = PACT_POSITION_Y;
-    pa->column_descriptors_[PAC_IDX_POSITION_Y].data_type_ = PADT_FLOAT;
-    pa->column_descriptors_[PAC_IDX_POSITION_Y].attrib_element_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POSITION_Y].attrib_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POSITION_Z].col_type_ = PACT_POSITION_Z;
-    pa->column_descriptors_[PAC_IDX_POSITION_Z].data_type_ = PADT_FLOAT;
-    pa->column_descriptors_[PAC_IDX_POSITION_Z].attrib_element_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POSITION_Z].attrib_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POSITION_W].col_type_ = PACT_POSITION_W;
-    pa->column_descriptors_[PAC_IDX_POSITION_W].data_type_ = PADT_FLOAT;
-    pa->column_descriptors_[PAC_IDX_POSITION_W].attrib_element_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POSITION_W].attrib_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POINT_SIZE].col_type_ = PACT_POINT_SIZE;
-    pa->column_descriptors_[PAC_IDX_POINT_SIZE].data_type_ = PADT_FLOAT;
-    pa->column_descriptors_[PAC_IDX_POINT_SIZE].attrib_element_index_ = -1;
-    pa->column_descriptors_[PAC_IDX_POINT_SIZE].attrib_index_ = -1;
+    if (pa->column_descriptors_) free(pa->column_descriptors_);
+    pa->column_descriptors_ = ncd;
+    pa->num_cols_allocated_ = num_cols_to_allocate;
   }
+  pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].col_type_ = PACT_EXECUTION_CHAIN;
+  pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].data_type_ = PADT_UINT8;
+  pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].attrib_element_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_X].col_type_ = PACT_POSITION_X;
+  pa->column_descriptors_[PAC_IDX_POSITION_X].data_type_ = PADT_FLOAT;
+  pa->column_descriptors_[PAC_IDX_POSITION_X].attrib_element_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_X].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_Y].col_type_ = PACT_POSITION_Y;
+  pa->column_descriptors_[PAC_IDX_POSITION_Y].data_type_ = PADT_FLOAT;
+  pa->column_descriptors_[PAC_IDX_POSITION_Y].attrib_element_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_Y].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_Z].col_type_ = PACT_POSITION_Z;
+  pa->column_descriptors_[PAC_IDX_POSITION_Z].data_type_ = PADT_FLOAT;
+  pa->column_descriptors_[PAC_IDX_POSITION_Z].attrib_element_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_Z].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_W].col_type_ = PACT_POSITION_W;
+  pa->column_descriptors_[PAC_IDX_POSITION_W].data_type_ = PADT_FLOAT;
+  pa->column_descriptors_[PAC_IDX_POSITION_W].attrib_element_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_W].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POINT_SIZE].col_type_ = PACT_POINT_SIZE;
+  pa->column_descriptors_[PAC_IDX_POINT_SIZE].data_type_ = PADT_FLOAT;
+  pa->column_descriptors_[PAC_IDX_POINT_SIZE].attrib_element_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POINT_SIZE].attrib_index_ = -1;
+  pa->num_cols_ = PAC_IDX_NUM_FIXED_IDX;
+
+  return 0;
+}
+
+int primitive_assembly_add_column(struct primitive_assembly *pa,
+                                  primitive_assembly_column_type_t col_type,
+                                  primitive_assembly_data_type_t data_type,
+                                  int attrib_index,
+                                  int attrib_element_index) {
+  if (pa->num_cols_ == pa->num_cols_allocated_) {
+    size_t new_num_cols_allocated = pa->num_cols_allocated_ + pa->num_cols_allocated_ + 1;
+    if (new_num_cols_allocated <= pa->num_cols_allocated_) {
+      return -1;
+    }
+    struct primitive_assembly_column_descriptor *ncd = (struct primitive_assembly_column_descriptor *)realloc(pa->column_descriptors_, sizeof(struct primitive_assembly_column_descriptor) * new_num_cols_allocated);
+    if (!ncd) {
+      return -1;
+    }
+    pa->column_descriptors_ = ncd;
+    pa->num_cols_allocated_ = new_num_cols_allocated;
+  }
+  int col = (int)pa->num_cols_++;
+  pa->column_descriptors_[col].col_type_ = col_type;
+  pa->column_descriptors_[col].data_type_ = data_type;
+  pa->column_descriptors_[col].attrib_index_ = attrib_index;
+  pa->column_descriptors_[col].attrib_element_index_ = attrib_element_index;
+  return col;
+}
+
+
+int primitive_assembly_alloc_buffers(struct primitive_assembly *pa) {
+  int r;
+  r = primitive_assembly_init_fixed_columns(pa);
+  if (r) return r;
+
+  pa->num_rows_ = 0;
+
   size_t rowsize = primitive_assembly_calc_rowsize(pa);
   size_t slab_size = rowsize * PRIMITIVE_ASSEMBLY_MAX_ROWS;
   if (pa->slab_) free(pa->slab_);

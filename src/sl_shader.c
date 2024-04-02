@@ -64,6 +64,8 @@ void sl_shader_init(struct sl_shader *sh) {
   sh->source_ = NULL;
   sl_compilation_unit_init(&sh->cu_);
   sl_exec_init(&sh->exec_);
+
+  sh->programs_ = NULL;
   
   sh->gl_shader_object_name_ = 0; /* no name assigned yet */
   sh->gl_delete_status_ = 0;

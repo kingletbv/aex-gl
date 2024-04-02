@@ -107,3 +107,10 @@ void sl_program_detach_shader(struct sl_program *prog, struct sl_shader *sh) {
   }
 }
 
+int sl_program_link(struct sl_program *prog) {
+  int r;
+  r = primitive_assembly_init_fixed_columns(&prog->pa_);
+
+  return r;
+}
+

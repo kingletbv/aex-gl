@@ -136,6 +136,7 @@ struct primitive_assembly {
 
   /* Array of num_cols_ column descriptions */
   size_t num_cols_;
+  size_t num_cols_allocated_;
   struct primitive_assembly_column_descriptor *column_descriptors_;
 
   /* Vertex indices buffer */
@@ -148,8 +149,11 @@ struct primitive_assembly {
 };
 
 /* Initializes the primitive assembly but does not allocate the memory, to
- * complete the initialization, call primitive_assembly_alloc_buffers. */
+ * complete the initialization, call primitive_assembly_init_fixed_columns, to allocate
+ * the actual memory (after finalizing all columns needed), call primitive_assembly_alloc_buffers. */
 void primitive_assembly_init(struct primitive_assembly *pa);
+
+int primitive_assembly_init_fixed_columns(struct primitive_assembly *pa);
 
 int primitive_assembly_alloc_buffers(struct primitive_assembly *pa);
 
