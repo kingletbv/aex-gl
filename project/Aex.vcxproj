@@ -171,6 +171,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\attrib_binding_table.c" />
     <ClCompile Include="..\src\attrib_set.c" />
     <ClCompile Include="..\src\blend.c" />
     <ClCompile Include="..\src\builtins.c" />
@@ -305,6 +306,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\attrib_binding_table.h" />
     <ClInclude Include="..\src\attrib_set.h" />
     <ClInclude Include="..\src\blend.h" />
     <ClInclude Include="..\src\builtins.h" />
