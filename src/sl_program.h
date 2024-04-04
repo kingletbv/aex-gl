@@ -25,6 +25,11 @@
 #include "sl_info_log.h"
 #endif
 
+#ifndef ATTRIB_BINDING_TABLE_H_INCLUDED
+#define ATTRIB_BINDING_TABLE_H_INCLUDED
+#include "attrib_binding_table.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,7 +45,10 @@ struct sl_program {
   struct sl_shader *fragment_shader_;
   struct sl_program *next_program_using_fragment_shader_, *prev_program_using_fragment_shader_;
 
+  struct attrib_binding_table abt_;
+
   struct sl_info_log log_;
+
 };
 
 void sl_program_init(struct sl_program *prog);
