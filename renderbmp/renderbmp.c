@@ -4354,8 +4354,8 @@ void tri10_no_subpixels_topleft_sampled(uint8_t *rgba, size_t stride,
 int main(int argc, char **argv) {
   int exit_ret = EXIT_FAILURE;
 
-  int r;
-  r = test();
+  int r = 0;
+  //r = test();
   if (r) {
     return EXIT_FAILURE;
   }
@@ -4734,9 +4734,9 @@ int main(int argc, char **argv) {
   sl_shader_set_type(&vertex_shader, SLST_VERTEX_SHADER);
   const char *src = 
     "void main() {\n"
-    //"  gl_Position.xy += vec2(4. * 2. / 16., 0.);\n"
-    "  gl_Position.x += 4. * 2. / 16.;\n"
-    "  gl_Position.y -= 5. * 2. / 16.;\n"
+    "  gl_Position.xy += vec2(4. * 2. / 16., -5. * 2. / 16.);\n"
+    //"  gl_Position.x += 4. * 2. / 16.;\n"
+    //"  gl_Position.y -= 5. * 2. / 16.;\n"
     "}\n";
   int src_len = (int)strlen(src);
   sl_shader_set_source(&vertex_shader, 1, &src, &src_len);

@@ -3747,17 +3747,21 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             /* Evaluate all children first; then continue to revisit_chain_ to perform the invocation */
             if (eps[epi].v_.expr_->num_children_) {
               size_t n;
-              for (n = 0; n < eps[epi].v_.expr_->num_children_; ++n) {
+              n = eps[epi].v_.expr_->num_children_;
+              while (n--) {
                 uint32_t chain = SL_EXEC_NO_CHAIN;
-                if (n == (eps[epi].v_.expr_->num_children_ - 1)) {
-                  chain = eps[epi].enter_chain_;
-                }
                 size_t continuation = CHAIN_REF(exec->execution_points_[exec->num_execution_points_-1].enter_chain_);
-                if (n == 0) {
+                if (n == (eps[epi].v_.expr_->num_children_ - 1)) {
                   continuation = CHAIN_REF(eps[epi].revisit_chain_);
+                }
+                if (n == 0) {
+                  chain = eps[epi].enter_chain_;
                 }
 
                 r = r ? r : sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[n], chain, continuation);
+              }
+
+              for (n = 0; n < eps[epi].v_.expr_->num_children_; ++n) {
               }
             }
             else {
