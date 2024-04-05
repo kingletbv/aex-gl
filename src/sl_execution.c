@@ -2790,6 +2790,7 @@ static void sl_exec_clear_ep(struct sl_execution *exec, size_t ep_index) {
 
 void sl_exec_init(struct sl_execution *exec) {
   exec->cu_ = NULL;
+  exec->max_num_rows_ = 0;
   exec->num_execution_points_ = exec->num_execution_points_allocated_ = 0;
   exec->execution_points_ = NULL;
   exec->num_execution_frames_ = exec->num_execution_frames_allocated_ = 0;
@@ -2882,6 +2883,71 @@ fail:
   if (new_samplerCube_regs) free(new_samplerCube_regs);
 
   return -1;
+}
+
+int sl_exec_allocate_registers_by_slab(struct sl_execution *exec, size_t max_num_rows) {
+  float *float_bank = NULL;
+  int64_t *int_bank = NULL;
+  uint8_t *bool_bank = NULL;
+  void **sampler2D_bank = NULL;
+  void **samplerCube_bank = NULL;
+  uint8_t *chain_bank = NULL;
+
+  size_t num_rows = max_num_rows;
+
+  size_t slab_size = 0;
+  slab_size += sizeof(float) * num_rows * exec->num_float_regs_;
+  slab_size += sizeof(int64_t) * num_rows * exec->num_int_regs_;
+  slab_size += sizeof(uint8_t) * num_rows * exec->num_bool_regs_;
+  slab_size += sizeof(void *) * num_rows * exec->num_sampler_2D_regs_;
+  slab_size += sizeof(void *) * num_rows * exec->num_sampler_cube_regs_;
+
+  char *slab = (char *)malloc(slab_size);
+  if (!slab) return -1;
+  uint8_t *exec_regs = (uint8_t *)malloc(sizeof(uint8_t) * num_rows);
+  if (!exec_regs) {
+    free(slab);
+    return -1;
+  }
+
+  char *pslab = slab;
+
+  if (exec->num_float_regs_) { float_bank = (float *)pslab; pslab += sizeof(float) * num_rows * exec->num_float_regs_; }
+  if (exec->num_int_regs_) { int_bank = (int64_t *)pslab; pslab += sizeof(int64_t) * num_rows * exec->num_int_regs_; }
+  if (exec->num_bool_regs_) { bool_bank = (uint8_t *)pslab; pslab += sizeof(uint8_t) * num_rows * exec->num_bool_regs_; }
+  if (exec->num_sampler_2D_regs_) { sampler2D_bank = (void **)pslab; pslab += sizeof(void *) * num_rows * exec->num_sampler_2D_regs_; }
+  if (exec->num_sampler_cube_regs_) { samplerCube_bank = (void **)pslab; pslab += sizeof(void *) * num_rows * exec->num_sampler_cube_regs_; }
+  chain_bank = (uint8_t *)pslab;
+
+  if (exec->float_regs_) exec->float_regs_[0] = float_bank;
+  if (exec->int_regs_) exec->int_regs_[0] = int_bank;
+  if (exec->bool_regs_) exec->bool_regs_[0] = bool_bank;
+  if (exec->sampler_2D_regs_) exec->sampler_2D_regs_[0] = sampler2D_bank;
+  if (exec->sampler_cube_regs_) exec->sampler_cube_regs_[0] = samplerCube_bank;
+  exec->exec_chain_reg_ = exec_regs;
+  size_t n;
+
+  memset(exec->exec_chain_reg_, 0, num_rows * sizeof(uint8_t));
+
+  for (n = 1; n < exec->num_float_regs_; n++) {
+    exec->float_regs_[n] = exec->float_regs_[n - 1] + num_rows;
+  }
+  for (n = 1; n < exec->num_int_regs_; n++) {
+    exec->int_regs_[n] = exec->int_regs_[n - 1] + num_rows;
+  }
+  for (n = 1; n < exec->num_bool_regs_; n++) {
+    exec->bool_regs_[n] = exec->bool_regs_[n - 1] + num_rows;
+  }
+  for (n = 1; n < exec->num_sampler_2D_regs_; n++) {
+    exec->sampler_2D_regs_[n] = exec->sampler_2D_regs_[n - 1] + num_rows;
+  }
+  for (n = 1; n < exec->num_sampler_cube_regs_; n++) {
+    exec->sampler_cube_regs_[n] = exec->sampler_cube_regs_[n - 1] + num_rows;
+  }
+
+  exec->max_num_rows_ = num_rows;
+  exec->slab_ = slab;
+  return 0;
 }
 
 void sl_exec_set_expr(struct sl_execution *exec, size_t ep_index, struct sl_expr *expr, uint32_t chain, size_t continuation_ptr) {
@@ -3219,7 +3285,12 @@ static void sl_exec_initialize_globals(struct sl_execution *exec) {
     do {
       v = v->chain_;
 
-      sl_exec_init_literal(exec, 0, &v->reg_alloc_, &v->value_, 0);
+      if (v->is_externally_initialized_) {
+        /* Don't initialize attributes as the caller will have initialized them */
+      }
+      else {
+        sl_exec_init_literal(exec, 0, &v->reg_alloc_, &v->value_, 0);
+      }
 
     } while (v != exec->cu_->global_frame_.variables_);
   }

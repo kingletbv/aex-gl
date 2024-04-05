@@ -143,6 +143,7 @@ int test(void) {
     }
     fprintf(stderr, "Failed (%d): %s\n", r, err);
   }
+  struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&sh.cu_, "gl_Position");
   sl_shader_cleanup(&sh);
 
   struct glsl_es1_compiler compiler, *cc;
@@ -4714,12 +4715,14 @@ int main(int argc, char **argv) {
   struct clipping_stage cs;
   struct rasterizer ras;
   struct fragment_buffer fragbuf;
+  struct sl_shader vertex_shader;
 
   primitive_assembly_init(&pa);
   attrib_set_init(&as);
   clipping_stage_init(&cs);
   rasterizer_init(&ras);
   fragment_buffer_init(&fragbuf);
+  sl_shader_init(&vertex_shader);
 
   if (primitive_assembly_alloc_buffers(&pa) ||
       clipping_stage_alloc_varyings(&cs, 0) ||
@@ -4727,6 +4730,38 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed to initialize due to allocation failure\n");
     goto exit_cleanup;
   }
+
+  sl_shader_set_type(&vertex_shader, SLST_VERTEX_SHADER);
+  const char *src = 
+    "void main() {\n"
+    //"  gl_Position.xy += vec2(4. * 2. / 16., 0.);\n"
+    "  gl_Position.x += 4. * 2. / 16.;\n"
+    "  gl_Position.y -= 5. * 2. / 16.;\n"
+    "}\n";
+  int src_len = (int)strlen(src);
+  sl_shader_set_source(&vertex_shader, 1, &src, &src_len);
+  r = sl_shader_compile(&vertex_shader);
+  if (r) {
+    const char *err = "???";
+    switch (r) {
+      case SL_ERR_OK: err = "SL_ERR_OK"; break;
+      case SL_ERR_INVALID_ARG: err = "SL_ERR_INVALID_ARG"; break;
+      case SL_ERR_OVERFLOW: err = "SL_ERR_OVERFLOW"; break;
+      case SL_ERR_NO_MEM: err = "SL_ERR_NO_MEM"; break;
+      case SL_ERR_INTERNAL: err = "SL_ERR_INTERNAL"; break;
+      case SL_ERR_HAD_ERRORS: err = "SL_ERR_HAD_ERRORS"; break;
+    }
+    fprintf(stderr, "Failed (%d): %s\n", r, err);
+  }
+  struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&vertex_shader.cu_, "gl_Position");
+
+  r = sl_exec_prep(&vertex_shader.exec_, &vertex_shader.cu_);
+  if (r) {
+    fprintf(stderr, "Failed to prepare the execution\n");
+    goto exit_cleanup;
+  }
+
+  r = sl_exec_allocate_registers_by_slab(&vertex_shader.exec_, 255);
 
   int32_t vp_x = 0; /* left */
   int32_t vp_y = 0; /* bottom */
@@ -4758,24 +4793,38 @@ int main(int argc, char **argv) {
   as.attribs_[xyz_attr].stride_ = sizeof(float) * 3;
   // as.attribs_[xyz_attr].name_ = // canonical way of setting this still to be made
 
+#if 0
   pa.column_descriptors_[PACT_POSITION_X].attrib_index_ = xyz_attr;
   pa.column_descriptors_[PACT_POSITION_X].attrib_element_index_ = 0;
   pa.column_descriptors_[PACT_POSITION_Y].attrib_index_ = xyz_attr;
   pa.column_descriptors_[PACT_POSITION_Y].attrib_element_index_ = 1;
   pa.column_descriptors_[PACT_POSITION_Z].attrib_index_ = xyz_attr;
   pa.column_descriptors_[PACT_POSITION_Z].attrib_element_index_ = 2;
-
+  
   /* Note that xyz_attr has size_ 3, not size_ 4, consequently, attrib_element_index_ 
    * should map into the attrib::generic_values_[3] value, which, by default, should
    * map to 1. */
   pa.column_descriptors_[PACT_POSITION_W].attrib_index_ = xyz_attr;
   pa.column_descriptors_[PACT_POSITION_W].attrib_element_index_ = 3;
+#endif
+
+  /* Note that xyz_attr has size_ 3, not size_ 4, consequently, attrib_element_index_
+   * should map into the attrib::generic_values_[3] value, which, by default, should
+   * map to 1. */
+  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 0, vgl_Position->reg_alloc_.v_.regs_[0]);
+  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 1, vgl_Position->reg_alloc_.v_.regs_[1]);
+  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 2, vgl_Position->reg_alloc_.v_.regs_[2]);
+  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 3, vgl_Position->reg_alloc_.v_.regs_[3]);
+
+  /* Make sure the execution does not initialize vgl_Position to 0's, as that would overwrite our attribute data */
+  vgl_Position->is_externally_initialized_ = 1;
 
   uint32_t indices[] = {
     0, 1, 2
   };
 
-  primitive_assembly_draw_elements(&pa, &as, &cs, &ras, &fragbuf,
+
+  primitive_assembly_draw_elements(&pa, &as, &vertex_shader, &cs, &ras, &fragbuf,
                                    vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
                                    screen_width, screen_height, max_z,
                                    rgba32, screen_width*4,
@@ -4802,6 +4851,7 @@ int main(int argc, char **argv) {
 
   exit_ret = EXIT_SUCCESS;
   exit_cleanup:
+  sl_shader_cleanup(&vertex_shader);
   fragment_buffer_cleanup(&fragbuf);
   rasterizer_cleanup(&ras);
   clipping_stage_cleanup(&cs);

@@ -68,6 +68,21 @@
 #include "blend.h"
 #endif
 
+#ifndef SL_SHADER_H_INCLUDED
+#define SL_SHADER_H_INCLUDED
+#include "sl_shader.h"
+#endif
+
+#ifndef SL_EXECUTION_H_INCLUDED
+#define SL_EXECUTION_H_INCLUDED
+#include "sl_execution.h"
+#endif
+
+#ifndef SL_REG_ALLOC_H_INCLUDED
+#define SL_REG_ALLOC_H_INCLUDED
+#include "sl_reg_alloc.h"
+#endif
+
 void primitive_assembly_init(struct primitive_assembly *pa) {
   pa->num_rows_ = 0;
   pa->num_cols_ = 0;
@@ -151,26 +166,32 @@ int primitive_assembly_init_fixed_columns(struct primitive_assembly *pa) {
   pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].data_type_ = PADT_UINT8;
   pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].attrib_element_index_ = -1;
   pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_EXECUTION_CHAIN].register_ = SL_REG_NONE;
   pa->column_descriptors_[PAC_IDX_POSITION_X].col_type_ = PACT_POSITION_X;
   pa->column_descriptors_[PAC_IDX_POSITION_X].data_type_ = PADT_FLOAT;
   pa->column_descriptors_[PAC_IDX_POSITION_X].attrib_element_index_ = -1;
   pa->column_descriptors_[PAC_IDX_POSITION_X].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_X].register_ = SL_REG_NONE;
   pa->column_descriptors_[PAC_IDX_POSITION_Y].col_type_ = PACT_POSITION_Y;
   pa->column_descriptors_[PAC_IDX_POSITION_Y].data_type_ = PADT_FLOAT;
   pa->column_descriptors_[PAC_IDX_POSITION_Y].attrib_element_index_ = -1;
   pa->column_descriptors_[PAC_IDX_POSITION_Y].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_Y].register_ = SL_REG_NONE;
   pa->column_descriptors_[PAC_IDX_POSITION_Z].col_type_ = PACT_POSITION_Z;
   pa->column_descriptors_[PAC_IDX_POSITION_Z].data_type_ = PADT_FLOAT;
   pa->column_descriptors_[PAC_IDX_POSITION_Z].attrib_element_index_ = -1;
   pa->column_descriptors_[PAC_IDX_POSITION_Z].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_Z].register_ = SL_REG_NONE;
   pa->column_descriptors_[PAC_IDX_POSITION_W].col_type_ = PACT_POSITION_W;
   pa->column_descriptors_[PAC_IDX_POSITION_W].data_type_ = PADT_FLOAT;
   pa->column_descriptors_[PAC_IDX_POSITION_W].attrib_element_index_ = -1;
   pa->column_descriptors_[PAC_IDX_POSITION_W].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POSITION_W].register_ = SL_REG_NONE;
   pa->column_descriptors_[PAC_IDX_POINT_SIZE].col_type_ = PACT_POINT_SIZE;
   pa->column_descriptors_[PAC_IDX_POINT_SIZE].data_type_ = PADT_FLOAT;
   pa->column_descriptors_[PAC_IDX_POINT_SIZE].attrib_element_index_ = -1;
   pa->column_descriptors_[PAC_IDX_POINT_SIZE].attrib_index_ = -1;
+  pa->column_descriptors_[PAC_IDX_POINT_SIZE].register_ = SL_REG_NONE;
   pa->num_cols_ = PAC_IDX_NUM_FIXED_IDX;
 
   return 0;
@@ -180,7 +201,8 @@ int primitive_assembly_add_column(struct primitive_assembly *pa,
                                   primitive_assembly_column_type_t col_type,
                                   primitive_assembly_data_type_t data_type,
                                   int attrib_index,
-                                  int attrib_element_index) {
+                                  int attrib_element_index,
+                                  int target_register) {
   if (pa->num_cols_ == pa->num_cols_allocated_) {
     size_t new_num_cols_allocated = pa->num_cols_allocated_ + pa->num_cols_allocated_ + 1;
     if (new_num_cols_allocated <= pa->num_cols_allocated_) {
@@ -198,6 +220,7 @@ int primitive_assembly_add_column(struct primitive_assembly *pa,
   pa->column_descriptors_[col].data_type_ = data_type;
   pa->column_descriptors_[col].attrib_index_ = attrib_index;
   pa->column_descriptors_[col].attrib_element_index_ = attrib_element_index;
+  pa->column_descriptors_[col].register_ = target_register;
   return col;
 }
 
@@ -991,7 +1014,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
   }
 }
 
-int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attrib_set *as) {
+int primitive_assembly_gather_attribs2(struct primitive_assembly *pa, struct attrib_set *as) {
   size_t col;
   size_t row;
   size_t num_rows = PRIMITIVE_ASSEMBLY_MAX_ROWS - pa->num_rows_;
@@ -1898,8 +1921,329 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
   return !!pa->num_rows_;
 }
 
+int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attrib_set *as, struct sl_execution *exec) {
+  size_t col;
+  size_t row;
+  size_t num_rows = PRIMITIVE_ASSEMBLY_MAX_ROWS - pa->num_rows_;
+  uint32_t * restrict indices = (uint32_t * restrict)pa->vertex_indices_;
+  if (num_rows > pa->num_vertex_indices_) {
+    num_rows = pa->num_vertex_indices_;
+  }
+  if (!num_rows) return 0;
+  for (col = 0; col < pa->num_cols_; ++col) {
+    struct primitive_assembly_column_descriptor *pacd = pa->column_descriptors_ + col;
+    if (pacd->register_ == SL_REG_NONE) {
+      /* no register assigned, therefore nothing to load. */
+      continue;
+    }
+    if (pacd->attrib_index_ == -1) {
+      /* Cannot gather attribs that are unbound */
+      continue;
+    }
+    float *restrict pf = ((float * restrict)exec->float_regs_[pacd->register_]) + pa->num_rows_;
+   
+    struct attrib *attr = as->attribs_ + pacd->attrib_index_;
+
+    if ((attr->size_ <= pacd->attrib_element_index_) ||
+        !attr->enabled_) {
+      float sf = attr->generic_values_[pacd->attrib_element_index_];
+      for (row = 0; row < num_rows; ++row) {
+        *pf++ = sf;
+      }
+    }
+    else {
+      void *p;
+      if (attr->buf_) {
+        p = ((uint8_t *)attr->buf_->data_) + (uintptr_t)attr->ptr_;
+      }
+      else {
+        p = attr->ptr_;
+      }
+
+      switch (attr->data_type_) {
+        case ADT_BYTE: {
+          p = ((int8_t *)p) + pacd->attrib_element_index_;
+          int8_t *restrict pi8;
+          if (!attr->normalize_) {
+            if (attr->stride_ != sizeof(int8_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pi8 = (int8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = (float)*pi8;
+              }
+            }
+            else {
+              pi8 = (int8_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = (float)pi8[indices[row]];
+              }
+            }
+          }
+          else /* attr->normalize to 0..1 */ {
+            /* this is not ideal but prevents compilers converting it into divison (testing
+              * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
+            float norm = 2.f/255;
+            if (attr->stride_ != sizeof(int8_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pi8 = (int8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = (((float)*pi8) + 128.f) * norm - 1.f;
+              }
+            }
+            else {
+              pi8 = (uint8_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = ((float)pi8[indices[row]] + 128.f) * norm - 1.f;
+              }
+            }
+          }
+          break;
+        }
+        case ADT_UNSIGNED_BYTE: {
+          p = ((uint8_t *)p) + pacd->attrib_element_index_;
+          uint8_t *restrict pu8;
+          if (!attr->normalize_) {
+            if (attr->stride_ != sizeof(uint8_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pu8 = (uint8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = (float)*pu8;
+              }
+            }
+            else {
+              pu8 = (uint8_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = (float)pu8[indices[row]];
+              }
+            }
+          }
+          else /* attr->normalize to 0..1 */ {
+            /* this is not ideal but prevents compilers converting it into divison (testing
+              * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
+            float norm = 1.f/255;
+            if (attr->stride_ != sizeof(uint8_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pu8 = (uint8_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = ((float)*pu8) * norm;
+              }
+            }
+            else {
+              pu8 = (uint8_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = ((float)pu8[indices[row]]) * norm;
+              }
+            }
+          }
+          break;
+        }
+        case ADT_SHORT: {
+          p = ((int16_t *)p) + pacd->attrib_element_index_;
+          int16_t *restrict pi16;
+          if (!attr->normalize_) {
+            if (attr->stride_ != sizeof(int16_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pi16 = (int16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = (float)*pi16;
+              }
+            }
+            else {
+              pi16 = (int16_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = (float)pi16[indices[row]];
+              }
+            }
+          }
+          else /* attr->normalize to 0..1 */ {
+            /* this is not ideal but prevents compilers converting it into divison (testing
+              * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
+            float norm = 2.f/65535;
+            if (attr->stride_ != sizeof(int16_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pi16 = (int16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = (((float)*pi16) + 32768.f) * norm - 1.f;
+              }
+            }
+            else {
+              pi16 = (uint16_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = ((float)pi16[indices[row]] + 32768.f) * norm - 1.f;
+              }
+            }
+          }
+          break;
+        }
+        case ADT_UNSIGNED_SHORT: {
+          p = ((uint16_t *)p) + pacd->attrib_element_index_;
+          uint16_t *restrict pu16;
+          if (!attr->normalize_) {
+            if (attr->stride_ != sizeof(uint16_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pu16 = (uint16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = (float)*pu16;
+              }
+            }
+            else {
+              pu16 = (uint16_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = (float)pu16[indices[row]];
+              }
+            }
+          }
+          else /* attr->normalize to 0..1 */ {
+            /* this is not ideal but prevents compilers converting it into divison (testing
+              * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
+            float norm = 1.f/65535;
+            if (attr->stride_ != sizeof(uint16_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pu16 = (uint16_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = ((float)*pu16) * norm;
+              }
+            }
+            else {
+              pu16 = (uint16_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = ((float)pu16[indices[row]]) * norm;
+              }
+            }
+          }
+          break;
+        }
+        case ADT_INT: {
+          p = ((int32_t *)p) + pacd->attrib_element_index_;
+          int32_t *restrict pi32;
+          if (!attr->normalize_) {
+            if (attr->stride_ != sizeof(int32_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pi32 = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = (float)*pi32;
+              }
+            }
+            else {
+              pi32 = (int32_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = (float)pi32[indices[row]];
+              }
+            }
+          }
+          else /* attr->normalize to 0..1 */ {
+            /* this is not ideal but prevents compilers converting it into divison (testing
+              * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
+            float norm = 2.f/65535;
+            if (attr->stride_ != sizeof(int32_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pi32 = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = (((float)*pi32) + 2147483648.f) * norm - 1.f;
+              }
+            }
+            else {
+              pi32 = (uint32_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = ((float)pi32[indices[row]] +  2147483648.f) * norm - 1.f;
+              }
+            }
+          }
+          break;
+        }
+        case ADT_UNSIGNED_INT: {
+          p = ((uint32_t *)p) + pacd->attrib_element_index_;
+          uint32_t *restrict pu32;
+          if (!attr->normalize_) {
+            if (attr->stride_ != sizeof(uint32_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pu32 = (uint32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = (float)*pu32;
+              }
+            }
+            else {
+              pu32 = (uint32_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = (float)pu32[indices[row]];
+              }
+            }
+          }
+          else /* attr->normalize to 0..1 */ {
+            /* this is not ideal but prevents compilers converting it into divison (testing
+              * on godbolt.org suggests the average compiler is not "sufficiently smart".) */
+            float norm = (float)(1./4294967295.);
+            if (attr->stride_ != sizeof(uint32_t)) {
+              size_t stride = attr->stride_;
+              for (row = 0; row < num_rows; ++row) {
+                pu32 = (uint32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+                *pf++ = ((float)*pu32) * norm;
+              }
+            }
+            else {
+              pu32 = (uint32_t *restrict)p;
+              for (row = 0; row < num_rows; ++row) {
+                *pf++ = ((float)pu32[indices[row]]) * norm;
+              }
+            }
+          }
+          break;
+        }
+        case ADT_FIXED: {
+          p = ((int32_t *)p) + pacd->attrib_element_index_;
+          int32_t *restrict pfixed;
+          if (attr->stride_ != sizeof(int32_t)) {
+            size_t stride = attr->stride_;
+            for (row = 0; row < num_rows; ++row) {
+              pfixed = (int32_t *restrict)(((uint8_t *)p) + stride * indices[row]);
+              *pf++ = ((float)*pfixed) / 65536.f;
+            }
+          }
+          else {
+            pfixed = (int32_t *restrict)p;
+            for (row = 0; row < num_rows; ++row) {
+              *pf++ = ((float)(pfixed[indices[row]])) / 65536.f;
+            }
+          }
+
+          break;
+        }
+        case ADT_FLOAT: {
+          p = ((float *)p) + pacd->attrib_element_index_;
+          float *restrict psf;
+          if (attr->stride_ != sizeof(float)) {
+            size_t stride = attr->stride_;
+            for (row = 0; row < num_rows; ++row) {
+              psf = (float *restrict)(((uint8_t *)p) + stride * indices[row]);
+              *pf++ = *psf;
+            }
+          }
+          else {
+            psf = (float *restrict)p;
+            for (row = 0; row < num_rows; ++row) {
+              *pf++ = psf[ indices[row] ];
+            }
+          }
+          break;
+        }
+        default:
+          assert(0 && "Invalid internal data type");
+      }
+    }
+  }
+  pa->num_rows_ += num_rows;
+  
+  if (pa->num_vertex_indices_ > num_rows) {
+    memcpy(pa->vertex_indices_, pa->vertex_indices_ + num_rows, num_rows - pa->num_vertex_indices_);
+  }
+  pa->num_vertex_indices_ -= num_rows;
+
+  return !!pa->num_rows_;
+}
+
 void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       struct attrib_set *as,
+                                      struct sl_shader *vertex_shader,
                                       struct clipping_stage *cs,
                                       struct rasterizer *ras,
                                       struct fragment_buffer *fragbuf,
@@ -1940,6 +2284,10 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       void *indices) {
   int r;
 
+
+  struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&vertex_shader->cu_, "gl_Position");
+  struct sl_function *vmain = sl_compilation_unit_find_function(&vertex_shader->cu_, "main");
+
   // XXX: Configure pipeline to handle points, lines or triangles, depending on what mode is.
 
   do {
@@ -1956,9 +2304,21 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
     }
 
     if (r) {
-      while (primitive_assembly_gather_attribs(pa, as)) {
+      while (primitive_assembly_gather_attribs(pa, as, &vertex_shader->exec_)) {
 
+        /* Set up execution chain */
+        uint8_t * restrict exec_chain = vertex_shader->exec_.exec_chain_reg_;
+        size_t exec_row;
+        for (exec_row = 0; exec_row < (pa->num_rows_ - 1); ++exec_row) {
+          exec_chain[exec_row] = 1;
+        }
+        exec_chain[pa->num_rows_ - 1] = 0;
+
+        /* Run vertex shader */
+        sl_exec_run(&vertex_shader->exec_, vmain, 0);
         // XXX: Run vertex shader on top of the primitive assembly here...
+        // 2. Run it
+        // 3. Discover location of output registers.
 
         switch (mode) {
           case PAM_POINTS:
@@ -1978,18 +2338,26 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
               iv0 = cs->input_varyings_;
               iv1 = iv0 + cs->num_varyings_;
               iv2 = iv1 + cs->num_varyings_;
-              iv0[CLIPPING_STAGE_IDX_X] = ((float *)(pa->column_data_[PAC_IDX_POSITION_X]))[tri_row_index];
-              iv0[CLIPPING_STAGE_IDX_Y] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Y]))[tri_row_index];
-              iv0[CLIPPING_STAGE_IDX_Z] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Z]))[tri_row_index];
-              iv0[CLIPPING_STAGE_IDX_W] = ((float *)(pa->column_data_[PAC_IDX_POSITION_W]))[tri_row_index];
-              iv1[CLIPPING_STAGE_IDX_X] = ((float *)(pa->column_data_[PAC_IDX_POSITION_X]))[tri_row_index + 1];
-              iv1[CLIPPING_STAGE_IDX_Y] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Y]))[tri_row_index + 1];
-              iv1[CLIPPING_STAGE_IDX_Z] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Z]))[tri_row_index + 1];
-              iv1[CLIPPING_STAGE_IDX_W] = ((float *)(pa->column_data_[PAC_IDX_POSITION_W]))[tri_row_index + 1];
-              iv2[CLIPPING_STAGE_IDX_X] = ((float *)(pa->column_data_[PAC_IDX_POSITION_X]))[tri_row_index + 2];
-              iv2[CLIPPING_STAGE_IDX_Y] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Y]))[tri_row_index + 2];
-              iv2[CLIPPING_STAGE_IDX_Z] = ((float *)(pa->column_data_[PAC_IDX_POSITION_Z]))[tri_row_index + 2];
-              iv2[CLIPPING_STAGE_IDX_W] = ((float *)(pa->column_data_[PAC_IDX_POSITION_W]))[tri_row_index + 2];
+              iv0[CLIPPING_STAGE_IDX_X] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[0]])[tri_row_index];
+              iv0[CLIPPING_STAGE_IDX_Y] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[1]])[tri_row_index];
+              iv0[CLIPPING_STAGE_IDX_Z] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[2]])[tri_row_index];
+              iv0[CLIPPING_STAGE_IDX_W] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[3]])[tri_row_index];
+
+              fprintf(stderr, "iv0: %f %f %f %f\n", iv0[CLIPPING_STAGE_IDX_X], iv0[CLIPPING_STAGE_IDX_Y], iv0[CLIPPING_STAGE_IDX_Z], iv0[CLIPPING_STAGE_IDX_W]);
+
+              iv1[CLIPPING_STAGE_IDX_X] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[0]])[tri_row_index + 1];
+              iv1[CLIPPING_STAGE_IDX_Y] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[1]])[tri_row_index + 1];
+              iv1[CLIPPING_STAGE_IDX_Z] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[2]])[tri_row_index + 1];
+              iv1[CLIPPING_STAGE_IDX_W] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[3]])[tri_row_index + 1];
+
+              fprintf(stderr, "iv1: %f %f %f %f\n", iv1[CLIPPING_STAGE_IDX_X], iv1[CLIPPING_STAGE_IDX_Y], iv1[CLIPPING_STAGE_IDX_Z], iv1[CLIPPING_STAGE_IDX_W]);
+
+              iv2[CLIPPING_STAGE_IDX_X] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[0]])[tri_row_index + 2];
+              iv2[CLIPPING_STAGE_IDX_Y] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[1]])[tri_row_index + 2];
+              iv2[CLIPPING_STAGE_IDX_Z] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[2]])[tri_row_index + 2];
+              iv2[CLIPPING_STAGE_IDX_W] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[3]])[tri_row_index + 2];
+
+              fprintf(stderr, "iv2: %f %f %f %f\n", iv2[CLIPPING_STAGE_IDX_X], iv2[CLIPPING_STAGE_IDX_Y], iv2[CLIPPING_STAGE_IDX_Z], iv2[CLIPPING_STAGE_IDX_W]);
 
               if (clipping_stage_process_triangle(cs)) {
                 /* XXX: Ugly reliance on size here, we stitch the SX,SY,SZ variables alongside 

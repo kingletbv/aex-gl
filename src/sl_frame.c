@@ -62,6 +62,7 @@ void sl_variable_init(struct sl_variable *v) {
   sl_expr_temp_init_void(&v->value_);
   sl_reg_alloc_init(&v->reg_alloc_);
   v->symbol_ = NULL;
+  v->is_externally_initialized_ = 0;
   v->is_parameter_ = 0;
   v->parameter_index_ = 0;
 }

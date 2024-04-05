@@ -173,7 +173,15 @@ int sl_shader_compile(struct sl_shader *sh) {
   }
 
   if (sh->type_ == SLST_VERTEX_SHADER) {
-    /* No built-in variables for the vertex shader */
+    /* Declare builtins for the vertex shader */
+    cr = glsl_es1_compile_builtin_prologue(&cc,
+      "highp   vec4  gl_Position;\n"
+      "mediump float gl_PointSize;\n");
+
+    if (cr != GLSL_ES1_R_SUCCESS) {
+      r = SL_ERR_INTERNAL;
+      goto cleanup;
+    }
   }
   else if (sh->type_ == SLST_FRAGMENT_SHADER) {
     /* Declare builtins for the GLSL v1 fragment shader */

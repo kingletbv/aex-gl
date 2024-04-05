@@ -130,6 +130,12 @@ struct sl_execution {
   /* Compilation unit being executed */
   struct sl_compilation_unit *cu_;
 
+  /* Maximum number of rows the execution has been allocated for */
+  size_t max_num_rows_;
+
+  /* Slab allocation for registers */
+  void *slab_;
+
   /* Stack of all active execution points, the current execution point to be
    * executed is at the top of the stack. */
   size_t num_execution_points_;
@@ -181,6 +187,8 @@ void sl_exec_init(struct sl_execution *exec);
 void sl_exec_cleanup(struct sl_execution *exec);
 
 int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu);
+
+int sl_exec_allocate_registers_by_slab(struct sl_execution *exec, size_t max_num_rows);
 
 int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain);
 

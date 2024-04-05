@@ -80,6 +80,11 @@ struct sl_variable {
    * scope no longer exists or this is some sort of internal temp variable. */
   struct sym *symbol_;
 
+  /* If non-zero, this variable must not be initialized at the start of an
+   * execution run. (This is used for variables that are initialized by the
+   * outside, e.g. gl_Position, gl_FragColor, and attributes etc.) */
+  int is_externally_initialized_:1;
+
   /* If non-zero, this is a parameter to a function, defined in the frame of the 
    * function. */
   int is_parameter_:1;
