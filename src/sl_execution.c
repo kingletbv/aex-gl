@@ -2874,6 +2874,28 @@ int sl_exec_prep(struct sl_execution *exec, struct sl_compilation_unit *cu) {
   exec->num_sampler_cube_regs_ = (size_t)cu->register_counts_.num_samplerCube_regs_;
   exec->sampler_cube_regs_ = (void ***)new_samplerCube_regs;
 
+  /* Set exernally_initialized_ to 1 for all varyings, attributes or uniforms */
+  struct sl_variable *v;
+  v = exec->cu_->global_frame_.variables_;
+  if (v) {
+    do {
+      v = v->chain_;
+
+      int quali = sl_type_qualifiers(v->type_);
+      if ((quali & SL_TYPE_QUALIFIER_ATTRIBUTE) ||
+          (quali & SL_TYPE_QUALIFIER_VARYING) ||
+          (quali & SL_TYPE_QUALIFIER_UNIFORM)) {
+        /* Do not initialize - the compiler should already have prevented the presence
+         * of an initializer in the code, but the internal intializer (in v->initializer_)
+         * must also not be used. Not just because it is wasteful, but also because it
+         * would overwrite any externally set values of the variable. */
+        v->is_externally_initialized_ = 1;
+      }
+
+    } while (v != exec->cu_->global_frame_.variables_);
+  }
+
+
   return 0;
 fail:
   if (new_float_regs) free(new_float_regs);

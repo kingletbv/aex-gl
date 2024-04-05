@@ -4816,9 +4816,6 @@ int main(int argc, char **argv) {
   primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 2, vgl_Position->reg_alloc_.v_.regs_[2]);
   primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 3, vgl_Position->reg_alloc_.v_.regs_[3]);
 
-  /* Make sure the execution does not initialize vgl_Position to 0's, as that would overwrite our attribute data */
-  vgl_Position->is_externally_initialized_ = 1;
-
   uint32_t indices[] = {
     0, 1, 2
   };

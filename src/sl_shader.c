@@ -198,6 +198,18 @@ int sl_shader_compile(struct sl_shader *sh) {
     }
   }
 
+  /* All variables introduced this far should not be subject to initialization from its literal. */
+  struct sl_variable *v = cc.current_frame_->variables_;
+  if (v) {
+    do {
+      v = v->chain_;
+
+      /* This flag will preserve register contents and prevent sl_exec_run() from initializing 
+       * the variable from its literal (see sl_exec_initialize_globals). */
+      v->is_externally_initialized_ = 1;
+    } while (v != cc.current_frame_->variables_);
+  }
+
   const char *filename = (sh->type_ == SLST_FRAGMENT_SHADER) ? "fragment-shader" : "vertex-shader";
   cr = glsl_es1_compiler_compile_mem(&cc, filename, sh->source_, sh->source_length_);
   if (cr != GLSL_ES1_R_SUCCESS) {
