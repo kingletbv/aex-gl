@@ -60,6 +60,7 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
                  + sizeof(int32_t)  /* FBCT_Y_COORD */
                  + sizeof(uint32_t) /* FBCT_ZBUF_VALUE */
                  + 4 * sizeof(uint8_t)  /* FBCT_FRAG_RED, FBCT_FRAG_GREEN, FBCT_FRAG_BLUE, FBCT_FRAG_ALPHA */
+                 + 3 * sizeof(int64_t)  /* FBCT_DP01, FBCT_DP12, FBCT_DP20 */
                  + 12 * sizeof(uint8_t) /* FBCT_IDX_TEMP_BYTE_0 .. FBCT_IDX_TEMP_BYTE_11 */
                  ;
   size_t size_needed = rowsize * FRAGMENT_BUFFER_MAX_ROWS;
@@ -142,6 +143,21 @@ int fragment_buffer_alloc_buffers(struct fragment_buffer *fb) {
   fb->column_descriptions_[FB_IDX_FRAG_ALPHA].data_type_ = FBDT_UINT8;
   fb->column_data_[FB_IDX_FRAG_ALPHA] = mem;
   mem += sizeof(uint8_t) * FRAGMENT_BUFFER_MAX_ROWS;
+
+  fb->column_descriptions_[FB_IDX_DP01].col_type_ = FBCT_DP01;
+  fb->column_descriptions_[FB_IDX_DP01].data_type_ = FBDT_INT64;
+  fb->column_data_[FB_IDX_DP01] = mem;
+  mem += sizeof(int64_t) * FRAGMENT_BUFFER_MAX_ROWS;
+
+  fb->column_descriptions_[FB_IDX_DP12].col_type_ = FBCT_DP12;
+  fb->column_descriptions_[FB_IDX_DP12].data_type_ = FBDT_INT64;
+  fb->column_data_[FB_IDX_DP12] = mem;
+  mem += sizeof(int64_t) * FRAGMENT_BUFFER_MAX_ROWS;
+
+  fb->column_descriptions_[FB_IDX_DP20].col_type_ = FBCT_DP20;
+  fb->column_descriptions_[FB_IDX_DP20].data_type_ = FBDT_INT64;
+  fb->column_data_[FB_IDX_DP20] = mem;
+  mem += sizeof(int64_t) * FRAGMENT_BUFFER_MAX_ROWS;
 
   size_t temp_idx;
   for (temp_idx = FB_IDX_TEMP_BYTE_0; temp_idx <= FB_IDX_TEMP_BYTE_11; ++temp_idx) {

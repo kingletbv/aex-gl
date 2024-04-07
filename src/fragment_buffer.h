@@ -33,7 +33,8 @@ typedef enum fragment_buffer_data_type {
   FBDT_UINT8,
   FBDT_UINT16,
   FBDT_UINT32,
-  FBDT_INT32
+  FBDT_INT32,
+  FBDT_INT64
   // .. the rest, presumably ..
 } frag_buf_data_type_t;
 
@@ -50,6 +51,9 @@ typedef enum fragment_buffer_column_type {
   FBCT_FRAG_GREEN,      /* FBCT_UINT8: green component of gl_FragColor */
   FBCT_FRAG_BLUE,       /* FBCT_UINT8: blue component of gl_FragColor */
   FBCT_FRAG_ALPHA,      /* FBCT_UINT8: alpha component of gl_FragColor */
+  FBCT_DP01,            /* FBCT_INT64: determinant of the Point and edge 01 */
+  FBCT_DP12,            /* FBCT_INT64: determinant of the Point and edge 12 */
+  FBCT_DP20,            /* FBCT_INT64: determinant of the Point and edge 20 */
   FBCT_TEMP             /* Temporary value, unspecified type. */
 } frag_buf_col_type_t;
 
@@ -66,19 +70,22 @@ typedef enum fragment_buffer_column_type {
 #define FB_IDX_FRAG_GREEN      9
 #define FB_IDX_FRAG_BLUE       10
 #define FB_IDX_FRAG_ALPHA      11
-#define FB_IDX_TEMP_BYTE_0     12
-#define FB_IDX_TEMP_BYTE_1     13
-#define FB_IDX_TEMP_BYTE_2     14
-#define FB_IDX_TEMP_BYTE_3     15
-#define FB_IDX_TEMP_BYTE_4     16
-#define FB_IDX_TEMP_BYTE_5     17
-#define FB_IDX_TEMP_BYTE_6     18
-#define FB_IDX_TEMP_BYTE_7     19
-#define FB_IDX_TEMP_BYTE_8     20
-#define FB_IDX_TEMP_BYTE_9     21
-#define FB_IDX_TEMP_BYTE_10    22
-#define FB_IDX_TEMP_BYTE_11    23
-#define FB_IDX_NUM_FIXED_IDX   24
+#define FB_IDX_DP01            12
+#define FB_IDX_DP12            13
+#define FB_IDX_DP20            14
+#define FB_IDX_TEMP_BYTE_0     15
+#define FB_IDX_TEMP_BYTE_1     16
+#define FB_IDX_TEMP_BYTE_2     17
+#define FB_IDX_TEMP_BYTE_3     18
+#define FB_IDX_TEMP_BYTE_4     19
+#define FB_IDX_TEMP_BYTE_5     20
+#define FB_IDX_TEMP_BYTE_6     21
+#define FB_IDX_TEMP_BYTE_7     22
+#define FB_IDX_TEMP_BYTE_8     23
+#define FB_IDX_TEMP_BYTE_9     24
+#define FB_IDX_TEMP_BYTE_10    25
+#define FB_IDX_TEMP_BYTE_11    26
+#define FB_IDX_NUM_FIXED_IDX   27
 
 struct fragment_buffer_column_descriptor {
   /* Type of fragment buffer column (e.g. the semantic value of it) */
