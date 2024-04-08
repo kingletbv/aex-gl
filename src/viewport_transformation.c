@@ -33,7 +33,7 @@ void viewport_transformation(int32_t vp_x, int32_t vp_y,
                              float depth_range_near, float depth_range_far,
                              uint32_t screen_width, uint32_t screen_height, uint32_t max_z,
                              size_t num_vertices,
-                             float *x, float *y, float *z, float *w, size_t input_stride,
+                             float *x, float *y, float *z, float *oow, size_t input_stride,
                              int32_t *sx, int32_t *sy, uint32_t *sz, size_t output_stride) {
   size_t n;
   float half_w = (float)(vp_width) / 2.f;
@@ -43,14 +43,13 @@ void viewport_transformation(int32_t vp_x, int32_t vp_y,
   float half_depth_range = (depth_range_far - depth_range_near) / 2.f;
   float depth_range_middle = (depth_range_near + depth_range_far) / 2.f;
   uint32_t subpixel_screen_height = screen_height << RASTERIZER_SUBPIXEL_BITS;
-  float *px = x, *py = y, *pz = z, *pw = w;
+  float *px = x, *py = y, *pz = z, *poow = oow;
   int32_t *osx = sx, *osy = sy;
   uint32_t *osz = sz;
   for (n = 0; n < num_vertices; ++n) {
-    float oow = 1.f / *pw;
 
-    *osx = (int32_t)((half_w * (*px * oow) + center_x) * (1 << RASTERIZER_SUBPIXEL_BITS));
-    *osy = subpixel_screen_height - (int32_t)((half_h * (*py * oow) + center_y) * (1 << RASTERIZER_SUBPIXEL_BITS));
+    *osx = (int32_t)((half_w * *px + center_x) * (1 << RASTERIZER_SUBPIXEL_BITS));
+    *osy = subpixel_screen_height - (int32_t)((half_h * *py + center_y) * (1 << RASTERIZER_SUBPIXEL_BITS));
     float z_rescaled_0to1 = half_depth_range * *pz + depth_range_middle;
     /* llroundf rounds to nearest int64, which we then cast down to uint32 for the z-buffer value.
      * This is necessary so we induce the desired round-to-nearest behavior, rather than whatever
@@ -60,7 +59,7 @@ void viewport_transformation(int32_t vp_x, int32_t vp_y,
     px = (float *)(input_stride + (char *)px);
     py = (float *)(input_stride + (char *)py);
     pz = (float *)(input_stride + (char *)pz);
-    pw = (float *)(input_stride + (char *)pw);
+    poow = (float *)(input_stride + (char *)poow);
     osx = (int32_t *)(output_stride + (char *)osx);
     osy = (int32_t *)(output_stride + (char *)osy);
     osz = (uint32_t *)(output_stride + (char *)osz);

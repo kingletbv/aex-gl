@@ -48,6 +48,11 @@
 #include "clipping_stage.h"
 #endif
 
+#ifndef PERSPECTIVE_DIVISION_H_INCLUDED
+#define PERSPECTIVE_DIVISION_H_INCLUDED
+#include "perspective_division.h"
+#endif
+
 #ifndef VIEWPORT_TRANSFORMATION_H_INCLUDED
 #define VIEWPORT_TRANSFORMATION_H_INCLUDED
 #include "viewport_transformation.h"
@@ -2364,6 +2369,11 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                  *      the clipping output triangles, however the one is in floats, the other is in
                  *      int32_t's. We assume sizeof(float) == sizeof(int32_t). Find some better way */
                 assert(sizeof(float) == sizeof(int32_t));
+
+                perspective_division(3 * cs->num_triangles_in_b_, 
+                                     cs->num_varyings_ - CLIPPING_STAGE_IDX_X, 
+                                     cs->num_varyings_ * sizeof(float), 
+                                     cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_X);
 
                 viewport_transformation(vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
                                         screen_width, screen_height, max_z, 
