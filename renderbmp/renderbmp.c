@@ -68,6 +68,11 @@
 #include "attrib_set.h"
 #endif
 
+#ifndef ATTRIB_ROUTING_H_INCLUDED
+#define ATTRIB_ROUTING_H_INCLUDED
+#include "attrib_routing.h"
+#endif
+
 #ifndef CLIPPING_STAGE_H_INCLUDED
 #define CLIPPING_STAGE_H_INCLUDED
 #include "clipping_stage.h"
@@ -4798,6 +4803,33 @@ int main(int argc, char **argv) {
   }
 
   r = sl_exec_allocate_registers_by_slab(&fragment_shader.exec_, 256);
+
+  struct attrib_routing ar;
+  attrib_routing_init(&ar);
+  struct sl_variable *fv = fragment_shader.cu_.global_frame_.variables_;
+  if (fv) {
+    do {
+      fv = fv->chain_;
+
+      int qualifiers = sl_type_qualifiers(fv->type_);
+      if (qualifiers & SL_TYPE_QUALIFIER_VARYING) {
+        /* Varying on the side of the fragment shader, if we can find a varying of the
+         * same name (and type) on the side of the vertex shader, we can route. */
+        // XXX: MOVE TYPE TABLE INTO THE COMPILATION UNIT
+        struct sl_variable *vv = sl_compilation_unit_find_variable(&vertex_shader.cu_, fv->name_);
+        if (vv) {
+          int vv_qualifiers = sl_type_qualifiers(vv->type_);
+          if (vv_qualifiers & SL_TYPE_QUALIFIER_VARYING) {
+            /* Have matching varying on the vertex shader side, and it is also a varying, route. */
+            /* XXX: WE NEED TO CHECK TYPE EQUIVALENCE */
+            
+            attrib_routing_add_variables(&ar, fv, vv);
+          }
+        }
+      }
+    } while (fv != fragment_shader.cu_.global_frame_.variables_);
+  }
+  
 
   int32_t vp_x = 0; /* left */
   int32_t vp_y = 0; /* bottom */

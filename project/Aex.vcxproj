@@ -172,6 +172,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\attrib_binding_table.c" />
+    <ClCompile Include="..\src\attrib_routing.c" />
     <ClCompile Include="..\src\attrib_set.c" />
     <ClCompile Include="..\src\blend.c" />
     <ClCompile Include="..\src\builtins.c" />
@@ -308,6 +309,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\attrib_binding_table.h" />
+    <ClInclude Include="..\src\attrib_routing.h" />
     <ClInclude Include="..\src\attrib_set.h" />
     <ClInclude Include="..\src\blend.h" />
     <ClInclude Include="..\src\builtins.h" />

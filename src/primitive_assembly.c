@@ -48,6 +48,11 @@
 #include "attrib_set.h"
 #endif
 
+#ifndef ATTRIB_ROUTING_H_INCLUDED
+#define ATTRIB_ROUTING_H_INCLUDED
+#include "attrib_routing.h"
+#endif
+
 #ifndef CLIPPING_STAGE_H_INCLUDED
 #define CLIPPING_STAGE_H_INCLUDED
 #include "clipping_stage.h"
@@ -2254,6 +2259,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
 void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       struct attrib_set *as,
                                       struct sl_shader *vertex_shader,
+                                      struct attrib_routing *ar,
                                       struct clipping_stage *cs,
                                       struct rasterizer *ras,
                                       struct fragment_buffer *fragbuf,
@@ -2528,25 +2534,6 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                       } while (delta);
                     }
 
-                    // Run an experimental "fragment shader" to fill out the color to be identical to
-                    // our prior experiments.
-#if 0
-                    for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
-                      uint32_t z = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
-                      if (orientation == RASTERIZER_CLOCKWISE) {
-                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_RED])[frag_row] = (uint8_t)((z & 1) ? 0xFF : 0x3F);
-                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_GREEN])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_BLUE])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[frag_row] = 0xFF;
-                      }
-                      else if (orientation == RASTERIZER_COUNTERCLOCKWISE) {
-                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_RED])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_GREEN])[frag_row] = (uint8_t)((z & 1) ? 0xCF : 0x3F);
-                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_BLUE])[frag_row] = (uint8_t)((z & 1) ? 0xFF : 0x3F);
-                        ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[frag_row] = 0xFF;
-                      }
-                    }
-#endif
                     // Stencil test
                     primitive_assembly_stencil_func_t stencil_func;
                     uint32_t stencil_func_ref;
