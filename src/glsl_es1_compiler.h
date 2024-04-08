@@ -70,7 +70,13 @@ struct glsl_es1_compiler {
   struct diags *dx_;  
   struct preprocessor pp_;
   struct glsl_es1_stack parser_;
-  struct sl_type_base tb_;
+  struct sl_type_base *tb_;
+
+  /* Type base locally defined (acts as default for tb_, but tb_ may be overridden
+   * by caller; for instance in the likely scenario where the compilation unit will
+   * outlive the glsl_es1_compiler, then you'd like the sl_type_base to outlive the
+   * glsl_es1_compiler as well. */
+  struct sl_type_base cc_tb_;
 
   int all_done_:1;
 

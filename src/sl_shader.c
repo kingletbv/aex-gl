@@ -62,6 +62,7 @@ void sl_shader_init(struct sl_shader *sh) {
   sh->type_ = SLST_INVALID_SHADER;
   sh->source_length_ = 0;
   sh->source_ = NULL;
+  sl_type_base_init(&sh->tb_);
   sl_compilation_unit_init(&sh->cu_);
   sl_exec_init(&sh->exec_);
 
@@ -81,6 +82,7 @@ void sl_shader_cleanup(struct sl_shader *sh) {
   while (sh->programs_) {
     sl_program_detach_shader(sh->programs_, sh);
   }
+  sl_type_base_cleanup(&sh->tb_);
 }
 
 void sl_shader_set_type(struct sl_shader *sh, enum sl_shader_type typ) {
@@ -132,6 +134,9 @@ int sl_shader_compile(struct sl_shader *sh) {
 
   /* Overwrite default dx in favor of info log dx */
   cc.dx_ = &sh->gl_info_log_.dx_;
+
+  /* Overwrite type-base to be the one from the shader */
+  cc.tb_ = &sh->tb_;
 
   /* Have glsl_es1_compiler use sl_shader's compilation-unit instead of creating its own */
   cc.cu_ = &sh->cu_;

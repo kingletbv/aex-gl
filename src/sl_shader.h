@@ -20,6 +20,11 @@
 #include "sl_compilation_unit.h"
 #endif
 
+#ifndef SL_TYPE_BASE_H_INCLUDED
+#define SL_TYPE_BASE_H_INCLUDED
+#include "sl_types.h"
+#endif
+
 #ifndef SL_EXECUTION_H_INCLUDED
 #define SL_EXECUTION_H_INCLUDED
 #include "sl_execution.h"
@@ -45,6 +50,12 @@ struct sl_program;
 struct sl_shader {
   /* Type of shader */
   enum sl_shader_type type_;
+
+  /* Type base for types in this shader; note that different shaders in the same
+   * program use different typebases, this reflects that a struct can be defined
+   * to mean one thing in one shader, and another thing in another shader, and these
+   * things need not clash. */
+  struct sl_type_base tb_;
 
   /* Shader can be set as only one kind (e.g. vertex or fragment) for a program,
    * but can be used in multiple programs.

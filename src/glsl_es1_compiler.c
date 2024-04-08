@@ -69,7 +69,8 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   pp_init(&cc->pp_);
   cc->pp_.dx_ = cc->dx_; /* override pp diags to share cc one */
   glsl_es1_stack_init(&cc->parser_);
-  sl_type_base_init(&cc->tb_);
+  sl_type_base_init(&cc->cc_tb_);
+  cc->tb_ = &cc->cc_tb_;
   cc->all_done_ = 0;
   cc->is_typename_permitted_ = 1;
   cc->last_type_specifier_ = NULL;
@@ -80,7 +81,7 @@ void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
 }
 
 void glsl_es1_compiler_cleanup(struct glsl_es1_compiler *cc) {
-  sl_type_base_cleanup(&cc->tb_);
+  sl_type_base_cleanup(&cc->cc_tb_);
   pp_cleanup(&cc->pp_);
   glsl_es1_stack_cleanup(&cc->parser_);
   dx_diags_cleanup(&cc->default_dx_);
@@ -387,7 +388,7 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
   if (s) {
     do {
       if (s->kind_ == SK_FUNCTION) {
-        r = sl_function_alloc_registers(&cc->tb_, s->v_.function_);
+        r = sl_function_alloc_registers(cc->tb_, s->v_.function_);
         if (r) return GLSL_ES1_R_FAILED;
       }
 

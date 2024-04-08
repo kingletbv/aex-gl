@@ -884,7 +884,7 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
    * must also be a constant (for we don't "execute" any code to initialize it.) */
   initializer_must_be_constant = is_const || is_global;
 
-  int validation = sl_expr_validate(cc->dx_, &cc->tb_, *pinitializer);
+  int validation = sl_expr_validate(cc->dx_, cc->tb_, *pinitializer);
 
   if (validation & SLXV_INVALID) {
     /* Expression is invalid, and this has already been reported for diagnostics
@@ -899,7 +899,7 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
     }
 
     int r;
-    r = sl_expr_eval(&cc->tb_, *pinitializer, &var->value_);
+    r = sl_expr_eval(cc->tb_, *pinitializer, &var->value_);
     if (r) {
       /* eval shouldn't fail on us after validation, unless there's no memory.
        * Note that this might misdiagnose internal errors (e.g. the stuff we never
@@ -926,8 +926,8 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
      * and we don't want diagnostics to be issued twice. */
     struct sl_expr *var_expr = sl_expr_alloc_variable(var, &var->location_);
 
-    struct sl_type *lvalue_type = sl_type_unqualified(sl_expr_type(&cc->tb_, var_expr));
-    struct sl_type *expr_type = sl_type_unqualified(sl_expr_type(&cc->tb_, *pinitializer));
+    struct sl_type *lvalue_type = sl_type_unqualified(sl_expr_type(cc->tb_, var_expr));
+    struct sl_type *expr_type = sl_type_unqualified(sl_expr_type(cc->tb_, *pinitializer));
     if (lvalue_type != expr_type) {
       dx_error_loc(cc->dx_, equal_loc, "Initializer with incompatible type");
 

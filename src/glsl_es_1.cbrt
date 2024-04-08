@@ -235,7 +235,7 @@ postfix-expression: postfix-expression LEFT_BRACKET integer-expression RIGHT_BRA
 postfix-expression: function-call { $$ = $0; $0 = NULL; }
 
 postfix-expression: postfix-expression DOT IDENTIFIER {
-  $$ = glsl_es1_field_or_swizzle_selection(cc->dx_, &cc->tb_, $0, $2, &${2});
+  $$ = glsl_es1_field_or_swizzle_selection(cc->dx_, cc->tb_, $0, $2, &${2});
   if ($$) $0 = NULL; /* Ownership of $0 is transferred to $$ */
 }
 
@@ -251,7 +251,7 @@ integer-expression: expression  { $$ = $0; $0 = NULL; }
 %destructor glsl_es1_function_call_cleanup(&$$);
 
 function-call: function-call-generic {
-  $$ = glsl_es1_function_call_realize(cc->dx_, cc->current_scope_, &cc->tb_, &$0);
+  $$ = glsl_es1_function_call_realize(cc->dx_, cc->current_scope_, cc->tb_, &$0);
 }
 
 function-call-generic: function-call-header-with-parameters RIGHT_PAREN {
@@ -324,21 +324,21 @@ function-identifier: IDENTIFIER {
 }
 
 
-constructor-identifier: FLOAT { $$ = &cc->tb_.float_; }
-constructor-identifier: INT { $$ = &cc->tb_.int_; }
-constructor-identifier: BOOL { $$ = &cc->tb_.bool_; }
-constructor-identifier: VEC2 { $$ =  &cc->tb_.vec2_; }
-constructor-identifier: VEC3 { $$ =  &cc->tb_.vec3_; }
-constructor-identifier: VEC4 { $$ =  &cc->tb_.vec4_; }
-constructor-identifier: BVEC2 { $$ =  &cc->tb_.bvec2_; }
-constructor-identifier: BVEC3 { $$ =  &cc->tb_.bvec3_; }
-constructor-identifier: BVEC4 { $$ =  &cc->tb_.bvec4_; }
-constructor-identifier: IVEC2 { $$ =  &cc->tb_.ivec2_; }
-constructor-identifier: IVEC3 { $$ =  &cc->tb_.ivec3_; }
-constructor-identifier: IVEC4 { $$ =  &cc->tb_.ivec4_; }
-constructor-identifier: MAT2 { $$ =  &cc->tb_.mat2_; }
-constructor-identifier: MAT3 { $$ =  &cc->tb_.mat3_; }
-constructor-identifier: MAT4 { $$ =  &cc->tb_.mat4_; }
+constructor-identifier: FLOAT { $$ = &cc->tb_->float_; }
+constructor-identifier: INT { $$ = &cc->tb_->int_; }
+constructor-identifier: BOOL { $$ = &cc->tb_->bool_; }
+constructor-identifier: VEC2 { $$ =  &cc->tb_->vec2_; }
+constructor-identifier: VEC3 { $$ =  &cc->tb_->vec3_; }
+constructor-identifier: VEC4 { $$ =  &cc->tb_->vec4_; }
+constructor-identifier: BVEC2 { $$ =  &cc->tb_->bvec2_; }
+constructor-identifier: BVEC3 { $$ =  &cc->tb_->bvec3_; }
+constructor-identifier: BVEC4 { $$ =  &cc->tb_->bvec4_; }
+constructor-identifier: IVEC2 { $$ =  &cc->tb_->ivec2_; }
+constructor-identifier: IVEC3 { $$ =  &cc->tb_->ivec3_; }
+constructor-identifier: IVEC4 { $$ =  &cc->tb_->ivec4_; }
+constructor-identifier: MAT2 { $$ =  &cc->tb_->mat2_; }
+constructor-identifier: MAT3 { $$ =  &cc->tb_->mat3_; }
+constructor-identifier: MAT4 { $$ =  &cc->tb_->mat4_; }
 constructor-identifier: TYPE_NAME { $$ = $0; cc->is_typename_permitted_ = 1; }
 
 unary-expression: postfix-expression  { $$ = $0; $0 = NULL; }
@@ -463,7 +463,7 @@ expression: assignment-expression  { $$ = $0; $0 = NULL; }
 expression: expression COMMA assignment-expression { $$ = sl_expr_alloc_binop(exop_sequence, &${1}, &$0, &$2); if (!$$) { dx_no_memory(cc->dx_); return _GLSL_ES1_NO_MEMORY; } }
 
 constant-expression: conditional-expression  { 
-  int validation = sl_expr_validate(cc->dx_, &cc->tb_, $0);
+  int validation = sl_expr_validate(cc->dx_, cc->tb_, $0);
   if (validation & SLXV_INVALID) {
     /* Expression is invalid, this has already been reported */
     $$ = NULL;
@@ -518,7 +518,7 @@ function-prototype: function-declarator RIGHT_PAREN {
   /* Function prototype formed in cc->current_function_prototype_ (if no error),
    * do we promote it to the symbol table & current frame? */
   if (cc->current_function_prototype_) {
-    if (sl_function_post_process_parameters(&cc->tb_, cc->current_function_prototype_)) {
+    if (sl_function_post_process_parameters(cc->tb_, cc->current_function_prototype_)) {
       dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
@@ -562,7 +562,7 @@ parameter-declarator: type-specifier IDENTIFIER LEFT_BRACKET constant-expression
   if (cc->current_function_prototype_ && $0) {
     struct sl_type *array_type = NULL;
     int r;
-    r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, $0, $3, &${ 3 }, &array_type);
+    r = glsl_es1_build_array_type(cc->dx_, cc->tb_, $0, $3, &${ 3 }, &array_type);
     if (r) return r;
     if (!array_type) {
       /* Failed to put an array type together, already reported */
@@ -580,7 +580,7 @@ parameter-declarator: type-specifier IDENTIFIER LEFT_BRACKET constant-expression
 parameter-declaration: type-qualifier parameter-qualifier parameter-declarator {
   struct sl_parameter *p = $2;
   if (p) {
-    struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, p->type_, $0 | $1);
+    struct sl_type *qualified_type = sl_type_base_qualified_type(cc->tb_, p->type_, $0 | $1);
     if (!p->type_) {
       dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
@@ -591,7 +591,7 @@ parameter-declaration: type-qualifier parameter-qualifier parameter-declarator {
 parameter-declaration: parameter-qualifier parameter-declarator {
   struct sl_parameter *p = $1;
   if (p) {
-    struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, p->type_, $0);
+    struct sl_type *qualified_type = sl_type_base_qualified_type(cc->tb_, p->type_, $0);
     if (!p->type_) {
       dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
@@ -601,7 +601,7 @@ parameter-declaration: parameter-qualifier parameter-declarator {
 
 parameter-declaration: type-qualifier parameter-qualifier parameter-type-specifier {
   if (cc->current_function_prototype_ && $2) {
-    struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, $2, $0 | $1);
+    struct sl_type *qualified_type = sl_type_base_qualified_type(cc->tb_, $2, $0 | $1);
     if (!qualified_type) {
       dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
@@ -616,7 +616,7 @@ parameter-declaration: type-qualifier parameter-qualifier parameter-type-specifi
 
 parameter-declaration: parameter-qualifier parameter-type-specifier {
   if (cc->current_function_prototype_ && $1) {
-    struct sl_type *qualified_type = sl_type_base_qualified_type(&cc->tb_, $1, $0);
+    struct sl_type *qualified_type = sl_type_base_qualified_type(cc->tb_, $1, $0);
     if (!qualified_type) {
       dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
@@ -643,7 +643,7 @@ parameter-type-specifier: type-specifier LEFT_BRACKET constant-expression RIGHT_
   if ($0) {
     struct sl_type *array_type = NULL;
     int r;
-    r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, $0, $2, &${ 2 }, &array_type);
+    r = glsl_es1_build_array_type(cc->dx_, cc->tb_, $0, $2, &${ 2 }, &array_type);
     if (r) return r;
     if (!array_type) {
       /* Failed to put an array type together, already reported */
@@ -668,7 +668,7 @@ init-declarator-list: init-declarator-list COMMA IDENTIFIER {
 init-declarator-list: init-declarator-list COMMA IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   struct sl_type *array_type = NULL;
   int r;
-  r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, cc->last_type_specifier_, $4, &${ 4 }, &array_type);
+  r = glsl_es1_build_array_type(cc->dx_, cc->tb_, cc->last_type_specifier_, $4, &${ 4 }, &array_type);
   if (r) return r;
   if (!array_type) {
     /* Failed to put an array type together, already reported */
@@ -704,7 +704,7 @@ single-declaration: fully-specified-type IDENTIFIER {
 single-declaration: fully-specified-type IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   struct sl_type *array_type = NULL;
   int r;
-  r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, $0, $3, &${ 3 }, &array_type);
+  r = glsl_es1_build_array_type(cc->dx_, cc->tb_, $0, $3, &${ 3 }, &array_type);
   if (r) return r;
   if (!array_type) {
     /* Failed to put an array type together, already reported */
@@ -741,7 +741,7 @@ fully-specified-type: type-specifier {
   cc->last_type_specifier_ = $$;
 }
 fully-specified-type: type-qualifier type-specifier { 
-  struct sl_type *t = sl_type_base_qualified_type(&cc->tb_, $1, $0);
+  struct sl_type *t = sl_type_base_qualified_type(cc->tb_, $1, $0);
   if (!t && $1) {
     dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
@@ -761,7 +761,7 @@ type-specifier: type-specifier-no-prec {
   cc->last_type_specifier_ = $0;
 }
 type-specifier: precision-qualifier type-specifier-no-prec { 
-  struct sl_type *t = sl_type_base_qualified_type(&cc->tb_, $1, $0);
+  struct sl_type *t = sl_type_base_qualified_type(cc->tb_, $1, $0);
   if (!t && $1) {
     dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
@@ -770,24 +770,24 @@ type-specifier: precision-qualifier type-specifier-no-prec {
   cc->last_type_specifier_ = t;
 }
 
-type-specifier-no-prec: VOID  { $$ = &cc->tb_.void_; }
-type-specifier-no-prec: FLOAT { $$ = &cc->tb_.float_; }
-type-specifier-no-prec: INT   { $$ = &cc->tb_.int_; }
-type-specifier-no-prec: BOOL  { $$ = &cc->tb_.bool_; }
-type-specifier-no-prec: VEC2  { $$ = &cc->tb_.vec2_; }
-type-specifier-no-prec: VEC3  { $$ = &cc->tb_.vec3_; }
-type-specifier-no-prec: VEC4  { $$ = &cc->tb_.vec4_; }
-type-specifier-no-prec: BVEC2 { $$ = &cc->tb_.bvec2_; }
-type-specifier-no-prec: BVEC3 { $$ = &cc->tb_.bvec3_; }
-type-specifier-no-prec: BVEC4 { $$ = &cc->tb_.bvec4_; }
-type-specifier-no-prec: IVEC2 { $$ = &cc->tb_.ivec2_; }
-type-specifier-no-prec: IVEC3 { $$ = &cc->tb_.ivec3_; }
-type-specifier-no-prec: IVEC4 { $$ = &cc->tb_.ivec4_; }
-type-specifier-no-prec: MAT2  { $$ = &cc->tb_.mat2_; }
-type-specifier-no-prec: MAT3  { $$ = &cc->tb_.mat3_; }
-type-specifier-no-prec: MAT4  { $$ = &cc->tb_.mat4_; }
-type-specifier-no-prec: SAMPLER2D { $$ = &cc->tb_.sampler2D_; }
-type-specifier-no-prec: SAMPLERCUBE { $$ = &cc->tb_.samplerCube_; }
+type-specifier-no-prec: VOID  { $$ = &cc->tb_->void_; }
+type-specifier-no-prec: FLOAT { $$ = &cc->tb_->float_; }
+type-specifier-no-prec: INT   { $$ = &cc->tb_->int_; }
+type-specifier-no-prec: BOOL  { $$ = &cc->tb_->bool_; }
+type-specifier-no-prec: VEC2  { $$ = &cc->tb_->vec2_; }
+type-specifier-no-prec: VEC3  { $$ = &cc->tb_->vec3_; }
+type-specifier-no-prec: VEC4  { $$ = &cc->tb_->vec4_; }
+type-specifier-no-prec: BVEC2 { $$ = &cc->tb_->bvec2_; }
+type-specifier-no-prec: BVEC3 { $$ = &cc->tb_->bvec3_; }
+type-specifier-no-prec: BVEC4 { $$ = &cc->tb_->bvec4_; }
+type-specifier-no-prec: IVEC2 { $$ = &cc->tb_->ivec2_; }
+type-specifier-no-prec: IVEC3 { $$ = &cc->tb_->ivec3_; }
+type-specifier-no-prec: IVEC4 { $$ = &cc->tb_->ivec4_; }
+type-specifier-no-prec: MAT2  { $$ = &cc->tb_->mat2_; }
+type-specifier-no-prec: MAT3  { $$ = &cc->tb_->mat3_; }
+type-specifier-no-prec: MAT4  { $$ = &cc->tb_->mat4_; }
+type-specifier-no-prec: SAMPLER2D { $$ = &cc->tb_->sampler2D_; }
+type-specifier-no-prec: SAMPLERCUBE { $$ = &cc->tb_->samplerCube_; }
 type-specifier-no-prec: struct-specifier { $$ = $0; }
 type-specifier-no-prec: TYPE_NAME { $$ = $0; }
 
@@ -807,7 +807,7 @@ struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRA
     dx_error_loc(cc->dx_, &${1}, "Error: duplicate identifier \"%s\" declaration", $1);
     dx_error_loc(cc->dx_, &s->loc_, "See original use of \"%s\"", s->name_);
   }
-  struct sl_type *t = sl_type_base_struct_type(&cc->tb_, $1, &${1}, $3);
+  struct sl_type *t = sl_type_base_struct_type(cc->tb_, $1, &${1}, $3);
   if (!t) {
     dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
@@ -822,7 +822,7 @@ struct-specifier: STRUCT IDENTIFIER LEFT_BRACE struct-declaration-list RIGHT_BRA
 
 struct-specifier: STRUCT LEFT_BRACE struct-declaration-list RIGHT_BRACE {
   /* Use "struct" &{0} location for source reference */
-  struct sl_type *t = sl_type_base_struct_type(&cc->tb_, NULL, &${0}, $2);
+  struct sl_type *t = sl_type_base_struct_type(cc->tb_, NULL, &${0}, $2);
   if (!t) {
     dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
@@ -863,7 +863,7 @@ struct-declarator-list: struct-declarator-list COMMA struct-declarator {
 }
 
 struct-declarator: IDENTIFIER {
-  struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, $0, &${0}, cc->last_type_specifier_);
+  struct sl_type_field *tf = sl_type_field_alloc(cc->tb_, $0, &${0}, cc->last_type_specifier_);
   if (!tf) {
     dx_no_memory(cc->dx_);
     return _GLSL_ES1_NO_MEMORY;
@@ -876,13 +876,13 @@ struct-declarator: IDENTIFIER {
 struct-declarator: IDENTIFIER LEFT_BRACKET constant-expression RIGHT_BRACKET {
   struct sl_type *array_type = NULL;
   int r;
-  r = glsl_es1_build_array_type(cc->dx_, &cc->tb_, cc->last_type_specifier_, $2, &${ 2 }, &array_type);
+  r = glsl_es1_build_array_type(cc->dx_, cc->tb_, cc->last_type_specifier_, $2, &${ 2 }, &array_type);
   if (r) return r;
   if (!array_type) {
     /* Failed to put an array type together, already reported */
   }
   else {
-    struct sl_type_field *tf = sl_type_field_alloc(&cc->tb_, $0, &${ 0 }, array_type);
+    struct sl_type_field *tf = sl_type_field_alloc(cc->tb_, $0, &${ 0 }, array_type);
     if (!tf) {
       dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
@@ -1043,7 +1043,7 @@ expression-statement: SEMICOLON {
 
 expression-statement: expression SEMICOLON {
   if ($0) {
-    int validation = sl_expr_validate(cc->dx_, &cc->tb_, $0);
+    int validation = sl_expr_validate(cc->dx_, cc->tb_, $0);
     if (validation & SLXV_INVALID) {
       /* Expression is invalid, how has just been reported to the user by sl_expr_validate() */
       $$ = NULL;
@@ -1163,7 +1163,7 @@ iteration-statement: WHILE start-scope LEFT_PAREN condition RIGHT_PAREN statemen
 
 iteration-statement: DO statement-with-scope WHILE LEFT_PAREN expression RIGHT_PAREN SEMICOLON {
   if ($4) {
-    int validation = sl_expr_validate(cc->dx_, &cc->tb_, $4);
+    int validation = sl_expr_validate(cc->dx_, cc->tb_, $4);
     if (validation & SLXV_INVALID) {
       /* Expression is invalid, this has been reported by sl_expr_validate */
     }
