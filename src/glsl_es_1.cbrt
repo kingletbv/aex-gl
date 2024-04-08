@@ -654,7 +654,10 @@ parameter-type-specifier: type-specifier LEFT_BRACKET constant-expression RIGHT_
   }
 }
 
-init-declarator-list: single-declaration;
+init-declarator-list: single-declaration {
+  $$ = $0; $0 = NULL;
+}
+
 init-declarator-list: init-declarator-list COMMA IDENTIFIER {
   int r = glsl_es1_declare_variable(cc, $2, &${ 2 }, cc->last_type_specifier_, NULL);
   if (r) return r;

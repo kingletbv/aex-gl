@@ -920,6 +920,8 @@ int glsl_es1_process_initializer(struct glsl_es1_compiler *cc, struct sl_variabl
       dx_no_memory(cc->dx_);
       return _GLSL_ES1_NO_MEMORY;
     }
+    initializer_stmt->kind_ = slsk_expression;
+
     /* Have to manually verify the types match because the expression was already validated
      * and we don't want diagnostics to be issued twice. */
     struct sl_expr *var_expr = sl_expr_alloc_variable(var, &var->location_);

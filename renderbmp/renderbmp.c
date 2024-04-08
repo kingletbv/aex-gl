@@ -4771,10 +4771,9 @@ int main(int argc, char **argv) {
 
   sl_shader_set_type(&fragment_shader, SLST_FRAGMENT_SHADER);
   src = "void main() {\n"
-        "  int x;x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
-        "  int even_x;even_x = (x / 2) * 2;\n"
+        "  int x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
+        "  int even_x = (x / 2) * 2;\n"
         "  if ((x - even_x) == 1) discard;\n"
-        "  int q = x + 3;\n"
         "}\n";
   src_len = (int)strlen(src);
   sl_shader_set_source(&fragment_shader, 1, &src, &src_len);
