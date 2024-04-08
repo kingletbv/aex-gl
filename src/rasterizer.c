@@ -450,6 +450,12 @@ void rasterizer_cleanup(struct rasterizer *rasterizer) {
   /* nothing to do */
 }
 
+int64_t rasterizer_compute_D012(int32_t px0, int32_t py0, uint32_t pz0,
+                                int32_t px1, int32_t py1, uint32_t pz1,
+                                int32_t px2, int32_t py2, uint32_t pz2) {
+  return ((int64_t)px1) * ((int64_t)py2) - ((int64_t)px2) * ((int64_t)py1) - ((int64_t)px0) * ((int64_t)py2) + ((int64_t)px2) * ((int64_t)py0) + ((int64_t)px0) * ((int64_t)py1) - ((int64_t)px1) * ((int64_t)py0);
+}
+
 /* Returns non-zero if the fragment buffer fragbf is full and needs to be processed, zero otherwise. */
 int rasterizer_triangle(struct rasterizer *rasterizer,
                         struct fragment_buffer *fragbf,

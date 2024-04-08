@@ -84,6 +84,29 @@ struct rasterizer {
 void rasterizer_init(struct rasterizer *rasterizer);
 void rasterizer_cleanup(struct rasterizer *rasterizer);
 
+/* Computes "D012" - the Determinant of vertices 0, 1 and 2 of a triangle:
+ *        | x0 y0 1 |
+ * D012 = | x1 y1 1 |
+ *        | x2 y2 1 |
+ * This corresponds to twice the surface area of the triangle and is an important 
+ * value for the interpolation of attributes using barycentric coordinates. The
+ * rasterizer, for each fragment, returns the determinents between the triangle
+ * edges and the fragment's center point in FB_IDX_DP01, FB_IDX_DP12 and
+ * FB_IDX_DP20; these represent double the area of those sub-triangles and are
+ * therefore a blended weight of their respective opposite vertex corner only when
+ * they are divided by the overal double triangle area D012.
+ * Division is expensive and so we want to move this outside the inner loop. 
+ * Because any attribute' must be's barycentric coordinates are multiplied against
+ * their corresponding value at the vertices, we can pre-divide that value at the
+ * vertices with D012 to get the desired effect. That, however, requires us to
+ * get to D012 prior to rasterizer_triangle() computing this value for itself,
+ * hence this function.
+ */
+int64_t rasterizer_compute_D012(int32_t px0, int32_t py0, uint32_t pz0,
+                                int32_t px1, int32_t py1, uint32_t pz1,
+                                int32_t px2, int32_t py2, uint32_t pz2);
+
+
 /* Returns the orientation of the triangle, if the fragment buffer fragbf is full and needs to be processed, zero otherwise.
  * Relatively self-explanatory, permitted_orientations is one of RASTERIZER_CLOCKWISE, RASTERIZER_COUNTERCLOCKWISE,
  * or RASTERIZER_BOTH (i.e. it is a combination of RASTERIZER_CLOCKWISE and RASTERIZER_COUNTERCLOCKWISE).

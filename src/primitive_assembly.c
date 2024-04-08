@@ -2252,6 +2252,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       struct clipping_stage *cs,
                                       struct rasterizer *ras,
                                       struct fragment_buffer *fragbuf,
+                                      struct sl_shader *fragment_shader,
                                       int32_t vp_x,
                                       int32_t vp_y,
                                       uint32_t vp_width,
@@ -2292,6 +2293,10 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
 
   struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&vertex_shader->cu_, "gl_Position");
   struct sl_function *vmain = sl_compilation_unit_find_function(&vertex_shader->cu_, "main");
+
+  struct sl_variable *fgl_FragCoord = sl_compilation_unit_find_variable(&fragment_shader->cu_, "gl_FragCoord");
+  struct sl_variable *fgl_FragColor = sl_compilation_unit_find_variable(&fragment_shader->cu_, "gl_FragColor");
+  struct sl_function *fmain = sl_compilation_unit_find_function(&fragment_shader->cu_, "main");
 
   // XXX: Configure pipeline to handle points, lines or triangles, depending on what mode is.
 
@@ -2404,6 +2409,18 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                   int32_t sz2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SZ);
 
                   int orientation;
+                  int64_t D012 = rasterizer_compute_D012(sx0, sy0, sz0,
+                                                         sx1, sy1, sz1,
+                                                         sx2, sy2, sz2);
+                  float ooD012 = (float)(1. / D012);
+
+                  size_t attrib_index;
+                  for (attrib_index = CLIPPING_STAGE_IDX_X; attrib_index < cs->num_varyings_; ++attrib_index) {
+                    v0[attrib_index] *= ooD012;
+                    v1[attrib_index] *= ooD012;
+                    v2[attrib_index] *= ooD012;
+                  }
+
                   while ((orientation = rasterizer_triangle(ras, fragbuf, 
                                                             rgba, 256*4,     // bitmap
                                                             zbuf, zbuf_stride, zbuf_step,  // z-buffer
@@ -2414,13 +2431,83 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                                             sx2, sy2, sz2,
                                                             RASTERIZER_BOTH,
                                                             0, 0))) {
+                    /* Run over all attributes to be filled in (including gl_FragCoord come to think of it),
+                     * and fill out their coordinates. gl_FragCoord is special here as it's the only "attribute"
+                     * that is not perspectively correct, but passed in raw form, prior to any division. */
+                    size_t frag_row;
+                    int frag_coord_x_reg = fgl_FragCoord->reg_alloc_.v_.regs_[0];
+                    int frag_coord_y_reg = fgl_FragCoord->reg_alloc_.v_.regs_[1];
+                    int frag_coord_z_reg = fgl_FragCoord->reg_alloc_.v_.regs_[2];
+                    int frag_coord_w_reg = fgl_FragCoord->reg_alloc_.v_.regs_[3];
+                    int64_t * restrict dp12 = fragbuf->column_data_[FB_IDX_DP12];
+                    int64_t * restrict dp20 = fragbuf->column_data_[FB_IDX_DP20];
+                    int64_t * restrict dp01 = fragbuf->column_data_[FB_IDX_DP01];
+                    /* XXX: XY are wrong here and should be in WINDOW coordinates, that's POST viewport transform
+                     *      XY window coordinates are in FB_IDX_X_COORD and FB_IDX_Y_COORD as FBCT_INT32 */
+                    if (frag_coord_x_reg != SL_REG_NONE) {
+                      float * restrict x = fragment_shader->exec_.float_regs_[frag_coord_x_reg];
+                      for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                        x[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_X]
+                                    + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_X]
+                                    + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_X];
+                      }
+                    }
+                    if (frag_coord_y_reg != SL_REG_NONE) {
+                      float * restrict y = fragment_shader->exec_.float_regs_[frag_coord_y_reg];
+                      for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                        y[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_Y]
+                                    + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_Y]
+                                    + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_Y];
+                      }
+                    }
+                    if (frag_coord_z_reg != SL_REG_NONE) {
+                      float * restrict z = fragment_shader->exec_.float_regs_[frag_coord_z_reg];
+                      for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                        z[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_Z]
+                                    + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_Z]
+                                    + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_Z];
+                      }
+                    }
+                    if (frag_coord_w_reg != SL_REG_NONE) {
+                      float * restrict w = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
+                      for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                        w[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_W]
+                                    + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_W]
+                                    + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_W];
+                      }
+                    }
 
+                    /* Set up execution chain */
+                    uint8_t * restrict frag_exec_chain = fragment_shader->exec_.exec_chain_reg_;
+                    size_t frag_exec_row;
+                    for (frag_exec_row = 0; frag_exec_row < (fragbuf->num_rows_ - 1); ++frag_exec_row) {
+                      frag_exec_chain[frag_exec_row] = 1;
+                    }
+                    frag_exec_chain[fragbuf->num_rows_ - 1] = 0;
 
-                    // XXX: Run fragment shader on top of the fragment buffer here...
-                                        
+                    /* Run fragment shader */
+                    sl_exec_run(&fragment_shader->exec_, fmain, 0);
+                    
+                    /* Discarded fragments are in fragment_shader->exec_.execution_points_[0].alt_chain_
+                     * successful fragments are in fragment_shader->exec_.execution_points_[0].post_chain_ */
+
+                    /* Run over all discarded fragments and clear their corresponding mask (if any), to
+                     * prevent them from generating output. */
+                    uint32_t row = fragment_shader->exec_.execution_points_[0].alt_chain_;
+                    if (row != SL_EXEC_NO_CHAIN) {
+                      uint8_t delta;
+                      do {
+                        delta = fragment_shader->exec_.exec_chain_reg_[row];
+
+                        ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_MASK])[row] = 0x00;
+
+                        row += delta;
+                      } while (delta);
+                    }
+
                     // Run an experimental "fragment shader" to fill out the color to be identical to
                     // our prior experiments.
-                    size_t frag_row;
+                    
                     for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
                       uint32_t z = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
                       if (orientation == RASTERIZER_CLOCKWISE) {

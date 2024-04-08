@@ -4716,6 +4716,7 @@ int main(int argc, char **argv) {
   struct rasterizer ras;
   struct fragment_buffer fragbuf;
   struct sl_shader vertex_shader;
+  struct sl_shader fragment_shader;
 
   primitive_assembly_init(&pa);
   attrib_set_init(&as);
@@ -4723,6 +4724,7 @@ int main(int argc, char **argv) {
   rasterizer_init(&ras);
   fragment_buffer_init(&fragbuf);
   sl_shader_init(&vertex_shader);
+  sl_shader_init(&fragment_shader);
 
   if (primitive_assembly_alloc_buffers(&pa) ||
       clipping_stage_alloc_varyings(&cs, 0) ||
@@ -4730,6 +4732,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed to initialize due to allocation failure\n");
     goto exit_cleanup;
   }
+
+  /* Initialize vertex shader */
 
   sl_shader_set_type(&vertex_shader, SLST_VERTEX_SHADER);
   const char *src = 
@@ -4762,6 +4766,37 @@ int main(int argc, char **argv) {
   }
 
   r = sl_exec_allocate_registers_by_slab(&vertex_shader.exec_, 255);
+
+  /* initialize fragment shader */
+
+  sl_shader_set_type(&fragment_shader, SLST_FRAGMENT_SHADER);
+  src = "void main() {\n"
+        "  if (false) discard;\n"
+        "}\n";
+  src_len = (int)strlen(src);
+  sl_shader_set_source(&fragment_shader, 1, &src, &src_len);
+  r = sl_shader_compile(&fragment_shader);
+  if (r) {
+    const char *err = "???";
+    switch (r) {
+      case SL_ERR_OK: err = "SL_ERR_OK"; break;
+      case SL_ERR_INVALID_ARG: err = "SL_ERR_INVALID_ARG"; break;
+      case SL_ERR_OVERFLOW: err = "SL_ERR_OVERFLOW"; break;
+      case SL_ERR_NO_MEM: err = "SL_ERR_NO_MEM"; break;
+      case SL_ERR_INTERNAL: err = "SL_ERR_INTERNAL"; break;
+      case SL_ERR_HAD_ERRORS: err = "SL_ERR_HAD_ERRORS"; break;
+    }
+    fprintf(stderr, "Failed (%d): %s\n", r, err);
+  }
+  r = sl_exec_prep(&fragment_shader.exec_, &fragment_shader.cu_);
+  if (r) {
+    fprintf(stderr, "Failed to prepare the execution\n");
+    goto exit_cleanup;
+  }
+
+  r = sl_exec_allocate_registers_by_slab(&fragment_shader.exec_, 255);
+
+
 
   int32_t vp_x = 0; /* left */
   int32_t vp_y = 0; /* bottom */
@@ -4821,7 +4856,7 @@ int main(int argc, char **argv) {
   };
 
 
-  primitive_assembly_draw_elements(&pa, &as, &vertex_shader, &cs, &ras, &fragbuf,
+  primitive_assembly_draw_elements(&pa, &as, &vertex_shader, &cs, &ras, &fragbuf, &fragment_shader,
                                    vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
                                    screen_width, screen_height, max_z,
                                    rgba32, screen_width*4,
