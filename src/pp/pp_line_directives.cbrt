@@ -58,6 +58,7 @@ struct pptk;
 
 %token_type struct pptk *
 %constructor $$ = NULL;
+%move $$ = $0; $0 = NULL;
 %destructor pptk_free($$);
 %token_action $$ = *pp_current; *pp_current = NULL;
 
@@ -75,6 +76,7 @@ struct pptk;
       ws ws-opt newline newline-opt hash if ifdef ifndef elif else endif include define undef line error-nt pragma identifier ident      \
       par-close comma ellipsis header-pp-tokens hdr-preprocessing-token: struct pptk *
 %constructor $$ = NULL;
+%move $$ = $0; $0 = NULL; 
 %destructor pptk_free($$);
 
 
