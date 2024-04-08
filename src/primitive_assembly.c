@@ -28,6 +28,11 @@
 #include <string.h>
 #endif
 
+#ifndef MATH_H_INCLUDED
+#define MATH_H_INCLUDED
+#include <math.h>
+#endif
+
 #ifndef ASSERT_H_INCLUDED
 #define ASSERT_H_INCLUDED
 #include <assert.h>
@@ -2439,25 +2444,21 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                     int frag_coord_y_reg = fgl_FragCoord->reg_alloc_.v_.regs_[1];
                     int frag_coord_z_reg = fgl_FragCoord->reg_alloc_.v_.regs_[2];
                     int frag_coord_w_reg = fgl_FragCoord->reg_alloc_.v_.regs_[3];
-                    int64_t * restrict dp12 = fragbuf->column_data_[FB_IDX_DP12];
-                    int64_t * restrict dp20 = fragbuf->column_data_[FB_IDX_DP20];
-                    int64_t * restrict dp01 = fragbuf->column_data_[FB_IDX_DP01];
+                    int64_t * restrict dp12 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP12];
+                    int64_t * restrict dp20 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP20];
+                    int64_t * restrict dp01 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP01];
                     /* XXX: XY are wrong here and should be in WINDOW coordinates, that's POST viewport transform
                      *      XY window coordinates are in FB_IDX_X_COORD and FB_IDX_Y_COORD as FBCT_INT32 */
                     if (frag_coord_x_reg != SL_REG_NONE) {
-                      float * restrict x = fragment_shader->exec_.float_regs_[frag_coord_x_reg];
+                      float * restrict x = (float * restrict)fragment_shader->exec_.float_regs_[frag_coord_x_reg];
                       for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
-                        x[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_X]
-                                    + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_X]
-                                    + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_X];
+                        x[frag_row] = 0.5f + (float)((int32_t *)fragbuf->column_data_[FB_IDX_X_COORD])[frag_row];
                       }
                     }
                     if (frag_coord_y_reg != SL_REG_NONE) {
                       float * restrict y = fragment_shader->exec_.float_regs_[frag_coord_y_reg];
                       for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
-                        y[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_Y]
-                                    + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_Y]
-                                    + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_Y];
+                        y[frag_row] = 0.5f + (float)((int32_t *)fragbuf->column_data_[FB_IDX_Y_COORD])[frag_row];
                       }
                     }
                     if (frag_coord_z_reg != SL_REG_NONE) {

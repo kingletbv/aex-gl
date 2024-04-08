@@ -4738,7 +4738,7 @@ int main(int argc, char **argv) {
   sl_shader_set_type(&vertex_shader, SLST_VERTEX_SHADER);
   const char *src = 
     "void main() {\n"
-    "  gl_Position.xy += vec2(4. * 2. / 16., -5. * 2. / 16.);\n"
+    //"  gl_Position.xy += vec2(4. * 2. / 16., -5. * 2. / 16.);\n"
     //"  gl_Position.x += 4. * 2. / 16.;\n"
     //"  gl_Position.y -= 5. * 2. / 16.;\n"
     "}\n";
@@ -4765,13 +4765,16 @@ int main(int argc, char **argv) {
     goto exit_cleanup;
   }
 
-  r = sl_exec_allocate_registers_by_slab(&vertex_shader.exec_, 255);
+  r = sl_exec_allocate_registers_by_slab(&vertex_shader.exec_, 256);
 
   /* initialize fragment shader */
 
   sl_shader_set_type(&fragment_shader, SLST_FRAGMENT_SHADER);
   src = "void main() {\n"
-        "  if (false) discard;\n"
+        "  int x;x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
+        "  int even_x;even_x = (x / 2) * 2;\n"
+        "  if ((x - even_x) == 1) discard;\n"
+        "  int q = x + 3;\n"
         "}\n";
   src_len = (int)strlen(src);
   sl_shader_set_source(&fragment_shader, 1, &src, &src_len);
@@ -4794,9 +4797,7 @@ int main(int argc, char **argv) {
     goto exit_cleanup;
   }
 
-  r = sl_exec_allocate_registers_by_slab(&fragment_shader.exec_, 255);
-
-
+  r = sl_exec_allocate_registers_by_slab(&fragment_shader.exec_, 256);
 
   int32_t vp_x = 0; /* left */
   int32_t vp_y = 0; /* bottom */
