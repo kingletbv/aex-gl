@@ -180,6 +180,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
 void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       struct attrib_set *as,
                                       struct sl_shader *vertex_shader,
+                                      struct attrib_routing *ar,
                                       struct clipping_stage *cs,
                                       struct rasterizer *ras,
                                       struct fragment_buffer *fragbuf,

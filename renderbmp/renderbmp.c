@@ -4779,7 +4779,7 @@ int main(int argc, char **argv) {
         "  int x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
         "  int even_x = (x / 2) * 2;\n"
         "  if ((x - even_x) == 1) discard;\n"
-        "  gl_FragColor = vec4(1.f, 0., gl_FragCoord.y / 64., 1.f);\n"
+        "  gl_FragColor = vec4(1.f, 0.5, gl_FragCoord.y / 64., 1.f);\n"
         "}\n";
   src_len = (int)strlen(src);
   sl_shader_set_source(&fragment_shader, 1, &src, &src_len);
@@ -4889,7 +4889,7 @@ int main(int argc, char **argv) {
   };
 
 
-  primitive_assembly_draw_elements(&pa, &as, &vertex_shader, &cs, &ras, &fragbuf, &fragment_shader,
+  primitive_assembly_draw_elements(&pa, &as, &vertex_shader, &ar, &cs, &ras, &fragbuf, &fragment_shader,
                                    vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
                                    screen_width, screen_height, max_z,
                                    rgba32, screen_width*4,

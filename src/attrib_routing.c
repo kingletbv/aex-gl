@@ -62,16 +62,16 @@ static int attrib_routing_pair_up(struct attrib_routing *ar, struct sl_reg_alloc
     case slrak_array: {
       if (tgt->v_.array_.num_elements_ > (INT_MAX / array_quantity)) {
         /* overflow */
-        return;
+        return SL_ERR_OVERFLOW;
       }
       array_quantity *= (int)tgt->v_.array_.num_elements_;
-      attrib_routing_pair_up(ar, tgt->v_.array_.head_, src->v_.array_.head_, array_quantity);
-      break;
+      return attrib_routing_pair_up(ar, tgt->v_.array_.head_, src->v_.array_.head_, array_quantity);
     }
     case slrak_struct: {
       size_t index;
       for (index = 0; index < src->v_.comp_.num_fields_; ++index) {
-        attrib_routing_pair_up(ar, tgt->v_.comp_.fields_ + index, src->v_.comp_.fields_ + index, array_quantity);
+        int r = attrib_routing_pair_up(ar, tgt->v_.comp_.fields_ + index, src->v_.comp_.fields_ + index, array_quantity);
+        if (r) return r;
       }
       break;
     }
@@ -103,6 +103,7 @@ static int attrib_routing_pair_up(struct attrib_routing *ar, struct sl_reg_alloc
         for (k = 0; k < array_quantity; ++k) {
           int r;
           r = attrib_routing_add_pairing(ar, tgt_reg + k, src_reg + k);
+          if (r) return r;
         }
       }
       break;
