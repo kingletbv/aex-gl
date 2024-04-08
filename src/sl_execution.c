@@ -3782,9 +3782,6 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
 
                 r = r ? r : sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[n], chain, continuation);
               }
-
-              for (n = 0; n < eps[epi].v_.expr_->num_children_; ++n) {
-              }
             }
             else {
               /* No children, go straight to revisit_chain_ */
