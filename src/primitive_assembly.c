@@ -2447,8 +2447,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                     int64_t * restrict dp12 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP12];
                     int64_t * restrict dp20 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP20];
                     int64_t * restrict dp01 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP01];
-                    /* XXX: XY are wrong here and should be in WINDOW coordinates, that's POST viewport transform
-                     *      XY window coordinates are in FB_IDX_X_COORD and FB_IDX_Y_COORD as FBCT_INT32 */
+
                     if (frag_coord_x_reg != SL_REG_NONE) {
                       float * restrict x = (float * restrict)fragment_shader->exec_.float_regs_[frag_coord_x_reg];
                       for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
