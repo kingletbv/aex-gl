@@ -4774,6 +4774,7 @@ int main(int argc, char **argv) {
         "  int x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
         "  int even_x = (x / 2) * 2;\n"
         "  if ((x - even_x) == 1) discard;\n"
+        "  gl_FragColor = vec4(1.f, 0., gl_FragCoord.y / 64., 1.f);\n"
         "}\n";
   src_len = (int)strlen(src);
   sl_shader_set_source(&fragment_shader, 1, &src, &src_len);

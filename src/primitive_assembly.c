@@ -2493,6 +2493,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
 
                     /* Run over all discarded fragments and clear their corresponding mask (if any), to
                      * prevent them from generating output. */
+                    /* XXX: Speed this up to take big steps (8 at a time) as per other primitives */
                     uint32_t row = fragment_shader->exec_.execution_points_[0].alt_chain_;
                     if (row != SL_EXEC_NO_CHAIN) {
                       uint8_t delta;
@@ -2505,9 +2506,31 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                       } while (delta);
                     }
 
+                    /* Copy over fragment colors as determined by shader */
+                    /* XXX: Speed this up to take big steps (8 at a time) as per other primitives
+                     * XXX: Super common path, inline everything. */
+                    row = fragment_shader->exec_.execution_points_[0].post_chain_;
+                    if (row != SL_EXEC_NO_CHAIN) {
+                      uint8_t delta;
+                      float * restrict red_channel = fragment_shader->exec_.float_regs_[fgl_FragColor->reg_alloc_.v_.regs_[0] ];
+                      float * restrict green_channel = fragment_shader->exec_.float_regs_[fgl_FragColor->reg_alloc_.v_.regs_[1] ];
+                      float * restrict blue_channel = fragment_shader->exec_.float_regs_[fgl_FragColor->reg_alloc_.v_.regs_[2] ];
+                      float * restrict alpha_channel = fragment_shader->exec_.float_regs_[fgl_FragColor->reg_alloc_.v_.regs_[3] ];
+
+                      do {
+                        delta = fragment_shader->exec_.exec_chain_reg_[row];
+                        ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_RED])[row] = (uint8_t)(255.f * red_channel[row]);
+                        ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_GREEN])[row] = (uint8_t)(255.f * green_channel[row]);
+                        ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_BLUE])[row] = (uint8_t)(255.f * blue_channel[row]);
+                        ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[row] = (uint8_t)(255.f * alpha_channel[row]);
+
+                        row += delta;
+                      } while (delta);
+                    }
+
                     // Run an experimental "fragment shader" to fill out the color to be identical to
                     // our prior experiments.
-                    
+#if 0
                     for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
                       uint32_t z = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
                       if (orientation == RASTERIZER_CLOCKWISE) {
@@ -2523,7 +2546,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                         ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[frag_row] = 0xFF;
                       }
                     }
-
+#endif
                     // Stencil test
                     primitive_assembly_stencil_func_t stencil_func;
                     uint32_t stencil_func_ref;
