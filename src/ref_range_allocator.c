@@ -28,6 +28,11 @@
 #include <stdint.h>
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
 #ifndef ASSERT_H_INCLUDED
 #define ASSERT_H_INCLUDED
 #include <assert.h>
@@ -60,13 +65,13 @@ void ref_range_allocator_cleanup(struct ref_range_allocator *rra) {
   }
 }
 
-void ref_range_init(struct ref_range *rr) {
+static void ref_range_init(struct ref_range *rr) {
   rr->pos_parent_ = rr->pos_left_ = rr->pos_right_ = rr->pos_next_ = rr->pos_prev_ = NULL;
   rr->sz_parent_ = rr->sz_left_ = rr->sz_right_ = rr->sz_next_ = rr->sz_prev_ = NULL;
   rr->at_ = 0;
 }
 
-void ref_range_cleanup(struct ref_range *rr) {
+static void ref_range_cleanup(struct ref_range *rr) {
 }
 
 static struct ref_range *ref_range_alloc_range(struct ref_range_allocator *rra) {
@@ -573,7 +578,7 @@ static void ref_range_sz_insert(struct ref_range_allocator *rra, struct ref_rang
   }
 }
 
-struct ref_range *ref_range_sz_find_best_fit(struct ref_range_allocator *rra, uintptr_t min_size_needed) {
+static struct ref_range *ref_range_sz_find_best_fit(struct ref_range_allocator *rra, uintptr_t min_size_needed) {
   struct ref_range *s;
   struct ref_range *best_fit = NULL;
   s = rra->sz_root_;
@@ -1008,7 +1013,7 @@ static int ref_range_pos_cmp(const struct ref_range *left, const struct ref_rang
   else return 0;
 }
 
-struct ref_range *ref_range_pos_find_at(struct ref_range_allocator *rra, uintptr_t pos) {
+static struct ref_range *ref_range_pos_find_at(struct ref_range_allocator *rra, uintptr_t pos) {
   struct ref_range *s;
   struct ref_range *best_fit = NULL;
   s = rra->pos_root_;
@@ -1024,7 +1029,7 @@ struct ref_range *ref_range_pos_find_at(struct ref_range_allocator *rra, uintptr
   return best_fit;
 }
 
-struct ref_range *ref_range_pos_find_start(struct ref_range_allocator *rra, uintptr_t pos) {
+static struct ref_range *ref_range_pos_find_start(struct ref_range_allocator *rra, uintptr_t pos) {
   struct ref_range *s;
   struct ref_range *best_fit = NULL;
   s = rra->pos_root_;
@@ -1042,7 +1047,7 @@ struct ref_range *ref_range_pos_find_start(struct ref_range_allocator *rra, uint
   return best_fit;
 }
 
-struct ref_range *ref_range_pos_find_end(struct ref_range_allocator *rra, uintptr_t pos) {
+static struct ref_range *ref_range_pos_find_end(struct ref_range_allocator *rra, uintptr_t pos) {
   struct ref_range *s;
   struct ref_range *best_fit = NULL;
   s = rra->pos_root_;
@@ -1062,7 +1067,7 @@ struct ref_range *ref_range_pos_find_end(struct ref_range_allocator *rra, uintpt
 }
 
 
-int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr_t to, int delta) {
+static int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr_t to, int delta) {
   uintptr_t edges[] ={
     from,
     to
@@ -1132,6 +1137,7 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
               nrp->pos_left_ = new_rr;
             }
             new_rr->pos_parent_ = nrp;
+            new_rr->pos_is_red_ = 1;
             new_rr->pos_next_ = rr_next;
             new_rr->pos_prev_ = rr_next->pos_prev_;
             new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
@@ -1202,6 +1208,7 @@ int ref_range_apply_ref(struct ref_range_allocator *rra, uintptr_t from, uintptr
               nrp->pos_left_ = new_rr;
             }
             new_rr->pos_parent_ = nrp;
+            new_rr->pos_is_red_ = 1;
             new_rr->pos_next_ = rr_next;
             new_rr->pos_prev_ = rr_next->pos_prev_;
             new_rr->pos_prev_->pos_next_ = new_rr->pos_next_->pos_prev_ = new_rr;
@@ -1576,12 +1583,32 @@ static int ref_range_sanity_check_sz_ascension(struct ref_range_allocator *rra) 
   return 1;
 }
 
+static int ref_range_check_balance_pos_black_nodes(struct ref_range *rr) {
+  int left_count;
+  int right_count;
+  if (!rr) return 0;
+  left_count = ref_range_check_balance_pos_black_nodes(rr->pos_left_);
+  right_count = ref_range_check_balance_pos_black_nodes(rr->pos_right_);
+  if (left_count == -1) {
+    return -1;
+  }
+  if (left_count != right_count) {
+    return -1;
+  }
+  if (rr->pos_is_red_) return left_count;
+  return left_count + 1;
+}
+
 static int ref_range_sanity_check(struct ref_range_allocator *rra) {
   int r = ref_range_sanity_check_pos_parent_pointers(NULL, rra->pos_root_)
        && ref_range_sanity_check_sz_parent_pointers(NULL, rra->sz_root_)
        && ref_range_check_both_trees(rra)
        && ref_range_sanity_check_pos_ascension(rra)
        && ref_range_sanity_check_sz_ascension(rra);
+  if (ref_range_check_balance_pos_black_nodes(rra->pos_root_) == -1) {
+    r = 0;
+  }
+
   if (!r) {
     fprintf(stderr, "ref_range_sanity_check() failed\n");
   }
