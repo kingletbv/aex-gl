@@ -50,6 +50,7 @@
     <ClCompile Include="..\src\attrib_binding_table.c" />
     <ClCompile Include="..\src\perspective_division.c" />
     <ClCompile Include="..\src\attrib_routing.c" />
+    <ClCompile Include="..\src\sl_uniforms.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -110,6 +111,7 @@
     <ClInclude Include="..\src\attrib_binding_table.h" />
     <ClInclude Include="..\src\perspective_division.h" />
     <ClInclude Include="..\src\attrib_routing.h" />
+    <ClInclude Include="..\src\sl_uniforms.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
