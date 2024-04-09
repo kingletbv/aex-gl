@@ -4731,18 +4731,14 @@ int main(int argc, char **argv) {
   sl_shader_init(&vertex_shader);
   sl_shader_init(&fragment_shader);
 
-  if (primitive_assembly_alloc_buffers(&pa) ||
-      clipping_stage_alloc_varyings(&cs, 0) ||
-      fragment_buffer_alloc_buffers(&fragbuf)) {
-    fprintf(stderr, "Failed to initialize due to allocation failure\n");
-    goto exit_cleanup;
-  }
-
   /* Initialize vertex shader */
 
   sl_shader_set_type(&vertex_shader, SLST_VERTEX_SHADER);
   const char *src = 
+    "attribute vec4 v_color;\n"
+    "varying vec4 vertex_color;\n"
     "void main() {\n"
+    "  vertex_color = v_color;\n"
     //"  gl_Position.xy += vec2(4. * 2. / 16., -5. * 2. / 16.);\n"
     //"  gl_Position.x += 4. * 2. / 16.;\n"
     //"  gl_Position.y -= 5. * 2. / 16.;\n"
@@ -4763,6 +4759,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed (%d): %s\n", r, err);
   }
   struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&vertex_shader.cu_, "gl_Position");
+  struct sl_variable *vgl_v_color = sl_compilation_unit_find_variable(&vertex_shader.cu_, "v_color");
 
   r = sl_exec_prep(&vertex_shader.exec_, &vertex_shader.cu_);
   if (r) {
@@ -4775,11 +4772,12 @@ int main(int argc, char **argv) {
   /* initialize fragment shader */
 
   sl_shader_set_type(&fragment_shader, SLST_FRAGMENT_SHADER);
-  src = "void main() {\n"
+  src = "varying vec4 vertex_color;\n"
+        "void main() {\n"
         "  int x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
         "  int even_x = (x / 2) * 2;\n"
         "  if ((x - even_x) == 1) discard;\n"
-        "  gl_FragColor = vec4(1.f, 0.5, gl_FragCoord.y / 64., 1.f);\n"
+        "  gl_FragColor = vertex_color;\n"
         "}\n";
   src_len = (int)strlen(src);
   sl_shader_set_source(&fragment_shader, 1, &src, &src_len);
@@ -4829,7 +4827,13 @@ int main(int argc, char **argv) {
       }
     } while (fv != fragment_shader.cu_.global_frame_.variables_);
   }
-  
+
+  if (primitive_assembly_alloc_buffers(&pa) ||
+      clipping_stage_alloc_varyings(&cs, ar.num_attribs_routed_) ||
+      fragment_buffer_alloc_buffers(&fragbuf)) {
+    fprintf(stderr, "Failed to initialize due to allocation failure\n");
+    goto exit_cleanup;
+  }
 
   int32_t vp_x = 0; /* left */
   int32_t vp_y = 0; /* bottom */
@@ -4849,6 +4853,11 @@ int main(int argc, char **argv) {
     -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f),
     -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f)
   };
+  float v_colors[] = {
+    1.f, 0.f, 0.f, 1.f,
+    0.f, 1.f, 0.f, 1.f,
+    0.f, 0.f, 1.f, 1.f
+  };
   int xyz_attr = attrib_set_alloc_attrib(&as);
   if (xyz_attr < 0) goto exit_cleanup;
   as.attribs_[xyz_attr].buf_ = NULL;
@@ -4860,6 +4869,16 @@ int main(int argc, char **argv) {
   as.attribs_[xyz_attr].ptr_ = verts;
   as.attribs_[xyz_attr].stride_ = sizeof(float) * 3;
   // as.attribs_[xyz_attr].name_ = // canonical way of setting this still to be made
+  int v_color_attr = attrib_set_alloc_attrib(&as);
+  if (v_color_attr < 0) goto exit_cleanup;
+  as.attribs_[v_color_attr].buf_ = NULL;
+  as.attribs_[v_color_attr].size_ = 3; /* Rely on fourth coord W to be the fixed 1. preset */
+  as.attribs_[v_color_attr].data_type_ = ADT_FLOAT;
+  as.attribs_[v_color_attr].att_ = AT_VEC4;
+  as.attribs_[v_color_attr].normalize_ = 0;
+  as.attribs_[v_color_attr].enabled_ = 1;
+  as.attribs_[v_color_attr].ptr_ = v_colors;
+  as.attribs_[v_color_attr].stride_ = sizeof(float) * 4;
 
 #if 0
   pa.column_descriptors_[PACT_POSITION_X].attrib_index_ = xyz_attr;
@@ -4883,6 +4902,11 @@ int main(int argc, char **argv) {
   primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 1, vgl_Position->reg_alloc_.v_.regs_[1]);
   primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 2, vgl_Position->reg_alloc_.v_.regs_[2]);
   primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 3, vgl_Position->reg_alloc_.v_.regs_[3]);
+
+  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, v_color_attr, 0, vgl_v_color->reg_alloc_.v_.regs_[0]);
+  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, v_color_attr, 1, vgl_v_color->reg_alloc_.v_.regs_[1]);
+  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, v_color_attr, 2, vgl_v_color->reg_alloc_.v_.regs_[2]);
+  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, v_color_attr, 3, vgl_v_color->reg_alloc_.v_.regs_[3]);
 
   uint32_t indices[] = {
     0, 1, 2

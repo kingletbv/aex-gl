@@ -40,6 +40,8 @@ extern "C" {
 #define CLIPPING_STAGE_IDX_Z 5
 #define CLIPPING_STAGE_IDX_W 6
 
+#define CLIPPING_STAGE_IDX_GENERIC 7 /* First non-builtin generic varying */
+
 struct clipping_stage {
   /* Number of varying attributes, the first four are:
    * x, y, z, w. 

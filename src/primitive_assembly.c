@@ -2380,6 +2380,26 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
 
               fprintf(stderr, "iv2: %f %f %f %f\n", iv2[CLIPPING_STAGE_IDX_X], iv2[CLIPPING_STAGE_IDX_Y], iv2[CLIPPING_STAGE_IDX_Z], iv2[CLIPPING_STAGE_IDX_W]);
 
+              size_t attrib_route_index;
+              for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
+                iv0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
+                  (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[tri_row_index];
+                iv1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
+                  (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[tri_row_index + 1];
+                iv2[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
+                  (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[tri_row_index + 2];
+              }
+
+              float *ivs[] = {iv0, iv1, iv2};
+              int iv_index;
+              for (iv_index = 0; iv_index < (int)(sizeof(ivs)/sizeof(*ivs)); ++iv_index) {
+                float *iv = ivs[iv_index];
+                fprintf(stderr, "iv%d: %10f %10f %10f %10f", iv_index, iv[CLIPPING_STAGE_IDX_X], iv[CLIPPING_STAGE_IDX_Y], iv[CLIPPING_STAGE_IDX_Z], iv[CLIPPING_STAGE_IDX_W]);
+                for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
+                  fprintf(stderr, " %10f%s", iv[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index], (attrib_route_index == (ar->num_attribs_routed_ - 1)) ? "\n" : "");
+                }
+              }
+
               if (clipping_stage_process_triangle(cs)) {
                 /* XXX: Ugly reliance on size here, we stitch the SX,SY,SZ variables alongside 
                  *      the clipping output triangles, however the one is in floats, the other is in
@@ -2480,6 +2500,19 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                         w[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_W]
                                     + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_W]
                                     + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_W];
+                      }
+                    }
+
+                    for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
+                      struct attrib_route *attr = ar->attribs_routed_ + attrib_route_index;
+                      float * restrict tgt = fragment_shader->exec_.float_regs_[attr->to_target_reg_];
+                      float fv0 = v0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                      float fv1 = v1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                      float fv2 = v2[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                      for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                        tgt[frag_row] = dp12[frag_row] * fv0
+                                      + dp20[frag_row] * fv1
+                                      + dp01[frag_row] * fv2;
                       }
                     }
 
