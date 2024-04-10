@@ -289,7 +289,7 @@ static int sl_uniform_reg_alloc_is_simple_type(struct sl_reg_alloc *ra) {
 }
 
 
-static int sl_uniform_get_location_info(struct sl_reg_alloc *ra, size_t location, size_t *poffset, sl_reg_alloc_kind_t *plocation_type, size_t *pname_length, char *name_buf, size_t *pfinal_array_size, size_t *pentry_in_final_array) {
+static int sl_uniform_get_ra_location_info(struct sl_reg_alloc *ra, size_t location, size_t *poffset, sl_reg_alloc_kind_t *plocation_type, size_t *pname_length, char *name_buf, size_t *pfinal_array_size, size_t *pentry_in_final_array) {
   int r;
   if (!ra) return SL_ERR_INVALID_ARG;
   if (ra->kind_ == slrak_array) {
@@ -311,7 +311,7 @@ static int sl_uniform_get_location_info(struct sl_reg_alloc *ra, size_t location
 
     size_t offset_in_element;
     size_t name_length_in_element;
-    r = sl_uniform_get_location_info(ra->v_.array_.head_, location_in_element, &offset_in_element, plocation_type, &name_length_in_element, name_buf, pfinal_array_size, pentry_in_final_array);
+    r = sl_uniform_get_ra_location_info(ra->v_.array_.head_, location_in_element, &offset_in_element, plocation_type, &name_length_in_element, name_buf, pfinal_array_size, pentry_in_final_array);
     if (r) return r;
 
     if (sl_uniform_reg_alloc_is_simple_type(ra->v_.array_.head_)) {
@@ -376,7 +376,7 @@ static int sl_uniform_get_location_info(struct sl_reg_alloc *ra, size_t location
           name_buf += field_len;
         }
 
-        r = sl_uniform_get_location_info(ra->v_.comp_.fields_ + n, locations_remaining, &field_internal_offset, plocation_type, &field_internal_name_length, name_buf, pfinal_array_size, pentry_in_final_array);
+        r = sl_uniform_get_ra_location_info(ra->v_.comp_.fields_ + n, locations_remaining, &field_internal_offset, plocation_type, &field_internal_name_length, name_buf, pfinal_array_size, pentry_in_final_array);
         if (r) return r;
         *poffset = aligned_field_offset + field_internal_offset;
         if (*poffset < aligned_field_offset) return SL_ERR_OVERFLOW;
@@ -409,6 +409,52 @@ static int sl_uniform_get_location_info(struct sl_reg_alloc *ra, size_t location
     *pentry_in_final_array = 0;
     return 0;
   }
+}
+
+int sl_uniform_get_location_info(struct sl_uniform_table *ut, size_t location, void **pp_slab_memory, sl_reg_alloc_kind_t *plocation_type, size_t *pname_length, char *name_buf, size_t *pfinal_array_size, size_t *pentry_in_final_array) {
+  int r;
+  size_t num_locations_remaining = location;
+  struct sl_uniform *u = ut->uniforms_;
+  if (u) {
+    do {
+      u = u->chain_;
+
+      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : u->fragment_variable_;
+
+      size_t num_locations_in_uniform;
+      r = sl_uniform_get_reg_alloc_num_indices(&v->reg_alloc_, &num_locations_in_uniform);
+      if (r) return r;
+
+      if (num_locations_in_uniform > num_locations_remaining) {
+        size_t u_offset_inside;
+        size_t u_name_len;
+        char *u_name_buf = NULL;
+        sl_reg_alloc_kind_t location_type = slrak_void;
+        size_t uniform_varname_length = strlen(v->name_);
+        size_t final_array_size;
+        size_t entry_in_final_array;
+        if (name_buf) {
+          strcpy(name_buf, v->name_);
+          u_name_buf = name_buf + uniform_varname_length;
+        }
+        
+        r = sl_uniform_get_ra_location_info(&v->reg_alloc_, num_locations_remaining, &u_offset_inside, &location_type, &u_name_len, u_name_buf, &final_array_size, &entry_in_final_array);
+        if (r) return r;
+
+        if (pname_length) *pname_length = uniform_varname_length + u_name_len;
+        if (pp_slab_memory) *pp_slab_memory = ((char *)u->slab_) + u_offset_inside;
+        if (plocation_type) *plocation_type = location_type;
+        if (pfinal_array_size) *pfinal_array_size = final_array_size;
+        if (pentry_in_final_array) *pentry_in_final_array = entry_in_final_array;
+        return 0;
+      }
+      else {
+        num_locations_remaining -= num_locations_in_uniform;
+      }
+
+    } while (u != ut->uniforms_);
+  }
+  return SL_ERR_INVALID_ARG;
 }
 
 int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform **pp_uniform, struct sl_variable *vertex_side, struct sl_variable *fragment_side) {
