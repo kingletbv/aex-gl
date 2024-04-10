@@ -457,6 +457,210 @@ int sl_uniform_get_location_info(struct sl_uniform_table *ut, size_t location, v
   return SL_ERR_INVALID_ARG;
 }
 
+static int sl_uniform_get_ra_named_location(struct sl_reg_alloc *ra, char *name, size_t *plocation) {
+  int r;
+  char *cp = name;
+  if (ra->kind_ == slrak_array) {
+    /* Next char up should be [, followed by non-zero digits, followed by ].
+     * Alternatively, this is a final array element, and name should be '\0' -- however -- in
+     * that case, the type of the array should be a simple type and we return an offset of 0
+     * to represent the location of the first element in the array. */
+    if (*cp == '\0') {
+      if (sl_uniform_reg_alloc_is_simple_type(ra->v_.array_.head_)) {
+        *plocation = 0;
+        return 0;
+      }
+      /* Ending on an array that is not of a simple type. The name cannot point to a struct,
+       * or an array of arrays, consequently, we fail this name. */
+      return SL_ERR_INVALID_ARG;
+    }
+    else {
+      /* Should be [ digits ] */
+      if (*cp != '[') {
+        return SL_ERR_INVALID_ARG;
+      }
+      cp++;
+      if (((*cp) >= '0') && ((*cp) <= '9')) {
+        /* Let's roll a manual atoi() so we know when it overflows and always fit the type size */
+        size_t index = (size_t)((*cp) - '0');
+
+        char *start_of_digits = cp;
+        cp++;
+        while (((*cp) >= '0') && ((*cp) <= '9')) {
+          if ((SIZE_MAX / 10) < index) {
+            /* Alas, overflow; this represents an invalid name and as such we return SL_ERR_INVALID_ARG
+             * instead of SL_ERR_OVERFLOW. */
+            return SL_ERR_INVALID_ARG;
+          }
+          index = index * 10;
+          size_t digit = (size_t)((*cp) - '0');
+          index = index + digit;
+          if (index < digit) {
+            /* Overflow */
+            return SL_ERR_INVALID_ARG;
+          }
+          cp++;
+        }
+        char *end_of_digits = cp;
+        if ((*cp) != ']') {
+          return SL_ERR_INVALID_ARG;
+        }
+        cp++;
+        if (index >= ra->v_.array_.num_elements_) {
+          /* Array index is out of bounds for the array size in question */
+          return SL_ERR_INVALID_ARG;
+        }
+
+        size_t locations_per_element;
+        r = sl_uniform_get_reg_alloc_num_indices(ra->v_.array_.head_, &locations_per_element);
+        if (r) return r;
+        if ((SIZE_MAX / locations_per_element) < index) {
+          /* Index is so large it'd cause an overflow of the number of locations (would expect
+           * this to get caught elsewhere.) */
+          return SL_ERR_INVALID_ARG;
+        }
+
+        size_t base_element_location_offset = locations_per_element * index;
+        size_t location_offset_inside_element;
+        r = sl_uniform_get_ra_named_location(ra->v_.array_.head_, cp, &location_offset_inside_element);
+        if (r) return r;
+        size_t location = base_element_location_offset + location_offset_inside_element;
+        if (location < base_element_location_offset) return SL_ERR_INVALID_ARG;
+        *plocation = location;
+        return 0;
+      }
+      else {
+        /* Not getting digits followed by ] */
+        return SL_ERR_INVALID_ARG;
+      }
+    }
+  }
+  else if (ra->kind_ == slrak_struct) {
+    if ((*cp) != '.') {
+      /* Expecting a field selection, but not getting one.. */
+      return SL_ERR_INVALID_ARG;
+    }
+    cp++;
+    /* Next expecting an identifier representing the field */
+    char *end_ident;
+    end_ident = cp;
+    if ((((*end_ident) >= 'a') && ((*end_ident) <= 'z')) ||
+        (((*end_ident) >= 'A') && ((*end_ident) <= 'Z')) ||
+        ((*end_ident) == '_')) {
+      end_ident++;
+      while ((((*end_ident) >= 'a') && ((*end_ident) <= 'z')) ||
+             (((*end_ident) >= 'A') && ((*end_ident) <= 'Z')) ||
+             (((*end_ident) >= '0') && ((*end_ident) <= '9')) ||
+             ((*end_ident) == '_')) {
+        end_ident++;
+      }
+    }
+    if (end_ident == cp) {
+      /* No identifier for the field was found.. */
+      return SL_ERR_INVALID_ARG;
+    }
+    size_t ident_len = end_ident - cp;
+    /* Locate the index of the field, and while locating it, count the number
+     * of locations we're skipping. */
+    size_t field_index;
+    size_t location_field_offset = 0;
+    struct sl_type_field *tf;
+    tf = ra->v_.comp_.struct_type_->fields_;
+    field_index = 0;
+    if (tf) {
+      do {
+        tf = tf->chain_;
+
+        if ((strlen(tf->ident_) == ident_len) && !memcmp(cp, tf->ident_, ident_len)) {
+          /* Found matching field */
+          size_t location_offset_inside_field;
+          r = sl_uniform_get_ra_named_location(ra->v_.comp_.fields_ + field_index, end_ident, &location_offset_inside_field);
+          if (r) return r;
+          size_t final_location = location_field_offset + location_offset_inside_field;
+          if (final_location < location_field_offset) return SL_ERR_INVALID_ARG; /* overflow */
+          *plocation = final_location;
+          return 0;
+        }
+
+        size_t num_locations_for_field;
+        r = sl_uniform_get_reg_alloc_num_indices(ra->v_.comp_.fields_ + field_index, &num_locations_for_field);
+        if (r) return r;
+        location_field_offset += num_locations_for_field;
+        if (location_field_offset < num_locations_for_field) return SL_ERR_INVALID_ARG; /* overflow */
+
+      } while (tf != ra->v_.comp_.struct_type_->fields_);
+    }
+    /* Couldn't match a field */
+    return SL_ERR_INVALID_ARG;
+  }
+  else {
+    if (ra->kind_ == slrak_void) {
+      /* Cannot locate a void */
+      return SL_ERR_INVALID_ARG;
+    }
+    /* ... otherwise we've reached a leaf in the datastructure: a "simple" type; make sure the name
+     *     ends here, and, if so, return success at location offset 0; callers will bump this up
+     *     to the appropriate location. */
+    if (*name != '\0') {
+      return SL_ERR_INVALID_ARG;
+    }
+    *plocation = 0;
+    return 0;
+  }
+}
+
+int sl_uniform_get_named_location(struct sl_uniform_table *ut, char *name, size_t *plocation) {
+  int r;
+  char *end_ident;
+  end_ident = name;
+  if ((((*end_ident) >= 'a') && ((*end_ident) <= 'z')) ||
+      (((*end_ident) >= 'A') && ((*end_ident) <= 'Z')) ||
+      ((*end_ident) == '_')) {
+    end_ident++;
+    while ((((*end_ident) >= 'a') && ((*end_ident) <= 'z')) ||
+           (((*end_ident) >= 'A') && ((*end_ident) <= 'Z')) ||
+           (((*end_ident) >= '0') && ((*end_ident) <= '9')) ||
+           ((*end_ident) == '_')) {
+      end_ident++;
+    }
+  }
+  if (end_ident == name) {
+    /* Should always start with the name of the uniform variable.. */
+    return SL_ERR_INVALID_ARG;
+  }
+
+  /* Find the uniform */
+  struct sl_uniform *u = ut->uniforms_;
+  if (u) {
+    size_t locations_skipped = 0;
+    do {
+      u = u->chain_;
+
+      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : u->fragment_variable_;
+      size_t u_name_len = strlen(v->name_);
+      if ((u_name_len == (end_ident - name)) && !memcmp(v->name_, name, u_name_len)) {
+        /* Lengths match and string matches; this is the uniform variable we're looking for. */
+        size_t location_inside_uniform;
+        r = sl_uniform_get_ra_named_location(&v->reg_alloc_, end_ident, &location_inside_uniform);
+        if (r) return r;
+        if (plocation) *plocation = locations_skipped + location_inside_uniform;
+        return 0;
+      }
+      else {
+        size_t num_locations_in_uniform;
+        r = sl_uniform_get_reg_alloc_num_indices(&v->reg_alloc_, &num_locations_in_uniform);
+        if (r) return r;
+        locations_skipped += num_locations_in_uniform;
+      }
+
+    } while (u != ut->uniforms_);
+  }
+
+  /* We get here if we were unable to match the name of the uniform variable */
+  return SL_ERR_INVALID_ARG;
+}
+
+
 int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform **pp_uniform, struct sl_variable *vertex_side, struct sl_variable *fragment_side) {
   if (!vertex_side && !fragment_side) return SL_ERR_INVALID_ARG;
   if (!sl_uniform_are_variables_compatible(vertex_side, fragment_side)) {
