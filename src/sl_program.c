@@ -95,6 +95,7 @@ void sl_program_attach_shader(struct sl_program *prog, struct sl_shader *sh) {
       sh->programs_ = prog;
       prog->next_program_using_vertex_shader_ = prog->prev_program_using_vertex_shader_ = prog;
     }
+    prog->vertex_shader_ = sh;
   }
   else if (sh->type_ == SLST_FRAGMENT_SHADER) {
     if (prog->fragment_shader_) sl_program_detach_shader(prog, prog->fragment_shader_);
@@ -106,6 +107,7 @@ void sl_program_attach_shader(struct sl_program *prog, struct sl_shader *sh) {
       sh->programs_ = prog;
       prog->next_program_using_fragment_shader_ = prog->prev_program_using_fragment_shader_ = prog;
     }
+    prog->fragment_shader_ = sh;
   }
   else {
     assert(0 && "Unknown shader type, cannot attach to program.");
