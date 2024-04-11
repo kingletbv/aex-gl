@@ -55,6 +55,9 @@ int sl_uniform_are_variables_compatible(struct sl_variable *vertex_side, struct 
 
 int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform **pp_uniform, struct sl_variable *vertex_side, struct sl_variable *fragment_side);
 
+/* Maximum possible length of a uniform location name, including a null terminator. */
+int sl_uniform_table_max_name_length(struct sl_uniform_table *ut, size_t *pmax_name_length);
+int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, size_t offset, size_t *pnum_slab_bytes_consumed, struct sl_reg_alloc *ra);
 
 #ifdef __cplusplus
 } /* extern "C" */

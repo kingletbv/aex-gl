@@ -702,7 +702,7 @@ int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform 
   return 0;
 }
 
-int sl_uniform_max_ra_name_length(struct sl_reg_alloc *ra, size_t *pmax_name_length) {
+static int sl_uniform_max_ra_name_length(struct sl_reg_alloc *ra, size_t *pmax_name_length) {
   int r;
   if (ra->kind_ == slrak_array) {
     char name_index[20 + 2 + 1];
@@ -735,6 +735,30 @@ int sl_uniform_max_ra_name_length(struct sl_reg_alloc *ra, size_t *pmax_name_len
     *pmax_name_length = 0;
     return 0;
   }
+}
+
+int sl_uniform_table_max_name_length(struct sl_uniform_table *ut, size_t *pmax_name_length) {
+  int r;
+  struct sl_uniform *u = ut->uniforms_;
+  size_t max_name_length = 0;
+  if (u) {
+    do {
+      u = u->chain_;
+
+      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : u->fragment_variable_;
+      size_t uniform_name_length;
+      uniform_name_length = strlen(v->name_);
+      size_t uniform_ra_max_length;
+      r = sl_uniform_max_ra_name_length(&v->reg_alloc_, &uniform_ra_max_length);
+      if (r) return r;
+
+      size_t uniform_max_length = uniform_name_length + uniform_ra_max_length;
+      if (max_name_length < uniform_max_length) max_name_length = uniform_max_length;
+
+    } while (u != ut->uniforms_);
+  }
+  *pmax_name_length = max_name_length + 1 /* null terminator goes here */;
+  return 0;
 }
 
 static void sl_uniform_load_f(size_t num, float *dst, float val) {
@@ -898,4 +922,5 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
     return 0;
   }
 }
+
 
