@@ -60,8 +60,11 @@
 
 
 void sl_program_init(struct sl_program *prog) {
-  primitive_assembly_init(&prog->pa_);
   sl_info_log_init(&prog->log_);
+  primitive_assembly_init(&prog->pa_);
+  clipping_stage_init(&prog->cs_);
+  fragment_buffer_init(&prog->fragbuf_);
+
   prog->next_program_using_vertex_shader_ = NULL;
   prog->prev_program_using_vertex_shader_ = NULL;
   prog->vertex_shader_ = NULL;
@@ -76,6 +79,8 @@ void sl_program_init(struct sl_program *prog) {
 void sl_program_cleanup(struct sl_program *prog) {
   sl_info_log_cleanup(&prog->log_);
   primitive_assembly_cleanup(&prog->pa_);
+  clipping_stage_cleanup(&prog->cs_);
+  fragment_buffer_cleanup(&prog->fragbuf_);
   sl_program_detach_shader(prog, prog->fragment_shader_);
   sl_program_detach_shader(prog, prog->vertex_shader_);
   abt_cleanup(&prog->abt_);
@@ -173,9 +178,13 @@ void sl_program_detach_shader(struct sl_program *prog, struct sl_shader *sh) {
 }
 
 int sl_program_link(struct sl_program *prog) {
+  int r;
+
   if (!prog) return SL_ERR_INVALID_ARG;
   if (!prog->vertex_shader_) return SL_ERR_INVALID_ARG;
   if (!prog->vertex_shader_->gl_last_compile_status_) return SL_ERR_INVALID_ARG;
+  if (!prog->fragment_shader_) return SL_ERR_INVALID_ARG;
+  if (!prog->fragment_shader_->gl_last_compile_status_) return SL_ERR_INVALID_ARG;
 
   struct ref_range_allocator rra;
   ref_range_allocator_init(&rra);
@@ -205,12 +214,13 @@ int sl_program_link(struct sl_program *prog) {
               ref_range_allocator_cleanup(&rra);
               return SL_ERR_INVALID_ARG;
             }
-            if (!ref_range_mark_range_allocated(&rra, (uintptr_t)ab->bound_index_, (uintptr_t)ab->bound_index_ + num_attribs_needed)) {
+            if (ref_range_mark_range_allocated(&rra, (uintptr_t)ab->bound_index_, (uintptr_t)ab->bound_index_ + num_attribs_needed)) {
               /* Should always succeed unless it could not get the memory */
               ref_range_allocator_cleanup(&rra);
               return SL_ERR_NO_MEM;
             }
             ab->active_index_ = ab->bound_index_;
+            ab->var_ = v;
           }
         }
       }
@@ -253,6 +263,7 @@ int sl_program_link(struct sl_program *prog) {
             return SL_ERR_OVERFLOW;
           }
           ab->active_index_ = (int)base_of_range;
+          ab->var_ = v;
         }
         else {
           /* already locked in the loop above.. */
@@ -261,23 +272,142 @@ int sl_program_link(struct sl_program *prog) {
     } while (v != prog->vertex_shader_->cu_.global_frame_.variables_);
   }
 
+  /* Allocate and route varyings */
+  struct sl_variable *fv = prog->fragment_shader_->cu_.global_frame_.variables_;
+  if (fv) {
+    do {
+      fv = fv->chain_;
+
+      int qualifiers = sl_type_qualifiers(fv->type_);
+      if (qualifiers & SL_TYPE_QUALIFIER_VARYING) {
+        /* Varying on the side of the fragment shader, if we can find a varying of the
+         * same name (and type) on the side of the vertex shader, we can route. */
+        struct sl_variable *vv = sl_compilation_unit_find_variable(&prog->vertex_shader_->cu_, fv->name_);
+        if (vv) {
+          int vv_qualifiers = sl_type_qualifiers(vv->type_);
+          if (vv_qualifiers & SL_TYPE_QUALIFIER_VARYING) {
+            /* Have matching varying on the vertex shader side, and it is also a varying, route. */
+            if (!sl_are_variables_compatible(vv, fv)) {
+              fprintf(stderr, "Incompatible types for \"%s\" varyings\n", vv->name_);
+              return SL_ERR_INVALID_ARG;
+            }
+            else {
+              int r;
+              r = attrib_routing_add_variables(&prog->ar_, fv, vv);
+              if (r) {
+                fprintf(stderr, "Failed adding \"%s\" varyings\n", vv->name_);
+                return r;
+              }
+            }
+          }
+        }
+      }
+    } while (fv != prog->fragment_shader_->cu_.global_frame_.variables_);
+  }
+
+  /* We now allocate the various buffers that do not rely on the user-defined attributes. */
+  if (primitive_assembly_alloc_buffers(&prog->pa_) ||
+      clipping_stage_alloc_varyings(&prog->cs_, prog->ar_.num_attribs_routed_) ||
+      fragment_buffer_alloc_buffers(&prog->fragbuf_)) {
+    dx_no_memory(&prog->log_.dx_);
+    return SL_ERR_NO_MEM;
+  }
+
   /* All attribute variables have a corresponding attrib_binding in prog->abt_, furthermore,
    * they all have an appropriately configured active_index_.
    * Note that there still may be attrib_bindings with no corresponding sl_variable, these
    * should be skipped (they are attributes bound with no source equivalent.) */
+  ab = prog->abt_.seq_;
+  if (ab) {
+    do {
+      if (ab->var_) {
+        struct sl_variable *v = ab->var_;
+        switch (v->reg_alloc_.kind_) {
+          case slrak_void:
+          case slrak_array:
+          case slrak_struct:
+            /* Cannot handle these .. */
+            dx_error(&prog->log_.dx_, "Cannot bind attribute variable \"%s\" due to incorrect type.", v->name_);
+            return SL_ERR_INVALID_ARG;
+          case slrak_float:
+          case slrak_vec2:
+          case slrak_vec3:
+          case slrak_vec4:
+          case slrak_mat2:
+          case slrak_mat3:
+          case slrak_mat4: {
+            size_t num_attribs = 1;
+            size_t num_components = 1;
+            switch (v->reg_alloc_.kind_) {
+              case slrak_float:
+                num_attribs = 1;
+                num_components = 1;
+                break;
+              case slrak_vec2:
+                num_attribs = 1;
+                num_components = 2;
+                break;
+              case slrak_vec3:
+                num_attribs = 1;
+                num_components = 3;
+                break;
+              case slrak_vec4:
+                num_attribs = 1;
+                num_components = 4;
+                break;
+              case slrak_mat2:
+                num_attribs = 2;
+                num_components = 2;
+                break;
+              case slrak_mat3:
+                num_attribs = 3;
+                num_components = 3;
+                break;
+              case slrak_mat4:
+                num_attribs = 4;
+                num_components = 4;
+                break;
+            }
+            size_t attrib_index;
+            for (attrib_index = 0; attrib_index < num_attribs; ++attrib_index) {
+              size_t component_index;
+              for (component_index = 0; component_index < num_components; ++component_index) {
+                int column_index;
+                /* We're adding a column for primitive assembly to reflect fetching this attribute. Note however, that this
+                 * data will flow straight into the register (in sl_execution) and does not pass through the buffers inside
+                 * the primitive_assembly, those buffers are fixed and were already allocated before at 
+                 * primitive_assembly_alloc_buffers() above. */
+                column_index = primitive_assembly_add_column(&prog->pa_, PACT_ATTRIBUTE, PADT_FLOAT, (int)(ab->active_index_ + attrib_index), (int)component_index, v->reg_alloc_.v_.regs_[component_index + num_components * attrib_index]);
+                if (column_index < 0) {
+                  dx_no_memory(&prog->log_.dx_);
+                }
+              }
+            }
+            break;
+          }
+          case slrak_int:
+          case slrak_ivec2:
+          case slrak_ivec3:
+          case slrak_ivec4:
+            dx_error(&prog->log_.dx_, "Integer types in primitive assembly for attribute binding not supported");
+            break;
+          case slrak_bool:
+          case slrak_bvec2:
+          case slrak_bvec3:
+          case slrak_bvec4:
+            dx_error(&prog->log_.dx_, "Boolean types in primitive assembly for attribute binding not supported");
+            break;
+        }
+      }
+
+      ab = ab->next_;
+    } while (ab != prog->abt_.seq_);
+  }
 
   /* Done with allocator for attribute indices, clean up */
   ref_range_allocator_cleanup(&rra);
 
-
-
-  int r;
-  r = primitive_assembly_init_fixed_columns(&prog->pa_);
-  if (r) {
-    return SL_ERR_NO_MEM;
-  }
-  
-  return r;
+  return 0;
 }
 
 int sl_program_load_uniform_for_execution(struct sl_program *prog, struct sl_uniform *u) {
@@ -313,4 +443,23 @@ int sl_program_load_uniforms_for_execution(struct sl_program *prog) {
   }
 
   return 0;
+}
+
+int sl_program_set_attrib_binding_index(struct sl_program *prog, const char *name, int index) {
+  // attrib_binding_table_result_t abt_find_or_insert(struct attrib_binding_table *abt, const char *name, size_t name_len, struct attrib_binding **new_ab)
+  attrib_binding_table_result_t abtr;
+  struct attrib_binding *ab;
+  abtr = abt_find_or_insert(&prog->abt_, name, strlen(name), &ab);
+  if (abtr == ABT_NOMEM) {
+    dx_no_memory(&prog->log_.dx_);
+    return SL_ERR_NO_MEM;
+  }
+  else if ((abtr != ABT_OK) && (abtr != ABT_DUPLICATE)) {
+    assert(0 && "Not expecting any other return values");
+    dx_error(&prog->log_.dx_, "unexpected internal error");
+    return SL_ERR_INTERNAL;
+  }
+  ab->bound_index_ = index;
+
+  return SL_ERR_OK;
 }

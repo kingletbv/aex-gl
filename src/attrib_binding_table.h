@@ -35,7 +35,11 @@ struct attrib_binding {
    * If -1, then not bound, which might be the case if the attribute was
    * bound manually (via bound_index_) but not yet linked. */
   int active_index_;
-  
+
+  /* Pointer to the vertex variable this is bound to, post program linking.
+   * Can be NULL if the variable is not declared or used in the vertex program. */
+  struct sl_variable *var_;
+
   /* name of the attribute as it would appear in vertex shader code. */
   size_t name_len_;
   char name_[1];

@@ -42,6 +42,7 @@ void attrib_binding_init(struct attrib_binding *ab) {
   ab->left_ = ab->right_ = ab->parent_ = ab->next_ = ab->prev_ = NULL;
   ab->bound_index_ = -1;
   ab->active_index_ = -1;
+  ab->var_ = NULL;
   ab->name_len_ = 0;
   ab->name_[0] = '\0';
 }

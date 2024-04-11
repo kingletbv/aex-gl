@@ -4720,20 +4720,14 @@ int main(int argc, char **argv) {
     fragbuf.num_rows_ = 0;
   }
 #elif 1
-  struct primitive_assembly pa;
   struct attrib_set as;
-  struct clipping_stage cs;
   struct rasterizer ras;
-  struct fragment_buffer fragbuf;
   struct sl_shader vertex_shader;
   struct sl_shader fragment_shader;
   struct sl_program program;
 
-  primitive_assembly_init(&pa);
   attrib_set_init(&as);
-  clipping_stage_init(&cs);
   rasterizer_init(&ras);
-  fragment_buffer_init(&fragbuf);
   sl_shader_init(&vertex_shader);
   sl_shader_init(&fragment_shader);
   sl_program_init(&program);
@@ -4812,42 +4806,6 @@ int main(int argc, char **argv) {
   sl_program_attach_shader(&program, &vertex_shader);
   sl_program_attach_shader(&program, &fragment_shader);
 
-  struct sl_variable *fv = fragment_shader.cu_.global_frame_.variables_;
-  if (fv) {
-    do {
-      fv = fv->chain_;
-
-      int qualifiers = sl_type_qualifiers(fv->type_);
-      if (qualifiers & SL_TYPE_QUALIFIER_VARYING) {
-        /* Varying on the side of the fragment shader, if we can find a varying of the
-         * same name (and type) on the side of the vertex shader, we can route. */
-        struct sl_variable *vv = sl_compilation_unit_find_variable(&vertex_shader.cu_, fv->name_);
-        if (vv) {
-          int vv_qualifiers = sl_type_qualifiers(vv->type_);
-          if (vv_qualifiers & SL_TYPE_QUALIFIER_VARYING) {
-            /* Have matching varying on the vertex shader side, and it is also a varying, route. */
-            if (!sl_are_variables_compatible(vv, fv)) {
-              fprintf(stderr, "Incompatible types for \"%s\" varyings\n", vv->name_);
-            }
-            else {
-              r = attrib_routing_add_variables(&program.ar_, fv, vv);
-              if (r) {
-                fprintf(stderr, "Failed adding \"%s\" varyings\n", vv->name_);
-              }
-            }
-          }
-        }
-      }
-    } while (fv != fragment_shader.cu_.global_frame_.variables_);
-  }
-
-  if (primitive_assembly_alloc_buffers(&pa) ||
-      clipping_stage_alloc_varyings(&cs, program.ar_.num_attribs_routed_) ||
-      fragment_buffer_alloc_buffers(&fragbuf)) {
-    fprintf(stderr, "Failed to initialize due to allocation failure\n");
-    goto exit_cleanup;
-  }
-
   int32_t vp_x = 0; /* left */
   int32_t vp_y = 0; /* bottom */
   uint32_t vp_width = 256;
@@ -4893,40 +4851,26 @@ int main(int argc, char **argv) {
   as.attribs_[v_color_attr].ptr_ = v_colors;
   as.attribs_[v_color_attr].stride_ = sizeof(float) * 4;
 
-#if 0
-  pa.column_descriptors_[PACT_POSITION_X].attrib_index_ = xyz_attr;
-  pa.column_descriptors_[PACT_POSITION_X].attrib_element_index_ = 0;
-  pa.column_descriptors_[PACT_POSITION_Y].attrib_index_ = xyz_attr;
-  pa.column_descriptors_[PACT_POSITION_Y].attrib_element_index_ = 1;
-  pa.column_descriptors_[PACT_POSITION_Z].attrib_index_ = xyz_attr;
-  pa.column_descriptors_[PACT_POSITION_Z].attrib_element_index_ = 2;
-  
-  /* Note that xyz_attr has size_ 3, not size_ 4, consequently, attrib_element_index_ 
-   * should map into the attrib::generic_values_[3] value, which, by default, should
-   * map to 1. */
-  pa.column_descriptors_[PACT_POSITION_W].attrib_index_ = xyz_attr;
-  pa.column_descriptors_[PACT_POSITION_W].attrib_element_index_ = 3;
-#endif
+  /* Go into the program and manually force gl_Position to be an attribute or it won't
+   * be found for binding (which we still rely on.) */
+  struct sl_variable *p_gl_Position = sl_compilation_unit_find_variable(&program.vertex_shader_->cu_, "gl_Position");
+  if (p_gl_Position) {
+    struct sl_type *naked_type = sl_type_unqualified(p_gl_Position->type_);
+    int qualifiers = sl_type_qualifiers(p_gl_Position->type_);
+    struct sl_type *attred_type = sl_type_base_qualified_type(&program.vertex_shader_->tb_, naked_type, qualifiers | SL_TYPE_QUALIFIER_ATTRIBUTE);
+    p_gl_Position->type_ = attred_type;
+  }
+  sl_program_set_attrib_binding_index(&program, "gl_Position", xyz_attr);
+  sl_program_set_attrib_binding_index(&program, "v_color", v_color_attr);
 
-  /* Note that xyz_attr has size_ 3, not size_ 4, consequently, attrib_element_index_
-   * should map into the attrib::generic_values_[3] value, which, by default, should
-   * map to 1. */
-  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 0, vgl_Position->reg_alloc_.v_.regs_[0]);
-  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 1, vgl_Position->reg_alloc_.v_.regs_[1]);
-  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 2, vgl_Position->reg_alloc_.v_.regs_[2]);
-  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, xyz_attr, 3, vgl_Position->reg_alloc_.v_.regs_[3]);
-
-  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, v_color_attr, 0, vgl_v_color->reg_alloc_.v_.regs_[0]);
-  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, v_color_attr, 1, vgl_v_color->reg_alloc_.v_.regs_[1]);
-  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, v_color_attr, 2, vgl_v_color->reg_alloc_.v_.regs_[2]);
-  primitive_assembly_add_column(&pa, PACT_ATTRIBUTE, PADT_FLOAT, v_color_attr, 3, vgl_v_color->reg_alloc_.v_.regs_[3]);
+  sl_program_link(&program);
 
   uint32_t indices[] = {
     0, 1, 2
   };
 
 
-  primitive_assembly_draw_elements(&pa, &as, &vertex_shader, &program.ar_, &cs, &ras, &fragbuf, &fragment_shader,
+  primitive_assembly_draw_elements(&program.pa_, &as, program.vertex_shader_, &program.ar_, &program.cs_, &ras, &program.fragbuf_, program.fragment_shader_,
                                    vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
                                    screen_width, screen_height, max_z,
                                    rgba32, screen_width*4,
@@ -4955,11 +4899,8 @@ int main(int argc, char **argv) {
 exit_cleanup:
   sl_program_cleanup(&program);
   sl_shader_cleanup(&vertex_shader);
-  fragment_buffer_cleanup(&fragbuf);
   rasterizer_cleanup(&ras);
-  clipping_stage_cleanup(&cs);
   attrib_set_cleanup(&as);
-  primitive_assembly_cleanup(&pa);
 
 #endif
   

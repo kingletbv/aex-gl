@@ -40,6 +40,16 @@
 #include "sl_uniforms.h"
 #endif
 
+#ifndef CLIPPING_STAGE_H_INCLUDED
+#define CLIPPING_STAGE_H_INCLUDED
+#include "clipping_stage.h"
+#endif
+
+#ifndef FRAGMENT_BUFFER_H_INCLUDED
+#define FRAGMENT_BUFFER_H_INCLUDED
+#include "fragment_buffer.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -48,6 +58,8 @@ struct sl_shader;
 
 struct sl_program {
   struct primitive_assembly pa_;
+  struct clipping_stage cs_;
+  struct fragment_buffer fragbuf_;
 
   struct sl_shader *vertex_shader_;
   struct sl_program *next_program_using_vertex_shader_, *prev_program_using_vertex_shader_;
@@ -72,6 +84,10 @@ void sl_program_detach_shader(struct sl_program *prog, struct sl_shader *sh);
 
 int sl_program_load_uniform_for_execution(struct sl_program *prog, struct sl_uniform *u);
 int sl_program_load_uniforms_for_execution(struct sl_program *prog);
+
+int sl_program_link(struct sl_program *prog);
+
+int sl_program_set_attrib_binding_index(struct sl_program *prog, const char *name, int index);
 
 #ifdef __cplusplus
 } /* extern "C" */
