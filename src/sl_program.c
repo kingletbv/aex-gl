@@ -64,9 +64,12 @@ void sl_program_init(struct sl_program *prog) {
   sl_info_log_init(&prog->log_);
   prog->next_program_using_vertex_shader_ = NULL;
   prog->prev_program_using_vertex_shader_ = NULL;
+  prog->vertex_shader_ = NULL;
   prog->next_program_using_fragment_shader_ = NULL;
   prog->prev_program_using_fragment_shader_ = NULL;
+  prog->fragment_shader_ = NULL;
   abt_init(&prog->abt_);
+  attrib_routing_init(&prog->ar_);
   sl_uniform_table_init(&prog->uniforms_);
 }
 
@@ -76,6 +79,7 @@ void sl_program_cleanup(struct sl_program *prog) {
   sl_program_detach_shader(prog, prog->fragment_shader_);
   sl_program_detach_shader(prog, prog->vertex_shader_);
   abt_cleanup(&prog->abt_);
+  attrib_routing_cleanup(&prog->ar_);
   sl_uniform_table_cleanup(&prog->uniforms_);
 }
 

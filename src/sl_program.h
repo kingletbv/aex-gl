@@ -30,6 +30,11 @@
 #include "attrib_binding_table.h"
 #endif
 
+#ifndef ATTRIB_ROUTING_H_INCLUDED
+#define ATTRIB_ROUTING_H_INCLUDED
+#include "attrib_routing.h"
+#endif
+
 #ifndef SL_UNIFORMS_H_INCLUDED
 #define SL_UNIFORMS_H_INCLUDED
 #include "sl_uniforms.h"
@@ -51,6 +56,7 @@ struct sl_program {
   struct sl_program *next_program_using_fragment_shader_, *prev_program_using_fragment_shader_;
 
   struct attrib_binding_table abt_;
+  struct attrib_routing ar_;
 
   struct sl_uniform_table uniforms_;
 
