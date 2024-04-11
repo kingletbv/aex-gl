@@ -536,3 +536,49 @@ int sl_function_call_graph_validation(struct diags *dx, struct sl_function *f) {
   }
 }
 
+static int sl_are_reg_allocs_compatible(struct sl_reg_alloc *a, struct sl_reg_alloc *b) {
+  if (!a || !b) return 0;
+
+  if (a->kind_ != b->kind_) {
+    return 0;
+  }
+  if (a->kind_ == slrak_array) {
+    if (a->v_.array_.num_elements_ == b->v_.array_.num_elements_) {
+      /* Same number of elements, check child head reg_allocs for compatibility. Note that
+       * we don't try to solve this via comparing pointer identities of ->v_.array_.element_type_
+       * which would work if both a and b are from the same type_base, but that is not the
+       * case when comparing different shader uniforms for compatibility (and so the types
+       * would be from different type_bases.) */
+      return sl_are_reg_allocs_compatible(a->v_.array_.head_, b->v_.array_.head_);
+    }
+    return 0;
+  }
+  else if (a->kind_ == slrak_struct) {
+    if (a->v_.comp_.num_fields_ != b->v_.comp_.num_fields_) return 0;
+    /* Iterate over the fields, all fields must be equal. */
+    size_t n;
+    for (n = 0; n < a->v_.comp_.num_fields_; ++n) {
+      if (!sl_are_reg_allocs_compatible(a->v_.comp_.fields_ + n, b->v_.comp_.fields_ + n)) {
+        /* Mismatch on any field is a mismatch on all */
+        return 0;
+      }
+    }
+    /* Matched all fields, a is compatible with b */
+    return 1;
+  }
+  else {
+    /* The kind of reg_alloc is a simple type (vec, mat, scalar) and they're identical, therefore
+     * the reg_allocs compatible. */
+    return 1;
+  }
+}
+
+int sl_are_variables_compatible(struct sl_variable *vertex_side, struct sl_variable *fragment_side) {
+  if (!vertex_side || !fragment_side) {
+    /* variables are not in conflict if one is missing */
+    return 1;
+  }
+
+  return sl_are_reg_allocs_compatible(&vertex_side->reg_alloc_, &fragment_side->reg_alloc_);
+}
+

@@ -275,6 +275,10 @@ void sl_parameter_cleanup(struct sl_parameter *p);
  * Returns 0 if the function passes validation, non-zero otherwise. */
 int sl_function_call_graph_validation(struct diags *dx, struct sl_function *f);
 
+/* Returns true if the variables could be used as the same varying or uniform, in two distinct shaders. */
+int sl_are_variables_compatible(struct sl_variable *vertex_side, struct sl_variable *fragment_side);
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
