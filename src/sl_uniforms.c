@@ -702,6 +702,41 @@ int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform 
   return 0;
 }
 
+int sl_uniform_max_ra_name_length(struct sl_reg_alloc *ra, size_t *pmax_name_length) {
+  int r;
+  if (ra->kind_ == slrak_array) {
+    char name_index[20 + 2 + 1];
+    sprintf(name_index, "[%" PRIu64 "]", (uint64_t)ra->v_.array_.num_elements_);
+    size_t len = strlen(name_index);
+    size_t child_len;
+    r = sl_uniform_max_ra_name_length(ra->v_.array_.head_, &child_len);
+    if (r) return r;
+    *pmax_name_length = len + child_len;
+    return 0;
+  }
+  else if (ra->kind_ == slrak_array) {
+    size_t n;
+    size_t max_len = 0;
+    struct sl_type_field *tf = ra->v_.comp_.struct_type_->fields_;
+    for (n = 0; n < ra->v_.comp_.num_fields_; ++n) {
+      size_t field_len;
+      tf = tf->chain_;
+      field_len = 1 /* "." */ + strlen(tf->ident_);
+      size_t child_len;
+      r = sl_uniform_max_ra_name_length(ra->v_.comp_.fields_ + n, &child_len);
+      field_len += child_len;
+      if (field_len > max_len) max_len = field_len;
+    }
+    *pmax_name_length = max_len;
+    return 0;
+  }
+  else {
+    /* no name part when we arrive here, as the final simple field has now been selected.. */
+    *pmax_name_length = 0;
+    return 0;
+  }
+}
+
 static void sl_uniform_load_f(size_t num, float *dst, float val) {
   float *restrict p = (float * restrict)dst;
   while (num--) {
