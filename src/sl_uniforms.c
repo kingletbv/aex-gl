@@ -42,6 +42,11 @@
 #include "sl_types.h"
 #endif
 
+#ifndef SL_EXECUTION_H_INCLUDED
+#define SL_EXECUTION_H_INCLUDED
+#include "sl_execution.h"
+#endif
+
 #ifndef SL_FRAME_H_INCLUDED
 #define SL_FRAME_H_INCLUDED
 #include "sl_frame.h"
@@ -697,4 +702,165 @@ int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform 
   return 0;
 }
 
+static void sl_uniform_load_f(size_t num, float *dst, float val) {
+  float *restrict p = (float * restrict)dst;
+  while (num--) {
+    *p++ = val;
+  }
+}
+
+static void sl_uniform_load_i(size_t num, int64_t *dst, int64_t val) {
+  int64_t *restrict p = (int64_t * restrict)dst;
+  while (num--) {
+    *p++ = val;
+  }
+}
+
+static void sl_uniform_load_b(size_t num, uint8_t *dst, uint8_t val) {
+  uint8_t * restrict p = (uint8_t * restrict)dst;
+  while (num--) {
+    *p++ = val;
+  }
+}
+
+static void sl_uniform_load_voidp(size_t num, void **dst, void *val) {
+  void **restrict p = (void * restrict * restrict)dst;
+  while (num--) {
+    *p++ = val;
+  }
+}
+
+int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, size_t offset, size_t *pnum_slab_bytes_consumed, struct sl_reg_alloc *ra) {
+  int r;
+  if (ra->kind_ == slrak_array) {
+    size_t n;
+    size_t num_elements = ra->v_.array_.num_elements_;
+    size_t original_offset = offset;
+    for (n = 0; n < ra->v_.array_.num_elements_; ++n) {
+      size_t num_bytes_consumed;
+      r = sl_uniform_load_ra_for_execution(exec, base_mem, offset, &num_bytes_consumed, ra->v_.array_.head_);
+      if (r) return r;
+      offset += num_bytes_consumed;
+    }
+    *pnum_slab_bytes_consumed = offset - original_offset;
+    return 0;
+  }
+  else if (ra->kind_ == slrak_struct) {
+    size_t field_offset;
+    size_t n;
+    size_t max_field_alignment = 1;
+    field_offset = 0;
+    for (n = 0; n < ra->v_.comp_.num_fields_; ++n) {
+      size_t field_size, field_alignment;
+      r = sl_uniform_get_reg_alloc_slab_size(ra->v_.comp_.fields_ + n, &field_size, &field_alignment);
+      if (r) return r;
+
+      /* Provide appropriate alignment for field */
+      size_t aligned_field_offset = (field_offset + field_alignment - 1);
+      if (aligned_field_offset < field_offset) return SL_ERR_OVERFLOW;
+      aligned_field_offset = aligned_field_offset & ~(field_alignment - 1);
+
+      size_t field_offset_from_base = field_offset + offset;
+      if (field_offset_from_base < field_offset) {
+        return SL_ERR_OVERFLOW;
+      }
+      size_t num_bytes_consumed_for_field;
+      r = sl_uniform_load_ra_for_execution(exec, base_mem, field_offset_from_base, &num_bytes_consumed_for_field, ra->v_.comp_.fields_ + n);
+      if (r) return r;
+
+      if (max_field_alignment < field_alignment) max_field_alignment = field_alignment;
+
+      aligned_field_offset += field_size;
+      if (aligned_field_offset < field_size) return SL_ERR_OVERFLOW;
+
+      field_offset = aligned_field_offset;
+    }
+    /* post-struct alignment padding, this occurs when we finish with a field with less size
+     * necessary than the alignment of the struct as a whole */
+    size_t aligned_struct_size = field_offset + max_field_alignment - 1;
+    if (aligned_struct_size < field_offset) return SL_ERR_OVERFLOW;
+    aligned_struct_size = aligned_struct_size & ~(max_field_alignment - 1);
+    *pnum_slab_bytes_consumed = aligned_struct_size;
+    return 0;
+  }
+  else {
+    size_t num_components = 0;
+    size_t n;
+    size_t original_offset = offset;
+    switch (ra->kind_) {
+      case slrak_void:
+        return SL_ERR_INVALID_ARG;
+      case slrak_float:
+      case slrak_vec2:
+      case slrak_vec3:
+      case slrak_vec4:
+      case slrak_mat2:
+      case slrak_mat3:
+      case slrak_mat4:
+        /* Align offset to float */
+        offset = (offset + sizeof(float) - 1) & ~(sizeof(float) - 1);
+        switch (ra->kind_) {
+          case slrak_float: num_components = 1; break;
+          case slrak_vec2:  num_components = 2; break;
+          case slrak_vec3:  num_components = 3; break;
+          case slrak_vec4:  num_components = 4; break;
+          case slrak_mat2:  num_components = 4; break;
+          case slrak_mat3:  num_components = 9; break;
+          case slrak_mat4:  num_components = 16; break;
+        }
+        for (n = 0; n < num_components; ++n) {
+          sl_uniform_load_f(exec->max_num_rows_, exec->float_regs_[ ra->v_.regs_[n] ], ((float *)(((char *)base_mem) + offset))[n]);
+        }
+        *pnum_slab_bytes_consumed = offset - original_offset + num_components * sizeof(float);
+        break;
+      case slrak_bool:
+      case slrak_bvec2:
+      case slrak_bvec3:
+      case slrak_bvec4:
+        switch (ra->kind_) {
+          case slrak_bool:  num_components = 1; break;
+          case slrak_bvec2: num_components = 2; break;
+          case slrak_bvec3: num_components = 3; break;
+          case slrak_bvec4: num_components = 4; break;
+        }
+        for (n = 0; n < num_components; ++n) {
+          sl_uniform_load_b(exec->max_num_rows_, exec->bool_regs_[ra->v_.regs_[n]], ((uint8_t *)(((char *)base_mem) + offset))[n]);
+        }
+        *pnum_slab_bytes_consumed = offset - original_offset + num_components * sizeof(uint8_t);
+        break;
+      case slrak_int:
+      case slrak_ivec2:
+      case slrak_ivec3:
+      case slrak_ivec4:
+        /* Align offset to int64_t */
+        offset = (offset + sizeof(int64_t) - 1) & ~(sizeof(int64_t) - 1);
+        switch (ra->kind_) {
+          case slrak_int:   num_components = 1; break;
+          case slrak_ivec2: num_components = 2; break;
+          case slrak_ivec3: num_components = 3; break;
+          case slrak_ivec4: num_components = 4; break;
+        }
+        for (n = 0; n < num_components; ++n) {
+          sl_uniform_load_i(exec->max_num_rows_, exec->int_regs_[ra->v_.regs_[n]], ((int64_t *)(((char *)base_mem) + offset))[n]);
+        }
+        *pnum_slab_bytes_consumed = offset - original_offset + num_components * sizeof(int64_t);
+        break;
+      case slrak_sampler2D:
+        /* Align offset to void* */
+        offset = (offset + sizeof(void*) - 1) & ~(sizeof(void*) - 1);
+        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_2D_regs_[ra->v_.regs_[0]], *(void **)(((char *)base_mem) + offset));
+        *pnum_slab_bytes_consumed = offset - original_offset + sizeof(void *);
+        break;
+      case slrak_samplerCube:
+        /* Align offset to void* */
+        offset = (offset + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
+        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_cube_regs_[ra->v_.regs_[0]], *(void **)(((char *)base_mem) + offset));
+        *pnum_slab_bytes_consumed = offset - original_offset + sizeof(void *);
+        break;
+      default:
+        return SL_ERR_INVALID_ARG;
+    }
+    return 0;
+  }
+}
 
