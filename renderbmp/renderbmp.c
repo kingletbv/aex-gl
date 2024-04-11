@@ -118,6 +118,11 @@
 #include "sl_shader.h"
 #endif
 
+#ifndef SL_PROGRAM_H_INCLUDED
+#define SL_PROGRAM_H_INCLUDED
+#include "sl_program.h"
+#endif
+
 int test(void) {
   int r = 0;
 
@@ -4722,6 +4727,7 @@ int main(int argc, char **argv) {
   struct fragment_buffer fragbuf;
   struct sl_shader vertex_shader;
   struct sl_shader fragment_shader;
+  struct sl_program program;
 
   primitive_assembly_init(&pa);
   attrib_set_init(&as);
@@ -4730,6 +4736,7 @@ int main(int argc, char **argv) {
   fragment_buffer_init(&fragbuf);
   sl_shader_init(&vertex_shader);
   sl_shader_init(&fragment_shader);
+  sl_program_init(&program);
 
   /* Initialize vertex shader */
 
@@ -4802,8 +4809,9 @@ int main(int argc, char **argv) {
 
   r = sl_exec_allocate_registers_by_slab(&fragment_shader.exec_, 256);
 
-  struct attrib_routing ar;
-  attrib_routing_init(&ar);
+  sl_program_attach_shader(&program, &vertex_shader);
+  sl_program_attach_shader(&program, &fragment_shader);
+
   struct sl_variable *fv = fragment_shader.cu_.global_frame_.variables_;
   if (fv) {
     do {
@@ -4813,15 +4821,20 @@ int main(int argc, char **argv) {
       if (qualifiers & SL_TYPE_QUALIFIER_VARYING) {
         /* Varying on the side of the fragment shader, if we can find a varying of the
          * same name (and type) on the side of the vertex shader, we can route. */
-        // XXX: MOVE TYPE TABLE INTO THE COMPILATION UNIT
         struct sl_variable *vv = sl_compilation_unit_find_variable(&vertex_shader.cu_, fv->name_);
         if (vv) {
           int vv_qualifiers = sl_type_qualifiers(vv->type_);
           if (vv_qualifiers & SL_TYPE_QUALIFIER_VARYING) {
             /* Have matching varying on the vertex shader side, and it is also a varying, route. */
-            /* XXX: WE NEED TO CHECK TYPE EQUIVALENCE */
-            
-            attrib_routing_add_variables(&ar, fv, vv);
+            if (!sl_are_variables_compatible(vv, fv)) {
+              fprintf(stderr, "Incompatible types for \"%s\" varyings\n", vv->name_);
+            }
+            else {
+              r = attrib_routing_add_variables(&program.ar_, fv, vv);
+              if (r) {
+                fprintf(stderr, "Failed adding \"%s\" varyings\n", vv->name_);
+              }
+            }
           }
         }
       }
@@ -4829,7 +4842,7 @@ int main(int argc, char **argv) {
   }
 
   if (primitive_assembly_alloc_buffers(&pa) ||
-      clipping_stage_alloc_varyings(&cs, ar.num_attribs_routed_) ||
+      clipping_stage_alloc_varyings(&cs, program.ar_.num_attribs_routed_) ||
       fragment_buffer_alloc_buffers(&fragbuf)) {
     fprintf(stderr, "Failed to initialize due to allocation failure\n");
     goto exit_cleanup;
@@ -4913,7 +4926,7 @@ int main(int argc, char **argv) {
   };
 
 
-  primitive_assembly_draw_elements(&pa, &as, &vertex_shader, &ar, &cs, &ras, &fragbuf, &fragment_shader,
+  primitive_assembly_draw_elements(&pa, &as, &vertex_shader, &program.ar_, &cs, &ras, &fragbuf, &fragment_shader,
                                    vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
                                    screen_width, screen_height, max_z,
                                    rgba32, screen_width*4,
@@ -4939,7 +4952,8 @@ int main(int argc, char **argv) {
                                    PAM_TRIANGLES, 3, PAIT_UNSIGNED_INT, indices);
 
   exit_ret = EXIT_SUCCESS;
-  exit_cleanup:
+exit_cleanup:
+  sl_program_cleanup(&program);
   sl_shader_cleanup(&vertex_shader);
   fragment_buffer_cleanup(&fragbuf);
   rasterizer_cleanup(&ras);
