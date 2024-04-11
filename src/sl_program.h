@@ -30,6 +30,11 @@
 #include "attrib_binding_table.h"
 #endif
 
+#ifndef SL_UNIFORMS_H_INCLUDED
+#define SL_UNIFORMS_H_INCLUDED
+#include "sl_uniforms.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,6 +52,8 @@ struct sl_program {
 
   struct attrib_binding_table abt_;
 
+  struct sl_uniform_table uniforms_;
+
   struct sl_info_log log_;
 
 };
@@ -56,6 +63,9 @@ void sl_program_cleanup(struct sl_program *prog);
 
 void sl_program_attach_shader(struct sl_program *prog, struct sl_shader *sh);
 void sl_program_detach_shader(struct sl_program *prog, struct sl_shader *sh);
+
+int sl_program_load_uniform_for_execution(struct sl_program *prog, struct sl_uniform *u);
+int sl_program_load_uniforms_for_execution(struct sl_program *prog);
 
 #ifdef __cplusplus
 } /* extern "C" */

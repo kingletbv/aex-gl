@@ -53,6 +53,12 @@
 #include "ref_range_allocator.h"
 #endif
 
+#ifndef SL_UNIFORMS_H_INCLUDED
+#define SL_UNIFORMS_H_INCLUDED
+#include "sl_uniforms.h"
+#endif
+
+
 void sl_program_init(struct sl_program *prog) {
   primitive_assembly_init(&prog->pa_);
   sl_info_log_init(&prog->log_);
@@ -61,6 +67,7 @@ void sl_program_init(struct sl_program *prog) {
   prog->next_program_using_fragment_shader_ = NULL;
   prog->prev_program_using_fragment_shader_ = NULL;
   abt_init(&prog->abt_);
+  sl_uniform_table_init(&prog->uniforms_);
 }
 
 void sl_program_cleanup(struct sl_program *prog) {
@@ -69,6 +76,7 @@ void sl_program_cleanup(struct sl_program *prog) {
   sl_program_detach_shader(prog, prog->fragment_shader_);
   sl_program_detach_shader(prog, prog->vertex_shader_);
   abt_cleanup(&prog->abt_);
+  sl_uniform_table_cleanup(&prog->uniforms_);
 }
 
 void sl_program_attach_shader(struct sl_program *prog, struct sl_shader *sh) {
@@ -266,3 +274,37 @@ int sl_program_link(struct sl_program *prog) {
   return r;
 }
 
+int sl_program_load_uniform_for_execution(struct sl_program *prog, struct sl_uniform *u) {
+  struct { struct sl_variable *v_;
+           struct sl_shader *s_;
+  } vs[] = {
+    { u->vertex_variable_, prog->vertex_shader_ },
+    { u->fragment_variable_, prog->fragment_shader_ }
+  };
+  size_t n;
+  int r;
+  for (n = 0; n < (sizeof(vs) / sizeof(*vs)); ++n) {
+    size_t num_bytes_consumed;
+    if (!vs[n].s_ || !vs[n].v_) continue;
+    r = sl_uniform_load_ra_for_execution(&vs[n].s_->exec_, u->slab_, 0, &num_bytes_consumed, &vs[n].v_->reg_alloc_);
+    if (r) return r;
+  }
+  return 0;
+}
+
+int sl_program_load_uniforms_for_execution(struct sl_program *prog) {
+  int r;
+  struct sl_uniform *u;
+  u = prog->uniforms_.uniforms_;
+  if (u) {
+    do {
+      u = u->chain_;
+
+      r = sl_program_load_uniform_for_execution(prog, u);
+      if (r) return r;
+
+    } while (u != prog->uniforms_.uniforms_);
+  }
+
+  return 0;
+}
