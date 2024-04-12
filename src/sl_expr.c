@@ -849,6 +849,10 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
       }
       size_t n;
       int r = 0;
+      if (!x->function_->builtin_eval_fn_) {
+        /* No compile-time evaluation implies the function is not const */
+        r |= SLXV_NOT_CONSTANT;
+      }
       for (n = 0; n < x->num_children_; ++n) {
         r = r | sl_expr_validate(dx, tb, x->children_[n]);
         if (r & SLXV_INVALID) return r;
@@ -1383,9 +1387,17 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
       return res;
     }
 
-    case exop_function_call:
-      /* XXX: Fish out the builtin functions and call those, return -1 for everything else. */
-      return -1;
+    case exop_function_call: {
+      /* Fish out the builtin functions and call those, return -1 for everything else. */
+      if (x->function_ && x->function_->builtin_eval_fn_) {
+        x->function_->builtin_eval_fn_(tb, x, r);
+        return 0;
+      }
+      else {
+        return -1;
+      }
+      break;
+    }
 
     case exop_constructor: {
       struct sl_expr_temp tmp;

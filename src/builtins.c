@@ -39,7 +39,7 @@ void builtin_not_implemented_runtime(struct sl_execution *exec, int exec_chain, 
   /* XXX: Currently does nothing though ideally we'd be reporting on not-implemented builtins at compile time */
 }
 
-void builtin_not_implemented_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_not_implemented_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   /* XXX: Currently does nothing though ideally we'd be reporting on not-implemented builtins at compile time */
 }
 
@@ -143,7 +143,7 @@ void builtin_radians_v4_runtime(struct sl_execution *exec, int exec_chain, struc
 #undef UNOP_SNIPPET_TYPE
 }
 
-void builtin_radians_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_radians_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -153,7 +153,7 @@ void builtin_radians_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct s
   sl_expr_temp_init_float(r, ((float)SL_PI) * opd.v_.f_ / 180.f);
 }
 
-void builtin_radians_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_radians_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -163,7 +163,7 @@ void builtin_radians_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct 
   sl_expr_temp_init_vec2(r, ((float)SL_PI) * opd.v_.v_[0] / 180.f, ((float)SL_PI) * opd.v_.v_[1] / 180.f);
 }
 
-void builtin_radians_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_radians_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -174,7 +174,7 @@ void builtin_radians_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct 
                             ((float)SL_PI) * opd.v_.v_[2] / 180.f);
 }
 
-void builtin_radians_v4_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_radians_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -282,7 +282,7 @@ void builtin_degrees_v4_runtime(struct sl_execution *exec, int exec_chain, struc
 #undef UNOP_SNIPPET_TYPE
 }
 
-void builtin_degrees_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_degrees_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -292,7 +292,7 @@ void builtin_degrees_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct s
   sl_expr_temp_init_float(r, 180.f * opd.v_.f_ / ((float)SL_PI));
 }
 
-void builtin_degrees_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_degrees_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -303,7 +303,7 @@ void builtin_degrees_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct 
                             180.f * opd.v_.v_[1] / ((float)SL_PI));
 }
 
-void builtin_degrees_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_degrees_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -315,7 +315,7 @@ void builtin_degrees_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct 
                             180.f * opd.v_.v_[2] / ((float)SL_PI));
 }
 
-void builtin_degrees_v4_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_degrees_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -429,7 +429,7 @@ void builtin_sin_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl
 #undef UNOP_SNIPPET_TYPE
 }
 
-void builtin_sin_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_sin_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -439,7 +439,7 @@ void builtin_sin_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_ex
   sl_expr_temp_init_float(r, sinf(opd.v_.f_));
 }
 
-void builtin_sin_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_sin_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -449,7 +449,7 @@ void builtin_sin_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_e
   sl_expr_temp_init_vec2(r, sinf(opd.v_.v_[0]), sinf(opd.v_.v_[1]));
 }
 
-void builtin_sin_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_sin_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -459,7 +459,7 @@ void builtin_sin_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_e
   sl_expr_temp_init_vec3(r, sinf(opd.v_.v_[0]), sinf(opd.v_.v_[1]), sinf(opd.v_.v_[2]));
 }
 
-void builtin_sin_v4_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_sin_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -569,7 +569,7 @@ void builtin_cos_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl
 #undef UNOP_SNIPPET_TYPE
 }
 
-void builtin_cos_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_cos_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -579,7 +579,7 @@ void builtin_cos_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_ex
   sl_expr_temp_init_float(r, cosf(opd.v_.f_));
 }
 
-void builtin_cos_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_cos_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -590,7 +590,7 @@ void builtin_cos_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_e
                             cosf(opd.v_.v_[1]));
 }
 
-void builtin_cos_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_cos_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -602,7 +602,7 @@ void builtin_cos_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_e
                             cosf(opd.v_.v_[2]));
 }
 
-void builtin_cos_v4_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_cos_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -715,7 +715,7 @@ void builtin_tan_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl
 #undef UNOP_SNIPPET_TYPE
 }
 
-void builtin_tan_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_tan_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -725,7 +725,7 @@ void builtin_tan_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_ex
   sl_expr_temp_init_float(r, tanf(opd.v_.f_));
 }
 
-void builtin_tan_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_tan_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -736,7 +736,7 @@ void builtin_tan_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_e
                             tanf(opd.v_.v_[1]));
 }
 
-void builtin_tan_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_tan_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -748,7 +748,7 @@ void builtin_tan_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_e
                             tanf(opd.v_.v_[2]));
 }
 
-void builtin_tan_v4_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_tan_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -861,7 +861,7 @@ void builtin_asin_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 #undef UNOP_SNIPPET_TYPE
 }
 
-void builtin_asin_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_asin_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -871,7 +871,7 @@ void builtin_asin_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_e
   sl_expr_temp_init_float(r, asinf(opd.v_.f_));
 }
 
-void builtin_asin_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_asin_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -882,7 +882,7 @@ void builtin_asin_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_
                             asinf(opd.v_.v_[1]));
 }
 
-void builtin_asin_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_asin_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -894,7 +894,7 @@ void builtin_asin_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_
                             asinf(opd.v_.v_[2]));
 }
 
-void builtin_asin_v4_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_asin_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -1007,7 +1007,7 @@ void builtin_acos_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 #undef UNOP_SNIPPET_TYPE
 }
 
-void builtin_acos_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_acos_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -1017,7 +1017,7 @@ void builtin_acos_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_e
   sl_expr_temp_init_float(r, acosf(opd.v_.f_));
 }
 
-void builtin_acos_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_acos_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -1028,7 +1028,7 @@ void builtin_acos_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_
                             acosf(opd.v_.v_[1]));
 }
 
-void builtin_acos_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_acos_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -1040,7 +1040,7 @@ void builtin_acos_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_
                             acosf(opd.v_.v_[2]));
 }
 
-void builtin_acos_v4_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_acos_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -1153,7 +1153,7 @@ void builtin_atan_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 #undef UNOP_SNIPPET_TYPE
 }
 
-void builtin_atan_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_atan_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -1163,7 +1163,7 @@ void builtin_atan_f_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_e
   sl_expr_temp_init_float(r, atanf(opd.v_.f_));
 }
 
-void builtin_atan_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_atan_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -1174,7 +1174,7 @@ void builtin_atan_v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_
                             atanf(opd.v_.v_[1]));
 }
 
-void builtin_atan_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_atan_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -1186,7 +1186,7 @@ void builtin_atan_v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_
                             atanf(opd.v_.v_[2]));
 }
 
-void builtin_atan_v4_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_atan_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd;
   sl_expr_temp_init(&opd, NULL);
   if (sl_expr_eval(tb, x->children_[0], &opd)) {
@@ -1312,7 +1312,7 @@ void builtin_atan_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct
 #undef BINOP_SNIPPET_TYPE
 }
 
-void builtin_atan_ff_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_atan_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd0, opd1;
   sl_expr_temp_init(&opd0, NULL);
   sl_expr_temp_init(&opd1, NULL);
@@ -1328,7 +1328,7 @@ void builtin_atan_ff_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_
   sl_expr_temp_init_float(r, atanf(opd0.v_.f_/opd1.v_.f_));
 }
 
-void builtin_atan_v2v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_atan_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd0, opd1;
   sl_expr_temp_init(&opd0, NULL);
   sl_expr_temp_init(&opd1, NULL);
@@ -1345,7 +1345,7 @@ void builtin_atan_v2v2_eval(struct sl_type_base *tb, struct sl_expr *x, struct s
                             atanf(opd0.v_.v_[1]/opd1.v_.v_[1]));
 }
 
-void builtin_atan_v3v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_atan_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd0, opd1;
   sl_expr_temp_init(&opd0, NULL);
   sl_expr_temp_init(&opd1, NULL);
@@ -1363,7 +1363,7 @@ void builtin_atan_v3v3_eval(struct sl_type_base *tb, struct sl_expr *x, struct s
                             atanf(opd0.v_.v_[2]/opd1.v_.v_[2]));
 }
 
-void builtin_atan_v4v4_eval(struct sl_type_base *tb, struct sl_expr *x, struct sl_expr_temp *r) {
+void builtin_atan_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
   struct sl_expr_temp opd0, opd1;
   sl_expr_temp_init(&opd0, NULL);
   sl_expr_temp_init(&opd1, NULL);

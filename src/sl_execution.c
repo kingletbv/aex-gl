@@ -4425,37 +4425,41 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
 
           case exop_function_call: {
             //int sl_exec_push_execution_frame(struct sl_execution *exec)
-            struct sl_execution_frame *parent = exec->execution_frames_ + exec->num_execution_frames_ - 1;
-            r = sl_exec_push_execution_frame(exec);
-            if (r) return r;
-            struct sl_execution_frame *ef = exec->execution_frames_ + exec->num_execution_frames_ - 1;
-            ef->f_ = eps[epi].v_.expr_->function_;
-            
-            size_t n;
-            /* Have to have equal number of children as we do parameters.. */
-            assert(ef->f_->num_parameters_ == eps[epi].v_.expr_->num_children_);
-
-            /* Establish new frame */
-            ef->local_float_offset_ += (int)parent->f_->frame_.ract_.rra_floats_.watermark_;
-            ef->local_int_offset_ += (int)parent->f_->frame_.ract_.rra_ints_.watermark_;
-            ef->local_bool_offset_ += (int)parent->f_->frame_.ract_.rra_bools_.watermark_;
-            ef->local_sampler2D_offset_ += (int)parent->f_->frame_.ract_.rra_sampler2D_.watermark_;
-            ef->local_samplerCube_offset_ += (int)parent->f_->frame_.ract_.rra_samplerCube_.watermark_;
-
-            for (n = 0; n < ef->f_->num_parameters_; ++n) {
-              struct sl_reg_alloc *param_ra = &ef->f_->parameters_[n].variable_->reg_alloc_;
-              sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_);
-              struct sl_reg_alloc *call_arg_ra = EXPR_RVALUE(eps[epi].v_.expr_->children_[n]);
-              
-              sl_exec_move_param(exec, eps[epi].revisit_chain_, ef, param_ra, parent, call_arg_ra, 1);
+            if (eps[epi].v_.expr_->function_->builtin_runtime_fn_) {
+              eps[epi].v_.expr_->function_->builtin_runtime_fn_(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_);
             }
-
-            r = sl_exec_push_stmt(exec, ef->f_->body_, eps[epi].revisit_chain_, CHAIN_REF(eps[epi].alt_chain_));
-            if (r) return r;
+            else {
+              struct sl_execution_frame *parent = exec->execution_frames_ + exec->num_execution_frames_ - 1;
+              r = sl_exec_push_execution_frame(exec);
+              if (r) return r;
+              struct sl_execution_frame *ef = exec->execution_frames_ + exec->num_execution_frames_ - 1;
+              ef->f_ = eps[epi].v_.expr_->function_;
             
-            eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
-            dont_pop = 1;
+              size_t n;
+              /* Have to have equal number of children as we do parameters.. */
+              assert(ef->f_->num_parameters_ == eps[epi].v_.expr_->num_children_);
 
+              /* Establish new frame */
+              ef->local_float_offset_ += (int)parent->f_->frame_.ract_.rra_floats_.watermark_;
+              ef->local_int_offset_ += (int)parent->f_->frame_.ract_.rra_ints_.watermark_;
+              ef->local_bool_offset_ += (int)parent->f_->frame_.ract_.rra_bools_.watermark_;
+              ef->local_sampler2D_offset_ += (int)parent->f_->frame_.ract_.rra_sampler2D_.watermark_;
+              ef->local_samplerCube_offset_ += (int)parent->f_->frame_.ract_.rra_samplerCube_.watermark_;
+
+              for (n = 0; n < ef->f_->num_parameters_; ++n) {
+                struct sl_reg_alloc *param_ra = &ef->f_->parameters_[n].variable_->reg_alloc_;
+                sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_);
+                struct sl_reg_alloc *call_arg_ra = EXPR_RVALUE(eps[epi].v_.expr_->children_[n]);
+              
+                sl_exec_move_param(exec, eps[epi].revisit_chain_, ef, param_ra, parent, call_arg_ra, 1);
+              }
+
+              r = sl_exec_push_stmt(exec, ef->f_->body_, eps[epi].revisit_chain_, CHAIN_REF(eps[epi].alt_chain_));
+              if (r) return r;
+            
+              eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
+              dont_pop = 1;
+            }
             break;
           }
         }

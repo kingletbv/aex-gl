@@ -4738,11 +4738,10 @@ int main(int argc, char **argv) {
   const char *src = 
     "attribute vec4 v_color;\n"
     "varying vec4 vertex_color;\n"
+    "const float half_pi = 3.14159265358979/2.;\n"
+    "const float f_one = sin(half_pi);\n"
     "void main() {\n"
     "  vertex_color = v_color;\n"
-    //"  gl_Position.xy += vec2(4. * 2. / 16., -5. * 2. / 16.);\n"
-    //"  gl_Position.x += 4. * 2. / 16.;\n"
-    //"  gl_Position.y -= 5. * 2. / 16.;\n"
     "}\n";
   int src_len = (int)strlen(src);
   sl_shader_set_source(&vertex_shader, 1, &src, &src_len);
@@ -4758,6 +4757,7 @@ int main(int argc, char **argv) {
       case SL_ERR_HAD_ERRORS: err = "SL_ERR_HAD_ERRORS"; break;
     }
     fprintf(stderr, "Failed (%d): %s\n", r, err);
+    if (r) goto exit_cleanup;
   }
   struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&vertex_shader.cu_, "gl_Position");
   struct sl_variable *vgl_v_color = sl_compilation_unit_find_variable(&vertex_shader.cu_, "v_color");
@@ -4794,6 +4794,7 @@ int main(int argc, char **argv) {
       case SL_ERR_HAD_ERRORS: err = "SL_ERR_HAD_ERRORS"; break;
     }
     fprintf(stderr, "Failed (%d): %s\n", r, err);
+    if (r) goto exit_cleanup;
   }
   r = sl_exec_prep(&fragment_shader.exec_, &fragment_shader.cu_);
   if (r) {

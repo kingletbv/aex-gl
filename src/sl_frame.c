@@ -464,7 +464,7 @@ static int sl_function_expr_call_graph_validation(struct diags *dx, struct sl_ex
       dx_error_loc(dx, &x->op_loc_, "no function found");
       return -1;
     }
-    if (!f->body_) {
+    if (!f->body_ && !f->builtin_runtime_fn_) {
       /* No function definition */
       dx_error_loc(dx, &x->op_loc_, "no function definition for function \"%s\"\n", f->name_);
       return -1;
