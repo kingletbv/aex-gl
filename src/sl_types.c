@@ -242,7 +242,7 @@ struct sl_type *sl_type_base_qualified_type(struct sl_type_base *tb, struct sl_t
   t->qualifiers_ = extra_qualifiers;
   if (tb->hash_table_[hash]) {
     t->hash_chain_ = tb->hash_table_[hash]->hash_chain_;
-    tb->hash_table_[hash]->hash_chain_ = t->hash_chain_;
+    tb->hash_table_[hash]->hash_chain_ = t;
   }
   else {
     t->hash_chain_ = t;
@@ -283,7 +283,7 @@ struct sl_type *sl_type_base_array_type(struct sl_type_base *tb, struct sl_type 
   t->array_size_ = array_size;
   if (tb->hash_table_[hash]) {
     t->hash_chain_ = tb->hash_table_[hash]->hash_chain_;
-    tb->hash_table_[hash]->hash_chain_ = t->hash_chain_;
+    tb->hash_table_[hash]->hash_chain_ = t;
   }
   else {
     t->hash_chain_ = t;
@@ -393,7 +393,7 @@ static size_t sl_type_str_dump(const char *s, char *output_str, size_t at) {
 size_t sl_type_dump_array_of_element(const struct sl_type *t, uint64_t array_size, char *output_str) {
   size_t str_size = 0;
 
-  struct sl_type *non_array_child = t;
+  const struct sl_type *non_array_child = t;
   while (non_array_child->kind_ == sltk_array) {
     non_array_child = non_array_child->derived_type_;
   }
@@ -413,6 +413,7 @@ size_t sl_type_dump_array_of_element(const struct sl_type *t, uint64_t array_siz
 
     t = t->derived_type_;
   }
+  return str_size;
 }
 
 size_t sl_type_dump(const struct sl_type *t, char *output_str) {
