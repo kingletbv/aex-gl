@@ -38,8 +38,7 @@
 #include "diags.h"
 #endif
 
-
-static int sl_info_log_dx_cb(void *log_ptr, const char *file, int line_num, const char *fmt, va_list args) {
+static int sl_info_log_dx_vprintf(void *log_ptr, const char *fmt, va_list args) {
   struct sl_info_log *log = (struct sl_info_log *)log_ptr;
 
   size_t mem_needed = 0; /* including NULL terminator */
@@ -73,6 +72,28 @@ static int sl_info_log_dx_cb(void *log_ptr, const char *file, int line_num, cons
   log->gl_info_log_size_ = mem_needed - 1;
 
   return 0;
+}
+
+static int sl_info_log_dx_printf(void *log_ptr, const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  int r;
+  r = sl_info_log_dx_vprintf(log_ptr, fmt, args);
+  va_end(args);
+  return r;
+}
+
+static int sl_info_log_dx_cb(void *log_ptr, const char *file, int line_num, const char *fmt, va_list args) {
+  int r;
+  struct sl_info_log *log = (struct sl_info_log *)log_ptr;
+  
+  if (file) {
+    sl_info_log_dx_printf(log_ptr, "%s(%d): ", file, line_num);
+  }
+
+  r = sl_info_log_dx_vprintf(log_ptr, fmt, args);
+
+  return r;
 }
 
 
