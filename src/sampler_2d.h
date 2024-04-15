@@ -47,6 +47,8 @@ struct sampler_2d {
   int width_;
   int height_;
 
+  int q_; /* maximum mip-map level, counting from 0 for the original texture upwards */
+
   /* list of all samplers part of the current evaluation, each sampler
    * contains the set of rows it is currently being evaluated by. */
   struct sampler_2d *runtime_active_sampler_chain_;

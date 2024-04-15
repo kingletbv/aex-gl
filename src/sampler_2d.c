@@ -169,13 +169,21 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
       /* Check if we need to find mipmaps.. */
       int locate_log2_mipmaps = 0;
       switch (s2d->min_filter_) {
-        case   s2d_nearest:                locate_log2_mipmaps = 0; break;
-        case   s2d_linear:                 locate_log2_mipmaps = 0; break;
+        case   s2d_nearest:                
+        case   s2d_linear:
+          /* Switch-over between filtering minification and magnification requires distinguishing between
+           * the two */
+          locate_log2_mipmaps = s2d->mag_filter_ != s2d->min_filter_; break;
         case   s2d_nearest_mipmap_nearest: locate_log2_mipmaps = 1; break;
         case   s2d_nearest_mipmap_linear:  locate_log2_mipmaps = 1; break;
         case   s2d_linear_mipmap_nearest:  locate_log2_mipmaps = 1; break;
         case   s2d_linear_mipmap_linear:   locate_log2_mipmaps = 1; break;
       }
+
+      uint32_t minification_chain = SL_EXEC_NO_CHAIN;
+      uint32_t minification_chain_tail = SL_EXEC_NO_CHAIN;
+      uint32_t magnification_chain = SL_EXEC_NO_CHAIN;
+      uint32_t magnification_chain_tail = SL_EXEC_NO_CHAIN;
 
       if (locate_log2_mipmaps) {
         /* Fragment rows are ordered per square of 4 fragments, repeating 
@@ -190,6 +198,18 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
         float * restrict result_column = s2d->ds_dx_;
         float * restrict opd_column = coord_column_s;
         float * restrict log2_column = s2d->dst_log2_;
+
+        /* c as meant in section 3.7.8 texture magnification (OpenGL ES 2.0 full spec v2.0.25 page 82) */
+        float c;
+        if ((s2d->mag_filter_ == s2d_linear) &&
+            ((s2d->min_filter_ == s2d_nearest_mipmap_nearest) ||
+             (s2d->min_filter_ == s2d_nearest_mipmap_linear))) {
+          c = 0.5f;
+        }
+        else {
+          c = 0.f;
+        }
+
         for (;;) {
           uint64_t chain;
           uint8_t delta;
@@ -251,17 +271,84 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
 #undef S2D_DMS_MAX
 
               /* Write out results, divide the log2 by 2 so we effectively square-root the 
-                * dmax_squared prior to taking the log2. (e.g. log2(sqrt()) == 0.5 * log2()) */
-              l2[0] = log2f(dmax_squared_len_0) * 0.5f;
-              l2[1] = log2f(dmax_squared_len_1) * 0.5f;
-              l2[2] = log2f(dmax_squared_len_2) * 0.5f;
-              l2[3] = log2f(dmax_squared_len_3) * 0.5f;
-              l2[4] = log2f(dmax_squared_len_4) * 0.5f;
-              l2[5] = log2f(dmax_squared_len_5) * 0.5f;
-              l2[6] = log2f(dmax_squared_len_6) * 0.5f;
-              l2[7] = log2f(dmax_squared_len_7) * 0.5f;
+               * dmax_squared prior to taking the log2. (e.g. log2(sqrt()) == 0.5 * log2()) */
+              float l2_0 = log2f(dmax_squared_len_0) * 0.5f;
+              float l2_1 = log2f(dmax_squared_len_1) * 0.5f;
+              float l2_2 = log2f(dmax_squared_len_2) * 0.5f;
+              float l2_3 = log2f(dmax_squared_len_3) * 0.5f;
+              float l2_4 = log2f(dmax_squared_len_4) * 0.5f;
+              float l2_5 = log2f(dmax_squared_len_5) * 0.5f;
+              float l2_6 = log2f(dmax_squared_len_6) * 0.5f;
+              float l2_7 = log2f(dmax_squared_len_7) * 0.5f;
+
+              l2[0] = l2_0;
+              l2[1] = l2_1;
+              l2[2] = l2_2;
+              l2[3] = l2_3;
+              l2[4] = l2_4;
+              l2[5] = l2_5;
+              l2[6] = l2_6;
+              l2[7] = l2_7;
 
               delta = (chain & 0xFF00000000000000) >> 56;
+
+              /* Dispatch between minification and magnification
+               * Attempt here is to keep it within integer bitwise logic, perhaps
+               * even parallelising, and avoid the compiler from going down a 
+               * logical branching path. */
+              int magnification = ((l2_0 > c) ? 0: 1)
+                                + ((l2_1 > c) ? 0: 2)
+                                + ((l2_2 > c) ? 0: 4)
+                                + ((l2_3 > c) ? 0: 8)
+                                + ((l2_4 > c) ? 0: 16)
+                                + ((l2_5 > c) ? 0: 32)
+                                + ((l2_6 > c) ? 0: 64)
+                                + ((l2_7 > c) ? 0: 128);
+              if (magnification == 0xFF) {
+                /* All magnify */
+                if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
+                  chain_column[magnification_chain_tail] = row - magnification_chain_tail;
+                }
+                else {
+                  magnification_chain = row;
+                }
+                magnification_chain_tail = row + 7;
+              }
+              else if (!magnification) {
+                /* All minify */
+                if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
+                  chain_column[minification_chain_tail] = row - minification_chain_tail;
+                }
+                else {
+                  minification_chain = row;
+                }
+                minification_chain_tail = row + 7;
+              }
+              else {
+                /* A tragic mix / cross-over of magnification and minification; slowly split the two one by one */
+                int frag_idx;
+                for (frag_idx = 0; frag_idx < 8; frag_idx++) {
+                  if (magnification & 1) {
+                    if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
+                      chain_column[magnification_chain_tail] = row + frag_idx - magnification_chain_tail;
+                    }
+                    else {
+                      magnification_chain = row + frag_idx;
+                    }
+                    magnification_chain_tail = row + frag_idx;
+                  }
+                  else {
+                    if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
+                      chain_column[minification_chain_tail] = row + frag_idx - minification_chain_tail;
+                    }
+                    else {
+                      minification_chain = row + frag_idx;
+                    }
+                    minification_chain_tail = row + frag_idx;
+                  }
+                }
+              }
+
               if (!delta) break;
               row += 7 + delta;
             } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
@@ -273,8 +360,8 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
               const float *restrict r_t = coord_column_t + row;
 
               /* Top-Left dsdx = Top-Right dsdx = Top-Right S - Top-Left S
-                * 01 
-                * 23 */
+               * 01 
+               * 23 */
               float fdsdx01 = r_s[1] - r_s[0];
               /* Bottom-Left dsdx = Bottom-Right dsdx = Bottom-Right S - Bottom-Left S */
               float fdsdx23 = r_s[3] - r_s[2];
@@ -284,8 +371,8 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
               float fdtdx23 = r_t[3] - r_t[2];
 
               /* Follow the same pattern for S and T over dy
-                * 01 
-                * 23 */
+               * 01 
+               * 23 */
               float fdsdy02 = r_s[2] - r_s[0];
               float fdsdy13 = r_s[3] - r_s[1];
 
@@ -306,11 +393,65 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
 #undef S2D_DMS_MAX
 
               /* Write out results, divide the log2 by 2 so we effectively square-root the
-                * dmax_squared prior to taking the log2. (e.g. log2(sqrt()) == 0.5 * log2()) */
-              l2[0] = log2f(dmax_squared_len_0) * 0.5f;
-              l2[1] = log2f(dmax_squared_len_1) * 0.5f;
-              l2[2] = log2f(dmax_squared_len_2) * 0.5f;
-              l2[3] = log2f(dmax_squared_len_3) * 0.5f;
+               * dmax_squared prior to taking the log2. (e.g. log2(sqrt()) == 0.5 * log2()) */
+              float l2_0 = log2f(dmax_squared_len_0) * 0.5f;
+              float l2_1 = log2f(dmax_squared_len_1) * 0.5f;
+              float l2_2 = log2f(dmax_squared_len_2) * 0.5f;
+              float l2_3 = log2f(dmax_squared_len_3) * 0.5f;
+              l2[0] = l2_0;
+              l2[1] = l2_1;
+              l2[2] = l2_2;
+              l2[3] = l2_3;
+
+              /* Dispatch between minification and magnification */
+              int magnification = ((l2_0 > c) ? 0: 1)
+                                + ((l2_1 > c) ? 0: 2)
+                                + ((l2_2 > c) ? 0: 4)
+                                + ((l2_3 > c) ? 0: 8);
+              if (magnification == 0xF) {
+                /* All magnify */
+                if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
+                  chain_column[magnification_chain_tail] = row - magnification_chain_tail;
+                }
+                else {
+                  magnification_chain = row;
+                }
+                magnification_chain_tail = row + 3;
+              }
+              else if (!magnification) {
+                /* All minify */
+                if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
+                  chain_column[minification_chain_tail] = row - minification_chain_tail;
+                }
+                else {
+                  minification_chain = row;
+                }
+                minification_chain_tail = row + 3;
+              }
+              else {
+                /* A tragic mix / cross-over of magnification and minification; slowly split the two one by one */
+                int frag_idx;
+                for (frag_idx = 0; frag_idx < 4; frag_idx++) {
+                  if (magnification & 1) {
+                    if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
+                      chain_column[magnification_chain_tail] = row + frag_idx - magnification_chain_tail;
+                    }
+                    else {
+                      magnification_chain = row + frag_idx;
+                    }
+                    magnification_chain_tail = row + frag_idx;
+                  }
+                  else {
+                    if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
+                      chain_column[minification_chain_tail] = row + frag_idx - minification_chain_tail;
+                    }
+                    else {
+                      minification_chain = row + frag_idx;
+                    }
+                    minification_chain_tail = row + frag_idx;
+                  }
+                }
+              }
 
               delta = (chain & 0xFF000000) >> 24;
               if (!delta) break;
@@ -320,10 +461,10 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
           else {
             do {
               /* Stubbornly persist in reaching across rows, even if the square of fragmens is not
-                * in the same execution chain (e.g. there is some stippling or such going on in the
-                * fragment shader) - so even if that's the case, the interpolation of S and T is
-                * still very likely a good basis for mip-mapping. Note that the GLSL spec is 
-                * "undefined" as to what happens here; just try and do something reasonable. */
+               * in the same execution chain (e.g. there is some stippling or such going on in the
+               * fragment shader) - so even if that's the case, the interpolation of S and T is
+               * still very likely a good basis for mip-mapping. Note that the GLSL spec is 
+               * "undefined" as to what happens here; just try and do something reasonable. */
               float *restrict l2 = log2_column + row;
               const float *restrict r_s = coord_column_s + row;
               const float *restrict r_t = coord_column_t + row;
@@ -334,7 +475,30 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
               float fdstdx_squared_len = fdsdx * fdsdx + fdtdx * fdtdx;
               float fdstdy_squared_len = fdsdy * fdsdy + fdtdy * fdtdy;
               float dmax_squared_len = (fdstdx_squared_len > fdstdy_squared_len) ? fdstdx_squared_len : fdstdy_squared_len;
-              *l2 = log2f(dmax_squared_len) * 0.5f;
+              float lg2 = log2f(dmax_squared_len) * 0.5f;
+
+              *l2 = lg2;
+
+              if (lg2 <= c) {
+                /* Magnification */
+                if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
+                  chain_column[magnification_chain_tail] = row - magnification_chain_tail;
+                }
+                else {
+                  magnification_chain = row;
+                }
+                magnification_chain_tail = row;
+              }
+              else {
+                /* Minification */
+                if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
+                  chain_column[minification_chain_tail] = row - minification_chain_tail;
+                }
+                else {
+                  minification_chain = row;
+                }
+                minification_chain_tail = row;
+              }
 
               delta = chain_column[row];
               if (!delta) break;
@@ -343,7 +507,88 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
           }
           if (!delta) break;
         }
+      } /* end of if (locate_log2_mipmaps) */
+      else {
+        minification_chain = exec_chain;
       }
+
+      if ((s2d->min_filter_ == s2d_nearest_mipmap_nearest) ||
+          (s2d->min_filter_ == s2d_linear_mipmap_nearest)) {
+        float max_q  = 0.5f + (float)s2d->q_;
+        int q = s2d->q_;
+
+        float * restrict opd_column = coord_column_s;
+        float * restrict log2_column = s2d->dst_log2_;
+        for (;;) {
+          uint64_t chain;
+          uint8_t delta;
+          if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+            do {
+              float * restrict l2 = log2_column + row;
+              const float *restrict r_s = coord_column_s + row;
+              const float *restrict r_t = coord_column_t + row;
+
+              float l2_0 = l2[0];
+              float l2_1 = l2[1];
+              float l2_2 = l2[2];
+              float l2_3 = l2[3];
+              float l2_4 = l2[4];
+              float l2_5 = l2[5];
+              float l2_6 = l2[6];
+              float l2_7 = l2[7];
+
+              int nearest_d0 = (l2_0 <= 0.5f) ? 0 : (l2_0 > max_q) ? q : ((int)(ceilf(l2_0 + 0.5f)) - 1);
+              int nearest_d1 = (l2_1 <= 0.5f) ? 0 : (l2_1 > max_q) ? q : ((int)(ceilf(l2_1 + 0.5f)) - 1);
+              int nearest_d2 = (l2_2 <= 0.5f) ? 0 : (l2_2 > max_q) ? q : ((int)(ceilf(l2_2 + 0.5f)) - 1);
+              int nearest_d3 = (l2_3 <= 0.5f) ? 0 : (l2_3 > max_q) ? q : ((int)(ceilf(l2_3 + 0.5f)) - 1);
+              int nearest_d4 = (l2_4 <= 0.5f) ? 0 : (l2_4 > max_q) ? q : ((int)(ceilf(l2_4 + 0.5f)) - 1);
+              int nearest_d5 = (l2_5 <= 0.5f) ? 0 : (l2_5 > max_q) ? q : ((int)(ceilf(l2_5 + 0.5f)) - 1);
+              int nearest_d6 = (l2_6 <= 0.5f) ? 0 : (l2_6 > max_q) ? q : ((int)(ceilf(l2_6 + 0.5f)) - 1);
+              int nearest_d7 = (l2_7 <= 0.5f) ? 0 : (l2_7 > max_q) ? q : ((int)(ceilf(l2_7 + 0.5f)) - 1);
+
+              delta = (chain & 0xFF00000000000000) >> 56;
+              if (!delta) break;
+              row += 7 + delta;
+            } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+          }
+          else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+            do {
+              float *restrict l2 = log2_column + row;
+              const float *restrict r_s = coord_column_s + row;
+              const float *restrict r_t = coord_column_t + row;
+
+              float l2_0 = l2[0];
+              float l2_1 = l2[1];
+              float l2_2 = l2[2];
+              float l2_3 = l2[3];
+
+              int nearest_d0 = (l2_0 <= 0.5f) ? 0 : (l2_0 > max_q) ? q : ((int)(ceilf(l2_0 + 0.5f)) - 1);
+              int nearest_d1 = (l2_1 <= 0.5f) ? 0 : (l2_1 > max_q) ? q : ((int)(ceilf(l2_1 + 0.5f)) - 1);
+              int nearest_d2 = (l2_2 <= 0.5f) ? 0 : (l2_2 > max_q) ? q : ((int)(ceilf(l2_2 + 0.5f)) - 1);
+              int nearest_d3 = (l2_3 <= 0.5f) ? 0 : (l2_3 > max_q) ? q : ((int)(ceilf(l2_3 + 0.5f)) - 1);
+
+              delta = (chain & 0xFF000000) >> 24;
+              if (!delta) break;
+              row += 3 + delta;
+            } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+          }
+          else {
+            do {
+              float *restrict l2 = log2_column + row;
+              const float *restrict r_s = coord_column_s + row;
+              const float *restrict r_t = coord_column_t + row;
+
+              float lg2 = l2[0];
+              int nearest_d = (lg2 <= 0.5f) ? 0 : (lg2 > max_q) ? q : ((int)(ceilf(lg2 + 0.5f)) - 1);
+
+              delta = chain_column[row];
+              if (!delta) break;
+              row += delta;
+            } while (row & 3);
+          }
+          if (!delta) break;
+        }
+      } /* end of if (XXX_MIPMAP_NEAREST) */
 
     } while (s2d != samplers);
   }
