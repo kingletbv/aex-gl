@@ -63,6 +63,11 @@
 #include "sl_compilation_unit.h"
 #endif
 
+#ifndef SAMPLER_2D_H_INCLUDED
+#define SAMPLER_2D_H_INCLUDED
+#include "sampler_2d.h"
+#endif
+
 void glsl_es1_compiler_init(struct glsl_es1_compiler *cc) {
   dx_diags_init(&cc->default_dx_);
   cc->dx_ = &cc->default_dx_;

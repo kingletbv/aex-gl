@@ -290,20 +290,20 @@ xx("bvec3 not(bvec3 x);", builtin_not_implemented_runtime, builtin_not_implement
 xx("bvec4 not(bvec4 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
 
 /* Texture Lookup Functions */
-xx("vec4 texture2D(sampler2D sampler, vec2 coord);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 texture2D(sampler2D sampler, vec2 coord, float bias);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("vec4 texture2D(sampler2D sampler, vec2 coord);",                   builtin_texture2D_runtime, NULL)
+xx("vec4 texture2D(sampler2D sampler, vec2 coord, float bias);",       builtin_texture2D_bias_runtime, NULL)
 
-xx("vec4 texture2DProj(sampler2D sampler, vec3 coord);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 texture2DProj(sampler2D sampler, vec3 coord, float bias);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 texture2DProj(sampler2D sampler, vec4 coord);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 texture2DProj(sampler2D sampler, vec4 coord, float bias);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("vec4 texture2DProj(sampler2D sampler, vec3 coord);",               builtin_texture2DProj_v3_runtime, NULL)
+xx("vec4 texture2DProj(sampler2D sampler, vec3 coord, float bias);",   builtin_texture2DProj_v3_bias_runtime, NULL)
+xx("vec4 texture2DProj(sampler2D sampler, vec4 coord);",               builtin_texture2DProj_v4_runtime, NULL)
+xx("vec4 texture2DProj(sampler2D sampler, vec4 coord, float bias);",   builtin_texture2DProj_v4_bias_runtime, NULL)
 
-xx("vec4 texture2DLod(sampler2D sampler, vec2 coord, float lod);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("vec4 texture2DLod(sampler2D sampler, vec2 coord, float lod);",     builtin_texture2DLod_v2_runtime, NULL)
 
-xx("vec4 texture2DProjLod(sampler2D sampler, vec3 coord, float lod);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 texture2DProjLod(sampler2D sampler, vec4 coord, float lod);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("vec4 texture2DProjLod(sampler2D sampler, vec3 coord, float lod);", builtin_texture2DProjLod_v3_runtime, NULL)
+xx("vec4 texture2DProjLod(sampler2D sampler, vec4 coord, float lod);", builtin_texture2DProjLod_v4_runtime, NULL)
 
-xx("vec4 textureCube(samplerCube sampler, vec3 coord);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 textureCube(samplerCube sampler, vec3 coord, float bias);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 textureCubeLod(samplerCube sampler, vec3 coord, float lod);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("vec4 textureCube(samplerCube sampler, vec3 coord);", builtin_not_implemented_runtime, NULL)
+xx("vec4 textureCube(samplerCube sampler, vec3 coord, float bias);", builtin_not_implemented_runtime, NULL)
+xx("vec4 textureCubeLod(samplerCube sampler, vec3 coord, float lod);", builtin_not_implemented_runtime, NULL)
 
