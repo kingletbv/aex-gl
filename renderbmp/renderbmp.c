@@ -4768,7 +4768,7 @@ int main(int argc, char **argv) {
     goto exit_cleanup;
   }
 
-  r = sl_exec_allocate_registers_by_slab(&vertex_shader.exec_, 256);
+  r = sl_exec_allocate_registers_by_slab(&vertex_shader.exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
 
   /* initialize fragment shader */
 
@@ -4802,7 +4802,7 @@ int main(int argc, char **argv) {
     goto exit_cleanup;
   }
 
-  r = sl_exec_allocate_registers_by_slab(&fragment_shader.exec_, 256);
+  r = sl_exec_allocate_registers_by_slab(&fragment_shader.exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
 
   sl_program_attach_shader(&program, &vertex_shader);
   sl_program_attach_shader(&program, &fragment_shader);
