@@ -29,6 +29,8 @@ typedef void (*builtin_eval_fn)(struct sl_type_base *tb, const struct sl_expr *x
 void builtin_not_implemented_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_not_implemented_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
+
+/* Angle and Trigonometry functions */
 void builtin_radians_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_radians_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_radians_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
@@ -118,6 +120,82 @@ void builtin_atan_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 void builtin_atan_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_atan_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_atan_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+
+/* Exponential functions */
+
+void builtin_pow_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_pow_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_pow_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_pow_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
+void builtin_pow_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_pow_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_pow_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_pow_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_exp_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_exp_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_exp_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_exp_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
+void builtin_exp_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_exp_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_exp_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_exp_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_log_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_log_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_log_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_log_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
+void builtin_log_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_log_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_log_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_log_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_exp2_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_exp2_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_exp2_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_exp2_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
+void builtin_exp2_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_exp2_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_exp2_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_exp2_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_log2_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_log2_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_log2_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_log2_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
+void builtin_log2_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_log2_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_log2_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_log2_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_sqrt_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_sqrt_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_sqrt_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_sqrt_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
+void builtin_sqrt_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_sqrt_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_sqrt_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_sqrt_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_inversesqrt_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_inversesqrt_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_inversesqrt_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_inversesqrt_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
+void builtin_inversesqrt_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_inversesqrt_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_inversesqrt_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_inversesqrt_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+
+
 
 #ifdef __cplusplus
 } /* extern "C" */

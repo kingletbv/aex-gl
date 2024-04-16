@@ -1382,3 +1382,1028 @@ void builtin_atan_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, st
                             atanf(opd0.v_.v_[3]/opd1.v_.v_[3]));
 }
 
+
+/* Exponential functions */
+
+void builtin_pow_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) powf(x, y)
+#define BINOP_SNIPPET_TYPE float
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_pow_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) powf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_pow_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) powf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_pow_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) powf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 3);
+  right_column = FLOAT_REG_PTR(x->children_[1], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_pow_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_float(r, powf(opd0.v_.f_, opd1.v_.f_));
+}
+
+void builtin_pow_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, powf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            powf(opd0.v_.v_[1], opd1.v_.v_[1]));
+}
+
+void builtin_pow_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, powf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            powf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            powf(opd0.v_.v_[2], opd1.v_.v_[2]));
+}
+
+void builtin_pow_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, powf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            powf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            powf(opd0.v_.v_[2], opd1.v_.v_[2]),
+                            powf(opd0.v_.v_[3], opd1.v_.v_[3]));
+}
+void builtin_exp_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) expf(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_exp_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) expf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_exp_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) expf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_exp_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) expf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_exp_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, expf(opd.v_.f_));
+}
+
+void builtin_exp_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, expf(opd.v_.v_[0]), expf(opd.v_.v_[1]));
+}
+
+void builtin_exp_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, expf(opd.v_.v_[0]), expf(opd.v_.v_[1]), expf(opd.v_.v_[2]));
+}
+
+void builtin_exp_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, expf(opd.v_.v_[0]), expf(opd.v_.v_[1]), expf(opd.v_.v_[2]), expf(opd.v_.v_[3]));
+}
+
+void builtin_log_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) logf(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_log_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) logf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_log_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) logf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_log_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) logf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_log_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, logf(opd.v_.f_));
+}
+
+void builtin_log_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, logf(opd.v_.v_[0]), logf(opd.v_.v_[1]));
+}
+
+void builtin_log_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, logf(opd.v_.v_[0]), logf(opd.v_.v_[1]), logf(opd.v_.v_[2]));
+}
+
+void builtin_log_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, logf(opd.v_.v_[0]), logf(opd.v_.v_[1]), logf(opd.v_.v_[2]), logf(opd.v_.v_[3]));
+}
+
+void builtin_exp2_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) exp2f(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_exp2_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) exp2f(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_exp2_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) exp2f(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_exp2_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) exp2f(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_exp2_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, exp2f(opd.v_.f_));
+}
+
+void builtin_exp2_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, exp2f(opd.v_.v_[0]), exp2f(opd.v_.v_[1]));
+}
+
+void builtin_exp2_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, exp2f(opd.v_.v_[0]), exp2f(opd.v_.v_[1]), exp2f(opd.v_.v_[2]));
+}
+
+void builtin_exp2_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, exp2f(opd.v_.v_[0]), exp2f(opd.v_.v_[1]), exp2f(opd.v_.v_[2]), exp2f(opd.v_.v_[3]));
+}
+
+void builtin_log2_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) log2f(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_log2_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) log2f(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_log2_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) log2f(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_log2_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) log2f(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_log2_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, log2f(opd.v_.f_));
+}
+
+void builtin_log2_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, log2f(opd.v_.v_[0]), log2f(opd.v_.v_[1]));
+}
+
+void builtin_log2_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, log2f(opd.v_.v_[0]), log2f(opd.v_.v_[1]), log2f(opd.v_.v_[2]));
+}
+
+void builtin_log2_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, log2f(opd.v_.v_[0]), log2f(opd.v_.v_[1]), log2f(opd.v_.v_[2]), log2f(opd.v_.v_[3]));
+}
+
+void builtin_sqrt_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) sqrtf(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_sqrt_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) sqrtf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_sqrt_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) sqrtf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_sqrt_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) sqrtf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_sqrt_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, sqrtf(opd.v_.f_));
+}
+
+void builtin_sqrt_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, sqrtf(opd.v_.v_[0]), sqrtf(opd.v_.v_[1]));
+}
+
+void builtin_sqrt_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, sqrtf(opd.v_.v_[0]), sqrtf(opd.v_.v_[1]), sqrtf(opd.v_.v_[2]));
+}
+
+void builtin_sqrt_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, sqrtf(opd.v_.v_[0]), sqrtf(opd.v_.v_[1]), sqrtf(opd.v_.v_[2]), sqrtf(opd.v_.v_[3]));
+}
+
+void builtin_inversesqrt_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) 1.f/sqrtf(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_inversesqrt_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) 1.f/sqrtf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_inversesqrt_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) 1.f/sqrtf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_inversesqrt_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) 1.f/sqrtf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_inversesqrt_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, 1.f/sqrtf(opd.v_.f_));
+}
+
+void builtin_inversesqrt_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, 1.f/sqrtf(opd.v_.v_[0]), 1.f/sqrtf(opd.v_.v_[1]));
+}
+
+void builtin_inversesqrt_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, 1.f/sqrtf(opd.v_.v_[0]), 1.f/sqrtf(opd.v_.v_[1]), 1.f/sqrtf(opd.v_.v_[2]));
+}
+
+void builtin_inversesqrt_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, 1.f/sqrtf(opd.v_.v_[0]), 1.f/sqrtf(opd.v_.v_[1]), 1.f/sqrtf(opd.v_.v_[2]), 1.f/sqrtf(opd.v_.v_[3]));
+}
+
