@@ -123,7 +123,6 @@ void builtin_atan_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, st
 
 
 /* Exponential functions */
-
 void builtin_pow_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_pow_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_pow_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
@@ -193,6 +192,157 @@ void builtin_inversesqrt_f_eval(struct sl_type_base *tb, const struct sl_expr *x
 void builtin_inversesqrt_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_inversesqrt_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_inversesqrt_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+/* Common Functions */
+void builtin_abs_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_abs_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_abs_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_abs_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_abs_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_abs_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_abs_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_abs_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_sign_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_sign_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_sign_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_sign_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_sign_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_sign_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_sign_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_sign_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_floor_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_floor_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_floor_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_floor_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_floor_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_floor_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_floor_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_floor_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_ceil_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_ceil_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_ceil_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_ceil_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_ceil_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_ceil_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_ceil_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_ceil_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_fract_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_fract_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_fract_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_fract_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_fract_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_fract_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_fract_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_fract_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_mod_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mod_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mod_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mod_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mod_v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mod_v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mod_v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mod_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mod_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mod_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mod_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mod_v2f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mod_v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mod_v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_min_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_min_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_min_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_min_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_min_v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_min_v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_min_v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_min_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_min_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_min_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_min_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_min_v2f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_min_v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_min_v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_max_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_max_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_max_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_max_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_max_v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_max_v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_max_v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_max_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_max_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_max_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_max_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_max_v2f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_max_v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_max_v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_clamp_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_clamp_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_clamp_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_clamp_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_clamp_v2ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_clamp_v3ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_clamp_v4ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_clamp_fff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_clamp_v2v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_clamp_v3v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_clamp_v4v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_clamp_v2ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_clamp_v3ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_clamp_v4ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_mix_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mix_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mix_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mix_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mix_v2v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mix_v3v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mix_v4v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_mix_fff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mix_v2v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mix_v3v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mix_v4v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mix_v2v2f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mix_v3v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_mix_v4v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_step_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_step_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_step_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_step_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_step_fv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_step_fv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_step_fv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_step_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_step_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_step_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_step_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_step_fv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_step_fv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_step_fv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_smoothstep_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_smoothstep_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_smoothstep_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_smoothstep_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_smoothstep_ffv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_smoothstep_ffv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_smoothstep_ffv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_smoothstep_fff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_smoothstep_v2v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_smoothstep_v3v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_smoothstep_v4v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_smoothstep_ffv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_smoothstep_ffv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_smoothstep_ffv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
 
 

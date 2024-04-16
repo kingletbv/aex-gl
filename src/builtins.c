@@ -2407,3 +2407,3309 @@ void builtin_inversesqrt_v4_eval(struct sl_type_base *tb, const struct sl_expr *
   sl_expr_temp_init_vec4(r, 1.f/sqrtf(opd.v_.v_[0]), 1.f/sqrtf(opd.v_.v_[1]), 1.f/sqrtf(opd.v_.v_[2]), 1.f/sqrtf(opd.v_.v_[3]));
 }
 
+/* Common Functions */
+
+static float aex_signf(float x) {
+  return (float)((x > 0.f) - (x < 0.f));
+}
+
+static float aex_fractf(float x) {
+  return x - floorf(x);
+}
+
+static float aex_modf(float x, float y) {
+  return x - y * floorf(x/y);
+}
+
+static float aex_clampf(float x, float minval, float maxval) {
+  return fminf(fmaxf(x, minval), maxval);
+}
+
+static float aex_mixf(float x, float y, float a) {
+  return x * (1.f - a) + y * a;
+}
+
+static float aex_stepf(float edge, float x) {
+  return (float)(x >= edge);
+}
+
+static float aex_smoothstepf(float edge0, float edge1, float x) {
+  float t;
+  t = aex_clampf((x - edge0) / (edge1 - edge0), 0.f, 1.f);
+  return t * t * (3.f - 2.f * t);
+}
+
+void builtin_abs_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) fabsf(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_abs_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) fabsf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_abs_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) fabsf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_abs_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) fabsf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_abs_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, fabsf(opd.v_.f_));
+}
+
+void builtin_abs_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, fabsf(opd.v_.v_[0]), fabsf(opd.v_.v_[1]));
+}
+
+void builtin_abs_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, fabsf(opd.v_.v_[0]), fabsf(opd.v_.v_[1]), fabsf(opd.v_.v_[2]));
+}
+
+void builtin_abs_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, fabsf(opd.v_.v_[0]), fabsf(opd.v_.v_[1]), fabsf(opd.v_.v_[2]), fabsf(opd.v_.v_[3]));
+}
+
+void builtin_sign_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) aex_signf(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_sign_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) aex_signf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_sign_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) aex_signf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_sign_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) aex_signf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_sign_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, aex_signf(opd.v_.f_));
+}
+
+void builtin_sign_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_signf(opd.v_.v_[0]), aex_signf(opd.v_.v_[1]));
+}
+
+void builtin_sign_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_signf(opd.v_.v_[0]), aex_signf(opd.v_.v_[1]), aex_signf(opd.v_.v_[2]));
+}
+
+void builtin_sign_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_signf(opd.v_.v_[0]), aex_signf(opd.v_.v_[1]), aex_signf(opd.v_.v_[2]), aex_signf(opd.v_.v_[3]));
+}
+
+void builtin_floor_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) floorf(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_floor_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) floorf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_floor_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) floorf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_floor_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) floorf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_floor_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, floorf(opd.v_.f_));
+}
+
+void builtin_floor_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, floorf(opd.v_.v_[0]), floorf(opd.v_.v_[1]));
+}
+
+void builtin_floor_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, floorf(opd.v_.v_[0]), floorf(opd.v_.v_[1]), floorf(opd.v_.v_[2]));
+}
+
+void builtin_floor_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, floorf(opd.v_.v_[0]), floorf(opd.v_.v_[1]), floorf(opd.v_.v_[2]), floorf(opd.v_.v_[3]));
+}
+
+void builtin_ceil_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) ceilf(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_ceil_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) ceilf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_ceil_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) ceilf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_ceil_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) ceilf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_ceil_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, ceilf(opd.v_.f_));
+}
+
+void builtin_ceil_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, ceilf(opd.v_.v_[0]), ceilf(opd.v_.v_[1]));
+}
+
+void builtin_ceil_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, ceilf(opd.v_.v_[0]), ceilf(opd.v_.v_[1]), ceilf(opd.v_.v_[2]));
+}
+
+void builtin_ceil_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, ceilf(opd.v_.v_[0]), ceilf(opd.v_.v_[1]), ceilf(opd.v_.v_[2]), ceilf(opd.v_.v_[3]));
+}
+
+void builtin_fract_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) aex_fractf(opd)
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_fract_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float * restrict result_column;
+  float * restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) aex_fractf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_fract_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) aex_fractf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_fract_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict opd_column;
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) aex_fractf(opd)
+#define UNOP_SNIPPET_TYPE float
+  result_column = FLOAT_REG_PTR(x, 0);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 1);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 1);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 2);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 2);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+  result_column = FLOAT_REG_PTR(x, 3);
+  opd_column = FLOAT_REG_PTR(x->children_[0], 3);
+
+  row = exec_chain;
+#include "sl_unop_snippet_inc.h"
+
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_fract_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, aex_fractf(opd.v_.f_));
+}
+
+void builtin_fract_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_fractf(opd.v_.v_[0]), aex_fractf(opd.v_.v_[1]));
+}
+
+void builtin_fract_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_fractf(opd.v_.v_[0]), aex_fractf(opd.v_.v_[1]), aex_fractf(opd.v_.v_[2]));
+}
+
+void builtin_fract_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_fractf(opd.v_.v_[0]), aex_fractf(opd.v_.v_[1]), aex_fractf(opd.v_.v_[2]), aex_fractf(opd.v_.v_[3]));
+}
+
+
+void builtin_mod_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_modf(x, y)
+#define BINOP_SNIPPET_TYPE float
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_mod_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_modf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_mod_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_modf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_mod_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_modf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 3);
+  right_column = FLOAT_REG_PTR(x->children_[1], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_mod_v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_modf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_mod_v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_modf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_mod_v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_modf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 3);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_mod_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_float(r, aex_modf(opd0.v_.f_, opd1.v_.f_));
+}
+
+void builtin_mod_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_modf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            aex_modf(opd0.v_.v_[1], opd1.v_.v_[1]));
+}
+
+void builtin_mod_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_modf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            aex_modf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            aex_modf(opd0.v_.v_[2], opd1.v_.v_[2]));
+}
+
+void builtin_mod_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_modf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            aex_modf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            aex_modf(opd0.v_.v_[2], opd1.v_.v_[2]),
+                            aex_modf(opd0.v_.v_[3], opd1.v_.v_[3]));
+}
+
+void builtin_mod_v2f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_modf(opd0.v_.v_[0], opd1.v_.f_),
+                            aex_modf(opd0.v_.v_[1], opd1.v_.f_));
+}
+
+void builtin_mod_v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_modf(opd0.v_.v_[0], opd1.v_.f_),
+                            aex_modf(opd0.v_.v_[1], opd1.v_.f_),
+                            aex_modf(opd0.v_.v_[2], opd1.v_.f_));
+}
+
+void builtin_mod_v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_modf(opd0.v_.v_[0], opd1.v_.f_),
+                            aex_modf(opd0.v_.v_[1], opd1.v_.f_),
+                            aex_modf(opd0.v_.v_[2], opd1.v_.f_),
+                            aex_modf(opd0.v_.v_[3], opd1.v_.f_));
+}
+
+void builtin_min_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fminf(x, y)
+#define BINOP_SNIPPET_TYPE float
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_min_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fminf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_min_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fminf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_min_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fminf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 3);
+  right_column = FLOAT_REG_PTR(x->children_[1], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_min_v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fminf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_min_v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fminf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_min_v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fminf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 3);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_min_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_float(r, fminf(opd0.v_.f_, opd1.v_.f_));
+}
+
+void builtin_min_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, fminf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            fminf(opd0.v_.v_[1], opd1.v_.v_[1]));
+}
+
+void builtin_min_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, fminf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            fminf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            fminf(opd0.v_.v_[2], opd1.v_.v_[2]));
+}
+
+void builtin_min_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, fminf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            fminf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            fminf(opd0.v_.v_[2], opd1.v_.v_[2]),
+                            fminf(opd0.v_.v_[3], opd1.v_.v_[3]));
+}
+
+void builtin_min_v2f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, fminf(opd0.v_.v_[0], opd1.v_.f_),
+                            fminf(opd0.v_.v_[1], opd1.v_.f_));
+}
+
+void builtin_min_v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, fminf(opd0.v_.v_[0], opd1.v_.f_),
+                            fminf(opd0.v_.v_[1], opd1.v_.f_),
+                            fminf(opd0.v_.v_[2], opd1.v_.f_));
+}
+
+void builtin_min_v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, fminf(opd0.v_.v_[0], opd1.v_.f_),
+                            fminf(opd0.v_.v_[1], opd1.v_.f_),
+                            fminf(opd0.v_.v_[2], opd1.v_.f_),
+                            fminf(opd0.v_.v_[3], opd1.v_.f_));
+}
+
+void builtin_max_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fmaxf(x, y)
+#define BINOP_SNIPPET_TYPE float
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_max_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fmaxf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_max_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fmaxf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_max_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fmaxf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 3);
+  right_column = FLOAT_REG_PTR(x->children_[1], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_max_v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fmaxf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_max_v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fmaxf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_max_v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fmaxf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 3);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_max_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_float(r, fmaxf(opd0.v_.f_, opd1.v_.f_));
+}
+
+void builtin_max_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, fmaxf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            fmaxf(opd0.v_.v_[1], opd1.v_.v_[1]));
+}
+
+void builtin_max_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, fmaxf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            fmaxf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            fmaxf(opd0.v_.v_[2], opd1.v_.v_[2]));
+}
+
+void builtin_max_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, fmaxf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            fmaxf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            fmaxf(opd0.v_.v_[2], opd1.v_.v_[2]),
+                            fmaxf(opd0.v_.v_[3], opd1.v_.v_[3]));
+}
+
+void builtin_max_v2f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, fmaxf(opd0.v_.v_[0], opd1.v_.f_),
+                            fmaxf(opd0.v_.v_[1], opd1.v_.f_));
+}
+
+void builtin_max_v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, fmaxf(opd0.v_.v_[0], opd1.v_.f_),
+                            fmaxf(opd0.v_.v_[1], opd1.v_.f_),
+                            fmaxf(opd0.v_.v_[2], opd1.v_.f_));
+}
+
+void builtin_max_v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, fmaxf(opd0.v_.v_[0], opd1.v_.f_),
+                            fmaxf(opd0.v_.v_[1], opd1.v_.f_),
+                            fmaxf(opd0.v_.v_[2], opd1.v_.f_),
+                            fmaxf(opd0.v_.v_[3], opd1.v_.f_));
+}
+
+void builtin_clamp_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_clampf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+#include "sl_ternop_snippet_inc.h"
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_clamp_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_clampf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_clamp_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_clampf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 2);
+  third_column = FLOAT_REG_PTR(x->children_[2], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_clamp_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_clampf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 2);
+  third_column = FLOAT_REG_PTR(x->children_[2], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 3);
+  second_column = FLOAT_REG_PTR(x->children_[1], 3);
+  third_column = FLOAT_REG_PTR(x->children_[2], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_clamp_v2ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_clampf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_clamp_v3ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_clampf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_clamp_v4ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_clampf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 3);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_clamp_fff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_float(r, aex_clampf(opd0.v_.f_, opd1.v_.f_, opd2.v_.f_));
+}
+
+void builtin_clamp_v2v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_clampf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.v_[0]),
+                            aex_clampf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.v_[1]));
+}
+
+void builtin_clamp_v3v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_clampf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.v_[0]),
+                            aex_clampf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.v_[1]),
+                            aex_clampf(opd0.v_.v_[2], opd1.v_.v_[2], opd2.v_.v_[2]));
+}
+
+void builtin_clamp_v4v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_clampf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.v_[0]),
+                            aex_clampf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.v_[1]),
+                            aex_clampf(opd0.v_.v_[2], opd1.v_.v_[2], opd2.v_.v_[2]),
+                            aex_clampf(opd0.v_.v_[3], opd1.v_.v_[3], opd2.v_.v_[3]));
+}
+
+void builtin_clamp_v2ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_clampf(opd0.v_.v_[0], opd1.v_.f_, opd2.v_.f_),
+                            aex_clampf(opd0.v_.v_[1], opd1.v_.f_, opd2.v_.f_));
+}
+
+void builtin_clamp_v3ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_clampf(opd0.v_.v_[0], opd1.v_.f_, opd2.v_.f_),
+                            aex_clampf(opd0.v_.v_[1], opd1.v_.f_, opd2.v_.f_),
+                            aex_clampf(opd0.v_.v_[2], opd1.v_.f_, opd2.v_.f_));
+}
+
+void builtin_clamp_v4ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_clampf(opd0.v_.v_[0], opd1.v_.f_, opd2.v_.f_),
+                            aex_clampf(opd0.v_.v_[1], opd1.v_.f_, opd2.v_.f_),
+                            aex_clampf(opd0.v_.v_[2], opd1.v_.f_, opd2.v_.f_),
+                            aex_clampf(opd0.v_.v_[3], opd1.v_.f_, opd2.v_.f_));
+}
+
+void builtin_mix_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_mixf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+#include "sl_ternop_snippet_inc.h"
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_mix_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_mixf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_mix_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_mixf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 2);
+  third_column = FLOAT_REG_PTR(x->children_[2], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_mix_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_mixf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 2);
+  third_column = FLOAT_REG_PTR(x->children_[2], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 3);
+  second_column = FLOAT_REG_PTR(x->children_[1], 3);
+  third_column = FLOAT_REG_PTR(x->children_[2], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_mix_v2v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_mixf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_mix_v3v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_mixf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 2);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_mix_v4v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_mixf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 2);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 3);
+  second_column = FLOAT_REG_PTR(x->children_[1], 3);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_mix_fff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_float(r, aex_mixf(opd0.v_.f_, opd1.v_.f_, opd2.v_.f_));
+}
+
+void builtin_mix_v2v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_mixf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.v_[0]),
+                            aex_mixf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.v_[1]));
+}
+
+void builtin_mix_v3v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_mixf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.v_[0]),
+                            aex_mixf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.v_[1]),
+                            aex_mixf(opd0.v_.v_[2], opd1.v_.v_[2], opd2.v_.v_[2]));
+}
+
+void builtin_mix_v4v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_mixf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.v_[0]),
+                            aex_mixf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.v_[1]),
+                            aex_mixf(opd0.v_.v_[2], opd1.v_.v_[2], opd2.v_.v_[2]),
+                            aex_mixf(opd0.v_.v_[3], opd1.v_.v_[3], opd2.v_.v_[3]));
+}
+
+void builtin_mix_v2v2f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_mixf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.f_),
+                            aex_mixf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.f_));
+}
+
+void builtin_mix_v3v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_mixf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.f_),
+                            aex_mixf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.f_),
+                            aex_mixf(opd0.v_.v_[2], opd1.v_.v_[2], opd2.v_.f_));
+}
+
+void builtin_mix_v4v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_mixf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.f_),
+                            aex_mixf(opd0.v_.v_[1], opd1.v_.v_[0], opd2.v_.f_),
+                            aex_mixf(opd0.v_.v_[2], opd1.v_.v_[0], opd2.v_.f_),
+                            aex_mixf(opd0.v_.v_[3], opd1.v_.v_[0], opd2.v_.f_));
+}
+
+void builtin_step_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_stepf(x, y)
+#define BINOP_SNIPPET_TYPE float
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_step_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_stepf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_step_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_stepf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_step_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_stepf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 1);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 2);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 3);
+  right_column = FLOAT_REG_PTR(x->children_[1], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_step_fv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_stepf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_step_fv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_stepf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_step_fv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict left_column;
+  float *restrict right_column;
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) aex_stepf(x, y)
+#define BINOP_SNIPPET_TYPE float
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+  left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  right_column = FLOAT_REG_PTR(x->children_[1], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_binop_snippet_inc.h"
+
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_step_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_float(r, aex_stepf(opd0.v_.f_, opd1.v_.f_));
+}
+
+void builtin_step_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_stepf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            aex_stepf(opd0.v_.v_[1], opd1.v_.v_[1]));
+}
+
+void builtin_step_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_stepf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            aex_stepf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            aex_stepf(opd0.v_.v_[2], opd1.v_.v_[2]));
+}
+
+void builtin_step_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_stepf(opd0.v_.v_[0], opd1.v_.v_[0]),
+                            aex_stepf(opd0.v_.v_[1], opd1.v_.v_[1]),
+                            aex_stepf(opd0.v_.v_[2], opd1.v_.v_[2]),
+                            aex_stepf(opd0.v_.v_[3], opd1.v_.v_[3]));
+}
+
+void builtin_step_fv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_stepf(opd0.v_.f_, opd1.v_.v_[0]),
+                            aex_stepf(opd0.v_.f_, opd1.v_.v_[1]));
+}
+
+void builtin_step_fv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_stepf(opd0.v_.f_, opd1.v_.v_[0]),
+                            aex_stepf(opd0.v_.f_, opd1.v_.v_[1]),
+                            aex_stepf(opd0.v_.f_, opd1.v_.v_[2]));
+}
+
+void builtin_step_fv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_stepf(opd0.v_.f_, opd1.v_.v_[0]),
+                            aex_stepf(opd0.v_.f_, opd1.v_.v_[1]),
+                            aex_stepf(opd0.v_.f_, opd1.v_.v_[2]),
+                            aex_stepf(opd0.v_.f_, opd1.v_.v_[3]));
+}
+
+void builtin_smoothstep_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_smoothstepf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+#include "sl_ternop_snippet_inc.h"
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_smoothstep_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_smoothstepf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_smoothstep_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_smoothstepf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 2);
+  third_column = FLOAT_REG_PTR(x->children_[2], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_smoothstep_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_smoothstepf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 1);
+  second_column = FLOAT_REG_PTR(x->children_[1], 1);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 2);
+  second_column = FLOAT_REG_PTR(x->children_[1], 2);
+  third_column = FLOAT_REG_PTR(x->children_[2], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 3);
+  second_column = FLOAT_REG_PTR(x->children_[1], 3);
+  third_column = FLOAT_REG_PTR(x->children_[2], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_smoothstep_ffv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_smoothstepf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_smoothstep_ffv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_smoothstepf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_smoothstep_ffv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column;
+  float *restrict first_column;
+  float *restrict second_column;
+  float *restrict third_column;
+  uint8_t row = exec_chain;
+
+#define TERNOP_SNIPPET_OPERATOR(x, a, b) aex_smoothstepf(x, a, b)
+#define TERNOP_SNIPPET_TYPE float
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 0);
+  result_column = FLOAT_REG_PTR(x, 0);
+
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 1);
+  result_column = FLOAT_REG_PTR(x, 1);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 2);
+  result_column = FLOAT_REG_PTR(x, 2);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+  first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  second_column = FLOAT_REG_PTR(x->children_[1], 0);
+  third_column = FLOAT_REG_PTR(x->children_[2], 3);
+  result_column = FLOAT_REG_PTR(x, 3);
+
+  row = exec_chain;
+#include "sl_ternop_snippet_inc.h"
+
+#undef TERNOP_SNIPPET_OPERATOR
+#undef TERNOP_SNIPPET_TYPE
+}
+
+void builtin_smoothstep_fff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_float(r, aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.f_));
+}
+
+void builtin_smoothstep_v2v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_smoothstepf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.v_[0]),
+                            aex_smoothstepf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.v_[1]));
+}
+
+void builtin_smoothstep_v3v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_smoothstepf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.v_[0]),
+                            aex_smoothstepf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.v_[1]),
+                            aex_smoothstepf(opd0.v_.v_[2], opd1.v_.v_[2], opd2.v_.v_[2]));
+}
+
+void builtin_smoothstep_v4v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_smoothstepf(opd0.v_.v_[0], opd1.v_.v_[0], opd2.v_.v_[0]),
+                            aex_smoothstepf(opd0.v_.v_[1], opd1.v_.v_[1], opd2.v_.v_[1]),
+                            aex_smoothstepf(opd0.v_.v_[2], opd1.v_.v_[2], opd2.v_.v_[2]),
+                            aex_smoothstepf(opd0.v_.v_[3], opd1.v_.v_[3], opd2.v_.v_[3]));
+}
+
+void builtin_smoothstep_ffv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec2(r, aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.v_[0]),
+                            aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.v_[1]));
+}
+
+void builtin_smoothstep_ffv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec3(r, aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.v_[0]),
+                            aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.v_[1]),
+                            aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.v_[2]));
+}
+
+void builtin_smoothstep_ffv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1, opd2;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  sl_expr_temp_init(&opd2, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opd2)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    sl_expr_temp_cleanup(&opd2);
+    return;
+  }
+  sl_expr_temp_init_vec4(r, aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.v_[0]),
+                            aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.v_[1]),
+                            aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.v_[2]),
+                            aex_smoothstepf(opd0.v_.f_, opd1.v_.f_, opd2.v_.v_[3]));
+}
