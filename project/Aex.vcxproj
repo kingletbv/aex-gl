@@ -346,6 +346,7 @@
     <ClInclude Include="..\src\sl_reg_alloc.h" />
     <ClInclude Include="..\src\sl_shader.h" />
     <ClInclude Include="..\src\sl_stmt.h" />
+    <ClInclude Include="..\src\sl_ternop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_types.h" />
     <ClInclude Include="..\src\sl_uniforms.h" />
     <ClInclude Include="..\src\sl_unop_snippet_inc.h" />
