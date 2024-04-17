@@ -532,18 +532,8 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
   }
 }
 
-void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+struct sampler_2d *split_execution_chains_to_sampler_tex_chains(struct sl_execution *exec, int exec_chain, void * restrict * restrict sampler_column) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict red_column = FLOAT_REG_PTR(x, 0);
-  float *restrict green_column = FLOAT_REG_PTR(x, 1);
-  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
-  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
-  void *restrict *restrict sampler_column = SAMPLER_2D_REG_PTR(x->children_[0], 0);
-  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
-  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
-
-  // XXX: Should split this by different sampler type (!!)
-
   uint32_t row = exec_chain;
   struct sampler_2d *samplers = NULL;
 
@@ -576,6 +566,24 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
     row += delta;
   } while (delta);
 
+  return samplers;
+}
+
+void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+
+  // XXX: Should split this by different sampler type (!!)
+
+  uint32_t row;
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_sampler_tex_chains(exec, exec_chain, SAMPLER_2D_REG_PTR(x->children_[0], 0));
+
   struct sampler_2d *s2d;
   s2d = samplers;
   if (s2d) {
@@ -588,44 +596,6 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
        * this makes it consistent with the rest of the code. */
       tex_chain_column[s2d->last_row_] = 0;
       
-      /* Wrap S coordinate according to sampler setting */
-      switch (s2d->wrap_s_) {
-        case s2d_clamp_to_edge: {
-          float min_fs = 1 / (2.f * (float)(s2d->mipmaps_->width_));
-          float max_fs = 1.f - min_fs;
-          float * restrict result_column = s2d->ranged_s_;
-          float * restrict opd_column = coord_column_s;
-#define UNOP_SNIPPET_OPERATOR(opd) ((opd < min_fs) ? min_fs : ((opd > max_fs) ? max_fs : opd))
-#define UNOP_SNIPPET_TYPE float
-#include "sl_unop_snippet_inc.h"
-#undef UNOP_SNIPPET_OPERATOR
-#undef UNOP_SNIPPET_TYPE
-          break;
-        }
-        case s2d_repeat: {
-          float * restrict result_column = s2d->ranged_s_;
-          float * restrict opd_column = coord_column_s;
-#define UNOP_SNIPPET_OPERATOR(opd) (opd - floorf(opd))
-#define UNOP_SNIPPET_TYPE float
-#include "sl_unop_snippet_inc.h"
-#undef UNOP_SNIPPET_OPERATOR
-#undef UNOP_SNIPPET_TYPE
-          break;
-        }
-        case s2d_mirrored_repeat: {
-          /* Check if integral part of number is even or odd */ 
-          float * restrict result_column = s2d->ranged_s_;
-          float * restrict opd_column = coord_column_s;
-#define UNOP_SNIPPET_OPERATOR(opd) ((1 & (int64_t)floorf(opd)) ? (1.f - (opd - floorf(opd))) : (opd - floorf(opd)))
-#define UNOP_SNIPPET_TYPE float
-#include "sl_unop_snippet_inc.h"
-#undef UNOP_SNIPPET_OPERATOR
-#undef UNOP_SNIPPET_TYPE
-
-          break;
-        }
-      }
-
       /* Check if we need to find mipmaps.. */
       int locate_log2_mipmaps = 0;
       switch (s2d->min_filter_) {
