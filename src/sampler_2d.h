@@ -39,22 +39,39 @@ enum s2d_filter {
   s2d_linear_mipmap_linear
 };
 
+enum s2d_tex_components {
+  s2d_alpha,
+  s2d_luminance,
+  s2d_luminance_alpha,
+  s2d_rgb,
+  s2d_rgba
+};
+
+struct sampler_2d_map {
+  int width_;
+  int height_;
+  uint32_t repeat_mask_s_, repeat_mask_t_;
+  void *bitmap_;
+};
+
 struct sampler_2d {
   enum s2d_wrap wrap_s_, wrap_t_;           
   enum s2d_filter min_filter_;  /* any of s2d_filter */
   enum s2d_filter mag_filter_;  /* s2d_nearest, s2d_linear, no other */
+  enum s2d_tex_components_ components_;
 
-  int width_;
-  int height_;
+  int num_maps_;
+  struct sampler_2d_map *mipmaps_;
 
   int q_; /* maximum mip-map level, counting from 0 for the original texture upwards */
 
   /* list of all samplers part of the current evaluation, each sampler
    * contains the set of rows it is currently being evaluated by. */
   struct sampler_2d *runtime_active_sampler_chain_;
-  uint8_t runtime_rows_;
+  uint32_t runtime_rows_;
   uint32_t last_row_;
 
+  uint8_t tex_exec_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
   float ds_dx_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
   float ds_dy_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
   float dt_dx_[SL_EXEC_CHAIN_MAX_NUM_ROWS];

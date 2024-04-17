@@ -41,16 +41,510 @@
  *      however become an integer type and not a void* pointer type - so this will have to
  *      change. */
 
+static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, float lg2) {
+  /* c as meant in section 3.7.8 texture magnification (OpenGL ES 2.0 full spec v2.0.25 page 82) */
+  float c;
+  if ((s2d->mag_filter_ == s2d_linear) &&
+      ((s2d->min_filter_ == s2d_nearest_mipmap_nearest) ||
+       (s2d->min_filter_ == s2d_nearest_mipmap_linear))) {
+    c = 0.5f;
+  }
+  else {
+    c = 0.f;
+  }
+
+  enum s2d_filter filter;
+  if ((s2d->mag_filter_ != s2d->min_filter_) && (lg2 <= c)) {
+    /* Magnification filter */
+    filter = s2d->mag_filter_;
+  }
+  else {
+    /* Minification filter */
+    filter = s2d->min_filter_;
+  }
+
+  if ((filter == s2d_nearest) || 
+      (filter == s2d_nearest_mipmap_nearest) || 
+      (filter == s2d_nearest_mipmap_linear)) {
+    int num_levels;
+    struct sampler_2d_map *s2dm_levels[2] = {NULL, NULL};
+    struct sampler_2d_map *s2dm;
+    uint32_t tau1_fract = 0;
+    uint32_t tau2_fract = 0;
+    uint64_t reds[2], greens[2], blues[2], alphas[2];
+    if (filter == s2d_nearest) {
+      s2dm_levels[0] = s2d->mipmaps_;
+      num_levels = 1;
+    }
+    if (filter == s2d_nearest_mipmap_nearest) {
+      int last_mipmap = s2d->num_maps_ - 1;
+      int nearest_mipmap = (lg2 <= 0.5f) ? 0 : (lg2 > (0.5f + (float)last_mipmap)) ? last_mipmap : ((int)(ceilf(lg2 + 0.5f)) - 1);
+      s2dm_levels[0] = s2d->mipmaps_ + nearest_mipmap;
+      num_levels = 1;
+    }
+    else if (filter == s2d_nearest_mipmap_linear) {
+      int last_mipmap = s2d->num_maps_ - 1;
+      float ffloor_lg2 = floorf(lg2);
+      float ffract_lg2 = lg2 - ffloor_lg2;
+      int floor_lg2 = (int)ffloor_lg2;
+      int d1_mipmap = (floor_lg2 >= last_mipmap) ? last_mipmap : floor_lg2;
+      int d2_mipmap = (floor_lg2 >= last_mipmap) ? last_mipmap : d1_mipmap + 1;
+      struct sampler_2d_map *s2d1m = s2d->mipmaps_ + d1_mipmap;
+      struct sampler_2d_map *s2d2m = s2d->mipmaps_ + d2_mipmap;
+      tau2_fract = (uint32_t)(256.f * ffract_lg2);
+      tau1_fract = 256 - tau2_fract;
+      s2dm_levels[0] = s2d1m;
+      s2dm_levels[1] = s2d2m;
+      num_levels = 2;
+    }
+    int level;
+    for (level = 0; level < num_levels; ++level) {
+      s2dm = s2dm_levels[level];
+      float sm = s, tm = t;
+      switch (s2d->wrap_s_) {
+        case s2d_clamp_to_edge: {
+          float min_fs = 1 / (2.f * (float)(s2dm->width_));
+          float max_fs = 1.f - min_fs;
+          sm = (sm < min_fs) ? min_fs : ((sm > max_fs) ? max_fs : sm);
+          break;
+        }
+        case s2d_repeat: {
+          /* leave as-is, mask will take care of it */
+          break;
+        }
+        case s2d_mirrored_repeat: {
+          float floared = floorf(sm);
+          float fract = sm - floared;
+          sm = (1 & (int64_t)floared) ? (1.f - fract) : fract;
+          break;
+        }
+      }
+      uint32_t tex_s = (uint32_t)(sm * s2dm->width_) & s2dm->repeat_mask_s_;
+
+      switch (s2d->wrap_t_) {
+        case s2d_clamp_to_edge: {
+          float min_ft = 1 / (2.f * (float)(s2dm->width_));
+          float max_ft = 1.f - min_ft;
+          tm = (tm < min_ft) ? min_ft : ((tm > max_ft) ? max_ft : tm);
+          break;
+        }
+        case s2d_repeat: {
+          /* leave as-is, mask will take care of it */
+          break;
+        }
+        case s2d_mirrored_repeat: {
+          float floared = floorf(tm);
+          float fract = tm - floared;
+          tm = (1 & (int64_t)floared) ? (1.f - fract) : fract;
+          break;
+        }
+      }
+      uint32_t tex_t = (uint32_t)(tm * s2dm->height_) & s2dm->repeat_mask_t_;
+
+      /* Load texel at tex_s and tex_t */
+      switch (s2d->components_) {
+        case s2d_alpha:
+          alphas[level] = ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t + tex_s];
+          break;
+          break;
+        case s2d_luminance:
+          reds[level] = ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t + tex_s];
+          break;
+        case s2d_luminance_alpha: {
+          uint8_t *restrict ptexel = ((uint8_t * restrict)s2dm->bitmap_) + 2 * (s2dm->width_ * tex_t + tex_s);
+          reds[level]   = ptexel[0];
+          alphas[level] = ptexel[1];
+          break;
+        }
+        case s2d_rgb: {
+          size_t texel_at_pixel = s2dm->width_ * tex_t + tex_s;
+          size_t texel_at_offset = texel_at_pixel * 3; /* "* 4 - 1", rely on compiler to catch this optimization */
+          uint8_t *restrict ptexel = ((uint8_t * restrict)s2dm->bitmap_) + texel_at_offset;
+          reds[level]   = ptexel[0];
+          greens[level] = ptexel[1];
+          blues[level]  = ptexel[2];
+          break;
+        }
+        case s2d_rgba: {
+          uint8_t *restrict ptexel = ((uint8_t * restrict)s2dm->bitmap_) + 4 * (s2dm->width_ * tex_t + tex_s);
+          reds[level]   = ptexel[0];
+          greens[level] = ptexel[1];
+          blues[level]  = ptexel[2];
+          alphas[level] = ptexel[3];
+          break;
+        }
+      }
+    }
+    if ((filter == s2d_nearest) ||
+        (filter == s2d_nearest_mipmap_nearest)) {
+      switch (s2d->components_) {
+        case s2d_alpha:
+          prgba[0] = 0.f;
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = ((float)alphas[0]) / 255.f;
+          break;
+        case s2d_luminance:
+          prgba[0] = ((float)reds[0]) / 255.f;
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = 0.f;
+          break;
+        case s2d_luminance_alpha: {
+          prgba[0] = ((float)reds[0]) / 255.f;
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = ((float)alphas[0]) / 255.f;
+          break;
+        }
+        case s2d_rgb: {
+          prgba[0] = ((float)reds[0]) / 255.f;
+          prgba[1] = ((float)greens[0]) / 255.f;
+          prgba[2] = ((float)blues[0]) / 255.f;
+          prgba[3] = 1.f;
+          break;
+        }
+        case s2d_rgba: {
+          prgba[0] = ((float)reds[0]) / 255.f;
+          prgba[1] = ((float)greens[0]) / 255.f;
+          prgba[2] = ((float)blues[0]) / 255.f;
+          prgba[3] = ((float)alphas[0]) / 255.f;
+          break;
+        }
+      }
+    }
+    else if (filter == s2d_nearest_mipmap_linear) {
+      switch (s2d->components_) {
+        case s2d_alpha:
+          prgba[0] = 0.f;
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = ((float)(alphas[0] * tau1_fract + alphas[1] * tau2_fract)) / (256.f * 255.f);
+          break;
+        case s2d_luminance:
+          prgba[0] = ((float)(reds[0] * tau1_fract + reds[1] * tau2_fract)) / (256.f * 255.f);
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = 0.f;
+          break;
+        case s2d_luminance_alpha: {
+          prgba[0] = ((float)(reds[0] * tau1_fract + reds[1] * tau2_fract)) / (256.f * 255.f);
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = ((float)(alphas[0] * tau1_fract + alphas[1] * tau2_fract)) / (256.f * 255.f);
+          break;
+        }
+        case s2d_rgb: {
+          prgba[0] = ((float)(reds[0] * tau1_fract + reds[1] * tau2_fract)) / (256.f * 255.f);
+          prgba[1] = ((float)(greens[0] * tau1_fract + greens[1] * tau2_fract)) / (256.f * 255.f);
+          prgba[2] = ((float)(blues[0] * tau1_fract + blues[1] * tau2_fract)) / (256.f * 255.f);
+          prgba[3] = 1.f;
+          break;
+        }
+        case s2d_rgba: {
+          prgba[0] = ((float)(reds[0] * tau1_fract + reds[1] * tau2_fract)) / (256.f * 255.f);
+          prgba[1] = ((float)(greens[0] * tau1_fract + greens[1] * tau2_fract)) / (256.f * 255.f);
+          prgba[2] = ((float)(blues[0] * tau1_fract + blues[1] * tau2_fract)) / (256.f * 255.f);
+          prgba[3] = ((float)(alphas[0] * tau1_fract + alphas[1] * tau2_fract)) / (256.f * 255.f);
+          break;
+        }
+      }
+    }
+  }
+  else if ((filter == s2d_linear) || 
+           (filter == s2d_linear_mipmap_nearest) ||
+           (filter == s2d_linear_mipmap_linear)) {
+    int num_levels;
+    struct sampler_2d_map *s2dm_levels[2] = {NULL, NULL};
+    struct sampler_2d_map *s2dm;
+    uint32_t tau1_fract = 0;
+    uint32_t tau2_fract = 0;
+    uint64_t reds[2], greens[2], blues[2], alphas[2];
+    if (filter == s2d_linear) {
+      s2dm_levels[0] = s2d->mipmaps_;
+      num_levels = 1;
+    }
+    if (filter == s2d_linear_mipmap_nearest) {
+      int last_mipmap = s2d->num_maps_ - 1;
+      int nearest_mipmap = (lg2 <= 0.5f) ? 0 : (lg2 > (0.5f + (float)last_mipmap)) ? last_mipmap : ((int)(ceilf(lg2 + 0.5f)) - 1);
+      s2dm_levels[0] = s2d->mipmaps_ + nearest_mipmap;
+      num_levels = 1;
+    }
+    else if (filter == s2d_linear_mipmap_linear) {
+      int last_mipmap = s2d->num_maps_ - 1;
+      float ffloor_lg2 = floorf(lg2);
+      float ffract_lg2 = lg2 - ffloor_lg2;
+      int floor_lg2 = (int)ffloor_lg2;
+      int d1_mipmap = (floor_lg2 >= last_mipmap) ? last_mipmap : floor_lg2;
+      int d2_mipmap = (floor_lg2 >= last_mipmap) ? last_mipmap : d1_mipmap + 1;
+      struct sampler_2d_map *s2d1m = s2d->mipmaps_ + d1_mipmap;
+      struct sampler_2d_map *s2d2m = s2d->mipmaps_ + d2_mipmap;
+      tau2_fract = (uint32_t)(256.f * ffract_lg2);
+      tau1_fract = 256 - tau2_fract;
+      s2dm_levels[0] = s2d1m;
+      s2dm_levels[1] = s2d2m;
+      num_levels = 2;
+    }
+
+
+    int level;
+    for (level = 0; level < num_levels; ++level) {
+      s2dm = s2dm_levels[level];
+      float sm = s, tm = t;
+
+      switch (s2d->wrap_s_) {
+        case s2d_clamp_to_edge: {
+          float min_fs = 1 / (2.f * (float)(s2dm->width_));
+          float max_fs = 1.f - min_fs;
+          sm = (sm < min_fs) ? min_fs : ((sm > max_fs) ? max_fs : sm);
+          break;
+        }
+        case s2d_repeat: {
+          /* leave as-is, mask will take care of it */
+          break;
+        }
+        case s2d_mirrored_repeat: {
+          float floared = floorf(sm);
+          float fract = sm - floared;
+          sm = (1 & (int64_t)floared) ? (1.f - fract) : fract;
+          break;
+        }
+      }
+      /* Note the -128: we have the texel center at (0.5, 0.5) but need
+       * to offset it to (0,0) so we can range the linear interpolation from
+       * 0 to 1 in terms of sub-texel coordinates; this is not the case for
+       * the nearest filter, only linear. Same for t coordinate. */
+      uint32_t tex_s_fp8 = ((uint32_t)(sm * s2dm->width_ * 256.f)) - 128;
+      uint32_t tex_s0 = (tex_s_fp8 >> 8) & s2dm->repeat_mask_s_;
+      uint32_t tex_s1 = (tex_s0 + 1) & s2dm->repeat_mask_s_;
+      uint32_t tex_s1_fract = tex_s_fp8 & 255;
+      uint32_t tex_s0_fract = 256 - tex_s1_fract;
+
+      switch (s2d->wrap_t_) {
+        case s2d_clamp_to_edge: {
+          float min_ft = 1 / (2.f * (float)(s2dm->width_));
+          float max_ft = 1.f - min_ft;
+          tm = (tm < min_ft) ? min_ft : ((tm > max_ft) ? max_ft : tm);
+          break;
+        }
+        case s2d_repeat: {
+          /* leave as-is, mask will take care of it */
+          break;
+        }
+        case s2d_mirrored_repeat: {
+          float floared = floorf(tm);
+          float fract = tm - floared;
+          tm = (1 & (int64_t)floared) ? (1.f - fract) : fract;
+          break;
+        }
+      }
+
+      uint32_t tex_t_fp8 = ((uint32_t)(tm * s2dm->height_ * 256.f)) - 128;
+      uint32_t tex_t0 = (tex_t_fp8 >> 8) & s2dm->repeat_mask_s_;
+      uint32_t tex_t1 = (tex_t0 + 1) & s2dm->repeat_mask_t_;
+      uint32_t tex_t1_fract = tex_t_fp8 & 255;
+      uint32_t tex_t0_fract = 256 - tex_t1_fract;
+
+      /* Prepare for bilinear filtering
+       * range tex_st_XX_fract is 0..65536,
+       * tex_st_00_fract + tex_st_01_fract + tex_st_10_fract + tex_st_11_fract = 65536
+       */
+      uint32_t tex_st_00_fract = tex_s0_fract * tex_t0_fract;
+      uint32_t tex_st_01_fract = tex_s0_fract * tex_t1_fract;
+      uint32_t tex_st_10_fract = tex_s1_fract * tex_t0_fract;
+      uint32_t tex_st_11_fract = tex_s1_fract * tex_t1_fract;
+
+      /* Load texel at tex_s and tex_t */
+      switch (s2d->components_) {
+        case s2d_alpha: {
+          uint32_t tex = ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t0 + tex_s0] * tex_st_00_fract
+                       + ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t1 + tex_s0] * tex_st_01_fract
+                       + ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t0 + tex_s1] * tex_st_10_fract
+                       + ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t1 + tex_s1] * tex_st_11_fract;
+          alphas[level] = tex;
+          break;
+        }
+        case s2d_luminance: {
+          uint32_t tex = ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t0 + tex_s0] * tex_st_00_fract
+                       + ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t1 + tex_s0] * tex_st_01_fract
+                       + ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t0 + tex_s1] * tex_st_10_fract
+                       + ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t1 + tex_s1] * tex_st_11_fract;
+          reds[level] = tex;
+          break;
+        }
+        case s2d_luminance_alpha: {
+          uint8_t * restrict ptex00 = ((uint8_t * restrict)s2dm->bitmap_) + 2 * (s2dm->width_ * tex_t0 + tex_s0);
+          uint8_t * restrict ptex01 = ((uint8_t * restrict)s2dm->bitmap_) + 2 * (s2dm->width_ * tex_t1 + tex_s0);
+          uint8_t * restrict ptex10 = ((uint8_t * restrict)s2dm->bitmap_) + 2 * (s2dm->width_ * tex_t0 + tex_s1);
+          uint8_t * restrict ptex11 = ((uint8_t * restrict)s2dm->bitmap_) + 2 * (s2dm->width_ * tex_t1 + tex_s1);
+
+          uint32_t lum_tex = ptex00[0] * tex_st_00_fract
+                           + ptex01[0] * tex_st_01_fract
+                           + ptex10[0] * tex_st_10_fract
+                           + ptex11[0] * tex_st_11_fract;
+
+          uint32_t alpha_tex = ptex00[1] * tex_st_00_fract
+                             + ptex01[1] * tex_st_01_fract
+                             + ptex10[1] * tex_st_10_fract
+                             + ptex11[1] * tex_st_11_fract;
+
+          reds[level] = lum_tex;
+          alphas[level] = alpha_tex;
+          break;
+        }
+        case s2d_rgb: {
+          uint8_t *restrict ptex00 = ((uint8_t * restrict)s2dm->bitmap_) + 3 * (s2dm->width_ * tex_t0 + tex_s0);
+          uint8_t *restrict ptex01 = ((uint8_t * restrict)s2dm->bitmap_) + 3 * (s2dm->width_ * tex_t1 + tex_s0);
+          uint8_t *restrict ptex10 = ((uint8_t * restrict)s2dm->bitmap_) + 3 * (s2dm->width_ * tex_t0 + tex_s1);
+          uint8_t *restrict ptex11 = ((uint8_t * restrict)s2dm->bitmap_) + 3 * (s2dm->width_ * tex_t1 + tex_s1);
+
+          uint32_t red_tex = ptex00[0] * tex_st_00_fract
+                           + ptex01[0] * tex_st_01_fract
+                           + ptex10[0] * tex_st_10_fract
+                           + ptex11[0] * tex_st_11_fract;
+
+          uint32_t green_tex = ptex00[1] * tex_st_00_fract
+                             + ptex01[1] * tex_st_01_fract
+                             + ptex10[1] * tex_st_10_fract
+                             + ptex11[1] * tex_st_11_fract;
+
+          uint32_t blue_tex = ptex00[2] * tex_st_00_fract
+                            + ptex01[2] * tex_st_01_fract
+                            + ptex10[2] * tex_st_10_fract
+                            + ptex11[2] * tex_st_11_fract;
+
+          reds[level] = red_tex;
+          greens[level] = green_tex;
+          blues[level] = blue_tex;
+          break;
+        }
+        case s2d_rgba: {
+          uint8_t *restrict ptex00 = ((uint8_t * restrict)s2dm->bitmap_) + 4 * (s2dm->width_ * tex_t0 + tex_s0);
+          uint8_t *restrict ptex01 = ((uint8_t * restrict)s2dm->bitmap_) + 4 * (s2dm->width_ * tex_t1 + tex_s0);
+          uint8_t *restrict ptex10 = ((uint8_t * restrict)s2dm->bitmap_) + 4 * (s2dm->width_ * tex_t0 + tex_s1);
+          uint8_t *restrict ptex11 = ((uint8_t * restrict)s2dm->bitmap_) + 4 * (s2dm->width_ * tex_t1 + tex_s1);
+
+          uint32_t red_tex = ptex00[0] * tex_st_00_fract
+                           + ptex01[0] * tex_st_01_fract
+                           + ptex10[0] * tex_st_10_fract
+                           + ptex11[0] * tex_st_11_fract;
+
+          uint32_t green_tex = ptex00[1] * tex_st_00_fract
+                             + ptex01[1] * tex_st_01_fract
+                             + ptex10[1] * tex_st_10_fract
+                             + ptex11[1] * tex_st_11_fract;
+
+          uint32_t blue_tex = ptex00[2] * tex_st_00_fract
+                            + ptex01[2] * tex_st_01_fract
+                            + ptex10[2] * tex_st_10_fract
+                            + ptex11[2] * tex_st_11_fract;
+
+          uint32_t alpha_tex = ptex00[3] * tex_st_00_fract
+                             + ptex01[3] * tex_st_01_fract
+                             + ptex10[3] * tex_st_10_fract
+                             + ptex11[3] * tex_st_11_fract;
+
+          reds[level] = red_tex;
+          greens[level] = green_tex;
+          blues[level] = blue_tex;
+          alphas[level] = alpha_tex;
+          break;
+        }
+      }
+    }
+    if ((filter == s2d_linear) ||
+        (filter == s2d_linear_mipmap_nearest)) {
+      /* bilinear mixing means the magnitude is 65536 (see comment above) more */
+      switch (s2d->components_) {
+        case s2d_alpha:
+          prgba[0] = 0.f;
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = ((float)alphas[0]) / (65536.f * 255.f);
+          break;
+        case s2d_luminance:
+          prgba[0] = ((float)reds[0]) / (65536.f * 255.f);
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = 0.f;
+          break;
+        case s2d_luminance_alpha: {
+          prgba[0] = ((float)reds[0]) / (65536.f * 255.f);
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = ((float)alphas[0]) / (65536.f * 255.f);
+          break;
+        }
+        case s2d_rgb: {
+          prgba[0] = ((float)reds[0]) / (65536.f * 255.f);
+          prgba[1] = ((float)greens[0]) / (65536.f * 255.f);
+          prgba[2] = ((float)blues[0]) / (65536.f * 255.f);
+          prgba[3] = 1.f;
+          break;
+        }
+        case s2d_rgba: {
+          prgba[0] = ((float)reds[0]) / (65536.f * 255.f);
+          prgba[1] = ((float)greens[0]) / (65536.f * 255.f);
+          prgba[2] = ((float)blues[0]) / (65536.f * 255.f);
+          prgba[3] = ((float)alphas[0]) / (65536.f * 255.f);
+          break;
+        }
+      }
+    }
+    else if (filter == s2d_linear_mipmap_linear) {
+      /* trilinear mixing means the magnitude is 65336 x 256 = 16777216. */
+      switch (s2d->components_) {
+        case s2d_alpha:
+          prgba[0] = 0.f;
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = ((float)(alphas[0] * tau1_fract + alphas[1] * tau2_fract)) / (16777216.f * 255.f);
+          break;
+        case s2d_luminance:
+          prgba[0] = ((float)(reds[0] * tau1_fract + reds[1] * tau2_fract)) / (16777216.f * 255.f);
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = 0.f;
+          break;
+        case s2d_luminance_alpha: {
+          prgba[0] = ((float)(reds[0] * tau1_fract + reds[1] * tau2_fract)) / (16777216.f * 255.f);
+          prgba[1] = 0.f;
+          prgba[2] = 0.f;
+          prgba[3] = ((float)(alphas[0] * tau1_fract + alphas[1] * tau2_fract)) / (16777216.f * 255.f);
+          break;
+        }
+        case s2d_rgb: {
+          prgba[0] = ((float)(reds[0] * tau1_fract + reds[1] * tau2_fract)) / (16777216.f * 255.f);
+          prgba[1] = ((float)(greens[0] * tau1_fract + greens[1] * tau2_fract)) / (16777216.f * 255.f);
+          prgba[2] = ((float)(blues[0] * tau1_fract + blues[1] * tau2_fract)) / (16777216.f * 255.f);
+          prgba[3] = 1.f;
+          break;
+        }
+        case s2d_rgba: {
+          prgba[0] = ((float)(reds[0] * tau1_fract + reds[1] * tau2_fract)) / (16777216.f * 255.f);
+          prgba[1] = ((float)(greens[0] * tau1_fract + greens[1] * tau2_fract)) / (16777216.f * 255.f);
+          prgba[2] = ((float)(blues[0] * tau1_fract + blues[1] * tau2_fract)) / (16777216.f * 255.f);
+          prgba[3] = ((float)(alphas[0] * tau1_fract + alphas[1] * tau2_fract)) / (16777216.f * 255.f);
+          break;
+        }
+      }
+    }
+  }
+}
+
 void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
   void *restrict *restrict sampler_column = SAMPLER_2D_REG_PTR(x->children_[0], 0);
   float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
   float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
 
   // XXX: Should split this by different sampler type (!!)
 
-  uint8_t row = exec_chain;
+  uint32_t row = exec_chain;
   struct sampler_2d *samplers = NULL;
 
   /* Split the rows to each sampler, we want to evaluate all rows such that the sampler is held
@@ -60,8 +554,10 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
     delta = chain_column[row];
 
     struct sampler_2d *s2d = sampler_column[row];
+    uint8_t *restrict tex_chain_column = s2d->tex_exec_;
+
     if (s2d->last_row_ != SL_EXEC_NO_CHAIN) {
-      chain_column[s2d->last_row_] = row - s2d->last_row_;
+      tex_chain_column[s2d->last_row_] = row - s2d->last_row_;
       s2d->last_row_ = row;
     }
     else {
@@ -86,14 +582,16 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
     do {
       s2d = s2d->runtime_active_sampler_chain_;
 
+      uint8_t *restrict tex_chain_column = s2d->tex_exec_;
+
       /* terminate each sampler's row chain (strictly speaking we could check for arriving at last_row_ but
        * this makes it consistent with the rest of the code. */
-      chain_column[s2d->last_row_] = 0;
-
+      tex_chain_column[s2d->last_row_] = 0;
+      
       /* Wrap S coordinate according to sampler setting */
       switch (s2d->wrap_s_) {
         case s2d_clamp_to_edge: {
-          float min_fs = 1 / (2.f * (float)(s2d->width_));
+          float min_fs = 1 / (2.f * (float)(s2d->mipmaps_->width_));
           float max_fs = 1.f - min_fs;
           float * restrict result_column = s2d->ranged_s_;
           float * restrict opd_column = coord_column_s;
@@ -128,44 +626,6 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
         }
       }
 
-      /* Wrap T coordinate according to sampler setting */
-      switch (s2d->wrap_t_) {
-        case s2d_clamp_to_edge: {
-          float min_ft = 1 / (2.f * (float)(s2d->width_));
-          float max_ft = 1.f - min_ft;
-          float * restrict result_column = s2d->ranged_t_;
-          float * restrict opd_column = coord_column_t;
-#define UNOP_SNIPPET_OPERATOR(opd) ((opd < min_ft) ? min_ft : ((opd > max_ft) ? max_ft : opd))
-#define UNOP_SNIPPET_TYPE float
-#include "sl_unop_snippet_inc.h"
-#undef UNOP_SNIPPET_OPERATOR
-#undef UNOP_SNIPPET_TYPE
-          break;
-        }
-        case s2d_repeat: {
-          float * restrict result_column = s2d->ranged_t_;
-          float * restrict opd_column = coord_column_t;
-#define UNOP_SNIPPET_OPERATOR(opd) (opd - floorf(opd))
-#define UNOP_SNIPPET_TYPE float
-#include "sl_unop_snippet_inc.h"
-#undef UNOP_SNIPPET_OPERATOR
-#undef UNOP_SNIPPET_TYPE
-          break;
-        }
-        case s2d_mirrored_repeat: {
-          /* Check if integral part of number is even or odd */ 
-          float * restrict result_column = s2d->ranged_t_;
-          float * restrict opd_column = coord_column_t;
-#define UNOP_SNIPPET_OPERATOR(opd) ((1 & (int64_t)floorf(opd)) ? (1.f - (opd - floorf(opd))) : (opd - floorf(opd)))
-#define UNOP_SNIPPET_TYPE float
-#include "sl_unop_snippet_inc.h"
-#undef UNOP_SNIPPET_OPERATOR
-#undef UNOP_SNIPPET_TYPE
-
-          break;
-        }
-      }
-
       /* Check if we need to find mipmaps.. */
       int locate_log2_mipmaps = 0;
       switch (s2d->min_filter_) {
@@ -180,11 +640,6 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
         case   s2d_linear_mipmap_linear:   locate_log2_mipmaps = 1; break;
       }
 
-      uint32_t minification_chain = SL_EXEC_NO_CHAIN;
-      uint32_t minification_chain_tail = SL_EXEC_NO_CHAIN;
-      uint32_t magnification_chain = SL_EXEC_NO_CHAIN;
-      uint32_t magnification_chain_tail = SL_EXEC_NO_CHAIN;
-
       if (locate_log2_mipmaps) {
         /* Fragment rows are ordered per square of 4 fragments, repeating 
          * every 4 fragments. Top-Left %00, Top-Right %01, Bottom-Left %10, Bottom-Right %11
@@ -195,27 +650,12 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
          * Because fragments are always generated in fours, we can reach across the rows using
          * the bit pattern above to find the differentials based on the appropriate neighbouring
          * pixels. */
-        float * restrict result_column = s2d->ds_dx_;
-        float * restrict opd_column = coord_column_s;
-        float * restrict log2_column = s2d->dst_log2_;
-
-        /* c as meant in section 3.7.8 texture magnification (OpenGL ES 2.0 full spec v2.0.25 page 82) */
-        float c;
-        if ((s2d->mag_filter_ == s2d_linear) &&
-            ((s2d->min_filter_ == s2d_nearest_mipmap_nearest) ||
-             (s2d->min_filter_ == s2d_nearest_mipmap_linear))) {
-          c = 0.5f;
-        }
-        else {
-          c = 0.f;
-        }
-
+        row = s2d->runtime_rows_;
         for (;;) {
           uint64_t chain;
           uint8_t delta;
-          if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+          if (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
             do {
-              float * restrict l2 = log2_column + row;
               const float *restrict r_s = coord_column_s + row;
               const float *restrict r_t = coord_column_t + row;
 
@@ -270,92 +710,37 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
               float dmax_squared_len_7 = S2D_DMS_MAX(dstdx_squared_len_67, dstdy_squared_len_57);
 #undef S2D_DMS_MAX
 
-              /* Write out results, divide the log2 by 2 so we effectively square-root the 
+              /* Divide the log2 by 2 so we effectively square-root the 
                * dmax_squared prior to taking the log2. (e.g. log2(sqrt()) == 0.5 * log2()) */
-              float l2_0 = log2f(dmax_squared_len_0) * 0.5f;
-              float l2_1 = log2f(dmax_squared_len_1) * 0.5f;
-              float l2_2 = log2f(dmax_squared_len_2) * 0.5f;
-              float l2_3 = log2f(dmax_squared_len_3) * 0.5f;
-              float l2_4 = log2f(dmax_squared_len_4) * 0.5f;
-              float l2_5 = log2f(dmax_squared_len_5) * 0.5f;
-              float l2_6 = log2f(dmax_squared_len_6) * 0.5f;
-              float l2_7 = log2f(dmax_squared_len_7) * 0.5f;
+              float l2[] = {
+                log2f(dmax_squared_len_0) * 0.5f,
+                log2f(dmax_squared_len_1) * 0.5f,
+                log2f(dmax_squared_len_2) * 0.5f,
+                log2f(dmax_squared_len_3) * 0.5f,
+                log2f(dmax_squared_len_4) * 0.5f,
+                log2f(dmax_squared_len_5) * 0.5f,
+                log2f(dmax_squared_len_6) * 0.5f,
+                log2f(dmax_squared_len_7) * 0.5f
+              };
 
-              l2[0] = l2_0;
-              l2[1] = l2_1;
-              l2[2] = l2_2;
-              l2[3] = l2_3;
-              l2[4] = l2_4;
-              l2[5] = l2_5;
-              l2[6] = l2_6;
-              l2[7] = l2_7;
+              int frag_idx;
+              for (frag_idx = 0; frag_idx < (sizeof(l2)/sizeof(*l2)); ++frag_idx) {
+                float rgba[4];
+                texture2D(rgba, s2d, r_s[frag_idx], r_t[frag_idx], l2[frag_idx]);
+                red_column[row + frag_idx] = rgba[0];
+                green_column[row + frag_idx] = rgba[1];
+                blue_column[row + frag_idx] = rgba[2];
+                alpha_column[row + frag_idx] = rgba[3];
+              }
 
               delta = (chain & 0xFF00000000000000) >> 56;
 
-              /* Dispatch between minification and magnification
-               * Attempt here is to keep it within integer bitwise logic, perhaps
-               * even parallelising, and avoid the compiler from going down a 
-               * logical branching path. */
-              int magnification = ((l2_0 > c) ? 0: 1)
-                                + ((l2_1 > c) ? 0: 2)
-                                + ((l2_2 > c) ? 0: 4)
-                                + ((l2_3 > c) ? 0: 8)
-                                + ((l2_4 > c) ? 0: 16)
-                                + ((l2_5 > c) ? 0: 32)
-                                + ((l2_6 > c) ? 0: 64)
-                                + ((l2_7 > c) ? 0: 128);
-              if (magnification == 0xFF) {
-                /* All magnify */
-                if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
-                  chain_column[magnification_chain_tail] = row - magnification_chain_tail;
-                }
-                else {
-                  magnification_chain = row;
-                }
-                magnification_chain_tail = row + 7;
-              }
-              else if (!magnification) {
-                /* All minify */
-                if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
-                  chain_column[minification_chain_tail] = row - minification_chain_tail;
-                }
-                else {
-                  minification_chain = row;
-                }
-                minification_chain_tail = row + 7;
-              }
-              else {
-                /* A tragic mix / cross-over of magnification and minification; slowly split the two one by one */
-                int frag_idx;
-                for (frag_idx = 0; frag_idx < 8; frag_idx++) {
-                  if (magnification & 1) {
-                    if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
-                      chain_column[magnification_chain_tail] = row + frag_idx - magnification_chain_tail;
-                    }
-                    else {
-                      magnification_chain = row + frag_idx;
-                    }
-                    magnification_chain_tail = row + frag_idx;
-                  }
-                  else {
-                    if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
-                      chain_column[minification_chain_tail] = row + frag_idx - minification_chain_tail;
-                    }
-                    else {
-                      minification_chain = row + frag_idx;
-                    }
-                    minification_chain_tail = row + frag_idx;
-                  }
-                }
-              }
-
               if (!delta) break;
               row += 7 + delta;
-            } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+            } while (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
           }
-          else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+          else if (!(row & 3) && (((chain = *(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101)) {
             do {
-              float *restrict l2 = log2_column + row;
               const float *restrict r_s = coord_column_s + row;
               const float *restrict r_t = coord_column_t + row;
 
@@ -392,71 +777,29 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
               float dmax_squared_len_3 = S2D_DMS_MAX(dstdx_squared_len_23, dstdy_squared_len_13);
 #undef S2D_DMS_MAX
 
-              /* Write out results, divide the log2 by 2 so we effectively square-root the
+              /* Divide the log2 by 2 so we effectively square-root the
                * dmax_squared prior to taking the log2. (e.g. log2(sqrt()) == 0.5 * log2()) */
-              float l2_0 = log2f(dmax_squared_len_0) * 0.5f;
-              float l2_1 = log2f(dmax_squared_len_1) * 0.5f;
-              float l2_2 = log2f(dmax_squared_len_2) * 0.5f;
-              float l2_3 = log2f(dmax_squared_len_3) * 0.5f;
-              l2[0] = l2_0;
-              l2[1] = l2_1;
-              l2[2] = l2_2;
-              l2[3] = l2_3;
+              float l2[] = {
+                log2f(dmax_squared_len_0) * 0.5f,
+                log2f(dmax_squared_len_1) * 0.5f,
+                log2f(dmax_squared_len_2) * 0.5f,
+                log2f(dmax_squared_len_3) * 0.5f,
+              };
 
-              /* Dispatch between minification and magnification */
-              int magnification = ((l2_0 > c) ? 0: 1)
-                                + ((l2_1 > c) ? 0: 2)
-                                + ((l2_2 > c) ? 0: 4)
-                                + ((l2_3 > c) ? 0: 8);
-              if (magnification == 0xF) {
-                /* All magnify */
-                if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
-                  chain_column[magnification_chain_tail] = row - magnification_chain_tail;
-                }
-                else {
-                  magnification_chain = row;
-                }
-                magnification_chain_tail = row + 3;
-              }
-              else if (!magnification) {
-                /* All minify */
-                if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
-                  chain_column[minification_chain_tail] = row - minification_chain_tail;
-                }
-                else {
-                  minification_chain = row;
-                }
-                minification_chain_tail = row + 3;
-              }
-              else {
-                /* A tragic mix / cross-over of magnification and minification; slowly split the two one by one */
-                int frag_idx;
-                for (frag_idx = 0; frag_idx < 4; frag_idx++) {
-                  if (magnification & 1) {
-                    if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
-                      chain_column[magnification_chain_tail] = row + frag_idx - magnification_chain_tail;
-                    }
-                    else {
-                      magnification_chain = row + frag_idx;
-                    }
-                    magnification_chain_tail = row + frag_idx;
-                  }
-                  else {
-                    if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
-                      chain_column[minification_chain_tail] = row + frag_idx - minification_chain_tail;
-                    }
-                    else {
-                      minification_chain = row + frag_idx;
-                    }
-                    minification_chain_tail = row + frag_idx;
-                  }
-                }
+              int frag_idx;
+              for (frag_idx = 0; frag_idx < (sizeof(l2)/sizeof(*l2)); ++frag_idx) {
+                float rgba[4];
+                texture2D(rgba, s2d, r_s[frag_idx], r_t[frag_idx], l2[frag_idx]);
+                red_column[row + frag_idx] = rgba[0];
+                green_column[row + frag_idx] = rgba[1];
+                blue_column[row + frag_idx] = rgba[2];
+                alpha_column[row + frag_idx] = rgba[3];
               }
 
               delta = (chain & 0xFF000000) >> 24;
               if (!delta) break;
               row += 3 + delta;
-            } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+            } while (!(row & 3) && ((chain = (*(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101));
           }
           else {
             do {
@@ -465,7 +808,6 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
                * fragment shader) - so even if that's the case, the interpolation of S and T is
                * still very likely a good basis for mip-mapping. Note that the GLSL spec is 
                * "undefined" as to what happens here; just try and do something reasonable. */
-              float *restrict l2 = log2_column + row;
               const float *restrict r_s = coord_column_s + row;
               const float *restrict r_t = coord_column_t + row;
               float fdsdx = r_s[row | 1] - r_s[row & ~1];
@@ -477,30 +819,14 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
               float dmax_squared_len = (fdstdx_squared_len > fdstdy_squared_len) ? fdstdx_squared_len : fdstdy_squared_len;
               float lg2 = log2f(dmax_squared_len) * 0.5f;
 
-              *l2 = lg2;
+              float rgba[4];
+              texture2D(rgba, s2d, r_s[0], r_t[0], lg2);
+              red_column[row] = rgba[0];
+              green_column[row] = rgba[1];
+              blue_column[row] = rgba[2];
+              alpha_column[row] = rgba[3];
 
-              if (lg2 <= c) {
-                /* Magnification */
-                if (magnification_chain_tail != SL_EXEC_NO_CHAIN) {
-                  chain_column[magnification_chain_tail] = row - magnification_chain_tail;
-                }
-                else {
-                  magnification_chain = row;
-                }
-                magnification_chain_tail = row;
-              }
-              else {
-                /* Minification */
-                if (minification_chain_tail != SL_EXEC_NO_CHAIN) {
-                  chain_column[minification_chain_tail] = row - minification_chain_tail;
-                }
-                else {
-                  minification_chain = row;
-                }
-                minification_chain_tail = row;
-              }
-
-              delta = chain_column[row];
+              delta = tex_chain_column[row];
               if (!delta) break;
               row += delta;
             } while (row & 3);
@@ -508,88 +834,79 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
           if (!delta) break;
         }
       } /* end of if (locate_log2_mipmaps) */
-      else {
-        minification_chain = exec_chain;
-      }
-
-      if ((s2d->min_filter_ == s2d_nearest_mipmap_nearest) ||
-          (s2d->min_filter_ == s2d_linear_mipmap_nearest)) {
-        float max_q  = 0.5f + (float)s2d->q_;
-        int q = s2d->q_;
-
-        float * restrict opd_column = coord_column_s;
-        float * restrict log2_column = s2d->dst_log2_;
+      else /* if lg2 not needed */ {
+        row = s2d->runtime_rows_;
         for (;;) {
           uint64_t chain;
           uint8_t delta;
-          if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+          if (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
             do {
-              float * restrict l2 = log2_column + row;
               const float *restrict r_s = coord_column_s + row;
               const float *restrict r_t = coord_column_t + row;
 
-              float l2_0 = l2[0];
-              float l2_1 = l2[1];
-              float l2_2 = l2[2];
-              float l2_3 = l2[3];
-              float l2_4 = l2[4];
-              float l2_5 = l2[5];
-              float l2_6 = l2[6];
-              float l2_7 = l2[7];
-
-              int nearest_d0 = (l2_0 <= 0.5f) ? 0 : (l2_0 > max_q) ? q : ((int)(ceilf(l2_0 + 0.5f)) - 1);
-              int nearest_d1 = (l2_1 <= 0.5f) ? 0 : (l2_1 > max_q) ? q : ((int)(ceilf(l2_1 + 0.5f)) - 1);
-              int nearest_d2 = (l2_2 <= 0.5f) ? 0 : (l2_2 > max_q) ? q : ((int)(ceilf(l2_2 + 0.5f)) - 1);
-              int nearest_d3 = (l2_3 <= 0.5f) ? 0 : (l2_3 > max_q) ? q : ((int)(ceilf(l2_3 + 0.5f)) - 1);
-              int nearest_d4 = (l2_4 <= 0.5f) ? 0 : (l2_4 > max_q) ? q : ((int)(ceilf(l2_4 + 0.5f)) - 1);
-              int nearest_d5 = (l2_5 <= 0.5f) ? 0 : (l2_5 > max_q) ? q : ((int)(ceilf(l2_5 + 0.5f)) - 1);
-              int nearest_d6 = (l2_6 <= 0.5f) ? 0 : (l2_6 > max_q) ? q : ((int)(ceilf(l2_6 + 0.5f)) - 1);
-              int nearest_d7 = (l2_7 <= 0.5f) ? 0 : (l2_7 > max_q) ? q : ((int)(ceilf(l2_7 + 0.5f)) - 1);
+              int frag_idx;
+              for (frag_idx = 0; frag_idx < 8; ++frag_idx) {
+                float rgba[4];
+                texture2D(rgba, s2d, r_s[frag_idx], r_t[frag_idx], 0.f);
+                red_column[row + frag_idx] = rgba[0];
+                green_column[row + frag_idx] = rgba[1];
+                blue_column[row + frag_idx] = rgba[2];
+                alpha_column[row + frag_idx] = rgba[3];
+              }
 
               delta = (chain & 0xFF00000000000000) >> 56;
+
               if (!delta) break;
               row += 7 + delta;
-            } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+            } while (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
           }
-          else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+          else if (!(row & 3) && (((chain = *(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101)) {
             do {
-              float *restrict l2 = log2_column + row;
               const float *restrict r_s = coord_column_s + row;
               const float *restrict r_t = coord_column_t + row;
 
-              float l2_0 = l2[0];
-              float l2_1 = l2[1];
-              float l2_2 = l2[2];
-              float l2_3 = l2[3];
-
-              int nearest_d0 = (l2_0 <= 0.5f) ? 0 : (l2_0 > max_q) ? q : ((int)(ceilf(l2_0 + 0.5f)) - 1);
-              int nearest_d1 = (l2_1 <= 0.5f) ? 0 : (l2_1 > max_q) ? q : ((int)(ceilf(l2_1 + 0.5f)) - 1);
-              int nearest_d2 = (l2_2 <= 0.5f) ? 0 : (l2_2 > max_q) ? q : ((int)(ceilf(l2_2 + 0.5f)) - 1);
-              int nearest_d3 = (l2_3 <= 0.5f) ? 0 : (l2_3 > max_q) ? q : ((int)(ceilf(l2_3 + 0.5f)) - 1);
+              int frag_idx;
+              for (frag_idx = 0; frag_idx < 4; ++frag_idx) {
+                float rgba[4];
+                texture2D(rgba, s2d, r_s[frag_idx], r_t[frag_idx], 0.f);
+                red_column[row + frag_idx] = rgba[0];
+                green_column[row + frag_idx] = rgba[1];
+                blue_column[row + frag_idx] = rgba[2];
+                alpha_column[row + frag_idx] = rgba[3];
+              }
 
               delta = (chain & 0xFF000000) >> 24;
               if (!delta) break;
               row += 3 + delta;
-            } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+            } while (!(row & 3) && ((chain = (*(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101));
           }
           else {
             do {
-              float *restrict l2 = log2_column + row;
+              /* Stubbornly persist in reaching across rows, even if the square of fragmens is not
+               * in the same execution chain (e.g. there is some stippling or such going on in the
+               * fragment shader) - so even if that's the case, the interpolation of S and T is
+               * still very likely a good basis for mip-mapping. Note that the GLSL spec is
+               * "undefined" as to what happens here; just try and do something reasonable. */
               const float *restrict r_s = coord_column_s + row;
               const float *restrict r_t = coord_column_t + row;
 
-              float lg2 = l2[0];
-              int nearest_d = (lg2 <= 0.5f) ? 0 : (lg2 > max_q) ? q : ((int)(ceilf(lg2 + 0.5f)) - 1);
+              float rgba[4];
+              texture2D(rgba, s2d, r_s[0], r_t[0], 0.f);
+              red_column[row] = rgba[0];
+              green_column[row] = rgba[1];
+              blue_column[row] = rgba[2];
+              alpha_column[row] = rgba[3];
 
-              delta = chain_column[row];
+              delta = tex_chain_column[row];
               if (!delta) break;
               row += delta;
             } while (row & 3);
           }
           if (!delta) break;
         }
-      } /* end of if (XXX_MIPMAP_NEAREST) */
+      }
 
+      s2d->runtime_rows_ = SL_EXEC_NO_CHAIN;
     } while (s2d != samplers);
   }
 }
