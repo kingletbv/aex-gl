@@ -60,14 +60,18 @@ void sampler_2d_cleanup(struct sampler_2d *s2d) {
   if (s2d->mipmaps_) free(s2d->mipmaps_);
 }
 
-static int is_power_of_two(uint32_t x) {
-  /* simple bitcount */
-  int l0 = (((x & 0xAAAAAAAA) >> 1) + (x & 0x55555555);
+static int bitcount(uint32_t x) {
+  int l0 = ((x & 0xAAAAAAAA) >> 1) + (x & 0x55555555);
   int l1 = ((l0 & 0xCCCCCCCC) >> 2) + (l0 & 0x33333333);
   int l2 = ((l1 & 0xF0F0F0F0) >> 4) + (l1 & 0x0F0F0F0F);
   int l3 = ((l2 & 0xFF00FF00) >> 8) + (l2 & 0x00FF00FF);
   int l4 = ((l3 & 0xFFFF0000) >> 16) + (l3 & 0x0000FFFF);
   return l4;
+}
+
+static int is_power_of_two(uint32_t x) {
+  /* simple bitcount */
+  return bitcount(x) == 1;
 }
 
 /* mersenne number is, for any n, the number (2**n)-1
@@ -155,6 +159,114 @@ static void sampler_2d_update_completeness(struct sampler_2d *s2d) {
       }
     }
   }
+}
+
+static uint32_t check_alignment(uint32_t v) {
+  /* Idea here: if a bit is set, then there is no alignment.
+   * So, e.g. if bit 0 is set, then there is no 2-byte alignment,
+   *          if bit 1 is set, then there is no 4-byte alignment,
+   *          if bit 2 is set, then there is no 8-byte alignment,
+   * and so on. Note that if, in the source, bit 0 is set, then that
+   * implies that, not only is there no 2-byte alignment, but there is
+   * also no 4, 8, 16, 32, and so on, alignment. */
+  v = v | (v << 1);
+  v = v | (v << 2);
+  v = v | (v << 4);
+  v = v | (v << 8);
+  v = v | (v << 16);
+
+  /* Let's count the number of 0 bits; note that we went all the way 
+   * up to 32 bits in our bit propagation above, so consequently,
+   * if we invert all bits, then all the bits will be to the right (low end)
+   * from the LSB up and be consecutive. If we count those bits, we 
+   * have the alignment of the input value:
+   * 0 = 1 byte alignment (no alignment, no bits were set),
+   * 1 = 2 byte alignment
+   * 2 = 4 byte alignment
+   * 3 = 8 byte alignment.
+   * ... and so on. */
+  
+  return bitcount(~v);
+}
+
+static void blit(void *dst, const void *src, size_t dst_stride, size_t src_stride, size_t width, size_t height, enum s2d_tex_components format, enum s2d_blit_data_type src_type) {
+  uintptr_t dst_uint = (uintptr_t)dst;
+  uintptr_t src_uint = (uintptr_t)src;
+  /* Check alignment */
+  uint32_t dst_alignment = check_alignment((uint32_t)dst_uint);
+  uint32_t src_alignment = check_alignment((uint32_t)src_uint);
+  uint32_t src_stride_alignment = check_alignment((uint32_t)src_stride);
+  uint32_t dst_stride_alignment = check_alignment((uint32_t)dst_stride);
+
+  if (dst_stride_alignment < dst_alignment) dst_alignment = dst_stride_alignment;
+  if (src_stride_alignment < src_alignment) src_alignment = src_stride_alignment;
+
+  uint32_t alignment = src_alignment;
+  if (dst_alignment < alignment) alignment = dst_alignment;
+
+  size_t bytes_per_src_pixel = 1;
+  switch (src_type) {
+    case s2d_unsigned_byte:
+      switch (format) {
+        case s2d_alpha:
+          bytes_per_src_pixel = 1;
+          break;
+        case s2d_luminance:
+          bytes_per_src_pixel = 1;
+          break;
+        case s2d_luminance_alpha:
+          bytes_per_src_pixel = 2;
+          break;
+        case s2d_rgb:
+          bytes_per_src_pixel = 3;
+          break;
+        case s2d_rgba:
+          bytes_per_src_pixel = 4;
+          break;
+      }
+      break;
+    case s2d_unsigned_short_565:
+    case s2d_unsigned_short_4444:
+    case s2d_unsigned_short_5551:
+      bytes_per_src_pixel = 2;
+      break;
+  }
+
+  size_t bytes_per_src_row = width * bytes_per_src_pixel;
+
+  size_t bytes_per_dst_pixel = 1;
+  switch (format) {
+    case s2d_alpha:
+      bytes_per_dst_pixel = 1;
+      break;
+    case s2d_luminance:
+      bytes_per_dst_pixel = 1;
+      break;
+    case s2d_luminance_alpha:
+      bytes_per_dst_pixel = 2;
+      break;
+    case s2d_rgb:
+      bytes_per_dst_pixel = 3;
+      break;
+    case s2d_rgba:
+      bytes_per_dst_pixel = 4;
+      break;
+  }
+
+  size_t bytes_per_dst_row = width * bytes_per_dst_pixel;
+
+  uint32_t src_width_byte_alignment = check_alignment((uint32_t)bytes_per_src_row);
+  uint32_t dst_width_byte_alignment = check_alignment((uint32_t)bytes_per_dst_row);
+
+  if (src_width_byte_alignment < alignment) alignment = src_width_byte_alignment;
+  if (dst_width_byte_alignment < alignment) alignment = dst_width_byte_alignment;
+
+  /* alignment now holds the byte alignment value when source, destination, and both their strides,
+   * and the width to be processed in source and destination pixel formats, are taken into account. */
+
+  uint8_t * restrict dp = (uint8_t * restrict)dst;
+  uint8_t * restrict sp = (uint8_t * restrict)src;
+
 }
 
 static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, float lg2) {

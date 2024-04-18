@@ -47,6 +47,13 @@ enum s2d_tex_components {
   s2d_rgba
 };
 
+enum s2d_blit_data_type {
+  s2d_unsigned_byte,
+  s2d_unsigned_short_565,
+  s2d_unsigned_short_4444,
+  s2d_unsigned_short_5551
+};
+
 struct sampler_2d_map {
   int width_;
   int height_;
