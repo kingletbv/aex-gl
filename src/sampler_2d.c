@@ -41,6 +41,122 @@
  *      however become an integer type and not a void* pointer type - so this will have to
  *      change. */
 
+void sampler_2d_init(struct sampler_2d *s2d) {
+  /* Defaults as per ES 2.0 v2.0.25 3.7.12 Texture State (p.84) */
+  s2d->wrap_s_ = s2d_repeat;
+  s2d->wrap_t_ = s2d_repeat;
+  s2d->min_filter_ = s2d_nearest_mipmap_linear;
+  s2d->mag_filter_ = s2d_linear;
+  s2d->num_maps_ = 0;
+  s2d->mipmaps_ = NULL;
+}
+
+void sampler_2d_cleanup(struct sampler_2d *s2d) {
+  size_t n;
+  for (n = 0; n < s2d->num_maps_; ++n) {
+    struct sampler_2d_map *s2dm = s2d->mipmaps_ + n;
+    free(s2dm->bitmap_);
+  }
+  if (s2d->mipmaps_) free(s2d->mipmaps_);
+}
+
+static int is_power_of_two(uint32_t x) {
+  /* simple bitcount */
+  int l0 = (((x & 0xAAAAAAAA) >> 1) + (x & 0x55555555);
+  int l1 = ((l0 & 0xCCCCCCCC) >> 2) + (l0 & 0x33333333);
+  int l2 = ((l1 & 0xF0F0F0F0) >> 4) + (l1 & 0x0F0F0F0F);
+  int l3 = ((l2 & 0xFF00FF00) >> 8) + (l2 & 0x00FF00FF);
+  int l4 = ((l3 & 0xFFFF0000) >> 16) + (l3 & 0x0000FFFF);
+  return l4;
+}
+
+/* mersenne number is, for any n, the number (2**n)-1
+ * not to be confused with mersenne primes which are a special case. */
+static uint32_t next_greater_or_equal_mersenne_number(uint32_t x) {
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  return x;
+}
+
+static uint32_t isolate_msb(uint32_t x) {
+  uint32_t y = next_greater_or_equal_mersenne_number(x);
+  y = y & ~(y >> 1);
+  return y;
+}
+
+static void sampler_2d_update_level_repetition_masks(struct sampler_2d *s2d) {
+  size_t n;
+  for (n = 0; n < s2d->num_maps_; ++n) {
+    s2d->mipmaps_[n].repeat_mask_s_ = isolate_msb((uint32_t)s2d->mipmaps_[n].width_) - 1;
+    s2d->mipmaps_[n].repeat_mask_t_ = isolate_msb((uint32_t)s2d->mipmaps_[n].height_) - 1;
+  }
+}
+
+static void sampler_2d_update_completeness(struct sampler_2d *s2d) {
+  if (s2d->num_maps_ == 0) {
+    s2d->is_complete_ = 0;
+    return;
+  }
+  s2d->is_power_of_two_ = is_power_of_two((uint32_t)s2d->mipmaps_[0].width_) &&
+                          is_power_of_two((uint32_t)s2d->mipmaps_[0].height_);
+
+  if ((s2d->min_filter_ == s2d_nearest) ||
+      (s2d->min_filter_ == s2d_linear)) {
+    if ((s2d->mipmaps_[0].width_ > 0) &&
+        (s2d->mipmaps_[0].height_ > 0)) {
+      s2d->is_complete_ = 1;
+      return;
+    }
+  }
+  else if ((s2d->min_filter_ == s2d_nearest_mipmap_nearest) ||
+           (s2d->min_filter_ == s2d_nearest_mipmap_linear) ||
+           (s2d->min_filter_ == s2d_linear_mipmap_nearest) ||
+           (s2d->min_filter_ == s2d_linear_mipmap_linear)) {
+    size_t n;
+    if (s2d->num_maps_ == 0) {
+      s2d->is_complete_ = 0;
+      return;
+    }
+    int current_width, current_height;
+    current_width = s2d->mipmaps_[0].width_;
+    current_height = s2d->mipmaps_[0].height_;
+    if ((current_width <= 0) || (current_height <= 0)) {
+      s2d->is_complete_ = 0;
+      return;
+    }
+    int maxwh = (current_width > current_height) ? current_width : current_height;
+    float flg2_maxwh = floorf(log2f((float)maxwh));
+    if (flg2_maxwh > (float)INT_MAX) {
+      s2d->is_complete_ = 0;
+      return;
+    }
+    int lg2_maxwh = (int)flg2_maxwh;
+    int num_mipmaps_needed = lg2_maxwh + 1;
+
+    if (num_mipmaps_needed > s2d->num_maps_) {
+      s2d->is_complete_ = 0;
+      return;
+    }
+
+    for (n = 1; n < num_mipmaps_needed; ++n) {
+      current_width = (1 > current_width / 2) ? 1 : (current_width / 2);
+      current_height = (1 > current_height / 2) ? 1 : (current_height / 2);
+      if ((s2d->mipmaps_[n].width_ != current_width) ||
+          (s2d->mipmaps_[n].height_ != current_height)) {
+        s2d->is_complete_ = 0;
+        return;
+      }
+      if (s2d->mipmaps_[n].components_ != s2d->mipmaps_[0].components_) {
+        s2d->is_complete_ = 0;
+        return;
+      }
+    }
+  }
+}
+
 static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, float lg2) {
   /* c as meant in section 3.7.8 texture magnification (OpenGL ES 2.0 full spec v2.0.25 page 82) */
   float c;
@@ -577,8 +693,6 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
   float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
   float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
   float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
-
-  // XXX: Should split this by different sampler type (!!)
 
   uint32_t row;
   struct sampler_2d *samplers;

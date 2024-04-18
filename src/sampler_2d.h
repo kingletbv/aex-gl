@@ -51,6 +51,7 @@ struct sampler_2d_map {
   int width_;
   int height_;
   uint32_t repeat_mask_s_, repeat_mask_t_;
+  enum s2d_tex_components components_;
   void *bitmap_;
 };
 
@@ -60,10 +61,25 @@ struct sampler_2d {
   enum s2d_filter mag_filter_;  /* s2d_nearest, s2d_linear, no other */
   enum s2d_tex_components_ components_;
 
+  /* A sampler (texture) is complete if, when min_filter_
+   * indicates mipmapping, all levels are filled and have the same components_
+   * value (components_ maps directly onto opengl internalformat.)
+   * Additionally, all mipmap levels should have bitmaps set, and appropriate
+   * (positive) dimensions. 
+   * If min_filter_ does not imply mip-mapping, then we should have a map
+   * in mipmaps_[0] and it should be valid (positive dimensions, and have
+   * bitmap_ specified.)
+   * See 3.7.10 Texture Completeness. */
+  int is_complete_:1;
+
+  /* Indicates if the dimensions of level 0 (and by extension any other if
+   * the texture is complete), if the dimensions of level 0 are a power of
+   * 2. Need not be the same power (e.g. if width is 128 and height is 64,
+   * this will be true.) */
+  int is_power_of_two_:1;
+
   int num_maps_;
   struct sampler_2d_map *mipmaps_;
-
-  int q_; /* maximum mip-map level, counting from 0 for the original texture upwards */
 
   /* list of all samplers part of the current evaluation, each sampler
    * contains the set of rows it is currently being evaluated by. */
@@ -72,15 +88,10 @@ struct sampler_2d {
   uint32_t last_row_;
 
   uint8_t tex_exec_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
-  float ds_dx_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
-  float ds_dy_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
-  float dt_dx_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
-  float dt_dy_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
-  float dst_log2_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
-  float ranged_s_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
-  float ranged_t_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
-  int64_t floored_st_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
 };
+
+void sampler_2d_init(struct sampler_2d *s2d);
+void sampler_2d_cleanup(struct sampler_2d *s2d);
 
 void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_texture2D_bias_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
