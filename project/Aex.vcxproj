@@ -175,6 +175,7 @@
     <ClCompile Include="..\src\attrib_routing.c" />
     <ClCompile Include="..\src\attrib_set.c" />
     <ClCompile Include="..\src\blend.c" />
+    <ClCompile Include="..\src\blitter.c" />
     <ClCompile Include="..\src\builtins.c" />
     <ClCompile Include="..\src\clipping_stage.c" />
     <ClCompile Include="..\src\fragment_buffer.c" />
@@ -314,6 +315,7 @@
     <ClInclude Include="..\src\attrib_routing.h" />
     <ClInclude Include="..\src\attrib_set.h" />
     <ClInclude Include="..\src\blend.h" />
+    <ClInclude Include="..\src\blitter.h" />
     <ClInclude Include="..\src\builtins.h" />
     <ClInclude Include="..\src\builtins_binding_inc.h" />
     <ClInclude Include="..\src\clipping_stage.h" />

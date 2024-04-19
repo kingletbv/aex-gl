@@ -52,6 +52,7 @@
     <ClCompile Include="..\src\attrib_routing.c" />
     <ClCompile Include="..\src\sl_uniforms.c" />
     <ClCompile Include="..\src\sampler_2d.c" />
+    <ClCompile Include="..\src\blitter.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -115,6 +116,7 @@
     <ClInclude Include="..\src\sl_uniforms.h" />
     <ClInclude Include="..\src\sampler_2d.h" />
     <ClInclude Include="..\src\sl_ternop_snippet_inc.h" />
+    <ClInclude Include="..\src\blitter.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
