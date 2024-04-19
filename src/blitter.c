@@ -534,7 +534,7 @@ void blitter_blit(void *dst, const void *src, size_t dst_stride, size_t src_stri
       }
     }
   }
-  else if (alignment == 2) {
+  else if (alignment >= 2) {
     /* 2-byte aligned, can go 16-bits at a time */
     uint8_t *restrict dp = (uint8_t * restrict)dst;
     uint8_t *restrict sp = (uint8_t * restrict)src;
@@ -702,9 +702,209 @@ void blitter_blit(void *dst, const void *src, size_t dst_stride, size_t src_stri
         }
         break;
       }
-      case blit_unsigned_short_4444:
-      case blit_unsigned_short_5551:
+      case blit_unsigned_short_4444: {
+        uint16_t *restrict sp16 = (uint16_t * restrict)src;
+        uint16_t *restrict spc16;
+        size_t src_stride_16 = src_stride / sizeof(uint16_t);
+
+        switch (format) {
+          case blit_alpha:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+                uint16_t alpha_masked = src_pixel & 0x000F;
+                uint8_t alpha = (uint8_t)((alpha_masked) | (alpha_masked << 4));
+                *dpc++ = alpha;
+              }
+            }
+            break;
+          case blit_luminance:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+                uint16_t luminance_masked = src_pixel & 0xF000;
+                uint8_t luminance = (uint8_t)((luminance_masked >> 8) | (luminance_masked >> 12));
+                *dpc++ = luminance;
+              }
+            }
+            break;
+          case blit_luminance_alpha:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+                /* Luminance is in the R channel */
+                uint16_t luminance_masked = src_pixel & 0xF000;
+                uint8_t luminance = (uint8_t)((luminance_masked >> 8) | (luminance_masked >> 12));
+                uint16_t alpha_masked = src_pixel & 0x000F;
+                uint8_t alpha = (uint8_t)((alpha_masked) | (alpha_masked << 4));
+                *dpc++ = luminance;
+                *dpc++ = alpha;
+              }
+            }
+            break;
+          case blit_rgb:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+
+                uint16_t red_masked = src_pixel & 0xF000;
+                uint8_t red = (uint8_t)((red_masked >> 8) | (red_masked >> 12));
+                uint16_t green_masked = src_pixel & 0x0F00;
+                uint8_t green = (uint8_t)((green_masked >> 4) | (green_masked >> 8));
+                uint16_t blue_masked = src_pixel & 0x00F0;
+                uint8_t blue = (uint8_t)((blue_masked) | (blue_masked >> 4));
+                *dpc++ = red;
+                *dpc++ = green;
+                *dpc++ = blue;
+              }
+            }
+            break;
+          case blit_rgba:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+
+                uint16_t red_masked = src_pixel & 0xF000;
+                uint8_t red = (uint8_t)((red_masked >> 8) | (red_masked >> 12));
+                uint16_t green_masked = src_pixel & 0x0F00;
+                uint8_t green = (uint8_t)((green_masked >> 4) | (green_masked >> 8));
+                uint16_t blue_masked = src_pixel & 0x00F0;
+                uint8_t blue = (uint8_t)((blue_masked) | (blue_masked >> 4));
+                uint16_t alpha_masked = src_pixel & 0x000F;
+                uint8_t alpha = (uint8_t)((alpha_masked << 4) | (alpha_masked));
+                *dpc++ = red;
+                *dpc++ = green;
+                *dpc++ = blue;
+                *dpc++ = alpha;
+              }
+            }
+            break;
+        }
         break;
+      }
+      case blit_unsigned_short_5551: {
+        uint16_t *restrict sp16 = (uint16_t * restrict)src;
+        uint16_t *restrict spc16;
+        size_t src_stride_16 = src_stride / sizeof(uint16_t);
+
+        switch (format) {
+          case blit_alpha:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+
+                uint16_t alpha_masked = src_pixel & 0x0001;
+                uint8_t alpha = (uint8_t)(0x100 - alpha_masked);
+                *dpc++ = alpha;
+              }
+            }
+            break;
+          case blit_luminance:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+
+                uint16_t luminance_masked = src_pixel & 0xF800;
+                uint8_t luminance = (uint8_t)((luminance_masked >> 8) | (luminance_masked >> 13));
+                *dpc++ = luminance;
+              }
+            }
+            break;
+          case blit_luminance_alpha:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+
+                /* Luminance is in the R channel */
+                uint16_t luminance_masked = src_pixel & 0xF800;
+                uint8_t luminance = (uint8_t)((luminance_masked >> 8) | (luminance_masked >> 13));
+                uint16_t alpha_masked = src_pixel & 0x003E;
+                uint8_t alpha = (uint8_t)((alpha_masked << 2) | (alpha_masked >> 3));
+                *dpc++ = luminance;
+                *dpc++ = alpha;
+              }
+            }
+            break;
+          case blit_rgb:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+
+                uint16_t red_masked = src_pixel & 0xF800;
+                uint8_t red = (uint8_t)((red_masked >> 8) | (red_masked >> 13));
+                uint16_t green_masked = src_pixel & 0x07C0;
+                uint8_t green = (uint8_t)((green_masked >> 3) | (green_masked >> 8));
+                uint16_t blue_masked = src_pixel & 0x003E;
+                uint8_t blue = (uint8_t)((blue_masked << 2) | (blue_masked >> 3));
+                *dpc++ = red;
+                *dpc++ = green;
+                *dpc++ = blue;
+              }
+            }
+            break;
+          case blit_rgba:
+            for (row = 0; row < height; ++row) {
+              dpc = dp;
+              spc16 = sp16;
+              sp16 += src_stride_16;
+              dp += dst_stride;
+              for (col = 0; col < width; ++col) {
+                uint16_t src_pixel = *spc16++;
+
+                uint16_t red_masked = src_pixel & 0xF800;
+                uint8_t red = (uint8_t)((red_masked >> 8) | (red_masked >> 13));
+                uint16_t green_masked = src_pixel & 0x07C0;
+                uint8_t green = (uint8_t)((green_masked >> 3) | (green_masked >> 8));
+                uint16_t blue_masked = src_pixel & 0x003E;
+                uint8_t blue = (uint8_t)((blue_masked << 2) | (blue_masked >> 3));
+                uint16_t alpha_masked = src_pixel & 0x0001;
+                uint8_t alpha = (uint8_t)(0x100 - alpha_masked);
+                *dpc++ = red;
+                *dpc++ = green;
+                *dpc++ = blue;
+                *dpc++ = alpha;
+              }
+            }
+            break;
+        }
+        break;
+      }
     }
   }
 }
