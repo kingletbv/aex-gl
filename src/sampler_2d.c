@@ -22,6 +22,11 @@
 #include <math.h>
 #endif
 
+#ifndef SL_DEFS_H_INCLUDED
+#define SL_DEFS_H_INCLUDED
+#include "sl_defs.h"
+#endif
+
 #ifndef SL_EXPR_H_INCLUDED
 #define SL_EXPR_H_INCLUDED
 #include "sl_expr.h"
@@ -35,6 +40,11 @@
 #ifndef SAMPLER_2D_H_INCLUDED
 #define SAMPLER_2D_H_INCLUDED
 #include "sampler_2d.h"
+#endif
+
+#ifndef BLITTER_H_INCLUDED
+#define BLITTER_H_INCLUDED
+#include "blitter.h"
 #endif
 
 /* XXX: For now we grab the sampler_2d from the first argument (the sampler) - this should
@@ -1022,3 +1032,87 @@ void builtin_texture2DProjLod_v3_runtime(struct sl_execution *exec, int exec_cha
 
 void builtin_texture2DProjLod_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
 }
+
+int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_components internal_format, int width, int height,
+                         enum blitter_data_type src_datatype, void *src_data) {
+  if (s2d->num_maps_ <= level) {
+    /* Resize to fit level, within reason for level */
+    if (level >= 32) return SL_ERR_INVALID_ARG;
+    struct sampler_2d_map *s2dm = (struct sampler_2d_map *)realloc(s2d->mipmaps_, (level + 1) * sizeof(struct sampler_2d_map));
+    if (!s2dm) return SL_ERR_NO_MEM;
+    size_t n;
+    for (n = s2d->num_maps_; n <= (size_t)level; ++n) {
+      s2dm->width_ = 0;
+      s2dm->height_ = 0;
+      s2dm->repeat_mask_s_ = s2dm->repeat_mask_t_ = 0;
+      s2dm->components_ = s2d_rgb;
+      s2dm->num_bytes_per_bitmap_row_ = 0;
+      s2dm->bitmap_ = NULL;
+    }
+    s2d->num_maps_ = level + 1;
+  }
+  struct sampler_2d_map *lvl = s2d->mipmaps_ + level;
+  size_t num_bytes_per_pixel = 0;
+  switch (lvl->components_) {
+    case s2d_alpha:
+    case s2d_luminance:
+      num_bytes_per_pixel = 1;
+      break;
+    case s2d_luminance_alpha:
+      num_bytes_per_pixel = 2;
+      break;
+    case s2d_rgb:
+      num_bytes_per_pixel = 3;
+      break;
+    case s2d_rgba:
+      num_bytes_per_pixel = 4;
+      break;
+  }
+  size_t num_bytes_per_row_nonaligned = num_bytes_per_pixel * width;
+  size_t num_bytes_per_row_8B_aligned = (num_bytes_per_row_nonaligned + 7) & ~(size_t)7;
+  void *new_bitmap = malloc(num_bytes_per_row_8B_aligned * (size_t)height);
+  if (!new_bitmap) return SL_ERR_NO_MEM;
+
+  lvl->components_ = internal_format;
+  lvl->width_ = width;
+  lvl->height_ = height;
+  lvl->repeat_mask_s_ = next_greater_or_equal_mersenne_number((uint32_t)width) >> 1;
+  lvl->repeat_mask_t_ = next_greater_or_equal_mersenne_number((uint32_t)height) >> 1;
+  
+  size_t num_bytes_per_src_pixel = 0;
+  switch (src_datatype) {
+    case blit_unsigned_byte:
+      switch (lvl->components_) {
+        case s2d_alpha:
+        case s2d_luminance:
+          num_bytes_per_src_pixel = 1;
+          break;
+        case s2d_luminance_alpha:
+          num_bytes_per_src_pixel = 2;
+          break;
+        case s2d_rgb:
+          num_bytes_per_src_pixel = 3;
+          break;
+        case s2d_rgba:
+          num_bytes_per_src_pixel = 4;
+          break;
+      }
+      break;
+    case blit_unsigned_short_565:
+    case blit_unsigned_short_4444:
+    case blit_unsigned_short_5551:
+      num_bytes_per_src_pixel = 2;
+      break;
+  }
+  size_t num_bytes_per_src_row = num_bytes_per_src_pixel * width;
+
+  blitter_blit(new_bitmap, src_data, num_bytes_per_row_8B_aligned, num_bytes_per_src_row, 
+               (size_t)width, (size_t)height, lvl->components_, src_datatype);
+
+  lvl->num_bytes_per_bitmap_row_ = num_bytes_per_row_8B_aligned;
+  if (lvl->bitmap_) free(lvl->bitmap_);
+  lvl->bitmap_ = new_bitmap;
+
+  return SL_ERR_OK;
+}
+

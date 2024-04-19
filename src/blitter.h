@@ -12,6 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef BLITTER_H
+#define BLITTER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 enum blitter_data_type {
   blit_unsigned_byte,
@@ -28,3 +34,11 @@ enum blitter_components {
   blit_rgba
 };
 
+void blitter_blit(void *dst, const void *src, size_t dst_stride, size_t src_stride, 
+                  size_t width, size_t height, enum blitter_components format, enum blitter_data_type src_type);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* BLITTER_H */

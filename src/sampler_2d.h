@@ -20,6 +20,11 @@
 #include "sl_execution.h"
 #endif
 
+#ifndef BLITTER_H_INCLUDED
+#define BLITTER_H_INCLUDED
+#include "blitter.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,18 +52,12 @@ enum s2d_tex_components {
   s2d_rgba
 };
 
-enum s2d_blit_data_type {
-  s2d_unsigned_byte,
-  s2d_unsigned_short_565,
-  s2d_unsigned_short_4444,
-  s2d_unsigned_short_5551
-};
-
 struct sampler_2d_map {
   int width_;
   int height_;
   uint32_t repeat_mask_s_, repeat_mask_t_;
   enum s2d_tex_components components_;
+  size_t num_bytes_per_bitmap_row_;
   void *bitmap_;
 };
 
@@ -99,6 +98,9 @@ struct sampler_2d {
 
 void sampler_2d_init(struct sampler_2d *s2d);
 void sampler_2d_cleanup(struct sampler_2d *s2d);
+
+int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_components internal_format, int width, int height,
+                         enum blitter_data_type src_datatype, void *src_data);
 
 void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_texture2D_bias_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
