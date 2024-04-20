@@ -1033,8 +1033,7 @@ void builtin_texture2DProjLod_v3_runtime(struct sl_execution *exec, int exec_cha
 void builtin_texture2DProjLod_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
 }
 
-int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_components internal_format, int width, int height,
-                         enum blitter_data_type src_datatype, void *src_data) {
+int sampler_2d_set_storage(struct sampler_2d *s2d, int level, enum s2d_tex_components internal_format, int width, int height) {
   if (s2d->num_maps_ <= level) {
     /* Resize to fit level, within reason for level */
     if (level >= 32) return SL_ERR_INVALID_ARG;
@@ -1051,6 +1050,7 @@ int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_compone
     }
     s2d->num_maps_ = level + 1;
   }
+
   struct sampler_2d_map *lvl = s2d->mipmaps_ + level;
   size_t num_bytes_per_pixel = 0;
   switch (lvl->components_) {
@@ -1076,8 +1076,19 @@ int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_compone
   lvl->components_ = internal_format;
   lvl->width_ = width;
   lvl->height_ = height;
-  lvl->repeat_mask_s_ = next_greater_or_equal_mersenne_number((uint32_t)width) >> 1;
-  lvl->repeat_mask_t_ = next_greater_or_equal_mersenne_number((uint32_t)height) >> 1;
+  lvl->repeat_mask_s_ = isolate_msb((uint32_t)width) - 1;
+  lvl->repeat_mask_t_ = isolate_msb((uint32_t)height) - 1;
+
+  return SL_ERR_OK;
+}
+
+int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_components internal_format, int width, int height,
+                         enum blitter_data_type src_datatype, void *src_data) {
+  int r;
+  r = sampler_2d_set_storage(s2d, level, internal_format, width, height);
+  if (r) return r;
+
+  struct sampler_2d_map *lvl = s2d->mipmaps_ + level;
   
   size_t num_bytes_per_src_pixel = 0;
   switch (src_datatype) {
@@ -1106,13 +1117,109 @@ int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_compone
   }
   size_t num_bytes_per_src_row = num_bytes_per_src_pixel * width;
 
-  blitter_blit(new_bitmap, src_data, num_bytes_per_row_8B_aligned, num_bytes_per_src_row, 
+  blitter_blit(lvl->bitmap_, src_data, lvl->num_bytes_per_bitmap_row_, num_bytes_per_src_row, 
                (size_t)width, (size_t)height, lvl->components_, src_datatype);
 
-  lvl->num_bytes_per_bitmap_row_ = num_bytes_per_row_8B_aligned;
-  if (lvl->bitmap_) free(lvl->bitmap_);
-  lvl->bitmap_ = new_bitmap;
+  sampler_2d_update_completeness(s2d);
 
+  return SL_ERR_OK;
+}
+
+int sampler_2d_generate_mipmaps(struct sampler_2d *s2d) {
+  if (s2d->num_maps_ == 0) {
+    return SL_ERR_INVALID_ARG;
+  }
+  /* Reset the number of mipmaps to 1 (keep the level 0 mipmap),
+   * and then generate each as we go */
+  size_t n;
+  for (n = 1; n < s2d->num_maps_; ++n) {
+    struct sampler_2d_map *s2dm = s2d->mipmaps_ + n;
+    free(s2dm->bitmap_);
+  }
+  s2d->num_maps_ = 1;
+
+  int lvl_width, lvl_height;
+  lvl_width = s2d->mipmaps_[0].width_;
+  lvl_height = s2d->mipmaps_[0].height_;
+  int level = 1;
+  int r;
+  while ((lvl_width > 1) || (lvl_height > 1)) {
+    lvl_width = lvl_width / 1;
+    if (lvl_width == 0) lvl_width = 1;
+    lvl_height = lvl_height / 2;
+    if (lvl_height == 0) lvl_height = 1;
+
+    r = sampler_2d_set_storage(s2d, level, s2d->mipmaps_[level-1].components_, lvl_width, lvl_height);
+    if (r) return r;
+
+    size_t bytes_per_pixel = 0;
+    switch (s2d->mipmaps_[level].components_) {
+      case s2d_alpha:
+      case s2d_luminance:
+        bytes_per_pixel = 1;
+        break;
+      case s2d_luminance_alpha:
+        bytes_per_pixel = 2;
+        break;
+      case s2d_rgb:
+        bytes_per_pixel = 3;
+        break;
+      case s2d_rgba:
+        bytes_per_pixel = 4;
+        break;
+    }
+
+    size_t child_stride = s2d->mipmaps_[level].num_bytes_per_bitmap_row_;
+    size_t parent_stride = s2d->mipmaps_[level-1].num_bytes_per_bitmap_row_;
+    int row, col;
+    uint8_t * restrict child_ptr;
+    uint8_t * restrict parent_ptr;
+    uint8_t * restrict child_row_ptr;
+    uint8_t * restrict parent_row_ptr;
+    child_row_ptr = (uint8_t * restrict)s2d->mipmaps_[level].bitmap_;
+    parent_row_ptr = (uint8_t * restrict)s2d->mipmaps_[level - 1].bitmap_;
+    int is_vertically_flat = s2d->mipmaps_[level-1].height_ == 1;
+    int is_horizontally_flat = s2d->mipmaps_[level-1].width_ == 1;
+    for (row = 0; row < lvl_width; ++row) {
+      child_ptr = child_row_ptr;
+      parent_ptr = parent_row_ptr;
+      child_row_ptr += child_stride;
+      parent_row_ptr += parent_stride + parent_stride;
+      for (col = 0; col < lvl_width; ++col) {
+        uint16_t val;
+        size_t k;
+        for (k = 0; k < bytes_per_pixel; ++k) {
+          if (!is_vertically_flat) {
+            if (!is_horizontally_flat) {
+              val = parent_ptr[0];
+              val += parent_ptr[bytes_per_pixel];
+              val += parent_ptr[parent_stride];
+              val += parent_ptr[parent_stride + bytes_per_pixel];
+              val /= 4;
+            }
+            else {
+              val = parent_ptr[0];
+              val += parent_ptr[parent_stride];
+              val /= 2;
+            }
+          }
+          else {
+            if (!is_horizontally_flat) {
+              val = parent_ptr[0];
+              val += parent_ptr[bytes_per_pixel];
+              val /= 2;
+            }
+            else {
+              val = parent_ptr[0];
+            }
+          }
+          *child_ptr++ = (uint8_t)val;
+          parent_ptr++;
+        }
+        parent_ptr += bytes_per_pixel;
+      }
+    }
+  }
   return SL_ERR_OK;
 }
 
