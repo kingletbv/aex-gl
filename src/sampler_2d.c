@@ -47,10 +47,6 @@
 #include "blitter.h"
 #endif
 
-/* XXX: For now we grab the sampler_2d from the first argument (the sampler) - this should
- *      however become an integer type and not a void* pointer type - so this will have to
- *      change. */
-
 void sampler_2d_init(struct sampler_2d *s2d) {
   /* Defaults as per ES 2.0 v2.0.25 3.7.12 Texture State (p.84) */
   s2d->wrap_s_ = s2d_repeat;
