@@ -255,7 +255,7 @@ int sl_program_link(struct sl_program *prog) {
             return SL_ERR_INTERNAL;
           }
           uintptr_t base_of_range = 0;
-          if (!ref_range_alloc(&rra, (uintptr_t)num_attribs_needed, &base_of_range)) {
+          if (ref_range_alloc(&rra, (uintptr_t)num_attribs_needed, &base_of_range)) {
             ref_range_allocator_cleanup(&rra);
             return SL_ERR_NO_MEM;
           }
@@ -292,7 +292,6 @@ int sl_program_link(struct sl_program *prog) {
               return SL_ERR_INVALID_ARG;
             }
             else {
-              int r;
               r = attrib_routing_add_variables(&prog->ar_, fv, vv);
               if (r) {
                 fprintf(stderr, "Failed adding \"%s\" varyings\n", vv->name_);
@@ -446,7 +445,6 @@ int sl_program_load_uniforms_for_execution(struct sl_program *prog) {
 }
 
 int sl_program_set_attrib_binding_index(struct sl_program *prog, const char *name, int index) {
-  // attrib_binding_table_result_t abt_find_or_insert(struct attrib_binding_table *abt, const char *name, size_t name_len, struct attrib_binding **new_ab)
   attrib_binding_table_result_t abtr;
   struct attrib_binding *ab;
   abtr = abt_find_or_insert(&prog->abt_, name, strlen(name), &ab);
