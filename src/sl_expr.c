@@ -221,8 +221,8 @@ static int sl_expr_validate_mul(struct diags *dx, struct sl_type_base *tb, const
 
     case sltk_vec4:
       switch (t1->kind_) {
-        case sltk_vec2:
-        case sltk_mat2:
+        case sltk_vec4:
+        case sltk_mat4:
           return r;
         default:
           break;
