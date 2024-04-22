@@ -12,16 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef SL_DEFS_H
-#define SL_DEFS_H
 
-#define SL_ERR_OK           0
-#define SL_ERR_INVALID_ARG -1
-#define SL_ERR_OVERFLOW    -2
-#define SL_ERR_NO_MEM      -3
-#define SL_ERR_INTERNAL    -4
-#define SL_ERR_HAD_ERRORS  -5 /* compilation errors */
+#ifndef SL_DEFS_H_INCLUDED
+#define SL_DEFS_H_INCLUDED
+#include "sl_defs.h"
+#endif
 
-const char *sl_err_str(int sl_err_code);
-
-#endif /* SL_DEFS_H */
+const char *sl_err_str(int sl_err_code) {
+  const char *err;
+  switch (sl_err_code) {
+    case SL_ERR_OK: err = "SL_ERR_OK"; break;
+    case SL_ERR_INVALID_ARG: err = "SL_ERR_INVALID_ARG"; break;
+    case SL_ERR_OVERFLOW: err = "SL_ERR_OVERFLOW"; break;
+    case SL_ERR_NO_MEM: err = "SL_ERR_NO_MEM"; break;
+    case SL_ERR_INTERNAL: err = "SL_ERR_INTERNAL"; break;
+    case SL_ERR_HAD_ERRORS: err = "SL_ERR_HAD_ERRORS"; break;
+    default: err = "SL_ERR_???"; break;
+  }
+  return err;
+}

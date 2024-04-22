@@ -201,6 +201,7 @@
     <ClCompile Include="..\src\ref_range_allocator.c" />
     <ClCompile Include="..\src\sampler_2d.c" />
     <ClCompile Include="..\src\sl_compilation_unit.c" />
+    <ClCompile Include="..\src\sl_defs.c" />
     <ClCompile Include="..\src\sl_execution.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/Qvec-report:2 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Qvec-report:2 %(AdditionalOptions)</AdditionalOptions>

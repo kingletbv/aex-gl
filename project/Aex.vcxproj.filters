@@ -53,6 +53,7 @@
     <ClCompile Include="..\src\sl_uniforms.c" />
     <ClCompile Include="..\src\sampler_2d.c" />
     <ClCompile Include="..\src\blitter.c" />
+    <ClCompile Include="..\src\sl_defs.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
