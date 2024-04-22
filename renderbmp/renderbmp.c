@@ -128,6 +128,11 @@
 #include "sampler_2d.h"
 #endif
 
+#ifndef SMILEY_H_INCLUDED
+#define SMILEY_H_INCLUDED
+#include "smiley.h"
+#endif
+
 int test(void) {
   int r = 0;
 
@@ -4374,8 +4379,8 @@ int main(int argc, char **argv) {
   if (r) {
     return EXIT_FAILURE;
   }
-#define OUTPUT_WIDTH 3840
-#define OUTPUT_HEIGHT 2160
+#define OUTPUT_WIDTH 1920
+#define OUTPUT_HEIGHT 1080
 
   static uint8_t rgba32[OUTPUT_WIDTH * OUTPUT_HEIGHT * 4];
   int row, col;
@@ -4788,8 +4793,6 @@ int main(int argc, char **argv) {
         "  int checker_even = (checker / 2) * 2;\n"
         "  float checker_flag = float(checker - checker_even);\n"
         "  vec4 tsmiley = texture2D(tex, vertex_st);\n"
-        "  tsmiley = tsmiley * vec4(((checker_flag + 0.5) / 1.5), 1., 1., 1.);\n"
-        "  gl_FragColor = vec4(vertex_st.x, checker_flag, gl_FragCoord.w, 1.f);\n"
         "  gl_FragColor = vec4(tsmiley.xyz, 1.);\n"
         "}\n";
   src_len = (int)strlen(src);
@@ -4824,10 +4827,10 @@ int main(int argc, char **argv) {
    * Trying to get 1.f on the z-buf, but this is likely going to be difficult to fit
    * in a float. */
   float verts[] = {
-    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 1. * 2.f / (double)(max_z)), 1.f,
-    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f), 1.f,
-    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f), 1.f,
-    -1.f + 2.f * (136.f/256.f), 1.f - 2.f * (136.f/256.f), (float)(-1.f), 1.f
+    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 1. * 2.f / (double)(max_z)), 9.f,
+    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f), 9.f,
+    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (248/256.f), (float)(-1.f), 1.f,
+    -1.f + 2.f * (136.f/256.f), 1.f - 2.f * (256/256.f), (float)(-1.f), 1.f
   };
   int xyz_attr = attrib_set_alloc_attrib(&as);
   if (xyz_attr < 0) goto exit_cleanup;
@@ -4858,9 +4861,9 @@ int main(int argc, char **argv) {
   as.attribs_[v_color_attr].stride_ = sizeof(float) * 4;
   float v_st[] = {
     0.f, 0.f,
-    1.f, 0.f,
-    0.f, 1.f,
-    1.f, 1.f
+    10.f, 0.f,
+    0.f, 10.f,
+    10.f, 10.f
   };
   int v_st_attr = attrib_set_alloc_attrib(&as);
   if (v_st_attr < 0) goto exit_cleanup;
@@ -4926,15 +4929,62 @@ int main(int argc, char **argv) {
     0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000, 0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0000, 0x0000, 0x0000
   };
+  static unsigned char smiley[256*256*3];
+  size_t n;
+  for (n = 0; n < sizeof(smiley); ++n) {
+    smiley[n] = g_smiley_256x256_luminance_data_[n/3];
+  }
   sampler_2d_init(&tex_smiley);
-  tex_smiley.min_filter_ = tex_smiley.mag_filter_ = s2d_linear;
-  tex_smiley.wrap_s_ = s2d_clamp_to_edge;
-  tex_smiley.wrap_t_ = s2d_clamp_to_edge;
-  r = sampler_2d_set_image(&tex_smiley, 0, s2d_rgba, 10, 11, blit_unsigned_short_4444, smiley_bmp_4444);
+#if 0
+  tex_smiley.min_filter_ = s2d_linear_mipmap_nearest;
+  tex_smiley.mag_filter_ = s2d_linear;
+#else
+  tex_smiley.min_filter_ = s2d_linear_mipmap_linear;
+  tex_smiley.mag_filter_ = s2d_linear;
+#endif
+  tex_smiley.wrap_s_ = s2d_repeat;
+  tex_smiley.wrap_t_ = s2d_repeat;
+  //r = sampler_2d_set_image(&tex_smiley, 0, s2d_rgba, 10, 11, blit_unsigned_short_4444, smiley_bmp_4444);
+  r = sampler_2d_set_image(&tex_smiley, 0, s2d_rgb, 256, 256, blit_unsigned_byte, smiley);
   if (r) {
     fprintf(stderr, "Failed to set texture image (%d): %s\n", r, sl_err_str(r));
     if (r) goto exit_cleanup;
   }
+  r = sampler_2d_generate_mipmaps(&tex_smiley);
+  if (r) {
+    fprintf(stderr, "Failed to generate texture mipmaps (%d): %s\n", r, sl_err_str(r));
+    if (r) goto exit_cleanup;
+  }
+
+#if 1
+  /* Go in, and modify each of the higher mipmap levels to color cycle, this will help us know
+   * if mipmapping is working, and reason about what map we're on */
+  uint8_t color_cycle[] = {
+    0xFF, 0x00, 0x00, // Red
+    0xFF, 0xFF, 0x00, // Yellow
+    0x00, 0xFF, 0x00, // Green
+    0x00, 0xFF, 0xFF, // Cyan
+    0x00, 0x00, 0xFF, // Blue
+    0xFF, 0x00, 0xFF  // Magenta
+  };
+  size_t num_colors_in_cycle = sizeof(color_cycle) / 3;
+  for (n = 1; n < tex_smiley.num_maps_; ++n) {
+    int x, y;
+    struct sampler_2d_map *s2dm = tex_smiley.mipmaps_ + n;
+    for (y = 0; y < s2dm->height_; ++y) {
+      for (x = 0; x < s2dm->width_; ++x) {
+        unsigned char *pixel = ((unsigned char *)s2dm->bitmap_) + s2dm->num_bytes_per_bitmap_row_ * y + 3 * x;
+        size_t cycle_offset = ((n - 1) % num_colors_in_cycle) * 3;
+        uint8_t *cycle_color = color_cycle + cycle_offset;
+        pixel[0] += (((uint32_t)(0xFF - pixel[0])) * cycle_color[0]) >> 8;
+        pixel[1] += (((uint32_t)(0xFF - pixel[1])) * cycle_color[1]) >> 8;
+        pixel[2] += (((uint32_t)(0xFF - pixel[2])) * cycle_color[2]) >> 8;
+      }
+    }
+  }
+#endif
+
+#if 0
   int x,y;
   for (y = 0; y < 10; ++y) {
     uint8_t *bmp = tex_smiley.mipmaps_[0].bitmap_;
@@ -4944,6 +4994,7 @@ int main(int argc, char **argv) {
     }
     fprintf(stderr, "\n");
   }
+#endif
 
   struct sl_uniform_table *ut = &program.uniforms_;
   struct sl_uniform *tex;
@@ -4999,7 +5050,7 @@ int main(int argc, char **argv) {
                                    BF_SRC_ALPHA, BF_SRC_ALPHA,
                                    BF_ONE_MINUS_SRC_ALPHA, BF_ONE_MINUS_SRC_ALPHA,
                                    0, 0, 0, 0,
-                                   PAM_TRIANGLES, 6, PAIT_UNSIGNED_INT, indices);
+                                   PAM_TRIANGLES, 3, PAIT_UNSIGNED_INT, indices);
 
   exit_ret = EXIT_SUCCESS;
 exit_cleanup:
