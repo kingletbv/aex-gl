@@ -4374,15 +4374,18 @@ int main(int argc, char **argv) {
   if (r) {
     return EXIT_FAILURE;
   }
+#define OUTPUT_WIDTH 3840
+#define OUTPUT_HEIGHT 2160
 
-  static uint8_t rgba32[256 * 256 * 4];
+  static uint8_t rgba32[OUTPUT_WIDTH * OUTPUT_HEIGHT * 4];
   int row, col;
-  for (row = 0; row < 256; row++) {
-    for (col = 0; col < 256; col++) {
-      uint8_t *rgba = rgba32 + row * 256 * 4 + col * 4;
-      rgba[0] = row / 2;
+  /* Background is a purple-to-pink'ish gradient */
+  for (row = 0; row < OUTPUT_HEIGHT; row++) {
+    for (col = 0; col < OUTPUT_WIDTH; col++) {
+      uint8_t *rgba = rgba32 + row * OUTPUT_WIDTH * 4 + col * 4;
+      rgba[0] = (row * 256) / (2 * OUTPUT_HEIGHT);
       rgba[1] = 0;
-      rgba[2] = row / 4 + 64;
+      rgba[2] = (row * 256) / (4 * OUTPUT_HEIGHT) + 64;
       rgba[3] = 255;
     }
   }
@@ -4809,12 +4812,12 @@ int main(int argc, char **argv) {
 
   int32_t vp_x = 0; /* left */
   int32_t vp_y = 0; /* bottom */
-  uint32_t vp_width = 256;
-  uint32_t vp_height = 256;
+  uint32_t vp_width = OUTPUT_WIDTH;
+  uint32_t vp_height = OUTPUT_HEIGHT;
   float depth_range_near = 0.f;
   float depth_range_far = 1.f;
-  uint32_t screen_width = 256;
-  uint32_t screen_height = 256;
+  uint32_t screen_width = OUTPUT_WIDTH;
+  uint32_t screen_height = OUTPUT_HEIGHT;
   uint32_t max_z = 0xFFFF;
 
   /* Going for XYZ, will lean on W being implied 1.
@@ -4977,8 +4980,8 @@ int main(int argc, char **argv) {
                                    vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
                                    screen_width, screen_height, max_z,
                                    rgba32, screen_width*4,
-                                   NULL, 256*4, 4,
-                                   NULL, 256*2, 2,
+                                   NULL, OUTPUT_WIDTH*4, 4,
+                                   NULL, OUTPUT_WIDTH*2, 2,
                                    0, /* no stencil test */
                                    /* Settings for stencil on clockwise triangles: */
                                    ~(uint32_t)0, /* clockwise stencil mask: all output bits enabled */
@@ -5008,9 +5011,9 @@ exit_cleanup:
 #endif
   
   /* Superimpose faint grid effect */
-  for (row = 0; row < 256; row++) {
-    for (col = 0; col < 256; col++) {
-      uint8_t *rgba = rgba32 + row * 256 * 4 + col * 4;
+  for (row = 0; row < OUTPUT_HEIGHT; row++) {
+    for (col = 0; col < OUTPUT_WIDTH; col++) {
+      uint8_t *rgba = rgba32 + row * OUTPUT_WIDTH * 4 + col * 4;
       if (row % 16 == 0 || col % 16 == 0) {
 #define BRT ((uint32_t)0x40)
 #define COMP_MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -5028,7 +5031,7 @@ exit_cleanup:
     exit_ret = EXIT_FAILURE;
     return exit_ret;
   }
-  write_rgba_bmp(fp, rgba32, 256, 256, 256 * 4);
+  write_rgba_bmp(fp, rgba32, OUTPUT_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH * 4);
   fclose(fp);
 
   return exit_ret;
