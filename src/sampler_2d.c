@@ -59,6 +59,10 @@ void sampler_2d_init(struct sampler_2d *s2d) {
   s2d->mag_filter_ = s2d_linear;
   s2d->num_maps_ = 0;
   s2d->mipmaps_ = NULL;
+  
+  s2d->runtime_active_sampler_chain_ = NULL;
+  s2d->runtime_rows_ = SL_EXEC_NO_CHAIN;
+  s2d->last_row_ = SL_EXEC_NO_CHAIN;
 }
 
 void sampler_2d_cleanup(struct sampler_2d *s2d) {
@@ -101,11 +105,22 @@ static uint32_t isolate_msb(uint32_t x) {
   return y;
 }
 
-static void sampler_2d_update_level_repetition_masks(struct sampler_2d *s2d) {
+void sampler_2d_update_level_repetition_masks(struct sampler_2d *s2d) {
   size_t n;
+  
   for (n = 0; n < s2d->num_maps_; ++n) {
-    s2d->mipmaps_[n].repeat_mask_s_ = isolate_msb((uint32_t)s2d->mipmaps_[n].width_) - 1;
-    s2d->mipmaps_[n].repeat_mask_t_ = isolate_msb((uint32_t)s2d->mipmaps_[n].height_) - 1;
+    if (s2d->wrap_s_ == s2d_repeat) {
+      s2d->mipmaps_[n].repeat_mask_s_ = isolate_msb((uint32_t)s2d->mipmaps_[n].width_) - 1;
+    }
+    else {
+      s2d->mipmaps_[n].repeat_mask_s_ = ~(uint32_t)0;
+    }
+    if (s2d->wrap_t_ == s2d_repeat) {
+      s2d->mipmaps_[n].repeat_mask_t_ = isolate_msb((uint32_t)s2d->mipmaps_[n].height_) - 1;
+    }
+    else {
+      s2d->mipmaps_[n].repeat_mask_t_ = ~(uint32_t)0;
+    }
   }
 }
 
@@ -171,7 +186,9 @@ static void sampler_2d_update_completeness(struct sampler_2d *s2d) {
   }
 }
 
+
 static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, float lg2) {
+
   /* c as meant in section 3.7.8 texture magnification (OpenGL ES 2.0 full spec v2.0.25 page 82) */
   float c;
   if ((s2d->mag_filter_ == s2d_linear) &&
@@ -206,7 +223,7 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
       s2dm_levels[0] = s2d->mipmaps_;
       num_levels = 1;
     }
-    if (filter == s2d_nearest_mipmap_nearest) {
+    else if (filter == s2d_nearest_mipmap_nearest) {
       int last_mipmap = s2d->num_maps_ - 1;
       int nearest_mipmap = (lg2 <= 0.5f) ? 0 : (lg2 > (0.5f + (float)last_mipmap)) ? last_mipmap : ((int)(ceilf(lg2 + 0.5f)) - 1);
       s2dm_levels[0] = s2d->mipmaps_ + nearest_mipmap;
@@ -272,7 +289,7 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
       uint32_t tex_t = (uint32_t)(tm * s2dm->height_) & s2dm->repeat_mask_t_;
 
       /* Load texel at tex_s and tex_t */
-      switch (s2d->components_) {
+      switch (s2dm->components_) {
         case s2d_alpha:
           alphas[level] = ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t + tex_s];
           break;
@@ -307,7 +324,7 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
     }
     if ((filter == s2d_nearest) ||
         (filter == s2d_nearest_mipmap_nearest)) {
-      switch (s2d->components_) {
+      switch (s2dm_levels[0]->components_) {
         case s2d_alpha:
           prgba[0] = 0.f;
           prgba[1] = 0.f;
@@ -344,7 +361,7 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
       }
     }
     else if (filter == s2d_nearest_mipmap_linear) {
-      switch (s2d->components_) {
+      switch (s2dm_levels[0]->components_) {
         case s2d_alpha:
           prgba[0] = 0.f;
           prgba[1] = 0.f;
@@ -485,7 +502,7 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
       uint32_t tex_st_11_fract = tex_s1_fract * tex_t1_fract;
 
       /* Load texel at tex_s and tex_t */
-      switch (s2d->components_) {
+      switch (s2dm_levels[0]->components_) {
         case s2d_alpha: {
           uint32_t tex = ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t0 + tex_s0] * tex_st_00_fract
                        + ((uint8_t * restrict)s2dm->bitmap_)[s2dm->width_ * tex_t1 + tex_s0] * tex_st_01_fract
@@ -585,7 +602,7 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
     if ((filter == s2d_linear) ||
         (filter == s2d_linear_mipmap_nearest)) {
       /* bilinear mixing means the magnitude is 65536 (see comment above) more */
-      switch (s2d->components_) {
+      switch (s2dm_levels[0]->components_) {
         case s2d_alpha:
           prgba[0] = 0.f;
           prgba[1] = 0.f;
@@ -623,7 +640,7 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
     }
     else if (filter == s2d_linear_mipmap_linear) {
       /* trilinear mixing means the magnitude is 65336 x 256 = 16777216. */
-      switch (s2d->components_) {
+      switch (s2dm_levels[0]->components_) {
         case s2d_alpha:
           prgba[0] = 0.f;
           prgba[1] = 0.f;
@@ -1005,6 +1022,7 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
       }
 
       s2d->runtime_rows_ = SL_EXEC_NO_CHAIN;
+      s2d->last_row_ = SL_EXEC_NO_CHAIN;
     } while (s2d != samplers);
   }
 }
@@ -1048,12 +1066,13 @@ int sampler_2d_set_storage(struct sampler_2d *s2d, int level, enum s2d_tex_compo
       s2dm->num_bytes_per_bitmap_row_ = 0;
       s2dm->bitmap_ = NULL;
     }
+    s2d->mipmaps_ = s2dm;
     s2d->num_maps_ = level + 1;
   }
 
   struct sampler_2d_map *lvl = s2d->mipmaps_ + level;
   size_t num_bytes_per_pixel = 0;
-  switch (lvl->components_) {
+  switch (internal_format) {
     case s2d_alpha:
     case s2d_luminance:
       num_bytes_per_pixel = 1;
@@ -1072,10 +1091,11 @@ int sampler_2d_set_storage(struct sampler_2d *s2d, int level, enum s2d_tex_compo
   size_t num_bytes_per_row_8B_aligned = (num_bytes_per_row_nonaligned + 7) & ~(size_t)7;
   void *new_bitmap = malloc(num_bytes_per_row_8B_aligned * (size_t)height);
   if (!new_bitmap) return SL_ERR_NO_MEM;
-
+  lvl->bitmap_ = new_bitmap;
   lvl->components_ = internal_format;
   lvl->width_ = width;
   lvl->height_ = height;
+  lvl->num_bytes_per_bitmap_row_ = num_bytes_per_row_8B_aligned;
   lvl->repeat_mask_s_ = isolate_msb((uint32_t)width) - 1;
   lvl->repeat_mask_t_ = isolate_msb((uint32_t)height) - 1;
 
@@ -1121,6 +1141,7 @@ int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_compone
                (size_t)width, (size_t)height, lvl->components_, src_datatype);
 
   sampler_2d_update_completeness(s2d);
+  sampler_2d_update_level_repetition_masks(s2d);
 
   return SL_ERR_OK;
 }

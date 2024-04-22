@@ -123,6 +123,11 @@
 #include "sl_program.h"
 #endif
 
+#ifndef SAMPLER_2D_H_INCLUDED
+#define SAMPLER_2D_H_INCLUDED
+#include "sampler_2d.h"
+#endif
+
 int test(void) {
   int r = 0;
 
@@ -4771,6 +4776,7 @@ int main(int argc, char **argv) {
   sl_shader_set_type(&fragment_shader, SLST_FRAGMENT_SHADER);
   src = "varying vec4 vertex_color;\n"
         "varying vec2 vertex_st;\n"
+        "uniform sampler2D tex;\n"
         "void main() {\n"
         "  int x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
         "  int even_x = (x / 2) * 2;\n"
@@ -4778,7 +4784,10 @@ int main(int argc, char **argv) {
         "  int checker = int(10.f * vertex_st.x) + int(10.f * vertex_st.y);\n"
         "  int checker_even = (checker / 2) * 2;\n"
         "  float checker_flag = float(checker - checker_even);\n"
+        "  vec4 tsmiley = texture2D(tex, vertex_st);\n"
+        "  tsmiley = tsmiley * vec4(((checker_flag + 0.5) / 1.5), 1., 1., 1.);\n"
         "  gl_FragColor = vec4(vertex_st.x, checker_flag, gl_FragCoord.w, 1.f);\n"
+        "  gl_FragColor = vec4(tsmiley.xyz, 1.);\n"
         "}\n";
   src_len = (int)strlen(src);
   sl_shader_set_source(&fragment_shader, 1, &src, &src_len);
@@ -4813,8 +4822,9 @@ int main(int argc, char **argv) {
    * in a float. */
   float verts[] = {
     -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 1. * 2.f / (double)(max_z)), 1.f,
-    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f), 3.f,
-    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f), 3.f
+    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f), 1.f,
+    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f), 1.f,
+    -1.f + 2.f * (136.f/256.f), 1.f - 2.f * (136.f/256.f), (float)(-1.f), 1.f
   };
   int xyz_attr = attrib_set_alloc_attrib(&as);
   if (xyz_attr < 0) goto exit_cleanup;
@@ -4830,7 +4840,8 @@ int main(int argc, char **argv) {
   float v_colors[] = {
     1.f, 0.f, 0.f, 1.f,
     0.f, 1.f, 0.f, 1.f,
-    0.f, 0.f, 1.f, 1.f
+    0.f, 0.f, 1.f, 1.f,
+    1.f, 0.f, 1.f, 1.f,
   };
   int v_color_attr = attrib_set_alloc_attrib(&as);
   if (v_color_attr < 0) goto exit_cleanup;
@@ -4845,7 +4856,8 @@ int main(int argc, char **argv) {
   float v_st[] = {
     0.f, 0.f,
     1.f, 0.f,
-    0.f, 1.f
+    0.f, 1.f,
+    1.f, 1.f
   };
   int v_st_attr = attrib_set_alloc_attrib(&as);
   if (v_st_attr < 0) goto exit_cleanup;
@@ -4893,8 +4905,71 @@ int main(int argc, char **argv) {
   }
 
   uint32_t indices[] = {
-    0, 1, 2
+    0, 1, 2,
+    2, 1, 3
   };
+
+  struct sampler_2d tex_smiley;
+  uint16_t smiley_bmp_4444[] = {
+    0x0000, 0x0000, 0x0000, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000, 0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000,
+    0x0000, 0xFFFF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFFFF, 0x0000,
+    0xFFFF, 0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000, 0xFFFF,
+    0xFFFF, 0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000, 0xFFFF,
+    0xFFFF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFFFF,
+    0xFFFF, 0x0000, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0000, 0xFFFF,
+    0xFFFF, 0x0000, 0x0000, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0000, 0x0000, 0xFFFF,
+    0x0000, 0xFFFF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFFFF, 0x0000,
+    0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000, 0x0000, 0x0000, 0xFFFF, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0000, 0x0000, 0x0000
+  };
+  sampler_2d_init(&tex_smiley);
+  tex_smiley.min_filter_ = tex_smiley.mag_filter_ = s2d_linear;
+  tex_smiley.wrap_s_ = s2d_clamp_to_edge;
+  tex_smiley.wrap_t_ = s2d_clamp_to_edge;
+  r = sampler_2d_set_image(&tex_smiley, 0, s2d_rgba, 10, 11, blit_unsigned_short_4444, smiley_bmp_4444);
+  if (r) {
+    fprintf(stderr, "Failed to set texture image (%d): %s\n", r, sl_err_str(r));
+    if (r) goto exit_cleanup;
+  }
+  int x,y;
+  for (y = 0; y < 10; ++y) {
+    uint8_t *bmp = tex_smiley.mipmaps_[0].bitmap_;
+    for (x = 0; x < 10; ++x) {
+      uint8_t *pix = bmp + 4 * x + tex_smiley.mipmaps_[0].num_bytes_per_bitmap_row_ * y;
+      fprintf(stderr, "%c", *pix ? '1' : '0');
+    }
+    fprintf(stderr, "\n");
+  }
+
+  struct sl_uniform_table *ut = &program.uniforms_;
+  struct sl_uniform *tex;
+  struct sl_variable *v_tex, *f_tex;
+  v_tex = sl_compilation_unit_find_variable(&program.vertex_shader_->cu_, "tex");
+  f_tex = sl_compilation_unit_find_variable(&program.fragment_shader_->cu_, "tex");
+  r = sl_uniform_table_add_uniform(ut, &tex, v_tex, f_tex);
+  if (r) {
+    fprintf(stderr, "Failed to add uniform (%d): %s\n", r, sl_err_str(r));
+    if (r) goto exit_cleanup;
+  }
+  size_t tex_loc;
+  r = sl_uniform_get_named_location(ut, "tex", &tex_loc);
+  if (r) {
+    fprintf(stderr, "Failed to locate uniform (%d): %s\n", r, sl_err_str(r));
+    if (r) goto exit_cleanup;
+  }
+  void **tex_mem;
+  sl_reg_alloc_kind_t ra_loc_type;
+  char name_buf[129];
+  size_t name_buf_len = sizeof(name_buf) - 1;
+  size_t final_array_size = 0;
+  size_t entry_in_array = 0;
+  r = sl_uniform_get_location_info(ut, tex_loc, (void **)&tex_mem, &ra_loc_type, &name_buf_len, name_buf, &final_array_size, &entry_in_array);
+  if (r) {
+    fprintf(stderr, "Failed to get uniform location info (%d): %s\n", r, sl_err_str(r));
+    if (r) goto exit_cleanup;
+  }
+  *tex_mem = (void *)&tex_smiley;
 
   sl_program_load_uniforms_for_execution(&program);
 
@@ -4921,7 +4996,7 @@ int main(int argc, char **argv) {
                                    BF_SRC_ALPHA, BF_SRC_ALPHA,
                                    BF_ONE_MINUS_SRC_ALPHA, BF_ONE_MINUS_SRC_ALPHA,
                                    0, 0, 0, 0,
-                                   PAM_TRIANGLES, 3, PAIT_UNSIGNED_INT, indices);
+                                   PAM_TRIANGLES, 6, PAIT_UNSIGNED_INT, indices);
 
   exit_ret = EXIT_SUCCESS;
 exit_cleanup:
