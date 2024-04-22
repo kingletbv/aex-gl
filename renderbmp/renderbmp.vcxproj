@@ -20,6 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="renderbmp.c" />
+    <ClCompile Include="smiley.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="smiley.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

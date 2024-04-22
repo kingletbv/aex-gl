@@ -2,5 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="renderbmp.c" />
+    <ClCompile Include="smiley.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="smiley.h" />
   </ItemGroup>
 </Project>
