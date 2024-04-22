@@ -4737,26 +4737,22 @@ int main(int argc, char **argv) {
   sl_shader_set_type(&vertex_shader, SLST_VERTEX_SHADER);
   const char *src = 
     "attribute vec4 v_color;\n"
+    "attribute vec2 v_st;\n"
+    "varying vec2 vertex_st;\n"
     "varying vec4 vertex_color;\n"
     "const float half_pi = 3.14159265358979/2.;\n"
     "const float f_one = sin(half_pi);\n"
     "void main() {\n"
     "  vertex_color = v_color;\n"
+    "  vertex_st = v_st;\n"
+    "  gl_Position.x *= gl_Position.w;\n"
+    "  gl_Position.y *= gl_Position.w;\n"
     "}\n";
   int src_len = (int)strlen(src);
   sl_shader_set_source(&vertex_shader, 1, &src, &src_len);
   r = sl_shader_compile(&vertex_shader);
   if (r) {
-    const char *err = "???";
-    switch (r) {
-      case SL_ERR_OK: err = "SL_ERR_OK"; break;
-      case SL_ERR_INVALID_ARG: err = "SL_ERR_INVALID_ARG"; break;
-      case SL_ERR_OVERFLOW: err = "SL_ERR_OVERFLOW"; break;
-      case SL_ERR_NO_MEM: err = "SL_ERR_NO_MEM"; break;
-      case SL_ERR_INTERNAL: err = "SL_ERR_INTERNAL"; break;
-      case SL_ERR_HAD_ERRORS: err = "SL_ERR_HAD_ERRORS"; break;
-    }
-    fprintf(stderr, "Failed (%d): %s\n", r, err);
+    fprintf(stderr, "Failed (%d): %s\n", r, sl_err_str(r));
     if (r) goto exit_cleanup;
   }
   struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&vertex_shader.cu_, "gl_Position");
@@ -4774,26 +4770,21 @@ int main(int argc, char **argv) {
 
   sl_shader_set_type(&fragment_shader, SLST_FRAGMENT_SHADER);
   src = "varying vec4 vertex_color;\n"
+        "varying vec2 vertex_st;\n"
         "void main() {\n"
         "  int x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
         "  int even_x = (x / 2) * 2;\n"
-        "  if ((x - even_x) == 1) discard;\n"
-        "  gl_FragColor = vertex_color;\n"
+        //"  if ((x - even_x) == 1) discard;\n"
+        "  int checker = int(10.f * vertex_st.x) + int(10.f * vertex_st.y);\n"
+        "  int checker_even = (checker / 2) * 2;\n"
+        "  float checker_flag = float(checker - checker_even);\n"
+        "  gl_FragColor = vec4(vertex_st.x, checker_flag, gl_FragCoord.w, 1.f);\n"
         "}\n";
   src_len = (int)strlen(src);
   sl_shader_set_source(&fragment_shader, 1, &src, &src_len);
   r = sl_shader_compile(&fragment_shader);
   if (r) {
-    const char *err = "???";
-    switch (r) {
-      case SL_ERR_OK: err = "SL_ERR_OK"; break;
-      case SL_ERR_INVALID_ARG: err = "SL_ERR_INVALID_ARG"; break;
-      case SL_ERR_OVERFLOW: err = "SL_ERR_OVERFLOW"; break;
-      case SL_ERR_NO_MEM: err = "SL_ERR_NO_MEM"; break;
-      case SL_ERR_INTERNAL: err = "SL_ERR_INTERNAL"; break;
-      case SL_ERR_HAD_ERRORS: err = "SL_ERR_HAD_ERRORS"; break;
-    }
-    fprintf(stderr, "Failed (%d): %s\n", r, err);
+    fprintf(stderr, "Failed fragment compilation (%d): %s\n", r, sl_err_str(r));
     if (r) goto exit_cleanup;
   }
   r = sl_exec_prep(&fragment_shader.exec_, &fragment_shader.cu_);
@@ -4821,26 +4812,26 @@ int main(int argc, char **argv) {
    * Trying to get 1.f on the z-buf, but this is likely going to be difficult to fit
    * in a float. */
   float verts[] = {
-    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 1. * 2.f / (double)(max_z)),
-    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f),
-    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f)
-  };
-  float v_colors[] = {
-    1.f, 0.f, 0.f, 1.f,
-    0.f, 1.f, 0.f, 1.f,
-    0.f, 0.f, 1.f, 1.f
+    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 1. * 2.f / (double)(max_z)), 1.f,
+    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f), 3.f,
+    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (128.f/256.f), (float)(-1.f), 3.f
   };
   int xyz_attr = attrib_set_alloc_attrib(&as);
   if (xyz_attr < 0) goto exit_cleanup;
   as.attribs_[xyz_attr].buf_ = NULL;
-  as.attribs_[xyz_attr].size_ = 3; /* Rely on fourth coord W to be the fixed 1. preset */
+  as.attribs_[xyz_attr].size_ = 4;
   as.attribs_[xyz_attr].data_type_ = ADT_FLOAT;
   as.attribs_[xyz_attr].att_ = AT_VEC4;
   as.attribs_[xyz_attr].normalize_ = 0;
   as.attribs_[xyz_attr].enabled_ = 1;
   as.attribs_[xyz_attr].ptr_ = verts;
-  as.attribs_[xyz_attr].stride_ = sizeof(float) * 3;
+  as.attribs_[xyz_attr].stride_ = sizeof(float) * 4;
   // as.attribs_[xyz_attr].name_ = // canonical way of setting this still to be made
+  float v_colors[] = {
+    1.f, 0.f, 0.f, 1.f,
+    0.f, 1.f, 0.f, 1.f,
+    0.f, 0.f, 1.f, 1.f
+  };
   int v_color_attr = attrib_set_alloc_attrib(&as);
   if (v_color_attr < 0) goto exit_cleanup;
   as.attribs_[v_color_attr].buf_ = NULL;
@@ -4851,6 +4842,22 @@ int main(int argc, char **argv) {
   as.attribs_[v_color_attr].enabled_ = 1;
   as.attribs_[v_color_attr].ptr_ = v_colors;
   as.attribs_[v_color_attr].stride_ = sizeof(float) * 4;
+  float v_st[] = {
+    0.f, 0.f,
+    1.f, 0.f,
+    0.f, 1.f
+  };
+  int v_st_attr = attrib_set_alloc_attrib(&as);
+  if (v_st_attr < 0) goto exit_cleanup;
+  as.attribs_[v_st_attr].buf_ = NULL;
+  as.attribs_[v_st_attr].size_ = 2; /* Rely on fourth coord W to be the fixed 1. preset */
+  as.attribs_[v_st_attr].data_type_ = ADT_FLOAT;
+  as.attribs_[v_st_attr].att_ = AT_VEC2;
+  as.attribs_[v_st_attr].normalize_ = 0;
+  as.attribs_[v_st_attr].enabled_ = 1;
+  as.attribs_[v_st_attr].ptr_ = v_st;
+  as.attribs_[v_st_attr].stride_ = sizeof(float) * 2;
+
 
   /* Go into the program and manually force gl_Position to be an attribute or it won't
    * be found for binding (which we still rely on.) */
@@ -4861,15 +4868,35 @@ int main(int argc, char **argv) {
     struct sl_type *attred_type = sl_type_base_qualified_type(&program.vertex_shader_->tb_, naked_type, qualifiers | SL_TYPE_QUALIFIER_ATTRIBUTE);
     p_gl_Position->type_ = attred_type;
   }
-  sl_program_set_attrib_binding_index(&program, "gl_Position", xyz_attr);
-  sl_program_set_attrib_binding_index(&program, "v_color", v_color_attr);
+  r = sl_program_set_attrib_binding_index(&program, "gl_Position", xyz_attr);
+  if (r) {
+    fprintf(stderr, "Failed binding gl_Position (%d): %s\n", r, sl_err_str(r));
+    if (r) goto exit_cleanup;
+  }
 
-  sl_program_link(&program);
+  r = sl_program_set_attrib_binding_index(&program, "v_color", v_color_attr);
+  if (r) {
+    fprintf(stderr, "Failed binding v_color (%d): %s\n", r, sl_err_str(r));
+    if (r) goto exit_cleanup;
+  }
+
+  r = sl_program_set_attrib_binding_index(&program, "v_st", v_st_attr);
+  if (r) {
+    fprintf(stderr, "Failed binding v_st (%d): %s\n", r, sl_err_str(r));
+    if (r) goto exit_cleanup;
+  }
+
+  r = sl_program_link(&program);
+  if (r) {
+    fprintf(stderr, "Failed linking program (%d): %s\n", r, sl_err_str(r));
+    if (r) goto exit_cleanup;
+  }
 
   uint32_t indices[] = {
     0, 1, 2
   };
 
+  sl_program_load_uniforms_for_execution(&program);
 
   primitive_assembly_draw_elements(&program.pa_, &as, program.vertex_shader_, &program.ar_, &program.cs_, &ras, &program.fragbuf_, program.fragment_shader_,
                                    vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,

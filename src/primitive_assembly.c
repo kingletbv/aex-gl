@@ -2495,24 +2495,33 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                       }
                     }
                     if (frag_coord_w_reg != SL_REG_NONE) {
-                      float * restrict w = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
+                      /* w reg will contain "one-over-w" */
+                      float * restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
                       for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
-                        w[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_W]
-                                    + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_W]
-                                    + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_W];
+                        oow[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_W]
+                                      + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_W]
+                                      + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_W];
                       }
                     }
 
-                    for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
-                      struct attrib_route *attr = ar->attribs_routed_ + attrib_route_index;
-                      float * restrict tgt = fragment_shader->exec_.float_regs_[attr->to_target_reg_];
-                      float fv0 = v0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
-                      float fv1 = v1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
-                      float fv2 = v2[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                    if (ar->num_attribs_routed_) {
+                      float * restrict actual_w = (float * restrict)fragbuf->column_data_[FB_IDX_W];
+                      float *restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
                       for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
-                        tgt[frag_row] = dp12[frag_row] * fv0
-                                      + dp20[frag_row] * fv1
-                                      + dp01[frag_row] * fv2;
+                        actual_w[frag_row] = 1.f / oow[frag_row];
+                      }
+                      for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
+                        struct attrib_route *attr = ar->attribs_routed_ + attrib_route_index;
+                        float * restrict tgt = fragment_shader->exec_.float_regs_[attr->to_target_reg_];
+                        float * restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
+                        float fv0 = v0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                        float fv1 = v1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                        float fv2 = v2[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                          tgt[frag_row] = dp12[frag_row] * fv0 * actual_w[frag_row]
+                                        + dp20[frag_row] * fv1 * actual_w[frag_row]
+                                        + dp01[frag_row] * fv2 * actual_w[frag_row];
+                        }
                       }
                     }
 

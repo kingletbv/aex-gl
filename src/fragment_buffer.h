@@ -39,21 +39,22 @@ typedef enum fragment_buffer_data_type {
 } frag_buf_data_type_t;
 
 typedef enum fragment_buffer_column_type {
-  FBCT_EXECUTION_CHAIN, /* FNCT_UINT8: Execution chain, delta of index to the next entry in the same execution set, e.g. "1" is next row.  */
-  FBCT_MASK,            /* FBCT_UINT8: Either 0xFF, or 0x00. If 0x00, then the fragment generates no output (but still executes for side-effects) */
-  FBCT_PIXEL_PTR,       /* FBCT_PTR: Pointer to the pixel to be written; may be NULL only if FBCT_MASK is 0x00. */
-  FBCT_ZBUF_PTR,        /* FBCT_PTR: Pointer to the z-buffer depth value to be compared and tested against (only if after fragment shader); may be NULL only if FBCT_MASK is 0x00. */
-  FBCT_STENCIL_PTR,     /* FBCT_PTR: Pointer to the stencil buffer value to be compared and tested against (only if after fragment shader); may be NULL only if FBCT_MASK is 0x00. */
-  FBCT_X_COORD,         /* FBCT_INT32: X screen coordinate of pixel */
-  FBCT_Y_COORD,         /* FBCT_INT32: Y screen coordinate of pixel */
-  FBCT_ZBUF_VALUE,      /* FBCT_UINT32: z-buffer value range 0 to (2^z-buffer-depth - 1) */
-  FBCT_FRAG_RED,        /* FBCT_UINT8: red component of gl_FragColor */
-  FBCT_FRAG_GREEN,      /* FBCT_UINT8: green component of gl_FragColor */
-  FBCT_FRAG_BLUE,       /* FBCT_UINT8: blue component of gl_FragColor */
-  FBCT_FRAG_ALPHA,      /* FBCT_UINT8: alpha component of gl_FragColor */
-  FBCT_DP01,            /* FBCT_INT64: determinant of the Point and edge 01 */
-  FBCT_DP12,            /* FBCT_INT64: determinant of the Point and edge 12 */
-  FBCT_DP20,            /* FBCT_INT64: determinant of the Point and edge 20 */
+  FBCT_EXECUTION_CHAIN, /* FNDT_UINT8: Execution chain, delta of index to the next entry in the same execution set, e.g. "1" is next row.  */
+  FBCT_MASK,            /* FBDT_UINT8: Either 0xFF, or 0x00. If 0x00, then the fragment generates no output (but still executes for side-effects) */
+  FBCT_PIXEL_PTR,       /* FBDT_PTR: Pointer to the pixel to be written; may be NULL only if FBCT_MASK is 0x00. */
+  FBCT_ZBUF_PTR,        /* FBDT_PTR: Pointer to the z-buffer depth value to be compared and tested against (only if after fragment shader); may be NULL only if FBCT_MASK is 0x00. */
+  FBCT_STENCIL_PTR,     /* FBDT_PTR: Pointer to the stencil buffer value to be compared and tested against (only if after fragment shader); may be NULL only if FBCT_MASK is 0x00. */
+  FBCT_X_COORD,         /* FBDT_INT32: X screen coordinate of pixel */
+  FBCT_Y_COORD,         /* FBDT_INT32: Y screen coordinate of pixel */
+  FBCT_ZBUF_VALUE,      /* FBDT_UINT32: z-buffer value range 0 to (2^z-buffer-depth - 1) */
+  FBCT_FRAG_RED,        /* FBDT_UINT8: red component of gl_FragColor */
+  FBCT_FRAG_GREEN,      /* FBDT_UINT8: green component of gl_FragColor */
+  FBCT_FRAG_BLUE,       /* FBDT_UINT8: blue component of gl_FragColor */
+  FBCT_FRAG_ALPHA,      /* FBDT_UINT8: alpha component of gl_FragColor */
+  FBCT_DP01,            /* FBDT_INT64: determinant of the Point and edge 01 */
+  FBCT_DP12,            /* FBDT_INT64: determinant of the Point and edge 12 */
+  FBCT_DP20,            /* FBDT_INT64: determinant of the Point and edge 20 */
+  FBCT_W,               /* FBDT_FLOAT: W value for fragment, as computed from the interpolated oow as 1/oow if we need it. */
   FBCT_TEMP             /* Temporary value, unspecified type. */
 } frag_buf_col_type_t;
 
@@ -73,19 +74,31 @@ typedef enum fragment_buffer_column_type {
 #define FB_IDX_DP01            12
 #define FB_IDX_DP12            13
 #define FB_IDX_DP20            14
-#define FB_IDX_TEMP_BYTE_0     15
-#define FB_IDX_TEMP_BYTE_1     16
-#define FB_IDX_TEMP_BYTE_2     17
-#define FB_IDX_TEMP_BYTE_3     18
-#define FB_IDX_TEMP_BYTE_4     19
-#define FB_IDX_TEMP_BYTE_5     20
-#define FB_IDX_TEMP_BYTE_6     21
-#define FB_IDX_TEMP_BYTE_7     22
-#define FB_IDX_TEMP_BYTE_8     23
-#define FB_IDX_TEMP_BYTE_9     24
-#define FB_IDX_TEMP_BYTE_10    25
-#define FB_IDX_TEMP_BYTE_11    26
-#define FB_IDX_NUM_FIXED_IDX   27
+#define FB_IDX_W               15  /* See comment below */
+#define FB_IDX_TEMP_BYTE_0     16
+#define FB_IDX_TEMP_BYTE_1     17
+#define FB_IDX_TEMP_BYTE_2     18
+#define FB_IDX_TEMP_BYTE_3     19
+#define FB_IDX_TEMP_BYTE_4     20
+#define FB_IDX_TEMP_BYTE_5     21
+#define FB_IDX_TEMP_BYTE_6     22
+#define FB_IDX_TEMP_BYTE_7     23
+#define FB_IDX_TEMP_BYTE_8     24
+#define FB_IDX_TEMP_BYTE_9     25
+#define FB_IDX_TEMP_BYTE_10    26
+#define FB_IDX_TEMP_BYTE_11    27
+#define FB_IDX_NUM_FIXED_IDX   28
+
+/* Note on FB_IDX_W:
+ * During interpolation of attributes, we need to correct for perspective. This
+ * is done by interpolating 1/w (one-over-w, or oow), and interpolating the
+ * attrib's value a as a/w alongside it. Prior to execution of the fragments,
+ * these a/w's need to be divided back by 1/w (and so, multiplied by w), this
+ * can be a tad expensive if we divide for each attribute, and so for each row
+ * the following array will contain the w value, computed from the interpolated
+ * oow value (e.g. 1/(1/w) ). This value is not immediately available anywhere
+ * else in the shader, and so there is no register allocated for it that we can
+ * use. Because of that, we make space available here.. */
 
 struct fragment_buffer_column_descriptor {
   /* Type of fragment buffer column (e.g. the semantic value of it) */
