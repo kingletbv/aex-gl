@@ -2453,10 +2453,10 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                   }
 
                   while ((orientation = rasterizer_triangle(ras, fragbuf, 
-                                                            rgba, 256*4,     // bitmap
+                                                            rgba, rgba_stride,     // bitmap
                                                             zbuf, zbuf_stride, zbuf_step,  // z-buffer
                                                             stencil_buf, stencil_stride, stencil_step,  // stencil buffer
-                                                            0, 0, 256, 256,  // scissor-rect
+                                                            0, 0, screen_width, screen_height,  // scissor-rect
                                                             sx0, sy0, sz0,
                                                             sx1, sy1, sz1,
                                                             sx2, sy2, sz2,
