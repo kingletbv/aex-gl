@@ -197,13 +197,13 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
   }
 
   enum s2d_filter filter;
-  if ((s2d->mag_filter_ != s2d->min_filter_) && (lg2 <= c)) {
-    /* Magnification filter */
-    filter = s2d->mag_filter_;
-  }
-  else {
+  if (lg2 > c) {
     /* Minification filter */
     filter = s2d->min_filter_;
+  }
+  else {
+    /* Magnification filter */
+    filter = s2d->mag_filter_;
   }
 
   if ((filter == s2d_nearest) || 
@@ -762,6 +762,8 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
          * the bit pattern above to find the differentials based on the appropriate neighbouring
          * pixels. */
         row = s2d->runtime_rows_;
+        float l0_width = (float)s2d->mipmaps_[0].width_;
+        float l0_height = (float)s2d->mipmaps_[0].height_;
         for (;;) {
           uint64_t chain;
           uint8_t delta;
@@ -773,32 +775,32 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
               /* Top-Left dsdx = Top-Right dsdx = Top-Right S - Top-Left S
                 * 01 45
                 * 23 67 */
-              float fdsdx01 = r_s[1] - r_s[0];
+              float fdsdx01 = (r_s[1] - r_s[0]) * l0_width;
               /* Bottom-Left dsdx = Bottom-Right dsdx = Bottom-Right S - Bottom-Left S */
-              float fdsdx23 = r_s[3] - r_s[2];
+              float fdsdx23 = (r_s[3] - r_s[2]) * l0_width;
 
               /* Follow the same pattern for the next 4 fragments .. */
-              float fdsdx45 = r_s[5] - r_s[4];
-              float fdsdx67 = r_s[7] - r_s[6];
+              float fdsdx45 = (r_s[5] - r_s[4]) * l0_width;
+              float fdsdx67 = (r_s[7] - r_s[6]) * l0_width;
 
               /* Follow the same pattern for T */
-              float fdtdx01 = r_t[1] - r_t[0];
-              float fdtdx23 = r_t[3] - r_t[2];
-              float fdtdx45 = r_t[5] - r_t[4];
-              float fdtdx67 = r_t[7] - r_t[6];
+              float fdtdx01 = (r_t[1] - r_t[0]) * l0_height;
+              float fdtdx23 = (r_t[3] - r_t[2]) * l0_height;
+              float fdtdx45 = (r_t[5] - r_t[4]) * l0_height;
+              float fdtdx67 = (r_t[7] - r_t[6]) * l0_height;
 
               /* Follow the same pattern for S and T over dy
                 * 01 45
                 * 23 67 */
-              float fdsdy02 = r_s[2] - r_s[0];
-              float fdsdy13 = r_s[3] - r_s[1];
-              float fdsdy46 = r_s[6] - r_s[4];
-              float fdsdy57 = r_s[7] - r_s[5];
+              float fdsdy02 = (r_s[2] - r_s[0]) * l0_width;
+              float fdsdy13 = (r_s[3] - r_s[1]) * l0_width;
+              float fdsdy46 = (r_s[6] - r_s[4]) * l0_width;
+              float fdsdy57 = (r_s[7] - r_s[5]) * l0_width;
 
-              float fdtdy02 = r_t[2] - r_t[0];
-              float fdtdy13 = r_t[3] - r_t[1];
-              float fdtdy46 = r_t[6] - r_t[4];
-              float fdtdy57 = r_t[7] - r_t[5];
+              float fdtdy02 = (r_t[2] - r_t[0]) * l0_height;
+              float fdtdy13 = (r_t[3] - r_t[1]) * l0_height;
+              float fdtdy46 = (r_t[6] - r_t[4]) * l0_height;
+              float fdtdy57 = (r_t[7] - r_t[5]) * l0_height;
 
               float dstdx_squared_len_01 = fdsdx01 * fdsdx01 + fdtdx01 * fdtdx01;
               float dstdx_squared_len_23 = fdsdx23 * fdsdx23 + fdtdx23 * fdtdx23;
@@ -858,22 +860,22 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
               /* Top-Left dsdx = Top-Right dsdx = Top-Right S - Top-Left S
                * 01 
                * 23 */
-              float fdsdx01 = r_s[1] - r_s[0];
+              float fdsdx01 = (r_s[1] - r_s[0]) * l0_width;
               /* Bottom-Left dsdx = Bottom-Right dsdx = Bottom-Right S - Bottom-Left S */
-              float fdsdx23 = r_s[3] - r_s[2];
+              float fdsdx23 = (r_s[3] - r_s[2]) * l0_width;
 
               /* Follow the same pattern for T */
-              float fdtdx01 = r_t[1] - r_t[0];
-              float fdtdx23 = r_t[3] - r_t[2];
+              float fdtdx01 = (r_t[1] - r_t[0]) * l0_height;
+              float fdtdx23 = (r_t[3] - r_t[2]) * l0_height;
 
               /* Follow the same pattern for S and T over dy
                * 01 
                * 23 */
-              float fdsdy02 = r_s[2] - r_s[0];
-              float fdsdy13 = r_s[3] - r_s[1];
+              float fdsdy02 = (r_s[2] - r_s[0]) * l0_width;
+              float fdsdy13 = (r_s[3] - r_s[1]) * l0_width;
 
-              float fdtdy02 = r_t[2] - r_t[0];
-              float fdtdy13 = r_t[3] - r_t[1];
+              float fdtdy02 = (r_t[2] - r_t[0]) * l0_height;
+              float fdtdy13 = (r_t[3] - r_t[1]) * l0_height;
 
               float dstdx_squared_len_01 = fdsdx01 * fdsdx01 + fdtdx01 * fdtdx01;
               float dstdx_squared_len_23 = fdsdx23 * fdsdx23 + fdtdx23 * fdtdx23;
@@ -921,10 +923,10 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
                * "undefined" as to what happens here; just try and do something reasonable. */
               const float *restrict r_s = coord_column_s + row;
               const float *restrict r_t = coord_column_t + row;
-              float fdsdx = r_s[row | 1] - r_s[row & ~1];
-              float fdtdx = r_t[row | 1] - r_t[row & ~1];
-              float fdsdy = r_s[row | 2] - r_s[row & ~2];
-              float fdtdy = r_t[row | 2] - r_t[row & ~2];
+              float fdsdx = (r_s[row | 1] - r_s[row & ~1]) * l0_width;
+              float fdtdx = (r_t[row | 1] - r_t[row & ~1]) * l0_height;
+              float fdsdy = (r_s[row | 2] - r_s[row & ~2]) * l0_width;
+              float fdtdy = (r_t[row | 2] - r_t[row & ~2]) * l0_height;
               float fdstdx_squared_len = fdsdx * fdsdx + fdtdx * fdtdx;
               float fdstdy_squared_len = fdsdy * fdsdy + fdtdy * fdtdy;
               float dmax_squared_len = (fdstdx_squared_len > fdstdy_squared_len) ? fdstdx_squared_len : fdstdy_squared_len;
@@ -1055,12 +1057,13 @@ int sampler_2d_set_storage(struct sampler_2d *s2d, int level, enum s2d_tex_compo
     if (!s2dm) return SL_ERR_NO_MEM;
     size_t n;
     for (n = s2d->num_maps_; n <= (size_t)level; ++n) {
-      s2dm->width_ = 0;
-      s2dm->height_ = 0;
-      s2dm->repeat_mask_s_ = s2dm->repeat_mask_t_ = 0;
-      s2dm->components_ = s2d_rgb;
-      s2dm->num_bytes_per_bitmap_row_ = 0;
-      s2dm->bitmap_ = NULL;
+      s2dm[n].width_ = 0;
+      s2dm[n].height_ = 0;
+      s2dm[n].repeat_mask_s_ = 0;
+      s2dm[n].repeat_mask_t_ = 0;
+      s2dm[n].components_ = s2d_rgb;
+      s2dm[n].num_bytes_per_bitmap_row_ = 0;
+      s2dm[n].bitmap_ = NULL;
     }
     s2d->mipmaps_ = s2dm;
     s2d->num_maps_ = level + 1;
@@ -1161,7 +1164,7 @@ int sampler_2d_generate_mipmaps(struct sampler_2d *s2d) {
   int level = 1;
   int r;
   while ((lvl_width > 1) || (lvl_height > 1)) {
-    lvl_width = lvl_width / 1;
+    lvl_width = lvl_width / 2;
     if (lvl_width == 0) lvl_width = 1;
     lvl_height = lvl_height / 2;
     if (lvl_height == 0) lvl_height = 1;
@@ -1197,7 +1200,7 @@ int sampler_2d_generate_mipmaps(struct sampler_2d *s2d) {
     parent_row_ptr = (uint8_t * restrict)s2d->mipmaps_[level - 1].bitmap_;
     int is_vertically_flat = s2d->mipmaps_[level-1].height_ == 1;
     int is_horizontally_flat = s2d->mipmaps_[level-1].width_ == 1;
-    for (row = 0; row < lvl_width; ++row) {
+    for (row = 0; row < lvl_height; ++row) {
       child_ptr = child_row_ptr;
       parent_ptr = parent_row_ptr;
       child_row_ptr += child_stride;
@@ -1236,6 +1239,8 @@ int sampler_2d_generate_mipmaps(struct sampler_2d *s2d) {
         parent_ptr += bytes_per_pixel;
       }
     }
+
+    level++;
   }
   return SL_ERR_OK;
 }

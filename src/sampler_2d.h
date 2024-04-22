@@ -101,6 +101,7 @@ void sampler_2d_cleanup(struct sampler_2d *s2d);
 
 int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_components internal_format, int width, int height,
                          enum blitter_data_type src_datatype, void *src_data);
+int sampler_2d_generate_mipmaps(struct sampler_2d *s2d);
 
 void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_texture2D_bias_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
