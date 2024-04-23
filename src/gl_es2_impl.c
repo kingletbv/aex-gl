@@ -723,6 +723,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Hint)(gl_es2_e
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsBuffer)(gl_es2_uint buffer) {
   struct gl_es2_context *c = gl_es2_ctx();
+  if (!buffer) return GL_ES2_FALSE;
   /* Note: a name returned by glGenBuffers but not yet associated, is not the name of a buffer object. Consequently,
    * we must use the buffer named object table buffer_not_ and not the ref-range allocator buffer_rra_ to perform this
    * check */
@@ -736,6 +737,7 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsEn
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsFramebuffer)(gl_es2_uint framebuffer) {
   struct gl_es2_context *c = gl_es2_ctx();
+  if (!framebuffer) return GL_ES2_FALSE;
   /* Note: a name returned by glGenFramebuffers but not yet associated, is not the name of a framebuffer object. 
    * Consequently, we must use the framebuffer named object table framebuffer_not_ and not the ref-range allocator 
    * framebuffer_rra_ to perform this check */
@@ -749,6 +751,7 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsPr
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsRenderbuffer)(gl_es2_uint renderbuffer) {
   struct gl_es2_context *c = gl_es2_ctx();
+  if (!renderbuffer) return GL_ES2_FALSE;
   /* Note: a name returned by glGenRenderbuffers but not yet associated, is not the name of a renderbuffer object.
    * Consequently, we must use the renderbuffer named object table renderbuffer_not_ and not the ref-range allocator
    * renderbuffer_rra_ to perform this check */
@@ -762,6 +765,7 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsSh
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsTexture)(gl_es2_uint texture) {
   struct gl_es2_context *c = gl_es2_ctx();
+  if (!texture) return GL_ES2_FALSE;
   /* Note: a name returned by glGenTextures but not yet associated, is not the name of a texture object.
    * Consequently, we must use the texture named object table texture_not_ and not the ref-range allocator
    * texture_rra_ to perform this check */
