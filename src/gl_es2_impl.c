@@ -95,6 +95,47 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindFramebuffe
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuffer)(gl_es2_enum target, gl_es2_uint renderbuffer) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (target != GL_ES2_RENDERBUFFER) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  uintptr_t rb_name = (uintptr_t)renderbuffer;
+  if (rb_name == UINTPTR_MAX) {
+    /* invalid number because we cannot make a range rb_name to rb_name+1. */
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;;
+  int is_allocated = ref_range_get_ref_at(&c->renderbuffer_rra_, rb_name);
+  if (!is_allocated) {
+    /* Caller hasn't reserved this but is just taking the name, which is fine, allocate it */
+    r = ref_range_mark_range_allocated(&c->renderbuffer_rra_, rb_name, rb_name + 1);
+    if (r) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+  }
+  struct gl_es2_renderbuffer *rb = NULL;
+  r = not_find_or_insert(&c->renderbuffer_not_, rb_name, sizeof(struct gl_es2_framebuffer), (struct named_object **)&rb);
+  if (r == NOT_NOMEM) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  if (r == NOT_DUPLICATE) {
+    /* Common path if is_allocated, strange path we'll just run with if not */
+    c->renderbuffer_ = rb;
+  }
+  else if (r == NOT_OK) {
+    /* Newly created renderbuffer */
+    gl_es2_renderbuffer_init(rb);
+    c->renderbuffer_ = rb;
+  }
+  else {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  return;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindTexture)(gl_es2_enum target, gl_es2_uint texture) {
@@ -211,6 +252,41 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteProgram)
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteRenderbuffers)(gl_es2_sizei n, const gl_es2_uint *renderbuffers) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (n < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!n) return;
+
+  size_t k;
+  for (k = 0; k < n; ++k) {
+    uintptr_t rb_name = renderbuffers[k];
+    /* silently ignore 0's */
+    if (rb_name) {
+      int is_allocated = ref_range_get_ref_at(&c->framebuffer_rra_, rb_name);
+      if (is_allocated) {
+        struct gl_es2_renderbuffer *rb = NULL;
+        rb = (struct gl_es2_renderbuffer *)not_find(&c->framebuffer_not_, rb_name);
+        if (rb) {
+          /* renderbuffer was bound & created before; release and free it */
+          if (rb == c->renderbuffer_) {
+            c->renderbuffer_ = (struct gl_es2_renderbuffer *)not_find(&c->renderbuffer_not_, 0);
+          }
+          not_remove(&c->renderbuffer_not_, &rb->no_);
+          gl_es2_renderbuffer_cleanup(rb);
+          free(rb);
+        }
+        else {
+          /* framebuffer was allocated (refcount is not 0), but never bound and so the 
+           * framebuffer object itself was never created (despite being allocated). This
+           * is valid, e.g. glGenFramebuffers without a corresponding glBindFramebuffer
+           * will put us in this state. */
+        }
+        ref_range_mark_range_free(&c->framebuffer_rra_, rb_name, rb_name + 1);
+      }
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteShader)(gl_es2_uint shader) {
@@ -306,6 +382,38 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenFramebuffer
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenRenderbuffers)(gl_es2_sizei n, gl_es2_uint *renderbuffers) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  int r;
+  if (n < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!n) return;
+
+  /* We further guarantee that the allocated renderbuffers are consecutive, makes implementation
+   * easier, spec doesn't need it. */
+  uintptr_t alloc_range_at = 0;
+  r = ref_range_alloc(&c->renderbuffer_rra_, (uintptr_t)n, &alloc_range_at);
+  if (r) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  gl_es2_sizei k;
+  for (k = 0; k < n; ++k) {
+    uintptr_t slot = alloc_range_at + k;
+    if (slot < alloc_range_at) {
+      /* overflow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    gl_es2_uint slot_uint = (gl_es2_uint)slot;
+    if (slot != (uintptr_t)slot_uint) {
+      /* overflow because type too narrow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    renderbuffers[k] = slot_uint;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenTextures)(gl_es2_sizei n, gl_es2_uint *textures) {

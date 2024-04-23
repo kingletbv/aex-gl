@@ -29,20 +29,33 @@
 
 /* XXX: Important: no TLS, no locks, no atomics, nary a cli/sti: no thread safety. */
 
+static struct gl_es2_context g_ctx_ = { 0 };
+static int                   g_ctx_is_initialized_ = 0;
+
+
 void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb) {
 }
 
 void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb) {
 }
 
-static struct gl_es2_context g_ctx_ = {0};
-static int                   g_ctx_is_initialized_ = 0;
+void gl_es2_renderbuffer_init(struct gl_es2_renderbuffer *rb) {
+}
+
+void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb) {
+}
 
 void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->current_error_ = GL_ES2_NO_ERROR;
+
   ref_range_allocator_init(&c->framebuffer_rra_);
   not_init(&c->framebuffer_not_);
+
+  ref_range_allocator_init(&c->renderbuffer_rra_);
+  not_init(&c->renderbuffer_not_);
+
   c->framebuffer_ = NULL;
+  c->renderbuffer_ = NULL;
 }
 
 void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
@@ -52,6 +65,12 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
     not_remove(&c->framebuffer_not_, &fb->no_);
     gl_es2_framebuffer_cleanup(fb);
     free(fb);
+  }
+  while (c->renderbuffer_not_.seq_) {
+    struct gl_es2_renderbuffer *rb = (struct gl_es2_renderbuffer *)c->renderbuffer_not_.seq_;
+    not_remove(&c->renderbuffer_not_, &rb->no_);
+    gl_es2_renderbuffer_cleanup(rb);
+    free(rb);
   }
 }
 

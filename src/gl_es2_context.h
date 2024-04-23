@@ -38,22 +38,35 @@ struct gl_es2_framebuffer {
   struct named_object no_;
 };
 
+struct gl_es2_renderbuffer {
+  struct named_object no_;
+};
+
 struct gl_es2_context {
   gl_es2_enum current_error_;
 
   struct ref_range_allocator framebuffer_rra_;
   struct named_object_table framebuffer_not_;
 
+  struct ref_range_allocator renderbuffer_rra_;
+  struct named_object_table renderbuffer_not_;
+
   /* currently bound targets */
 
   /* glBindFramebuffer(GL_FRAMEBUFFER) */
   struct gl_es2_framebuffer *framebuffer_;
+
+  /* glBindRenderbuffer(GL_RENDERBUFFER) */
+  struct gl_es2_renderbuffer *renderbuffer_;
 };
 
 struct gl_es2_context *gl_es2_ctx(void);
 
 void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb);
 void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb);
+
+void gl_es2_renderbuffer_init(struct gl_es2_renderbuffer *rb);
+void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb);
 
 #ifdef __cplusplus
 } /* extern "C" */
