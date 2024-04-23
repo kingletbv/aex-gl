@@ -1405,6 +1405,21 @@ int ref_range_mark_range_free(struct ref_range_allocator *rra, uintptr_t from, u
   return r;
 }
 
+int ref_range_get_ref_at(struct ref_range_allocator *rra, uintptr_t at) {
+  struct ref_range *rr = rra->pos_root_;
+  struct ref_range *in_rr = NULL;
+  while (rr) {
+    if (at < rr->at_) {
+      in_rr = rr;
+      rr = rr->pos_left_;
+    }
+    else {
+      rr = rr->pos_right_;
+    }
+  }
+  return in_rr ? in_rr->refcount_ : 0;
+}
+
 static int ref_range_sanity_check_pos_parent_pointers(struct ref_range *parent, struct ref_range *child) {
   if (!child) return 1;
   if (child->pos_parent_ != parent) return 0;

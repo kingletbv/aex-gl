@@ -79,6 +79,9 @@ int ref_range_mark_range_free(struct ref_range_allocator *rra, uintptr_t from, u
  * free the range again for future allocations. */
 int ref_range_alloc(struct ref_range_allocator *rra, uintptr_t size, uintptr_t *result);
 
+/* returns the refcount value of the range that contains position "at" */
+int ref_range_get_ref_at(struct ref_range_allocator *rra, uintptr_t at);
+
 /* self-test, returns non-zero upon failure, zero upon pass. */
 int ref_range_test(void);
 
