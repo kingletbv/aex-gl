@@ -117,7 +117,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuff
     }
   }
   struct gl_es2_renderbuffer *rb = NULL;
-  r = not_find_or_insert(&c->renderbuffer_not_, rb_name, sizeof(struct gl_es2_framebuffer), (struct named_object **)&rb);
+  r = not_find_or_insert(&c->renderbuffer_not_, rb_name, sizeof(struct gl_es2_renderbuffer), (struct named_object **)&rb);
   if (r == NOT_NOMEM) {
     set_gl_err(GL_ES2_OUT_OF_MEMORY);
     return;
@@ -135,10 +135,77 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuff
     set_gl_err(GL_ES2_OUT_OF_MEMORY);
     return;
   }
-  return;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindTexture)(gl_es2_enum target, gl_es2_uint texture) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if ((target != GL_ES2_TEXTURE_2D) && (target != GL_ES2_TEXTURE_CUBE_MAP)) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  uintptr_t tex_name = (uintptr_t)texture;
+  if (tex_name == UINTPTR_MAX) {
+    /* invalid number because we cannot make a range tex_name to tex_name+1. */
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;;
+  int is_allocated = ref_range_get_ref_at(&c->texture_rra_, tex_name);
+  if (!is_allocated) {
+    /* Caller hasn't reserved this but is just taking the name, which is fine, allocate it */
+    r = ref_range_mark_range_allocated(&c->texture_rra_, tex_name, tex_name + 1);
+    if (r) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+  }
+  struct gl_es2_texture *tex = NULL;
+  r = not_find_or_insert(&c->texture_not_, tex_name, sizeof(struct gl_es2_texture), (struct named_object **)&tex);
+  if (r == NOT_NOMEM) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  if (r == NOT_DUPLICATE) {
+    /* Common path if is_allocated, strange path we'll just run with if not */
+  }
+  else if (r == NOT_OK) {
+    /* Newly created texture */
+    gl_es2_texture_init(tex);
+    switch (target) {
+      case GL_ES2_TEXTURE_2D:
+        tex->kind_ = gl_es2_texture_2d;
+        break;
+      case GL_ES2_TEXTURE_CUBE_MAP:
+        tex->kind_ = gl_es2_texture_cube_map;
+        break;
+    }
+  }
+  else {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  switch (target) {
+    case GL_ES2_TEXTURE_2D:
+      if (tex->kind_ != gl_es2_texture_2d) {
+        /* Texture previously created with a target kind that doesn't match target */
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+      }
+      c->active_texture_units_[c->current_active_texture_unit_].texture_2d_ = tex;
+      break;
+    case GL_ES2_TEXTURE_CUBE_MAP:
+      if (tex->kind_ != gl_es2_texture_cube_map) {
+        /* Texture previously created with a target kind that doesn't match target */
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+      }
+      c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_ = tex;
+      break;
+    default:
+      /* other cases already ruled out (see check at entry) */
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendColor)(gl_es2_float red, gl_es2_float green, gl_es2_float blue, gl_es2_float alpha) {
@@ -277,13 +344,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteRenderbu
           gl_es2_renderbuffer_cleanup(rb);
           free(rb);
         }
-        else {
-          /* framebuffer was allocated (refcount is not 0), but never bound and so the 
-           * framebuffer object itself was never created (despite being allocated). This
-           * is valid, e.g. glGenFramebuffers without a corresponding glBindFramebuffer
-           * will put us in this state. */
-        }
-        ref_range_mark_range_free(&c->framebuffer_rra_, rb_name, rb_name + 1);
+        ref_range_mark_range_free(&c->renderbuffer_rra_, rb_name, rb_name + 1);
       }
     }
   }
@@ -293,6 +354,42 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteShader)(
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteTextures)(gl_es2_sizei n, const gl_es2_uint *textures) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (n < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!n) return;
+
+  size_t k;
+  for (k = 0; k < n; ++k) {
+    uintptr_t tex_name = textures[k];
+    /* silently ignore 0's */
+    if (tex_name) {
+      int is_allocated = ref_range_get_ref_at(&c->texture_rra_, tex_name);
+      if (is_allocated) {
+        struct gl_es2_texture *tex = NULL;
+        tex = (struct gl_es2_texture *)not_find(&c->texture_not_, tex_name);
+        if (tex) {
+          /* texture was bound & created before; release and free it */
+          struct gl_es2_texture *default_tex = (struct gl_es2_texture *)not_find(&c->texture_not_, 0);
+          size_t m;
+          for (m = 0; m < c->num_active_texture_units_; ++m) {
+            if (c->active_texture_units_[m].texture_2d_ == tex) {
+              c->active_texture_units_[m].texture_2d_ = default_tex;
+            }
+            else if (c->active_texture_units_[m].texture_cube_map_ == tex) {
+              c->active_texture_units_[m].texture_cube_map_ = default_tex;
+            }
+          }
+          not_remove(&c->texture_not_, &tex->no_);
+          gl_es2_texture_cleanup(tex);
+          free(tex);
+        }
+        ref_range_mark_range_free(&c->texture_rra_, tex_name, tex_name + 1);
+      }
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthFunc)(gl_es2_enum func) {
@@ -461,6 +558,38 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenRenderbuffe
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenTextures)(gl_es2_sizei n, gl_es2_uint *textures) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  int r;
+  if (n < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!n) return;
+
+  /* We further guarantee that the allocated textures are consecutive, makes implementation
+   * easier, spec doesn't need it. */
+  uintptr_t alloc_range_at = 0;
+  r = ref_range_alloc(&c->texture_rra_, (uintptr_t)n, &alloc_range_at);
+  if (r) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  gl_es2_sizei k;
+  for (k = 0; k < n; ++k) {
+    uintptr_t slot = alloc_range_at + k;
+    if (slot < alloc_range_at) {
+      /* overflow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    gl_es2_uint slot_uint = (gl_es2_uint)slot;
+    if (slot != (uintptr_t)slot_uint) {
+      /* overflow because type too narrow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    textures[k] = slot_uint;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveAttrib)(gl_es2_uint program, gl_es2_uint index, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_int *size, gl_es2_enum *type, gl_es2_char *name) {

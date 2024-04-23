@@ -142,6 +142,7 @@ void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb) {
 }
 
 void gl_es2_texture_init(struct gl_es2_texture *tex) {
+  tex->kind_ = gl_es2_texture_invalid;
   tex->first_framebuffer_attached_to_ = NULL;
 }
 
@@ -165,6 +166,14 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
 
   c->framebuffer_ = NULL;
   c->renderbuffer_ = NULL;
+
+  c->num_active_texture_units_ = GL_ES2_MAX_NUM_TEXTURE_UNITS;
+  c->current_active_texture_unit_ = 0;
+  size_t n;
+  for (n = 0; n < c->num_active_texture_units_; ++n) {
+    c->active_texture_units_[n].texture_2d_ = NULL;
+    c->active_texture_units_[n].texture_cube_map_ = NULL;
+  }
 }
 
 void gl_es2_ctx_cleanup(struct gl_es2_context *c) {

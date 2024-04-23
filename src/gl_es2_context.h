@@ -30,6 +30,8 @@
 #include "gl_es2_impl_types.h"
 #endif
 
+#define GL_ES2_MAX_NUM_TEXTURE_UNITS 64
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,6 +49,12 @@ enum gl_es2_cube_map_face {
   gl_es2_cube_map_negative_y,
   gl_es2_cube_map_positive_z,
   gl_es2_cube_map_negative_z
+};
+
+enum gl_es2_texture_kind {
+  gl_es2_texture_invalid,
+  gl_es2_texture_2d,
+  gl_es2_texture_cube_map
 };
 
 struct gl_es2_framebuffer_attachment {
@@ -88,7 +96,14 @@ struct gl_es2_renderbuffer {
 struct gl_es2_texture {
   struct named_object no_;
 
+  enum gl_es2_texture_kind kind_;
+
   struct gl_es2_framebuffer_attachment *first_framebuffer_attached_to_;
+};
+
+struct gl_es2_texture_unit {
+  struct gl_es2_texture *texture_2d_;       /* glBindTexture() target == GL_TEXTURE_2D */
+  struct gl_es2_texture *texture_cube_map_; /* glBindTexture() target == GL_TEXTURE_CUBE_MAP */
 };
 
 struct gl_es2_context {
@@ -110,6 +125,13 @@ struct gl_es2_context {
 
   /* glBindRenderbuffer(GL_RENDERBUFFER) */
   struct gl_es2_renderbuffer *renderbuffer_;
+
+  /* Number of active texture units; currently always GL_ES2_MAX_NUM_TEXTURE_UNITS */
+  size_t num_active_texture_units_;
+
+  /* Currently active texture unit, starts out as 0 */
+  size_t current_active_texture_unit_;
+  struct gl_es2_texture_unit active_texture_units_[GL_ES2_MAX_NUM_TEXTURE_UNITS];
 };
 
 struct gl_es2_context *gl_es2_ctx(void);
@@ -119,7 +141,6 @@ void gl_es2_framebuffer_attachment_cleanup(struct gl_es2_framebuffer_attachment 
 void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *fa);
 void gl_es2_framebuffer_attachment_attach_texture(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_texture *tex);
 void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_renderbuffer *rb);
-
 
 void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb);
 void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb);
