@@ -38,6 +38,42 @@ static void set_gl_err(gl_es2_enum error_code) {
   if (c->current_error_ == GL_ES2_NO_ERROR) c->current_error_ = error_code;
 }
 
+static void generic_name_gen(struct ref_range_allocator *rra, gl_es2_sizei n, gl_es2_uint *names) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  int r;
+  if (n < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!n) return;
+
+  /* We further guarantee that the allocated renderbuffers are consecutive, makes implementation
+   * easier, spec doesn't need it. */
+  uintptr_t alloc_range_at = 0;
+  r = ref_range_alloc(rra, (uintptr_t)n, &alloc_range_at);
+  if (r) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  gl_es2_sizei k;
+  for (k = 0; k < n; ++k) {
+    uintptr_t slot = alloc_range_at + k;
+    if (slot < alloc_range_at) {
+      /* overflow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    gl_es2_uint slot_uint = (gl_es2_uint)slot;
+    if (slot != (uintptr_t)slot_uint) {
+      /* overflow because type too narrow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    names[k] = slot_uint;
+  }
+}
+
+
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture) {
 }
 
@@ -561,35 +597,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FrontFace)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenBuffers)(gl_es2_sizei n, gl_es2_uint *buffers) {
   struct gl_es2_context *c = gl_es2_ctx();
-  int r;
-  if (n < 0) {
-    set_gl_err(GL_ES2_INVALID_VALUE);
-    return;
-  }
-  if (!n) return;
-
-  uintptr_t alloc_range_at = 0;
-  r = ref_range_alloc(&c->buffer_rra_, (uintptr_t)n, &alloc_range_at);
-  if (r) {
-    set_gl_err(GL_ES2_OUT_OF_MEMORY);
-    return;
-  }
-  gl_es2_sizei k;
-  for (k = 0; k < n; ++k) {
-    uintptr_t slot = alloc_range_at + k;
-    if (slot < alloc_range_at) {
-      /* overflow */
-      set_gl_err(GL_ES2_INVALID_OPERATION);
-      return;
-    }
-    gl_es2_uint slot_uint = (gl_es2_uint)slot;
-    if (slot != (uintptr_t)slot_uint) {
-      /* overflow because type too narrow */
-      set_gl_err(GL_ES2_INVALID_OPERATION);
-      return;
-    }
-    buffers[k] = slot_uint;
-  }
+  generic_name_gen(&c->buffer_rra_, n, buffers);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenerateMipmap)(gl_es2_enum target) {
@@ -597,107 +605,17 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenerateMipmap
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenFramebuffers)(gl_es2_sizei n, gl_es2_uint *framebuffers) {
   struct gl_es2_context *c = gl_es2_ctx();
-  int r;
-  if (n < 0) {
-    set_gl_err(GL_ES2_INVALID_VALUE);
-    return;
-  }
-  if (!n) return;
-
-  /* We further guarantee that the allocated framebuffers are consecutive, makes implementation
-   * easier, spec doesn't need it. */
-  uintptr_t alloc_range_at = 0;
-  r = ref_range_alloc(&c->framebuffer_rra_, (uintptr_t)n, &alloc_range_at);
-  if (r) {
-    set_gl_err(GL_ES2_OUT_OF_MEMORY);
-    return;
-  }
-  gl_es2_sizei k;
-  for (k = 0; k < n; ++k) {
-    uintptr_t slot = alloc_range_at + k;
-    if (slot < alloc_range_at) {
-      /* overflow */
-      set_gl_err(GL_ES2_INVALID_OPERATION);
-      return;
-    }
-    gl_es2_uint slot_uint = (gl_es2_uint)slot;
-    if (slot != (uintptr_t)slot_uint) {
-      /* overflow because type too narrow */
-      set_gl_err(GL_ES2_INVALID_OPERATION);
-      return;
-    }
-    framebuffers[k] = slot_uint;
-  }
+  generic_name_gen(&c->framebuffer_rra_, n, framebuffers);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenRenderbuffers)(gl_es2_sizei n, gl_es2_uint *renderbuffers) {
   struct gl_es2_context *c = gl_es2_ctx();
-  int r;
-  if (n < 0) {
-    set_gl_err(GL_ES2_INVALID_VALUE);
-    return;
-  }
-  if (!n) return;
-
-  /* We further guarantee that the allocated renderbuffers are consecutive, makes implementation
-   * easier, spec doesn't need it. */
-  uintptr_t alloc_range_at = 0;
-  r = ref_range_alloc(&c->renderbuffer_rra_, (uintptr_t)n, &alloc_range_at);
-  if (r) {
-    set_gl_err(GL_ES2_OUT_OF_MEMORY);
-    return;
-  }
-  gl_es2_sizei k;
-  for (k = 0; k < n; ++k) {
-    uintptr_t slot = alloc_range_at + k;
-    if (slot < alloc_range_at) {
-      /* overflow */
-      set_gl_err(GL_ES2_INVALID_OPERATION);
-      return;
-    }
-    gl_es2_uint slot_uint = (gl_es2_uint)slot;
-    if (slot != (uintptr_t)slot_uint) {
-      /* overflow because type too narrow */
-      set_gl_err(GL_ES2_INVALID_OPERATION);
-      return;
-    }
-    renderbuffers[k] = slot_uint;
-  }
+  generic_name_gen(&c->renderbuffer_rra_, n, renderbuffers);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenTextures)(gl_es2_sizei n, gl_es2_uint *textures) {
   struct gl_es2_context *c = gl_es2_ctx();
-  int r;
-  if (n < 0) {
-    set_gl_err(GL_ES2_INVALID_VALUE);
-    return;
-  }
-  if (!n) return;
-
-  /* We further guarantee that the allocated textures are consecutive, makes implementation
-   * easier, spec doesn't need it. */
-  uintptr_t alloc_range_at = 0;
-  r = ref_range_alloc(&c->texture_rra_, (uintptr_t)n, &alloc_range_at);
-  if (r) {
-    set_gl_err(GL_ES2_OUT_OF_MEMORY);
-    return;
-  }
-  gl_es2_sizei k;
-  for (k = 0; k < n; ++k) {
-    uintptr_t slot = alloc_range_at + k;
-    if (slot < alloc_range_at) {
-      /* overflow */
-      set_gl_err(GL_ES2_INVALID_OPERATION);
-      return;
-    }
-    gl_es2_uint slot_uint = (gl_es2_uint)slot;
-    if (slot != (uintptr_t)slot_uint) {
-      /* overflow because type too narrow */
-      set_gl_err(GL_ES2_INVALID_OPERATION);
-      return;
-    }
-    textures[k] = slot_uint;
-  }
+  generic_name_gen(&c->texture_rra_, n, textures);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveAttrib)(gl_es2_uint program, gl_es2_uint index, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_int *size, gl_es2_enum *type, gl_es2_char *name) {
