@@ -23,6 +23,16 @@
 #include "gl_es2_impl.h"
 #endif
 
+#ifndef GL_ES2_CONTEXT_H_INCLUDED
+#define GL_ES2_CONTEXT_H_INCLUDED
+#include "gl_es2_context.h"
+#endif
+
+static void set_gl_err(gl_es2_enum error_code) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (c->current_error_ == GL_ES2_NO_ERROR) c->current_error_ = error_code;
+}
+
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture) {
 }
 
@@ -180,6 +190,38 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenerateMipmap
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenFramebuffers)(gl_es2_sizei n, gl_es2_uint *framebuffers) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  int r;
+  if (n < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!n) return;
+
+  /* We further guarantee that the allocated framebuffers are consecutive, makes implementation
+   * easier, spec doesn't need it. */
+  uintptr_t alloc_range_at = 0;
+  r = ref_range_alloc(&c->framebuffer_rra_, (uintptr_t)n, &alloc_range_at);
+  if (r) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  gl_es2_sizei k;
+  for (k = 0; k < n; ++k) {
+    uintptr_t slot = alloc_range_at + k;
+    if (slot < alloc_range_at) {
+      /* overflow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    gl_es2_uint slot_uint = (gl_es2_uint)slot;
+    if (slot != (uintptr_t)slot_uint) {
+      /* overflow because type too narrow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    framebuffers[k] = slot_uint;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenRenderbuffers)(gl_es2_sizei n, gl_es2_uint *renderbuffers) {
@@ -208,7 +250,10 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBufferParam
 }
 
 GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetError)(void) {
-  return GL_ES2_NO_ERROR;
+  struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_enum err = c->current_error_;
+  c->current_error_ = GL_ES2_NO_ERROR;
+  return err;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_es2_enum pname, gl_es2_float *data) {

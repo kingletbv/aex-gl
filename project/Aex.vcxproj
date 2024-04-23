@@ -182,6 +182,7 @@
     <ClCompile Include="..\src\glsl_es1_assist.c" />
     <ClCompile Include="..\src\glsl_es1_compiler.c" />
     <ClCompile Include="..\src\glsl_es1_tokens.c" />
+    <ClCompile Include="..\src\gl_es2_context.c" />
     <ClCompile Include="..\src\gl_es2_impl.c" />
     <ClCompile Include="..\src\perspective_division.c" />
     <ClCompile Include="..\src\pp\diags.c" />
@@ -324,6 +325,7 @@
     <ClInclude Include="..\src\glsl_es1_assist.h" />
     <ClInclude Include="..\src\glsl_es1_compiler.h" />
     <ClInclude Include="..\src\glsl_es1_tokens.h" />
+    <ClInclude Include="..\src\gl_es2_context.h" />
     <ClInclude Include="..\src\gl_es2_impl.h" />
     <ClInclude Include="..\src\perspective_division.h" />
     <ClInclude Include="..\src\pp\diags.h" />
