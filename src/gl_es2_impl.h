@@ -50,6 +50,8 @@ extern "C" {
 #define GL_ES2_FRAMEBUFFER_INCOMPLETE_DIMENSIONS          0x8CD9
 #define GL_ES2_FRAMEBUFFER_UNSUPPORTED                    0x8CDD
 
+#define GL_ES2_FRAMEBUFFER 0x8D40
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02

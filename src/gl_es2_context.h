@@ -43,6 +43,11 @@ struct gl_es2_context {
 
   struct ref_range_allocator framebuffer_rra_;
   struct named_object_table framebuffer_not_;
+
+  /* currently bound targets */
+
+  /* glBindFramebuffer(GL_FRAMEBUFFER) */
+  struct gl_es2_framebuffer *framebuffer_;
 };
 
 struct gl_es2_context *gl_es2_ctx(void);

@@ -42,6 +42,7 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->current_error_ = GL_ES2_NO_ERROR;
   ref_range_allocator_init(&c->framebuffer_rra_);
   not_init(&c->framebuffer_not_);
+  c->framebuffer_ = NULL;
 }
 
 void gl_es2_ctx_cleanup(struct gl_es2_context *c) {

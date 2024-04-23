@@ -51,6 +51,47 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindBuffer)(gl
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindFramebuffer)(gl_es2_enum target, gl_es2_uint framebuffer) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (target != GL_ES2_FRAMEBUFFER) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  uintptr_t fb_name = (uintptr_t)framebuffer;
+  if (fb_name == UINTPTR_MAX) {
+    /* invalid number because we cannot make a range fb_name to fb_name+1. */
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;;
+  int is_allocated = ref_range_get_ref_at(&c->framebuffer_rra_, fb_name);
+  if (!is_allocated) {
+    /* Caller hasn't reserved this but is just taking the name, which is fine, allocate it */
+    r = ref_range_mark_range_allocated(&c->framebuffer_rra_, fb_name, fb_name + 1);
+    if (r) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+  }
+  struct gl_es2_framebuffer *fb = NULL;
+  r = not_find_or_insert(&c->framebuffer_not_, fb_name, sizeof(struct gl_es2_framebuffer), (struct named_object **)&fb);
+  if (r == NOT_NOMEM) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  if (r == NOT_DUPLICATE) {
+    /* Common path if is_allocated, strange path we'll just run with if not */
+    c->framebuffer_ = fb;
+  }
+  else if (r == NOT_OK) {
+    /* Newly created framebuffer */
+    gl_es2_framebuffer_init(fb);
+    c->framebuffer_ = fb;
+  }
+  else {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  return;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuffer)(gl_es2_enum target, gl_es2_uint renderbuffer) {
@@ -147,6 +188,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteFramebuf
         fb = (struct gl_es2_framebuffer *)not_find(&c->framebuffer_not_, fb_name);
         if (fb) {
           /* framebuffer was bound & created before; release and free it */
+          if (fb == c->framebuffer_) {
+            c->framebuffer_ = (struct gl_es2_framebuffer *)not_find(&c->framebuffer_not_, 0);
+          }
           not_remove(&c->framebuffer_not_, &fb->no_);
           gl_es2_framebuffer_cleanup(fb);
           free(fb);
