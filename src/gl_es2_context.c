@@ -32,17 +32,123 @@
 static struct gl_es2_context g_ctx_ = { 0 };
 static int                   g_ctx_is_initialized_ = 0;
 
+void gl_es2_framebuffer_attachment_init(struct gl_es2_framebuffer *fb, struct gl_es2_framebuffer_attachment *fa) {
+  fa->kind_ = gl_es2_faot_none;
+  fa->v_.rb_ = NULL;
+  fa->level_ = 0;
+  fa->cube_map_face_ = gl_es2_cube_map_positive_x;
+  fa->next_ = fa->prev_ = NULL;
+  fa->fb_ = fb;
+}
+
+void gl_es2_framebuffer_attachment_cleanup(struct gl_es2_framebuffer_attachment *fa) {
+  gl_es2_framebuffer_attachment_detach(fa);
+}
+
+void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *fa) {
+  if ((fa->kind_ == gl_es2_faot_renderbuffer) && (fa->v_.rb_)) {
+    struct gl_es2_renderbuffer *rb;
+    rb = fa->v_.rb_;
+    if (fa->next_ == fa) {
+      rb->first_framebuffer_attached_to_ = NULL;
+      fa->next_ = fa->prev_ = NULL;
+    }
+    else /* not the last attachment to this renderbuffer */ {
+      if (rb->first_framebuffer_attached_to_ == fa) {
+        rb->first_framebuffer_attached_to_ = fa->next_;
+      }
+      fa->next_->prev_ = fa->prev_;
+      fa->prev_->next_ = fa->next_;
+    }
+    fa->kind_ = gl_es2_faot_none;
+  }
+  else if (fa->kind_ == gl_es2_faot_texture) {
+    struct gl_es2_texture *tex;
+    tex = fa->v_.tex_;
+    if (fa->next_ == fa) {
+      tex->first_framebuffer_attached_to_ = NULL;
+      fa->next_ = fa->prev_ = NULL;
+    }
+    else /* not the last attachment to this framebuffer */ {
+      if (tex->first_framebuffer_attached_to_ == fa) {
+        tex->first_framebuffer_attached_to_ = fa->next_;
+      }
+      fa->next_->prev_ = fa->prev_;
+      fa->prev_->next_ = fa->next_;
+    }
+    fa->kind_ = gl_es2_faot_none;
+  }
+  else /* gl_es2_faot_none -- no attachment */ {
+  }
+}
+
+void gl_es2_framebuffer_attachment_attach_texture(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_texture *tex) {
+  gl_es2_framebuffer_attachment_detach(fa);
+  if (!tex) return;
+  fa->kind_ = gl_es2_faot_texture;
+  fa->v_.tex_ = tex;
+  if (tex->first_framebuffer_attached_to_) {
+    fa->next_ = tex->first_framebuffer_attached_to_;
+    fa->prev_ = fa->next_->prev_;
+    fa->prev_->next_ = fa->next_->prev_ = fa;
+  }
+  else {
+    fa->next_ = fa->prev_ = fa;
+    tex->first_framebuffer_attached_to_ = fa;
+  }
+  fa->level_ = 0;
+  fa->cube_map_face_ = gl_es2_cube_map_positive_x; /* caller should override; this just sets the default */
+}
+
+void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_renderbuffer *rb) {
+  gl_es2_framebuffer_attachment_detach(fa);
+  if (!rb) return;
+  fa->kind_ = gl_es2_faot_renderbuffer;
+  fa->v_.rb_ = rb;
+  if (rb->first_framebuffer_attached_to_) {
+    fa->next_ = rb->first_framebuffer_attached_to_;
+    fa->prev_ = fa->next_->prev_;
+    fa->prev_->next_ = fa->next_->prev_ = fa;
+  }
+  else {
+    fa->next_ = fa->prev_ = fa;
+    rb->first_framebuffer_attached_to_ = fa;
+  }
+  fa->level_ = 0;
+  fa->cube_map_face_ = gl_es2_cube_map_positive_x;
+}
+
 
 void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb) {
+  gl_es2_framebuffer_attachment_init(fb, &fb->color_attachment0_);
+  gl_es2_framebuffer_attachment_init(fb, &fb->depth_attachment_);
+  gl_es2_framebuffer_attachment_init(fb, &fb->stencil_attachment_);
 }
 
 void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb) {
+  gl_es2_framebuffer_attachment_cleanup(&fb->color_attachment0_);
+  gl_es2_framebuffer_attachment_cleanup(&fb->depth_attachment_);
+  gl_es2_framebuffer_attachment_cleanup(&fb->stencil_attachment_);
 }
 
 void gl_es2_renderbuffer_init(struct gl_es2_renderbuffer *rb) {
+  rb->first_framebuffer_attached_to_ = NULL;
 }
 
 void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb) {
+  while (rb->first_framebuffer_attached_to_) {
+    gl_es2_framebuffer_attachment_detach(rb->first_framebuffer_attached_to_);
+  }
+}
+
+void gl_es2_texture_init(struct gl_es2_texture *tex) {
+  tex->first_framebuffer_attached_to_ = NULL;
+}
+
+void gl_es2_texture_cleanup(struct gl_es2_texture *tex) {
+  while (tex->first_framebuffer_attached_to_) {
+    gl_es2_framebuffer_attachment_detach(tex->first_framebuffer_attached_to_);
+  }
 }
 
 void gl_es2_ctx_init(struct gl_es2_context *c) {

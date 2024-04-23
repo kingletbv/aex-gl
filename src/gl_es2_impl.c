@@ -332,6 +332,50 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Flush)(void) {
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferRenderbuffer)(gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum renderbuffertarget, gl_es2_uint renderbuffer) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (target != GL_ES2_FRAMEBUFFER) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  if ((renderbuffertarget != GL_ES2_RENDERBUFFER) && renderbuffer) {
+    /* renderbuffertarget is not GL_RENDERBUFFER and renderbuffer is not 0 */
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  if (!c->framebuffer_) {
+    /* In boot-up state, no framebuffer bound, not even default fb 0 */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (c->framebuffer_->no_.name_ == 0) {
+    /* The default framebuffer is bound (in which case you're not allowed to set any attachments) */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  struct gl_es2_renderbuffer *rb = NULL;
+  if (renderbuffer) {
+    rb = (struct gl_es2_renderbuffer *)not_find(&c->renderbuffer_not_, renderbuffer);
+    if (!rb) {
+      /* renderbuffer is neither 0, nor the name of an existing renderbuffer object */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  switch (attachment) {
+    case GL_ES2_COLOR_ATTACHMENT0:
+      gl_es2_framebuffer_attachment_attach_renderbuffer(&c->framebuffer_->color_attachment0_, rb);
+      break;
+    case GL_ES2_DEPTH_ATTACHMENT:
+      gl_es2_framebuffer_attachment_attach_renderbuffer(&c->framebuffer_->depth_attachment_, rb);
+      break;
+    case GL_ES2_STENCIL_ATTACHMENT:
+      gl_es2_framebuffer_attachment_attach_renderbuffer(&c->framebuffer_->stencil_attachment_, rb);
+      break;
+    default:
+      /* attachment is not an accepted attachment point */
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferTexture2D)(gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum textarget, gl_es2_uint texture, gl_es2_int level) {

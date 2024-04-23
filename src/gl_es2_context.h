@@ -34,12 +34,61 @@
 extern "C" {
 #endif
 
+enum gl_es2_framebuffer_attachment_object_type {
+  gl_es2_faot_none,         /* GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE of GL_NONE */
+  gl_es2_faot_renderbuffer, /* GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE of GL_RENDERBUFFER */
+  gl_es2_faot_texture       /* GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE of GL_TEXTURE */
+};
+
+enum gl_es2_cube_map_face {
+  gl_es2_cube_map_positive_x,
+  gl_es2_cube_map_negative_x,
+  gl_es2_cube_map_positive_y,
+  gl_es2_cube_map_negative_y,
+  gl_es2_cube_map_positive_z,
+  gl_es2_cube_map_negative_z
+};
+
+struct gl_es2_framebuffer_attachment {
+  enum gl_es2_framebuffer_attachment_object_type kind_;
+
+  /* Pointer to renderbuffer or texture that is attached to the framebuffer */
+  union {
+    struct gl_es2_renderbuffer *rb_;
+    struct gl_es2_texture *tex_;
+  } v_;
+    
+  /* The following fields are for kind_ == gl_es2_faot_texture only */
+  gl_es2_int level_;                        /* GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL */
+  enum gl_es2_cube_map_face cube_map_face_; /* GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE */
+
+  /* Next and previous attachment for the framebuffer
+   * attachments that share this same renderbuffer or 
+   * texture. */
+  struct gl_es2_framebuffer_attachment *next_, *prev_;
+  
+  /* Convenience backpointer to the framebuffer of which this gl_es2_framebuffer_attachment is a field */
+  struct gl_es2_framebuffer *fb_;
+};
+
 struct gl_es2_framebuffer {
   struct named_object no_;
+
+  struct gl_es2_framebuffer_attachment color_attachment0_;
+  struct gl_es2_framebuffer_attachment depth_attachment_;
+  struct gl_es2_framebuffer_attachment stencil_attachment_;
 };
 
 struct gl_es2_renderbuffer {
   struct named_object no_;
+
+  struct gl_es2_framebuffer_attachment *first_framebuffer_attached_to_;
+};
+
+struct gl_es2_texture {
+  struct named_object no_;
+
+  struct gl_es2_framebuffer_attachment *first_framebuffer_attached_to_;
 };
 
 struct gl_es2_context {
@@ -62,11 +111,22 @@ struct gl_es2_context {
 
 struct gl_es2_context *gl_es2_ctx(void);
 
+void gl_es2_framebuffer_attachment_init(struct gl_es2_framebuffer *fb, struct gl_es2_framebuffer_attachment *fa);
+void gl_es2_framebuffer_attachment_cleanup(struct gl_es2_framebuffer_attachment *fa);
+void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *fa);
+void gl_es2_framebuffer_attachment_attach_texture(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_texture *tex);
+void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_renderbuffer *rb);
+
+
 void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb);
 void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb);
 
 void gl_es2_renderbuffer_init(struct gl_es2_renderbuffer *rb);
 void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb);
+
+void gl_es2_texture_init(struct gl_es2_texture *tex);
+void gl_es2_texture_cleanup(struct gl_es2_texture *tex);
+
 
 #ifdef __cplusplus
 } /* extern "C" */

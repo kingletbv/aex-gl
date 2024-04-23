@@ -53,6 +53,10 @@ extern "C" {
 #define GL_ES2_FRAMEBUFFER  0x8D40
 #define GL_ES2_RENDERBUFFER 0x8D41
 
+#define GL_ES2_COLOR_ATTACHMENT0   0x8CE0
+#define GL_ES2_DEPTH_ATTACHMENT    0x8D00
+#define GL_ES2_STENCIL_ATTACHMENT  0x8D20
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02
