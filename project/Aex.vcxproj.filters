@@ -55,6 +55,7 @@
     <ClCompile Include="..\src\blitter.c" />
     <ClCompile Include="..\src\sl_defs.c" />
     <ClCompile Include="..\src\gl_es2_context.c" />
+    <ClCompile Include="..\src\named_object_table.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -120,6 +121,7 @@
     <ClInclude Include="..\src\sl_ternop_snippet_inc.h" />
     <ClInclude Include="..\src\blitter.h" />
     <ClInclude Include="..\src\gl_es2_context.h" />
+    <ClInclude Include="..\src\named_object_table.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
