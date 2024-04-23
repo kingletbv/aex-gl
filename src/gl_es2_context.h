@@ -106,6 +106,10 @@ struct gl_es2_texture_unit {
   struct gl_es2_texture *texture_cube_map_; /* glBindTexture() target == GL_TEXTURE_CUBE_MAP */
 };
 
+struct gl_es2_buffer {
+  struct named_object no_;
+};
+
 struct gl_es2_context {
   gl_es2_enum current_error_;
 
@@ -117,6 +121,9 @@ struct gl_es2_context {
 
   struct ref_range_allocator texture_rra_;
   struct named_object_table texture_not_;
+
+  struct ref_range_allocator buffer_rra_;
+  struct named_object_table buffer_not_;
 
   /* currently bound targets */
 
@@ -132,6 +139,12 @@ struct gl_es2_context {
   /* Currently active texture unit, starts out as 0 */
   size_t current_active_texture_unit_;
   struct gl_es2_texture_unit active_texture_units_[GL_ES2_MAX_NUM_TEXTURE_UNITS];
+
+  /* glBindBuffer(GL_ARRAY_BUFFER); NULL means use client memory */
+  struct gl_es2_buffer *array_buffer_;
+
+  /* glBindBuffer(GL_ELEMENT_ARRAY_BUFFER); NULL means use client memory */
+  struct gl_es2_buffer *element_array_buffer_;
 };
 
 struct gl_es2_context *gl_es2_ctx(void);
@@ -151,6 +164,8 @@ void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb);
 void gl_es2_texture_init(struct gl_es2_texture *tex);
 void gl_es2_texture_cleanup(struct gl_es2_texture *tex);
 
+void gl_es2_buffer_init(struct gl_es2_buffer *buf);
+void gl_es2_buffer_cleanup(struct gl_es2_buffer *buf);
 
 #ifdef __cplusplus
 } /* extern "C" */

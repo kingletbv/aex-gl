@@ -152,6 +152,13 @@ void gl_es2_texture_cleanup(struct gl_es2_texture *tex) {
   }
 }
 
+void gl_es2_buffer_init(struct gl_es2_buffer *buf) {
+}
+
+void gl_es2_buffer_cleanup(struct gl_es2_buffer *buf) {
+}
+
+
 void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->current_error_ = GL_ES2_NO_ERROR;
 
@@ -164,6 +171,9 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   ref_range_allocator_init(&c->texture_rra_);
   not_init(&c->texture_not_);
 
+  ref_range_allocator_init(&c->buffer_rra_);
+  not_init(&c->buffer_not_);
+
   c->framebuffer_ = NULL;
   c->renderbuffer_ = NULL;
 
@@ -174,6 +184,9 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
     c->active_texture_units_[n].texture_2d_ = NULL;
     c->active_texture_units_[n].texture_cube_map_ = NULL;
   }
+
+  c->array_buffer_ = NULL;
+  c->element_array_buffer_ = NULL;
 }
 
 void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
@@ -199,6 +212,14 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
     not_remove(&c->texture_not_, &tex->no_);
     gl_es2_texture_cleanup(tex);
     free(tex);
+  }
+
+  ref_range_allocator_cleanup(&c->buffer_rra_);
+  while (c->buffer_not_.seq_) {
+    struct gl_es2_buffer *buf = (struct gl_es2_buffer *)c->buffer_not_.seq_;
+    not_remove(&c->buffer_not_, &buf->no_);
+    gl_es2_buffer_cleanup(buf);
+    free(buf);
   }
 }
 

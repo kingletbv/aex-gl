@@ -48,6 +48,62 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindAttribLoca
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindBuffer)(gl_es2_enum target, gl_es2_uint buffer) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if ((target != GL_ES2_ARRAY_BUFFER) && (target != GL_ES2_ELEMENT_ARRAY_BUFFER)) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  uintptr_t buf_name = (uintptr_t)buffer;
+  if (buf_name == UINTPTR_MAX) {
+    /* invalid number because we cannot make a range buf_name to buf_name+1. */
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (buf_name == 0) {
+    /* There is no "default" buffer at name 0, instead it should use client memory,
+     * this means setting the corresponding target to NULL */
+    switch (target) {
+      case GL_ES2_ARRAY_BUFFER:
+        c->array_buffer_ = NULL;
+        break;
+      case GL_ES2_ELEMENT_ARRAY_BUFFER:
+        c->element_array_buffer_ = NULL;
+        break;
+    }
+    return;
+  }
+  int r;
+  int is_allocated = ref_range_get_ref_at(&c->buffer_rra_, buf_name);
+  if (!is_allocated) {
+    /* Caller hasn't reserved this but is just taking the name */
+    r = ref_range_mark_range_allocated(&c->buffer_rra_, buf_name, buf_name + 1);
+    if (r) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+  }
+  struct gl_es2_buffer *buf = NULL;
+  r = not_find_or_insert(&c->buffer_not_, buf_name, sizeof(struct gl_es2_buffer), (struct named_object **)&buf);
+  if (r == NOT_NOMEM) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  else if (r == NOT_DUPLICATE) {
+    /* Common path if is_allocated, strange path we'll run with if not */
+  }
+  else if (r == NOT_OK) {
+    /* Newly created buffer */
+    gl_es2_buffer_init(buf);
+  }
+  switch (target) {
+    case GL_ES2_ARRAY_BUFFER:
+      c->array_buffer_ = buf;
+      break;
+    case GL_ES2_ELEMENT_ARRAY_BUFFER:
+      c->element_array_buffer_ = buf;
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindFramebuffer)(gl_es2_enum target, gl_es2_uint framebuffer) {
@@ -78,7 +134,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindFramebuffe
     set_gl_err(GL_ES2_OUT_OF_MEMORY);
     return;
   }
-  if (r == NOT_DUPLICATE) {
+  else if (r == NOT_DUPLICATE) {
     /* Common path if is_allocated, strange path we'll just run with if not */
     c->framebuffer_ = fb;
   }
@@ -86,10 +142,6 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindFramebuffe
     /* Newly created framebuffer */
     gl_es2_framebuffer_init(fb);
     c->framebuffer_ = fb;
-  }
-  else {
-    set_gl_err(GL_ES2_OUT_OF_MEMORY);
-    return;
   }
   return;
 }
@@ -122,7 +174,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuff
     set_gl_err(GL_ES2_OUT_OF_MEMORY);
     return;
   }
-  if (r == NOT_DUPLICATE) {
+  else if (r == NOT_DUPLICATE) {
     /* Common path if is_allocated, strange path we'll just run with if not */
     c->renderbuffer_ = rb;
   }
@@ -130,10 +182,6 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuff
     /* Newly created renderbuffer */
     gl_es2_renderbuffer_init(rb);
     c->renderbuffer_ = rb;
-  }
-  else {
-    set_gl_err(GL_ES2_OUT_OF_MEMORY);
-    return;
   }
 }
 
@@ -150,7 +198,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindTexture)(g
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
-  int r;;
+  int r;
   int is_allocated = ref_range_get_ref_at(&c->texture_rra_, tex_name);
   if (!is_allocated) {
     /* Caller hasn't reserved this but is just taking the name, which is fine, allocate it */
@@ -166,7 +214,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindTexture)(g
     set_gl_err(GL_ES2_OUT_OF_MEMORY);
     return;
   }
-  if (r == NOT_DUPLICATE) {
+  else if (r == NOT_DUPLICATE) {
     /* Common path if is_allocated, strange path we'll just run with if not */
   }
   else if (r == NOT_OK) {
@@ -180,10 +228,6 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindTexture)(g
         tex->kind_ = gl_es2_texture_cube_map;
         break;
     }
-  }
-  else {
-    set_gl_err(GL_ES2_OUT_OF_MEMORY);
-    return;
   }
   switch (target) {
     case GL_ES2_TEXTURE_2D:
@@ -275,6 +319,40 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CullFace)(gl_e
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteBuffers)(gl_es2_sizei n, const gl_es2_uint *buffers) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (n < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!n) return;
+
+  size_t k;
+  for (k = 0; k < n; ++k) {
+    uintptr_t buf_name = buffers[k];
+    if (buf_name) {
+      int is_allocated = ref_range_get_ref_at(&c->buffer_rra_, buf_name);
+      if (is_allocated) {
+        struct gl_es2_buffer *buf = NULL;
+        buf = (struct gl_es2_buffer *)not_find(&c->buffer_not_, buf_name);
+        if (buf) {
+          /* buffer was bound and created before; release & free it */
+          if (buf == c->array_buffer_) {
+            c->array_buffer_ = NULL;
+          }
+          if (buf == c->element_array_buffer_) {
+            c->element_array_buffer_ = NULL;
+          }
+          not_remove(&c->buffer_not_, &buf->no_);
+          gl_es2_buffer_cleanup(buf);
+          free(buf);
+        }
+        else {
+          /* buffer name was allocated, but never bound */
+        }
+        ref_range_mark_range_free(&c->buffer_rra_, buf_name, buf_name + 1);
+      }
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteFramebuffers)(gl_es2_sizei n, const gl_es2_uint *framebuffers) {
@@ -482,6 +560,36 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FrontFace)(gl_
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenBuffers)(gl_es2_sizei n, gl_es2_uint *buffers) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  int r;
+  if (n < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!n) return;
+
+  uintptr_t alloc_range_at = 0;
+  r = ref_range_alloc(&c->buffer_rra_, (uintptr_t)n, &alloc_range_at);
+  if (r) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  gl_es2_sizei k;
+  for (k = 0; k < n; ++k) {
+    uintptr_t slot = alloc_range_at + k;
+    if (slot < alloc_range_at) {
+      /* overflow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    gl_es2_uint slot_uint = (gl_es2_uint)slot;
+    if (slot != (uintptr_t)slot_uint) {
+      /* overflow because type too narrow */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    buffers[k] = slot_uint;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenerateMipmap)(gl_es2_enum target) {
