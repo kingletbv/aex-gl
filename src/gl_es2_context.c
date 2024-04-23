@@ -29,16 +29,29 @@
 
 /* XXX: Important: no TLS, no locks, no atomics, nary a cli/sti: no thread safety. */
 
+void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb) {
+}
+
+void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb) {
+}
+
 static struct gl_es2_context g_ctx_ = {0};
 static int                   g_ctx_is_initialized_ = 0;
 
 void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->current_error_ = GL_ES2_NO_ERROR;
   ref_range_allocator_init(&c->framebuffer_rra_);
+  not_init(&c->framebuffer_not_);
 }
 
 void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
   ref_range_allocator_cleanup(&c->framebuffer_rra_);
+  while (c->framebuffer_not_.seq_) {
+    struct gl_es2_framebuffer *fb = (struct gl_es2_framebuffer *)c->framebuffer_not_.seq_;
+    not_remove(&c->framebuffer_not_, &fb->no_);
+    gl_es2_framebuffer_cleanup(fb);
+    free(fb);
+  }
 }
 
 static void gl_es2_at_exit_cleanup(void) {

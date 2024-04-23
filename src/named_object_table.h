@@ -46,10 +46,10 @@ struct named_object_table {
   struct named_object *seq_;
 };
 
-void not_init(struct named_object_table *abt);
-void not_cleanup(struct named_object_table *abt);
+void not_init(struct named_object_table *not);
+void not_cleanup(struct named_object_table *not);
 
-struct named_object *not_find(struct named_object_table *abt, uintptr_t name);
+struct named_object *not_find(struct named_object_table *not, uintptr_t name);
 
 /* named_object is intended to be the first field in the struct that
  * implements the corresponding named object (framebuffer, texture,
@@ -59,9 +59,9 @@ struct named_object *not_find(struct named_object_table *abt, uintptr_t name);
  * then the caller needs to initialize all fields not directly associated
  * with struct named_object but with the struct containing the named_object.
  */
-named_object_table_result_t not_find_or_insert(struct named_object_table *abt, uintptr_t name, size_t named_object_size, struct named_object **new_ab);
+named_object_table_result_t not_find_or_insert(struct named_object_table *not, uintptr_t name, size_t named_object_size, struct named_object **new_ab);
 
-void not_remove(struct named_object_table *abt, struct named_object *ab);
+void not_remove(struct named_object_table *not, struct named_object *no);
 
 #ifdef __cplusplus
 } /* extern "C" */

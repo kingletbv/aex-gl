@@ -20,6 +20,11 @@
 #include "ref_range_allocator.h"
 #endif
 
+#ifndef NAMED_OBJECT_TABLE_H_INCLUDED
+#define NAMED_OBJECT_TABLE_H_INCLUDED
+#include "named_object_table.h"
+#endif
+
 #ifndef GL_ES2_IMPL_TYPES_H_INCLUDED
 #define GL_ES2_IMPL_TYPES_H_INCLUDED
 #include "gl_es2_impl_types.h"
@@ -30,16 +35,20 @@ extern "C" {
 #endif
 
 struct gl_es2_framebuffer {
-  int name_;
+  struct named_object no_;
 };
 
 struct gl_es2_context {
   gl_es2_enum current_error_;
 
   struct ref_range_allocator framebuffer_rra_;
+  struct named_object_table framebuffer_not_;
 };
 
 struct gl_es2_context *gl_es2_ctx(void);
+
+void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb);
+void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb);
 
 #ifdef __cplusplus
 } /* extern "C" */

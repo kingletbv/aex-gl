@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+#ifndef STDLIB_H_INCLUDED
+#define STDLIB_H_INCLUDED
+#include <stdlib.h>
+#endif
+
 #ifndef STRING_H_INCLUDED
 #define STRING_H_INCLUDED
 #include <string.h>
@@ -124,6 +129,38 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteBuffers)
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteFramebuffers)(gl_es2_sizei n, const gl_es2_uint *framebuffers) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (n < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!n) return;
+
+  size_t k;
+  for (k = 0; k < n; ++k) {
+    uintptr_t fb_name = framebuffers[k];
+    /* silently ignore 0's */
+    if (fb_name) {
+      int is_allocated = ref_range_get_ref_at(&c->framebuffer_rra_, fb_name);
+      if (is_allocated) {
+        struct gl_es2_framebuffer *fb = NULL;
+        fb = (struct gl_es2_framebuffer *)not_find(&c->framebuffer_not_, fb_name);
+        if (fb) {
+          /* framebuffer was bound & created before; release and free it */
+          not_remove(&c->framebuffer_not_, &fb->no_);
+          gl_es2_framebuffer_cleanup(fb);
+          free(fb);
+        }
+        else {
+          /* framebuffer was allocated (refcount is not 0), but never bound and so the 
+           * framebuffer object itself was never created (despite being allocated). This
+           * is valid, e.g. glGenFramebuffers without a corresponding glBindFramebuffer
+           * will put us in this state. */
+        }
+        ref_range_mark_range_free(&c->framebuffer_rra_, fb_name, fb_name + 1);
+      }
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteProgram)(gl_es2_uint program) {
