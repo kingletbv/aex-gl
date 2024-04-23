@@ -100,6 +100,9 @@ struct gl_es2_context {
   struct ref_range_allocator renderbuffer_rra_;
   struct named_object_table renderbuffer_not_;
 
+  struct ref_range_allocator texture_rra_;
+  struct named_object_table texture_not_;
+
   /* currently bound targets */
 
   /* glBindFramebuffer(GL_FRAMEBUFFER) */

@@ -160,6 +160,9 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   ref_range_allocator_init(&c->renderbuffer_rra_);
   not_init(&c->renderbuffer_not_);
 
+  ref_range_allocator_init(&c->texture_rra_);
+  not_init(&c->texture_not_);
+
   c->framebuffer_ = NULL;
   c->renderbuffer_ = NULL;
 }
@@ -172,11 +175,21 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
     gl_es2_framebuffer_cleanup(fb);
     free(fb);
   }
+
+  ref_range_allocator_cleanup(&c->renderbuffer_rra_);
   while (c->renderbuffer_not_.seq_) {
     struct gl_es2_renderbuffer *rb = (struct gl_es2_renderbuffer *)c->renderbuffer_not_.seq_;
     not_remove(&c->renderbuffer_not_, &rb->no_);
     gl_es2_renderbuffer_cleanup(rb);
     free(rb);
+  }
+
+  ref_range_allocator_cleanup(&c->texture_rra_);
+  while (c->texture_not_.seq_) {
+    struct gl_es2_texture *tex = (struct gl_es2_texture *)c->texture_not_.seq_;
+    not_remove(&c->texture_not_, &tex->no_);
+    gl_es2_texture_cleanup(tex);
+    free(tex);
   }
 }
 
