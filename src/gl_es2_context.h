@@ -15,6 +15,11 @@
 #ifndef GL_ES2_CONTEXT_H
 #define GL_ES2_CONTEXT_H
 
+#ifndef STDINT_H_INCLUDED
+#define STDINT_H_INCLUDED
+#include <stdint.h>
+#endif
+
 #ifndef REF_RANGE_ALLOCATOR_H_INCLUDED
 #define REF_RANGE_ALLOCATOR_H_INCLUDED
 #include "ref_range_allocator.h"
