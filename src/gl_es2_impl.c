@@ -443,6 +443,50 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquation)
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquationSeparate)(gl_es2_enum modeRGB, gl_es2_enum modeAlpha) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  switch (modeRGB) {
+    case GL_ES2_FUNC_ADD:
+    case GL_ES2_FUNC_SUBTRACT:
+    case GL_ES2_FUNC_REVERSE_SUBTRACT:
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+  switch (modeAlpha) {
+    case GL_ES2_FUNC_ADD:
+    case GL_ES2_FUNC_SUBTRACT:
+    case GL_ES2_FUNC_REVERSE_SUBTRACT:
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  switch (modeRGB) {
+    case GL_ES2_FUNC_ADD:
+      c->blend_rgb_eq_ = BEQ_FUNC_ADD;
+      break;
+    case GL_ES2_FUNC_SUBTRACT:
+      c->blend_rgb_eq_ = BEQ_FUNC_SUBTRACT;
+      break;
+    case GL_ES2_FUNC_REVERSE_SUBTRACT:
+      c->blend_rgb_eq_ = BEQ_FUNC_REVERSE_SUBTRACT;
+      break;
+  }
+
+  switch (modeAlpha) {
+    case GL_ES2_FUNC_ADD:
+      c->blend_alpha_eq_ = BEQ_FUNC_ADD;
+      break;
+    case GL_ES2_FUNC_SUBTRACT:
+      c->blend_alpha_eq_ = BEQ_FUNC_SUBTRACT;
+      break;
+    case GL_ES2_FUNC_REVERSE_SUBTRACT:
+      c->blend_alpha_eq_ = BEQ_FUNC_REVERSE_SUBTRACT;
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendFunc)(gl_es2_enum sfactor, gl_es2_enum dfactor) {
