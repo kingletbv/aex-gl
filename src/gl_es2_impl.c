@@ -33,6 +33,11 @@
 #include "gl_es2_context.h"
 #endif
 
+#ifndef SL_DEFS_H_INCLUDED
+#define SL_DEFS_H_INCLUDED
+#include "sl_defs.h"
+#endif
+
 static void set_gl_err(gl_es2_enum error_code) {
   struct gl_es2_context *c = gl_es2_ctx();
   if (c->current_error_ == GL_ES2_NO_ERROR) c->current_error_ = error_code;
@@ -143,6 +148,40 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(AttachShader)(
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindAttribLocation)(gl_es2_uint program, gl_es2_uint index, const gl_es2_char *name) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (!name) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!c->allow_internals_ && !memcmp(name, "gl_", 3)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (index >= GL_ES2_MAX_NUM_VERTEX_ATTRIBS) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog;
+  prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  int r;
+  r = sl_program_set_attrib_binding_index(&prog->program_, name, index);
+  switch (r) {
+    case SL_ERR_NO_MEM:
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    case SL_ERR_INTERNAL:
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    case SL_ERR_OK:
+      /* yay */
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindBuffer)(gl_es2_enum target, gl_es2_uint buffer) {
@@ -895,7 +934,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformiv)(
 }
 
 GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformLocation)(gl_es2_uint program, const gl_es2_char *name) {
-  if (!memcmp(name, "gl_", 3)) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (!c->allow_internals_ && !memcmp(name, "gl_", 3)) {
     return -1;
   }
   return -1;

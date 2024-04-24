@@ -208,11 +208,13 @@ void gl_es2_program_init(struct gl_es2_program *prog) {
   prog->flagged_for_deletion_ = 0;
   gl_es2_program_shader_attachment_init(prog, &prog->vertex_shader_);
   gl_es2_program_shader_attachment_init(prog, &prog->fragment_shader_);
+  sl_program_init(&prog->program_);
 }
 
 void gl_es2_program_cleanup(struct gl_es2_program *prog) {
   gl_es2_program_shader_attachment_cleanup(&prog->vertex_shader_);
   gl_es2_program_shader_attachment_cleanup(&prog->fragment_shader_);
+  sl_program_cleanup(&prog->program_);
 }
 
 void gl_es2_shader_init(struct gl_es2_shader *shad) {

@@ -30,7 +30,19 @@
 #include "gl_es2_impl_types.h"
 #endif
 
+#ifndef SL_PROGRAM_H_INCLUDED
+#define SL_PROGRAM_H_INCLUDED
+#include "sl_program.h"
+#endif
+
+/* glGet(GL_MAX_TEXTURE_IMAGE_UNITS)
+ * glGet(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS)
+ */
 #define GL_ES2_MAX_NUM_TEXTURE_UNITS 64
+
+/* glGet(GL_MAX_VERTEX_ATTRIBS) */
+#define GL_ES2_MAX_NUM_VERTEX_ATTRIBS 1024
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -129,6 +141,8 @@ struct gl_es2_program {
 
   struct gl_es2_program_shader_attachment vertex_shader_;
   struct gl_es2_program_shader_attachment fragment_shader_;
+
+  struct sl_program program_;
 };
 
 struct gl_es2_shader {
@@ -145,6 +159,14 @@ struct gl_es2_shader {
 
 struct gl_es2_context {
   gl_es2_enum current_error_;
+
+  /* If non-zero, then internals become accessible:
+   * - glBindAttribLocation on attributes that start with "gl_".
+   * - glGetUniformLocation on uniforms that start with "gl_".
+   *
+   * default is 0.
+   */
+  int allow_internals_:1;
 
   struct ref_range_allocator framebuffer_rra_;
   struct named_object_table framebuffer_not_;
