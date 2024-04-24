@@ -2312,16 +2312,21 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
   // XXX: Configure pipeline to handle points, lines or triangles, depending on what mode is.
 
   do {
-    switch (index_type) {
-      case PAIT_UNSIGNED_BYTE:
-        r = primitive_assembly_elements_u8(pa, as, mode, indices, num_elements);
-        break;
-      case PAIT_UNSIGNED_SHORT:
-        r = primitive_assembly_elements_u16(pa, as, mode, indices, num_elements);
-        break;
-      case PAIT_UNSIGNED_INT:
-        r = primitive_assembly_elements_u32(pa, as, mode, indices, num_elements);
-        break;
+    if (indices) {
+      switch (index_type) {
+        case PAIT_UNSIGNED_BYTE:
+          r = primitive_assembly_elements_u8(pa, as, mode, indices, num_elements);
+          break;
+        case PAIT_UNSIGNED_SHORT:
+          r = primitive_assembly_elements_u16(pa, as, mode, indices, num_elements);
+          break;
+        case PAIT_UNSIGNED_INT:
+          r = primitive_assembly_elements_u32(pa, as, mode, indices, num_elements);
+          break;
+      }
+    }
+    else {
+      r = primitive_assembly_elements_arrayed(pa, as, mode, num_elements);
     }
 
     if (r) {
