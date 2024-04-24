@@ -265,6 +265,8 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->element_array_buffer_ = NULL;
   c->current_program_ = NULL;
 
+  c->blend_rgb_eq_ = BEQ_FUNC_ADD;
+  c->blend_alpha_eq_ = BEQ_FUNC_ADD;
   c->blend_color_red_ = c->blend_color_grn_ = c->blend_color_blu_ = c->blend_color_alpha_ = 0;
 }
 
