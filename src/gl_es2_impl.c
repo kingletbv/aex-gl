@@ -422,6 +422,24 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendColor)(gl
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquation)(gl_es2_enum mode) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  switch (mode) {
+    case GL_ES2_FUNC_ADD:
+      c->blend_rgb_eq_ = BEQ_FUNC_ADD;
+      c->blend_alpha_eq_ = BEQ_FUNC_ADD;
+      break;
+    case GL_ES2_FUNC_SUBTRACT:
+      c->blend_rgb_eq_ = BEQ_FUNC_SUBTRACT;
+      c->blend_alpha_eq_ = BEQ_FUNC_SUBTRACT;
+      break;
+    case GL_ES2_FUNC_REVERSE_SUBTRACT:
+      c->blend_rgb_eq_ = BEQ_FUNC_REVERSE_SUBTRACT;
+      c->blend_alpha_eq_ = BEQ_FUNC_REVERSE_SUBTRACT;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquationSeparate)(gl_es2_enum modeRGB, gl_es2_enum modeAlpha) {

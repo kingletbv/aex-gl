@@ -66,13 +66,16 @@ extern "C" {
 #define GL_ES2_FRAGMENT_SHADER 0x8B30
 #define GL_ES2_VERTEX_SHADER   0x8B31
 
+#define GL_ES2_FUNC_ADD               0x8006
+#define GL_ES2_FUNC_SUBTRACT          0x800A
+#define GL_ES2_FUNC_REVERSE_SUBTRACT  0x800B
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02
 #define GL_ES2_SHADING_LANGUAGE_VERSION 0x8B8C
 #define GL_ES2_EXTENSIONS               0x1F03
-
-
+  
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture);
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(AttachShader)(gl_es2_uint program, gl_es2_uint shader);
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindAttribLocation)(gl_es2_uint program, gl_es2_uint index, const gl_es2_char *name);

@@ -215,6 +215,10 @@ struct gl_es2_context {
   /* glUseProgram() - Currently used program */
   struct gl_es2_program *current_program_;
 
+  /* glBlendEquation & glGet(GL_BLEND_EQUATION_RGB) & glGet(GL_BLEND_EQUATION_ALPHA) */
+  blend_eq_t blend_rgb_eq_;
+  blend_eq_t blend_alpha_eq_;
+
   /* glBlendColor() & glGet(GL_BLEND_COLOR) */
   uint8_t blend_color_red_;
   uint8_t blend_color_grn_;
