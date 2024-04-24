@@ -219,6 +219,13 @@ struct gl_es2_context {
   blend_eq_t blend_rgb_eq_;
   blend_eq_t blend_alpha_eq_;
 
+  /* glBlendFunc/glBlendFuncSeparate & glGet(GL_BLEND_SRC_RGB) & glGet(GL_BLEND_SRC_ALPHA) & 
+   * glGet(GL_BLEND_DST_RGB) & glGet(GL_BLEND_DST_ALPHA) */
+  blend_func_t blend_src_rgb_fn_;
+  blend_func_t blend_src_alpha_fn_;
+  blend_func_t blend_dst_rgb_fn_;
+  blend_func_t blend_dst_alpha_fn_;
+
   /* glBlendColor() & glGet(GL_BLEND_COLOR) */
   uint8_t blend_color_red_;
   uint8_t blend_color_grn_;

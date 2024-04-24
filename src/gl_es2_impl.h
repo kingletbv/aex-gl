@@ -70,6 +70,22 @@ extern "C" {
 #define GL_ES2_FUNC_SUBTRACT          0x800A
 #define GL_ES2_FUNC_REVERSE_SUBTRACT  0x800B
 
+#define GL_ES2_ZERO                           0
+#define GL_ES2_ONE                            1
+#define GL_ES2_SRC_COLOR                 0x0300
+#define GL_ES2_ONE_MINUS_SRC_COLOR       0x0301
+#define GL_ES2_DST_COLOR                 0x0306
+#define GL_ES2_ONE_MINUS_DST_COLOR       0x0307
+#define GL_ES2_SRC_ALPHA                 0x0302
+#define GL_ES2_ONE_MINUS_SRC_ALPHA       0x0303
+#define GL_ES2_DST_ALPHA                 0x0304
+#define GL_ES2_ONE_MINUS_DST_ALPHA       0x0305
+#define GL_ES2_CONSTANT_COLOR            0x8001
+#define GL_ES2_ONE_MINUS_CONSTANT_COLOR  0x8002
+#define GL_ES2_CONSTANT_ALPHA            0x8003
+#define GL_ES2_ONE_MINUS_CONSTANT_ALPHA  0x8004
+#define GL_ES2_SRC_ALPHA_SATURATE        0x0308
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02

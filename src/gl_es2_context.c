@@ -267,6 +267,12 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
 
   c->blend_rgb_eq_ = BEQ_FUNC_ADD;
   c->blend_alpha_eq_ = BEQ_FUNC_ADD;
+
+  c->blend_src_rgb_fn_ = BF_ONE;
+  c->blend_src_alpha_fn_ = BF_ONE;
+  c->blend_dst_rgb_fn_ = BF_ZERO;
+  c->blend_dst_alpha_fn_ = BF_ZERO;
+
   c->blend_color_red_ = c->blend_color_grn_ = c->blend_color_blu_ = c->blend_color_alpha_ = 0;
 }
 

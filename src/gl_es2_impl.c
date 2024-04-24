@@ -497,9 +497,431 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquationS
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendFunc)(gl_es2_enum sfactor, gl_es2_enum dfactor) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  switch (sfactor) {
+    case GL_ES2_ZERO:
+    case GL_ES2_ONE:
+    case GL_ES2_SRC_COLOR:
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+    case GL_ES2_DST_COLOR:
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+    case GL_ES2_SRC_ALPHA:
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+    case GL_ES2_DST_ALPHA:
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+    case GL_ES2_CONSTANT_COLOR:
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+    case GL_ES2_CONSTANT_ALPHA:
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  switch (dfactor) {
+    case GL_ES2_ZERO:
+    case GL_ES2_ONE:
+    case GL_ES2_SRC_COLOR:
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+    case GL_ES2_DST_COLOR:
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+    case GL_ES2_SRC_ALPHA:
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+    case GL_ES2_DST_ALPHA:
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+    case GL_ES2_CONSTANT_COLOR:
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+    case GL_ES2_CONSTANT_ALPHA:
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  switch (sfactor) {
+    case GL_ES2_ZERO:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_ZERO;
+      break;
+    case GL_ES2_ONE:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_ONE;
+      break;
+    case GL_ES2_SRC_COLOR:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_SRC_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_ONE_MINUS_SRC_COLOR;
+      break;
+    case GL_ES2_DST_COLOR:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_DST_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_ONE_MINUS_DST_COLOR;
+      break;
+    case GL_ES2_SRC_ALPHA:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_SRC_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_ONE_MINUS_SRC_ALPHA;
+      break;
+    case GL_ES2_DST_ALPHA:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_DST_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_ONE_MINUS_DST_ALPHA;
+      break;
+    case GL_ES2_CONSTANT_COLOR:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_CONSTANT_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_ONE_MINUS_CONSTANT_COLOR;
+      break;
+    case GL_ES2_CONSTANT_ALPHA:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_ONE_MINUS_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      c->blend_src_rgb_fn_ = c->blend_src_alpha_fn_ = BF_SRC_ALPHA_SATURATE;
+      break;
+  }
+
+  switch (dfactor) {
+    case GL_ES2_ZERO:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_ZERO;
+      break;
+    case GL_ES2_ONE:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_ONE;
+      break;
+    case GL_ES2_SRC_COLOR:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_SRC_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_ONE_MINUS_SRC_COLOR;
+      break;
+    case GL_ES2_DST_COLOR:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_DST_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_ONE_MINUS_DST_COLOR;
+      break;
+    case GL_ES2_SRC_ALPHA:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_SRC_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_ONE_MINUS_SRC_ALPHA;
+      break;
+    case GL_ES2_DST_ALPHA:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_DST_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_ONE_MINUS_DST_ALPHA;
+      break;
+    case GL_ES2_CONSTANT_COLOR:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_CONSTANT_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_ONE_MINUS_CONSTANT_COLOR;
+      break;
+    case GL_ES2_CONSTANT_ALPHA:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_ONE_MINUS_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      c->blend_dst_rgb_fn_ = c->blend_dst_alpha_fn_ = BF_SRC_ALPHA_SATURATE;
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendFuncSeparate)(gl_es2_enum sfactorRGB, gl_es2_enum dfactorRGB, gl_es2_enum sfactorAlpha, gl_es2_enum dfactorAlpha) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  switch (sfactorRGB) {
+    case GL_ES2_ZERO:
+    case GL_ES2_ONE:
+    case GL_ES2_SRC_COLOR:
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+    case GL_ES2_DST_COLOR:
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+    case GL_ES2_SRC_ALPHA:
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+    case GL_ES2_DST_ALPHA:
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+    case GL_ES2_CONSTANT_COLOR:
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+    case GL_ES2_CONSTANT_ALPHA:
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  switch (dfactorRGB) {
+    case GL_ES2_ZERO:
+    case GL_ES2_ONE:
+    case GL_ES2_SRC_COLOR:
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+    case GL_ES2_DST_COLOR:
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+    case GL_ES2_SRC_ALPHA:
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+    case GL_ES2_DST_ALPHA:
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+    case GL_ES2_CONSTANT_COLOR:
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+    case GL_ES2_CONSTANT_ALPHA:
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  switch (sfactorAlpha) {
+    case GL_ES2_ZERO:
+    case GL_ES2_ONE:
+    case GL_ES2_SRC_COLOR:
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+    case GL_ES2_DST_COLOR:
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+    case GL_ES2_SRC_ALPHA:
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+    case GL_ES2_DST_ALPHA:
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+    case GL_ES2_CONSTANT_COLOR:
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+    case GL_ES2_CONSTANT_ALPHA:
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  switch (dfactorAlpha) {
+    case GL_ES2_ZERO:
+    case GL_ES2_ONE:
+    case GL_ES2_SRC_COLOR:
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+    case GL_ES2_DST_COLOR:
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+    case GL_ES2_SRC_ALPHA:
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+    case GL_ES2_DST_ALPHA:
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+    case GL_ES2_CONSTANT_COLOR:
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+    case GL_ES2_CONSTANT_ALPHA:
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  switch (sfactorRGB) {
+    case GL_ES2_ZERO:
+      c->blend_src_rgb_fn_ = BF_ZERO;
+      break;
+    case GL_ES2_ONE:
+      c->blend_src_rgb_fn_ = BF_ONE;
+      break;
+    case GL_ES2_SRC_COLOR:
+      c->blend_src_rgb_fn_ = BF_SRC_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+      c->blend_src_rgb_fn_ = BF_ONE_MINUS_SRC_COLOR;
+      break;
+    case GL_ES2_DST_COLOR:
+      c->blend_src_rgb_fn_ = BF_DST_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+      c->blend_src_rgb_fn_ = BF_ONE_MINUS_DST_COLOR;
+      break;
+    case GL_ES2_SRC_ALPHA:
+      c->blend_src_rgb_fn_ = BF_SRC_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+      c->blend_src_rgb_fn_ = BF_ONE_MINUS_SRC_ALPHA;
+      break;
+    case GL_ES2_DST_ALPHA:
+      c->blend_src_rgb_fn_ = BF_DST_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+      c->blend_src_rgb_fn_ = BF_ONE_MINUS_DST_ALPHA;
+      break;
+    case GL_ES2_CONSTANT_COLOR:
+      c->blend_src_rgb_fn_ = BF_CONSTANT_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+      c->blend_src_rgb_fn_ = BF_ONE_MINUS_CONSTANT_COLOR;
+      break;
+    case GL_ES2_CONSTANT_ALPHA:
+      c->blend_src_rgb_fn_ = BF_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+      c->blend_src_rgb_fn_ = BF_ONE_MINUS_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      c->blend_src_rgb_fn_ = BF_SRC_ALPHA_SATURATE;
+      break;
+  }
+
+  switch (sfactorAlpha) {
+    case GL_ES2_ZERO:
+      c->blend_src_alpha_fn_ = BF_ZERO;
+      break;
+    case GL_ES2_ONE:
+      c->blend_src_alpha_fn_ = BF_ONE;
+      break;
+    case GL_ES2_SRC_COLOR:
+      c->blend_src_alpha_fn_ = BF_SRC_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+      c->blend_src_alpha_fn_ = BF_ONE_MINUS_SRC_COLOR;
+      break;
+    case GL_ES2_DST_COLOR:
+      c->blend_src_alpha_fn_ = BF_DST_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+      c->blend_src_alpha_fn_ = BF_ONE_MINUS_DST_COLOR;
+      break;
+    case GL_ES2_SRC_ALPHA:
+      c->blend_src_alpha_fn_ = BF_SRC_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+      c->blend_src_alpha_fn_ = BF_ONE_MINUS_SRC_ALPHA;
+      break;
+    case GL_ES2_DST_ALPHA:
+      c->blend_src_alpha_fn_ = BF_DST_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+      c->blend_src_alpha_fn_ = BF_ONE_MINUS_DST_ALPHA;
+      break;
+    case GL_ES2_CONSTANT_COLOR:
+      c->blend_src_alpha_fn_ = BF_CONSTANT_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+      c->blend_src_alpha_fn_ = BF_ONE_MINUS_CONSTANT_COLOR;
+      break;
+    case GL_ES2_CONSTANT_ALPHA:
+      c->blend_src_alpha_fn_ = BF_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+      c->blend_src_alpha_fn_ = BF_ONE_MINUS_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      c->blend_src_alpha_fn_ = BF_SRC_ALPHA_SATURATE;
+      break;
+  }
+
+  switch (dfactorRGB) {
+    case GL_ES2_ZERO:
+      c->blend_dst_rgb_fn_ = BF_ZERO;
+      break;
+    case GL_ES2_ONE:
+      c->blend_dst_rgb_fn_ = BF_ONE;
+      break;
+    case GL_ES2_SRC_COLOR:
+      c->blend_dst_rgb_fn_ = BF_SRC_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+      c->blend_dst_rgb_fn_ = BF_ONE_MINUS_SRC_COLOR;
+      break;
+    case GL_ES2_DST_COLOR:
+      c->blend_dst_rgb_fn_ = BF_DST_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+      c->blend_dst_rgb_fn_ = BF_ONE_MINUS_DST_COLOR;
+      break;
+    case GL_ES2_SRC_ALPHA:
+      c->blend_dst_rgb_fn_ = BF_SRC_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+      c->blend_dst_rgb_fn_ = BF_ONE_MINUS_SRC_ALPHA;
+      break;
+    case GL_ES2_DST_ALPHA:
+      c->blend_dst_rgb_fn_ = BF_DST_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+      c->blend_dst_rgb_fn_ = BF_ONE_MINUS_DST_ALPHA;
+      break;
+    case GL_ES2_CONSTANT_COLOR:
+      c->blend_dst_rgb_fn_ = BF_CONSTANT_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+      c->blend_dst_rgb_fn_ = BF_ONE_MINUS_CONSTANT_COLOR;
+      break;
+    case GL_ES2_CONSTANT_ALPHA:
+      c->blend_dst_rgb_fn_ = BF_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+      c->blend_dst_rgb_fn_ = BF_ONE_MINUS_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      c->blend_dst_rgb_fn_ = BF_SRC_ALPHA_SATURATE;
+      break;
+  }
+
+  switch (dfactorAlpha) {
+    case GL_ES2_ZERO:
+      c->blend_dst_alpha_fn_ = BF_ZERO;
+      break;
+    case GL_ES2_ONE:
+      c->blend_dst_alpha_fn_ = BF_ONE;
+      break;
+    case GL_ES2_SRC_COLOR:
+      c->blend_dst_alpha_fn_ = BF_SRC_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_COLOR:
+      c->blend_dst_alpha_fn_ = BF_ONE_MINUS_SRC_COLOR;
+      break;
+    case GL_ES2_DST_COLOR:
+      c->blend_dst_alpha_fn_ = BF_DST_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_DST_COLOR:
+      c->blend_dst_alpha_fn_ = BF_ONE_MINUS_DST_COLOR;
+      break;
+    case GL_ES2_SRC_ALPHA:
+      c->blend_dst_alpha_fn_ = BF_SRC_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_SRC_ALPHA:
+      c->blend_dst_alpha_fn_ = BF_ONE_MINUS_SRC_ALPHA;
+      break;
+    case GL_ES2_DST_ALPHA:
+      c->blend_dst_alpha_fn_ = BF_DST_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_DST_ALPHA:
+      c->blend_dst_alpha_fn_ = BF_ONE_MINUS_DST_ALPHA;
+      break;
+    case GL_ES2_CONSTANT_COLOR:
+      c->blend_dst_alpha_fn_ = BF_CONSTANT_COLOR;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_COLOR:
+      c->blend_dst_alpha_fn_ = BF_ONE_MINUS_CONSTANT_COLOR;
+      break;
+    case GL_ES2_CONSTANT_ALPHA:
+      c->blend_dst_alpha_fn_ = BF_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_ONE_MINUS_CONSTANT_ALPHA:
+      c->blend_dst_alpha_fn_ = BF_ONE_MINUS_CONSTANT_ALPHA;
+      break;
+    case GL_ES2_SRC_ALPHA_SATURATE:
+      c->blend_dst_alpha_fn_ = BF_SRC_ALPHA_SATURATE;
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BufferData)(gl_es2_enum target, gl_es2_sizeiptr size, const void *data, gl_es2_enum usage) {
