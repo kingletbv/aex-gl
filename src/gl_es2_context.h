@@ -79,6 +79,17 @@ struct gl_es2_framebuffer_attachment {
   struct gl_es2_framebuffer *fb_;
 };
 
+struct gl_es2_program_shader_attachment {
+  /* Pointer to the attached shader; NULL if no shader is attached */
+  struct gl_es2_shader *shader_;
+
+  /* Next and previous attachment for other programs sharing this same shader */
+  struct gl_es2_program_shader_attachment *next_, *prev_;
+
+  /* Convenience backpointer to the program of which this gl_es2_program_shader_attachment is a field */
+  struct gl_es2_program *program_;
+};
+
 struct gl_es2_framebuffer {
   struct named_object no_;
 
@@ -110,6 +121,28 @@ struct gl_es2_buffer {
   struct named_object no_;
 };
 
+struct gl_es2_program {
+  struct named_object no_;
+
+  /* glGetProgramiv(GL_DELETE_STATUS) */
+  int flagged_for_deletion_:1;
+
+  struct gl_es2_program_shader_attachment vertex_shader_;
+  struct gl_es2_program_shader_attachment fragment_shader_;
+};
+
+struct gl_es2_shader {
+  struct named_object no_;
+
+  /* GL_ES2_VERTEX_SHADER or GL_ES2_FRAGMENT_SHADER */
+  gl_es2_enum type_;
+
+  struct gl_es2_program_shader_attachment *first_program_attached_to_;
+
+  /* glGetShaderiv(GL_DELETE_STATUS) */
+  int flagged_for_deletion_:1;
+};
+
 struct gl_es2_context {
   gl_es2_enum current_error_;
 
@@ -124,6 +157,12 @@ struct gl_es2_context {
 
   struct ref_range_allocator buffer_rra_;
   struct named_object_table buffer_not_;
+
+  struct ref_range_allocator program_rra_;
+  struct named_object_table program_not_;
+
+  struct ref_range_allocator shader_rra_;
+  struct named_object_table shader_not_;
 
   /* currently bound targets */
 
@@ -145,6 +184,9 @@ struct gl_es2_context {
 
   /* glBindBuffer(GL_ELEMENT_ARRAY_BUFFER); NULL means use client memory */
   struct gl_es2_buffer *element_array_buffer_;
+
+  /* glUseProgram() - Currently used program */
+  struct gl_es2_program *current_program_;
 };
 
 struct gl_es2_context *gl_es2_ctx(void);
@@ -154,6 +196,11 @@ void gl_es2_framebuffer_attachment_cleanup(struct gl_es2_framebuffer_attachment 
 void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *fa);
 void gl_es2_framebuffer_attachment_attach_texture(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_texture *tex);
 void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_renderbuffer *rb);
+
+void gl_es2_program_shader_attachment_init(struct gl_es2_program *prog, struct gl_es2_program_shader_attachment *psa);
+void gl_es2_program_shader_attachment_cleanup(struct gl_es2_program_shader_attachment *psa);
+void gl_es2_program_shader_attachment_detach(struct gl_es2_program_shader_attachment *psa);
+void gl_es2_program_shader_attachment_attach(struct gl_es2_program_shader_attachment *psa, struct gl_es2_shader *shad);
 
 void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb);
 void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb);
@@ -166,6 +213,12 @@ void gl_es2_texture_cleanup(struct gl_es2_texture *tex);
 
 void gl_es2_buffer_init(struct gl_es2_buffer *buf);
 void gl_es2_buffer_cleanup(struct gl_es2_buffer *buf);
+
+void gl_es2_program_init(struct gl_es2_program *prog);
+void gl_es2_program_cleanup(struct gl_es2_program *prog);
+
+void gl_es2_shader_init(struct gl_es2_shader *shad);
+void gl_es2_shader_cleanup(struct gl_es2_shader *shad);
 
 #ifdef __cplusplus
 } /* extern "C" */

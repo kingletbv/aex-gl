@@ -51,7 +51,6 @@ void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *
     rb = fa->v_.rb_;
     if (fa->next_ == fa) {
       rb->first_framebuffer_attached_to_ = NULL;
-      fa->next_ = fa->prev_ = NULL;
     }
     else /* not the last attachment to this renderbuffer */ {
       if (rb->first_framebuffer_attached_to_ == fa) {
@@ -61,13 +60,14 @@ void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *
       fa->prev_->next_ = fa->next_;
     }
     fa->kind_ = gl_es2_faot_none;
+    fa->v_.rb_ = NULL;
+    fa->next_ = fa->prev_ = NULL;
   }
   else if (fa->kind_ == gl_es2_faot_texture) {
     struct gl_es2_texture *tex;
     tex = fa->v_.tex_;
     if (fa->next_ == fa) {
       tex->first_framebuffer_attached_to_ = NULL;
-      fa->next_ = fa->prev_ = NULL;
     }
     else /* not the last attachment to this framebuffer */ {
       if (tex->first_framebuffer_attached_to_ == fa) {
@@ -77,6 +77,8 @@ void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *
       fa->prev_->next_ = fa->next_;
     }
     fa->kind_ = gl_es2_faot_none;
+    fa->v_.tex_ = NULL;
+    fa->next_ = fa->prev_ = NULL;
   }
   else /* gl_es2_faot_none -- no attachment */ {
   }
@@ -116,6 +118,50 @@ void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer
   }
   fa->level_ = 0;
   fa->cube_map_face_ = gl_es2_cube_map_positive_x;
+}
+
+void gl_es2_program_shader_attachment_init(struct gl_es2_program *prog, struct gl_es2_program_shader_attachment *psa) {
+  psa->program_ = prog;
+  psa->shader_ = NULL;
+  psa->next_ = psa->prev_ = NULL;
+}
+
+void gl_es2_program_shader_attachment_cleanup(struct gl_es2_program_shader_attachment *psa) {
+  gl_es2_program_shader_attachment_detach(psa);
+}
+
+void gl_es2_program_shader_attachment_detach(struct gl_es2_program_shader_attachment *psa) {
+  struct gl_es2_shader *shad;
+  shad = psa->shader_;
+  if (shad) {
+    if (psa->next_ == psa) {
+      shad->first_program_attached_to_ = NULL;
+    }
+    else {
+      if (shad->first_program_attached_to_ == psa) {
+        shad->first_program_attached_to_ = psa->next_;
+      }
+      psa->next_->prev_ = psa->prev_;
+      psa->prev_->next_ = psa->next_;
+    }
+    psa->shader_ = NULL;
+    psa->next_ = psa->prev_ = NULL;
+  }
+}
+
+void gl_es2_program_shader_attachment_attach(struct gl_es2_program_shader_attachment *psa, struct gl_es2_shader *shad) {
+  gl_es2_program_shader_attachment_detach(psa);
+  if (!shad) return;
+  psa->shader_ = shad;
+  if (shad->first_program_attached_to_) {
+    psa->next_ = shad->first_program_attached_to_;
+    psa->prev_ = psa->next_->prev_;
+    psa->prev_->next_ = psa->next_->prev_ = psa;
+  }
+  else {
+    psa->next_ = psa->prev_ = psa;
+    shad->first_program_attached_to_ = psa;
+  }
 }
 
 
@@ -158,6 +204,28 @@ void gl_es2_buffer_init(struct gl_es2_buffer *buf) {
 void gl_es2_buffer_cleanup(struct gl_es2_buffer *buf) {
 }
 
+void gl_es2_program_init(struct gl_es2_program *prog) {
+  prog->flagged_for_deletion_ = 0;
+  gl_es2_program_shader_attachment_init(prog, &prog->vertex_shader_);
+  gl_es2_program_shader_attachment_init(prog, &prog->fragment_shader_);
+}
+
+void gl_es2_program_cleanup(struct gl_es2_program *prog) {
+  gl_es2_program_shader_attachment_cleanup(&prog->vertex_shader_);
+  gl_es2_program_shader_attachment_cleanup(&prog->fragment_shader_);
+}
+
+void gl_es2_shader_init(struct gl_es2_shader *shad) {
+  shad->flagged_for_deletion_ = 0;
+  shad->first_program_attached_to_ = NULL;
+}
+
+void gl_es2_shader_cleanup(struct gl_es2_shader *shad) {
+  while (shad->first_program_attached_to_) {
+    gl_es2_program_shader_attachment_detach(shad->first_program_attached_to_);
+  }
+}
+
 
 void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->current_error_ = GL_ES2_NO_ERROR;
@@ -174,6 +242,12 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   ref_range_allocator_init(&c->buffer_rra_);
   not_init(&c->buffer_not_);
 
+  ref_range_allocator_init(&c->program_rra_);
+  not_init(&c->program_not_);
+
+  ref_range_allocator_init(&c->shader_rra_);
+  not_init(&c->shader_not_);
+
   c->framebuffer_ = NULL;
   c->renderbuffer_ = NULL;
 
@@ -187,6 +261,7 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
 
   c->array_buffer_ = NULL;
   c->element_array_buffer_ = NULL;
+  c->current_program_ = NULL;
 }
 
 void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
@@ -220,6 +295,22 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
     not_remove(&c->buffer_not_, &buf->no_);
     gl_es2_buffer_cleanup(buf);
     free(buf);
+  }
+
+  ref_range_allocator_cleanup(&c->program_rra_);
+  while (c->program_not_.seq_) {
+    struct gl_es2_program *prog = (struct gl_es2_program *)c->program_not_.seq_;
+    not_remove(&c->program_not_, &prog->no_);
+    gl_es2_program_cleanup(prog);
+    free(prog);
+  }
+
+  ref_range_allocator_cleanup(&c->shader_rra_);
+  while (c->shader_not_.seq_) {
+    struct gl_es2_shader *shad = (struct gl_es2_shader *)c->program_not_.seq_;
+    not_remove(&c->shader_not_, &shad->no_);
+    gl_es2_shader_cleanup(shad);
+    free(shad);
   }
 }
 

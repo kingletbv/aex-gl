@@ -63,6 +63,9 @@ extern "C" {
 #define GL_ES2_ARRAY_BUFFER         0x8892
 #define GL_ES2_ELEMENT_ARRAY_BUFFER 0x8893
 
+#define GL_ES2_FRAGMENT_SHADER 0x8B30
+#define GL_ES2_VERTEX_SHADER   0x8B31
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02

@@ -73,11 +73,67 @@ static void generic_name_gen(struct ref_range_allocator *rra, gl_es2_sizei n, gl
   }
 }
 
+static void detach_program_shader_with_cascaded_delete(struct gl_es2_program_shader_attachment *psa) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_shader *shad;
+  shad = psa->shader_;
+  if (!shad) return;
+  gl_es2_program_shader_attachment_detach(psa);
+  if (!shad->first_program_attached_to_ && shad->flagged_for_deletion_) {
+    ref_range_mark_range_free(&c->shader_rra_, shad->no_.name_, shad->no_.name_ + 1);
+    not_remove(&c->shader_not_, &shad->no_);
+  }
+}
+
+static void check_old_program_for_deletion(struct gl_es2_program *old_prog) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (old_prog && old_prog->flagged_for_deletion_) {
+    detach_program_shader_with_cascaded_delete(&old_prog->vertex_shader_);
+    detach_program_shader_with_cascaded_delete(&old_prog->fragment_shader_);
+    ref_range_mark_range_free(&c->program_rra_, old_prog->no_.name_, old_prog->no_.name_ + 1);
+    not_remove(&c->program_not_, &old_prog->no_);
+    gl_es2_program_cleanup(old_prog);
+    free(old_prog);
+  }
+}
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture) {
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(AttachShader)(gl_es2_uint program, gl_es2_uint shader) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t shad_name = (uintptr_t)shader;
+  struct gl_es2_shader *shad = NULL;
+  shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
+  if (!shad) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = NULL;
+  prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  struct gl_es2_program_shader_attachment *psa = NULL;
+  switch (shad->type_) {
+    case GL_ES2_VERTEX_SHADER:
+      psa = &prog->vertex_shader_;
+      break;
+    case GL_ES2_FRAGMENT_SHADER:
+      psa = &prog->fragment_shader_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+  }
+  if (psa->shader_) {
+    /* shader already attached to program, or another shader object of the same type is already attached to program */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  gl_es2_program_shader_attachment_attach(psa, shad);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindAttribLocation)(gl_es2_uint program, gl_es2_uint index, const gl_es2_char *name) {
@@ -194,7 +250,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuff
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
-  int r;;
+  int r;
   int is_allocated = ref_range_get_ref_at(&c->renderbuffer_rra_, rb_name);
   if (!is_allocated) {
     /* Caller hasn't reserved this but is just taking the name, which is fine, allocate it */
@@ -344,11 +400,56 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImag
 }
 
 GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateProgram)(void) {
-  return 0;
+  struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_uint prog_name = 0;
+  generic_name_gen(&c->program_rra_, 1, &prog_name);
+  if (!prog_name) return 0;
+
+  struct gl_es2_program *prog = NULL;
+  int r;
+  r = not_find_or_insert(&c->program_not_, prog_name, sizeof(struct gl_es2_program), (struct named_object **)&prog);
+  if (r == NOT_NOMEM) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return 0;
+  }
+  else if (r == NOT_DUPLICATE) {
+    /* Should never be returned as we just allocated the program anew */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return 0;
+  }
+  /* else not_ok */
+  gl_es2_program_init(prog);
+
+  return prog_name;
 }
 
 GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateShader)(gl_es2_enum type) {
-  return 0;
+  struct gl_es2_context *c = gl_es2_ctx();
+  if ((type != GL_ES2_VERTEX_SHADER) && (type != GL_ES2_FRAGMENT_SHADER)) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return 0;
+  }
+  gl_es2_uint shad_name = 0;
+  generic_name_gen(&c->shader_rra_, 1, &shad_name);
+  if (!shad_name) return 0;
+
+  struct gl_es2_shader *shad = NULL;
+  int r;
+  r = not_find_or_insert(&c->shader_not_, shad_name, sizeof(struct gl_es2_shader), (struct named_object **)&shad);
+  if (r == NOT_NOMEM) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return 0;
+  }
+  else if (r == NOT_DUPLICATE) {
+    /* Should never be returned as we just allocated the program anew */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return 0;
+  }
+  /* else not_ok */
+  gl_es2_shader_init(shad);
+  shad->type_ = type;
+
+  return shad_name;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CullFace)(gl_es2_enum mode) {
@@ -430,6 +531,29 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteFramebuf
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteProgram)(gl_es2_uint program) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  int is_allocated = ref_range_get_ref_at(&c->program_rra_, prog_name);
+  if (is_allocated) {
+    struct gl_es2_program *prog = NULL;
+    prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+    if (prog) {
+      if (c->current_program_ == prog) {
+        prog->flagged_for_deletion_ = 1;
+      }
+      else {
+        detach_program_shader_with_cascaded_delete(&prog->vertex_shader_);
+        detach_program_shader_with_cascaded_delete(&prog->fragment_shader_);
+        ref_range_mark_range_free(&c->program_rra_, prog_name, prog_name + 1);
+        not_remove(&c->program_not_, &prog->no_);
+        gl_es2_program_cleanup(prog);
+        free(prog);
+      }
+    }
+    else {
+      ref_range_mark_range_free(&c->program_rra_, prog_name, prog_name + 1);
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteRenderbuffers)(gl_es2_sizei n, const gl_es2_uint *renderbuffers) {
@@ -465,6 +589,27 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteRenderbu
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteShader)(gl_es2_uint shader) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t shad_name = (uintptr_t)shader;
+  int is_allocated = ref_range_get_ref_at(&c->shader_rra_, shad_name);
+  if (is_allocated) {
+    struct gl_es2_shader *shad = NULL;
+    shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
+    if (shad) {
+      if (shad->first_program_attached_to_) {
+        shad->flagged_for_deletion_ = 1;
+      }
+      else {
+        ref_range_mark_range_free(&c->shader_rra_, shad_name, shad_name + 1);
+        not_remove(&c->shader_not_, &shad->no_);
+        gl_es2_shader_cleanup(shad);
+        free(shad);
+      }
+    }
+    else {
+      ref_range_mark_range_free(&c->shader_rra_, shad_name, shad_name + 1);
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteTextures)(gl_es2_sizei n, const gl_es2_uint *textures) {
@@ -516,6 +661,29 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthRangef)(g
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DetachShader)(gl_es2_uint program, gl_es2_uint shader) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = NULL;
+  prog = (struct gl_es2_program *)not_find(&c->program_not_, (uintptr_t)program);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return ;
+  }
+  struct gl_es2_shader *shad = NULL;
+  shad = (struct gl_es2_shader *)not_find(&c->shader_not_, (uintptr_t)shader);
+  if (!shad) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int found = 0;
+  if (shad == prog->vertex_shader_.shader_) {
+    detach_program_shader_with_cascaded_delete(&prog->vertex_shader_);
+    found = 1;
+  }
+  if (shad == prog->fragment_shader_.shader_) {
+    detach_program_shader_with_cascaded_delete(&prog->fragment_shader_);
+    found = 1;
+  }
+  if (!found) set_gl_err(GL_ES2_INVALID_OPERATION); /* shader is not attached to program */
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Disable)(gl_es2_enum cap) {
@@ -625,6 +793,24 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveUnifo
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttachedShaders)(gl_es2_uint program, gl_es2_sizei maxCount, gl_es2_sizei *count, gl_es2_uint *shaders) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int num_shaders = 0;
+  if (!shaders) maxCount = 0;
+  if (prog->vertex_shader_.shader_) {
+    if (num_shaders < maxCount) shaders[num_shaders] = (gl_es2_uint)prog->vertex_shader_.shader_->no_.name_;
+    num_shaders++;
+  }
+  if (prog->fragment_shader_.shader_) {
+    if (num_shaders < maxCount) shaders[num_shaders] = (gl_es2_uint)prog->vertex_shader_.shader_->no_.name_;
+    num_shaders++;
+  }
+  if (count) *count = (gl_es2_sizei)num_shaders;
 }
 
 GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttribLocation)(gl_es2_uint program, const gl_es2_char *name) {
@@ -900,6 +1086,22 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix4
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UseProgram)(gl_es2_uint program) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  if (!prog_name) {
+    check_old_program_for_deletion(c->current_program_);
+    c->current_program_ = NULL;
+    return;
+  }
+  struct gl_es2_program *prog = NULL;
+  prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (prog) {
+    if (c->current_program_ != prog) check_old_program_for_deletion(c->current_program_);
+    c->current_program_ = prog;
+  }
+  else {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ValidateProgram)(gl_es2_uint program) {
