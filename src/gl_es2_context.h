@@ -209,6 +209,12 @@ struct gl_es2_context {
 
   /* glUseProgram() - Currently used program */
   struct gl_es2_program *current_program_;
+
+  /* glBlendColor() & glGet(GL_BLEND_COLOR) */
+  uint8_t blend_color_red_;
+  uint8_t blend_color_grn_;
+  uint8_t blend_color_blu_;
+  uint8_t blend_color_alpha_;
 };
 
 struct gl_es2_context *gl_es2_ctx(void);

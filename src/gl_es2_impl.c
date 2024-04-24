@@ -23,6 +23,11 @@
 #include <string.h>
 #endif
 
+#ifndef MATH_H_INCLUDED
+#define MATH_H_INCLUDED
+#include <math.h>
+#endif
+
 #ifndef GL_ES2_IMPL_H_INCLUDED
 #define GL_ES2_IMPL_H_INCLUDED
 #include "gl_es2_impl.h"
@@ -390,6 +395,30 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindTexture)(g
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendColor)(gl_es2_float red, gl_es2_float green, gl_es2_float blue, gl_es2_float alpha) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (red < 0.f) red = 0.f;
+  if (red > 1.f) red = 1.f;
+  if (green < 0.f) green = 0.f;
+  if (green > 1.f) green = 1.f;
+  if (blue < 0.f) blue = 0.f;
+  if (blue > 1.f) blue = 1.f;
+  if (alpha < 0.f) alpha = 0.f;
+  if (alpha > 1.f) alpha = 1.f;
+  uint32_t ured = (uint32_t)floorf(256.f * red);
+  uint32_t ugreen = (uint32_t)floorf(256.f * green);
+  uint32_t ublue = (uint32_t)floorf(256.f * blue);
+  uint32_t ualpha = (uint32_t)floorf(256.f * alpha);
+  /* Clamp integer to range 0..255 as it could be 0..256
+   * 256 occurs when the input is exactly 1.f, in which case 
+   * floorf doesn't floor down. Note that variations where we
+   * multiply by 255 are wrong because that mis-assigns the
+   * range where we would hit maximum brightness (255) for only
+   * the case where the value is *exactly* 1, rather than a range
+   * sized 1/256. */
+  c->blend_color_red_ = (uint8_t)((ured == 256) ? 255 : ured);
+  c->blend_color_grn_ = (uint8_t)((ugreen == 256) ? 255 : ugreen);
+  c->blend_color_blu_ = (uint8_t)((ublue== 256) ? 255 : ublue);
+  c->blend_color_alpha_ = (uint8_t)((ualpha == 256) ? 255 : ualpha);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquation)(gl_es2_enum mode) {
