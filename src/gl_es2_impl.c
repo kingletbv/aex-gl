@@ -98,6 +98,12 @@ static void check_old_program_for_deletion(struct gl_es2_program *old_prog) {
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (texture >= c->num_active_texture_units_) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  c->current_active_texture_unit_ = (size_t)texture;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(AttachShader)(gl_es2_uint program, gl_es2_uint shader) {
