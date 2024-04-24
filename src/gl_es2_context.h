@@ -40,6 +40,11 @@
 #include "sl_program.h"
 #endif
 
+#ifndef DATA_BUFFER_H_INCLUDED
+#define DATA_BUFFER_H_INCLUDED
+#include "data_buffer.h"
+#endif
+
 /* glGet(GL_MAX_TEXTURE_IMAGE_UNITS)
  * glGet(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS)
  */
@@ -136,6 +141,8 @@ struct gl_es2_texture_unit {
 
 struct gl_es2_buffer {
   struct named_object no_;
+  
+  struct data_buffer buf_;
 };
 
 struct gl_es2_program {

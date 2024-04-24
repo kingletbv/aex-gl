@@ -20,11 +20,7 @@
 extern "C" {
 #endif
 
-/* XXX: Will move this into its own file, intended to model glBufferData */
-struct buffer {
-  size_t size_;
-  void *data_;
-};
+struct data_buffer;
 
 typedef enum attrib_data_type {
   ADT_BYTE,
@@ -52,7 +48,7 @@ struct attrib {
    * If a buffer is present, then "ptr_" is an offset into it. If no
    * buffer is present (buf_ == NULL), then ptr_ specifies a pointer to
    * the data. */
-  struct buffer *buf_;
+  struct data_buffer *buf_;
 
   /* Number of elements per attrib value (e.g. dimensionality of vector)
    * max. 4; note that a shader can access more than size_ elements, in

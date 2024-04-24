@@ -48,6 +48,11 @@
 #include "attrib_set.h"
 #endif
 
+#ifndef DATA_BUFFER_H_INCLUDED
+#define DATA_BUFFER_H_INCLUDED
+#include "data_buffer.h"
+#endif
+
 #ifndef ATTRIB_ROUTING_H_INCLUDED
 #define ATTRIB_ROUTING_H_INCLUDED
 #include "attrib_routing.h"

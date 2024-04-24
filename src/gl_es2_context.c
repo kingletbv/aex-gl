@@ -199,9 +199,11 @@ void gl_es2_texture_cleanup(struct gl_es2_texture *tex) {
 }
 
 void gl_es2_buffer_init(struct gl_es2_buffer *buf) {
+  data_buffer_init(&buf->buf_);
 }
 
 void gl_es2_buffer_cleanup(struct gl_es2_buffer *buf) {
+  data_buffer_cleanup(&buf->buf_);
 }
 
 void gl_es2_program_init(struct gl_es2_program *prog) {
