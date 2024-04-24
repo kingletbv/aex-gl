@@ -414,11 +414,18 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendColor)(gl
    * multiply by 255 are wrong because that mis-assigns the
    * range where we would hit maximum brightness (255) for only
    * the case where the value is *exactly* 1, rather than a range
-   * sized 1/256. */
-  c->blend_color_red_ = (uint8_t)((ured == 256) ? 255 : ured);
-  c->blend_color_grn_ = (uint8_t)((ugreen == 256) ? 255 : ugreen);
-  c->blend_color_blu_ = (uint8_t)((ublue== 256) ? 255 : ublue);
-  c->blend_color_alpha_ = (uint8_t)((ualpha == 256) ? 255 : ualpha);
+   * sized 1/256.
+   * Code below casts to 8 bits, if the input is 256, that value
+   * is 0x00 (because 256==0x100). To ensure a value of 256 becomes
+   * 255, we take the input value u, shift right 8 bits, and arrive
+   * at a bit that will only be 1 if the value is 256. We subtract
+   * that bit from the previous result. The previous result will be
+   * 0x00 for an input of 0x100, resulting in the desired 0xFF.
+   */
+  c->blend_color_red_ = ((uint8_t)ured) - (uint8_t)(ured >> 8);
+  c->blend_color_grn_ = ((uint8_t)ugreen) - (uint8_t)(ugreen >> 8);
+  c->blend_color_blu_ = ((uint8_t)ublue) - (uint8_t)(ublue >> 8);
+  c->blend_color_alpha_ = ((uint8_t)ualpha) - (uint8_t)(ualpha >> 8);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquation)(gl_es2_enum mode) {
