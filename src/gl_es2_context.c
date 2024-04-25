@@ -27,6 +27,11 @@
 #include "gl_es2_context.h"
 #endif
 
+#ifndef SAMPLER_2D_H_INCLUDED
+#define SAMPLER_2D_H_INCLUDED
+#include "sampler_2d.h"
+#endif
+
 /* XXX: Important: no TLS, no locks, no atomics, nary a cli/sti: no thread safety. */
 
 static struct gl_es2_context g_ctx_ = { 0 };
@@ -120,6 +125,170 @@ void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer
   fa->cube_map_face_ = gl_es2_cube_map_positive_x;
 }
 
+enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struct gl_es2_framebuffer *fb) {
+  if (!fb) return gl_es2_framebuffer_incomplete_unsupported;
+  int width, height;
+  if (fb->color_attachment0_.kind_ == gl_es2_faot_renderbuffer) {
+    width = fb->color_attachment0_.v_.rb_->width_;
+    height = fb->color_attachment0_.v_.rb_->height_;
+  }
+  else if (fb->color_attachment0_.kind_ == gl_es2_faot_texture) {
+    if (fb->color_attachment0_.v_.tex_->sampler_2d_.num_maps_) {
+      width = fb->color_attachment0_.v_.tex_->sampler_2d_.mipmaps_[0].width_;
+      height = fb->color_attachment0_.v_.tex_->sampler_2d_.mipmaps_[0].height_;
+    }
+    else {
+      width = height = 0;
+    }
+  }
+  else if (fb->depth_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+    width = fb->depth_attachment_.v_.rb_->width_;
+    height = fb->depth_attachment_.v_.rb_->height_;
+  }
+  else if (fb->depth_attachment_.kind_ == gl_es2_faot_texture) {
+    if (fb->depth_attachment_.v_.tex_->sampler_2d_.num_maps_) {
+      width = fb->depth_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].width_;
+      height = fb->depth_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].height_;
+    }
+    else {
+      width = height = 0;
+    }
+  }
+  else if (fb->stencil_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+    width = fb->stencil_attachment_.v_.rb_->width_;
+    height = fb->stencil_attachment_.v_.rb_->height_;
+  }
+  else if (fb->stencil_attachment_.kind_ == gl_es2_faot_texture) {
+    if (fb->stencil_attachment_.v_.tex_->sampler_2d_.num_maps_) {
+      width = fb->stencil_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].width_;
+      height = fb->stencil_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].height_;
+    }
+    else {
+      width = height = 0;
+    }
+  }
+  else {
+    /* No attachments */
+    return gl_es2_framebuffer_incomplete_missing_attachment;
+  }
+
+  int have_zero_dim = 0;
+  if (fb->color_attachment0_.kind_ == gl_es2_faot_renderbuffer) {
+    have_zero_dim = have_zero_dim || !fb->color_attachment0_.v_.rb_->width_;
+    have_zero_dim = have_zero_dim || !fb->color_attachment0_.v_.rb_->height_;
+  }
+  else if (fb->color_attachment0_.kind_ == gl_es2_faot_texture) {
+    if (fb->color_attachment0_.v_.tex_->sampler_2d_.num_maps_) {
+      have_zero_dim = have_zero_dim || !fb->color_attachment0_.v_.tex_->sampler_2d_.mipmaps_[0].width_;
+      have_zero_dim = have_zero_dim || !fb->color_attachment0_.v_.tex_->sampler_2d_.mipmaps_[0].height_;
+    }
+    else {
+      have_zero_dim = 1;
+    }
+  }
+  if (fb->depth_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+    have_zero_dim = have_zero_dim || !fb->depth_attachment_.v_.rb_->width_;
+    have_zero_dim = have_zero_dim || !fb->depth_attachment_.v_.rb_->height_;
+  }
+  else if (fb->depth_attachment_.kind_ == gl_es2_faot_texture) {
+    if (fb->depth_attachment_.v_.tex_->sampler_2d_.num_maps_) {
+      have_zero_dim = have_zero_dim || !fb->depth_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].width_;
+      have_zero_dim = have_zero_dim || !fb->depth_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].height_;
+    }
+    else {
+      have_zero_dim = 1;
+    }
+  }
+  if (fb->stencil_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+    have_zero_dim = have_zero_dim || !fb->stencil_attachment_.v_.rb_->width_;
+    have_zero_dim = have_zero_dim || !fb->stencil_attachment_.v_.rb_->height_;
+  }
+  else if (fb->stencil_attachment_.kind_ == gl_es2_faot_texture) {
+    if (fb->stencil_attachment_.v_.tex_->sampler_2d_.num_maps_) {
+      have_zero_dim = have_zero_dim || !fb->stencil_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].width_;
+      have_zero_dim = have_zero_dim || !fb->stencil_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].height_;
+    }
+    else {
+      have_zero_dim = 1;
+    }
+  }
+
+  if (have_zero_dim) {
+    /* One of the attached images has a 0 width or height */
+    return gl_es2_framebuffer_incomplete_attachment;
+  }
+
+  int not_same_dims = 0;
+
+  if (fb->color_attachment0_.kind_ == gl_es2_faot_renderbuffer) {
+    not_same_dims = not_same_dims || (width != fb->color_attachment0_.v_.rb_->width_);
+    not_same_dims = not_same_dims || (height != fb->color_attachment0_.v_.rb_->height_);
+  }
+  else if (fb->color_attachment0_.kind_ == gl_es2_faot_texture) {
+    if (fb->color_attachment0_.v_.tex_->sampler_2d_.num_maps_) {
+      not_same_dims = not_same_dims || (width != fb->color_attachment0_.v_.tex_->sampler_2d_.mipmaps_[0].width_);
+      not_same_dims = not_same_dims || (height != fb->color_attachment0_.v_.tex_->sampler_2d_.mipmaps_[0].height_);
+    }
+  }
+  if (fb->depth_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+    not_same_dims = not_same_dims || (width != fb->depth_attachment_.v_.rb_->width_);
+    not_same_dims = not_same_dims || (height != fb->depth_attachment_.v_.rb_->height_);
+  }
+  else if (fb->depth_attachment_.kind_ == gl_es2_faot_texture) {
+    if (fb->depth_attachment_.v_.tex_->sampler_2d_.num_maps_) {
+      not_same_dims = not_same_dims || (width != fb->depth_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].width_);
+      not_same_dims = not_same_dims || (height != fb->depth_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].height_);
+    }
+  }
+  if (fb->stencil_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+    not_same_dims = not_same_dims || (width != fb->stencil_attachment_.v_.rb_->width_);
+    not_same_dims = not_same_dims || (height != fb->stencil_attachment_.v_.rb_->height_);
+  }
+  else if (fb->stencil_attachment_.kind_ == gl_es2_faot_texture) {
+    if (fb->stencil_attachment_.v_.tex_->sampler_2d_.num_maps_) {
+      not_same_dims = not_same_dims || (width != fb->stencil_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].width_);
+      not_same_dims = not_same_dims || (height != fb->stencil_attachment_.v_.tex_->sampler_2d_.mipmaps_[0].height_);
+    }
+  }
+
+  if (not_same_dims) {
+    return gl_es2_framebuffer_incomplete_dimensions;
+  }
+
+  /* Check the formats are ok */
+  int format_ok = 1;
+  if (fb->color_attachment0_.kind_ == gl_es2_faot_renderbuffer) {
+    struct gl_es2_renderbuffer *rb = fb->color_attachment0_.v_.rb_;
+    format_ok = format_ok && (rb->format_ == gl_es2_renderbuffer_format_rgba32);
+  }
+  else if (fb->color_attachment0_.kind_ == gl_es2_faot_texture) {
+    struct gl_es2_texture *tex = fb->color_attachment0_.v_.tex_;
+    format_ok = format_ok && ((tex->sampler_2d_.components_ == s2d_rgb) ||
+                              (tex->sampler_2d_.components_ == s2d_rgba));
+  }
+  if (fb->depth_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+    struct gl_es2_renderbuffer *rb = fb->depth_attachment_.v_.rb_;
+    format_ok = format_ok && ((rb->format_ == gl_es2_renderbuffer_format_depth16) ||
+                              (rb->format_ == gl_es2_renderbuffer_format_depth32));
+  }
+  else if (fb->depth_attachment_.kind_ == gl_es2_faot_texture) {
+    /* currently no textures supported with depth-buffer characteristics */
+    format_ok = 0;
+  }
+  if (fb->stencil_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+    struct gl_es2_renderbuffer *rb = fb->stencil_attachment_.v_.rb_;
+    format_ok = format_ok && (rb->format_ == gl_es2_renderbuffer_format_stencil16);
+  }
+  else if (fb->stencil_attachment_.kind_ == gl_es2_faot_texture) {
+    /* currently no textures supported with stencil-buffer characteristics */
+    format_ok = 0;
+  }
+  if (!format_ok) return gl_es2_framebuffer_incomplete_attachment;
+
+  return gl_es2_framebuffer_complete;
+}
+
+
 void gl_es2_program_shader_attachment_init(struct gl_es2_program *prog, struct gl_es2_program_shader_attachment *psa) {
   psa->program_ = prog;
   psa->shader_ = NULL;
@@ -179,6 +348,9 @@ void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb) {
 
 void gl_es2_renderbuffer_init(struct gl_es2_renderbuffer *rb) {
   rb->first_framebuffer_attached_to_ = NULL;
+  rb->format_ = gl_es2_renderbuffer_format_none;
+  rb->width_ = 0;
+  rb->height_ = 0;
 }
 
 void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb) {
@@ -190,12 +362,14 @@ void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb) {
 void gl_es2_texture_init(struct gl_es2_texture *tex) {
   tex->kind_ = gl_es2_texture_invalid;
   tex->first_framebuffer_attached_to_ = NULL;
+  sampler_2d_init(&tex->sampler_2d_);
 }
 
 void gl_es2_texture_cleanup(struct gl_es2_texture *tex) {
   while (tex->first_framebuffer_attached_to_) {
     gl_es2_framebuffer_attachment_detach(tex->first_framebuffer_attached_to_);
   }
+  sampler_2d_cleanup(&tex->sampler_2d_);
 }
 
 void gl_es2_buffer_init(struct gl_es2_buffer *buf) {

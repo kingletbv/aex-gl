@@ -1007,7 +1007,33 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BufferSubData)
 }
 
 GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CheckFramebufferStatus)(gl_es2_enum target) {
-  return GL_ES2_FRAMEBUFFER_UNSUPPORTED;
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (target != GL_ES2_FRAMEBUFFER) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return 0;
+  }
+
+  if (!c->framebuffer_) {
+    /* Initialization failure, should always have a framebuffer set, the default window-system-provided framebuffer
+     * of "0" is an actual framebuffer that should have been initialized. framebuffer_ should therefore never be NULL */
+    set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+    return 0;
+  }
+
+  switch (gl_es2_framebuffer_check_completeness(c->framebuffer_)) {
+    case gl_es2_framebuffer_complete:
+      return GL_ES2_FRAMEBUFFER_COMPLETE;
+    case gl_es2_framebuffer_incomplete_attachment:
+      return GL_ES2_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+    case gl_es2_framebuffer_incomplete_dimensions:
+      return GL_ES2_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
+    case gl_es2_framebuffer_incomplete_missing_attachment:
+      return GL_ES2_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+    case gl_es2_framebuffer_incomplete_unsupported:
+      return GL_ES2_FRAMEBUFFER_UNSUPPORTED;
+  }
+  set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+  return 0;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Clear)(gl_es2_bitfield mask) {

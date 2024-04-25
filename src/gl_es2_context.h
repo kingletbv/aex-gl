@@ -45,6 +45,11 @@
 #include "data_buffer.h"
 #endif
 
+#ifndef SAMPLER_2D_H_INCLUDED
+#define SAMPLER_2D_H_INCLUDED
+#include "sampler_2d.h"
+#endif
+
 /* glGet(GL_MAX_TEXTURE_IMAGE_UNITS)
  * glGet(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS)
  */
@@ -77,6 +82,22 @@ enum gl_es2_texture_kind {
   gl_es2_texture_invalid,
   gl_es2_texture_2d,
   gl_es2_texture_cube_map
+};
+
+enum gl_es2_framebuffer_completeness {
+  gl_es2_framebuffer_complete,
+  gl_es2_framebuffer_incomplete_attachment,
+  gl_es2_framebuffer_incomplete_dimensions,
+  gl_es2_framebuffer_incomplete_missing_attachment,
+  gl_es2_framebuffer_incomplete_unsupported
+};
+
+enum gl_es2_renderbuffer_format {
+  gl_es2_renderbuffer_format_none,
+  gl_es2_renderbuffer_format_rgba32,
+  gl_es2_renderbuffer_format_depth16,
+  gl_es2_renderbuffer_format_depth32,
+  gl_es2_renderbuffer_format_stencil16
 };
 
 struct gl_es2_framebuffer_attachment {
@@ -123,7 +144,11 @@ struct gl_es2_framebuffer {
 struct gl_es2_renderbuffer {
   struct named_object no_;
 
+  enum gl_es2_renderbuffer_format format_;
+
   struct gl_es2_framebuffer_attachment *first_framebuffer_attached_to_;
+
+  int width_, height_;
 };
 
 struct gl_es2_texture {
@@ -132,6 +157,8 @@ struct gl_es2_texture {
   enum gl_es2_texture_kind kind_;
 
   struct gl_es2_framebuffer_attachment *first_framebuffer_attached_to_;
+
+  struct sampler_2d sampler_2d_;
 };
 
 struct gl_es2_texture_unit {
@@ -251,6 +278,7 @@ void gl_es2_framebuffer_attachment_cleanup(struct gl_es2_framebuffer_attachment 
 void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *fa);
 void gl_es2_framebuffer_attachment_attach_texture(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_texture *tex);
 void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_renderbuffer *rb);
+enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struct gl_es2_framebuffer *fb);
 
 void gl_es2_program_shader_attachment_init(struct gl_es2_program *prog, struct gl_es2_program_shader_attachment *psa);
 void gl_es2_program_shader_attachment_cleanup(struct gl_es2_program_shader_attachment *psa);
