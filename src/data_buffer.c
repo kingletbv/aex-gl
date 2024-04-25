@@ -36,7 +36,7 @@ void data_buffer_cleanup(struct data_buffer *db) {
   if (db->data_) free(db->data_);
 }
 
-int data_buffer_set_data(struct data_buffer *db, size_t size, void *data) {
+int data_buffer_set_data(struct data_buffer *db, size_t size, const void *data) {
   if (db->size_ != size) {
     void *p = realloc(db->data_, size);
     if (!p) {
@@ -54,7 +54,7 @@ int data_buffer_set_data(struct data_buffer *db, size_t size, void *data) {
   return 0;
 }
 
-void data_buffer_copy_data(struct data_buffer *db, size_t offset, size_t size, void *src) {
+void data_buffer_copy_data(struct data_buffer *db, size_t offset, size_t size, const void *src) {
   if (offset >= db->size_) return;
   
   size_t end_offset = offset + size;

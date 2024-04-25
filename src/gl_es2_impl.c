@@ -925,9 +925,85 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendFuncSepar
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BufferData)(gl_es2_enum target, gl_es2_sizeiptr size, const void *data, gl_es2_enum usage) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_buffer *buf = NULL;
+  switch (target) {
+    case GL_ES2_ARRAY_BUFFER:
+      buf = c->array_buffer_;
+      break;
+    case GL_ES2_ELEMENT_ARRAY_BUFFER:
+      buf = c->element_array_buffer_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+  if (!buf) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  switch (usage) {
+    case GL_ES2_STREAM_DRAW:
+    case GL_ES2_STATIC_DRAW:
+    case GL_ES2_DYNAMIC_DRAW:
+      /* this is fine */
+      break;
+    default:
+      /* this is not */
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+  if (data_buffer_set_data(&buf->buf_, size, data)) {
+    /* no memory */
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  buf->usage_ = usage;
+
+  return;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BufferSubData)(gl_es2_enum target, gl_es2_intptr offset, gl_es2_sizeiptr size, const void *data) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_buffer *buf = NULL;
+  switch (target) {
+    case GL_ES2_ARRAY_BUFFER:
+      buf = c->array_buffer_;
+      break;
+    case GL_ES2_ELEMENT_ARRAY_BUFFER:
+      buf = c->element_array_buffer_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+  if (!buf) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if ((offset < 0) || (size < 0)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  uintptr_t end_of_range = offset + size;
+  if (end_of_range < (uintptr_t)offset) {
+    /* overflow */
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (((size_t)offset) > buf->buf_.size_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (((size_t)end_of_range) > buf->buf_.size_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!data) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  data_buffer_copy_data(&buf->buf_, (size_t)offset, (size_t)size, data);
 }
 
 GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CheckFramebufferStatus)(gl_es2_enum target) {

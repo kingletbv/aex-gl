@@ -41,14 +41,14 @@ void data_buffer_cleanup(struct data_buffer *db);
  * alternatively, if the size is larger, that space will be initialized with
  * 0 bytes.
  * Returns 0 upon success, non-zero upon memory allocation failure. */
-int data_buffer_set_data(struct data_buffer *db, size_t size, void *data);
+int data_buffer_set_data(struct data_buffer *db, size_t size, const void *data);
 
 /* copies the data into the data_buffer db without resizing it or changing it otherwise.
  * The data is copied at offset and with length size. These values are clamped to fit
  * the actual size of the data_buffer (so not all data might be copied, a best effort
  * is made, depending on the current size of the buffer.) Because of this, this function
  * does not fail. */
-void data_buffer_copy_data(struct data_buffer *db, size_t offset, size_t size, void *src);
+void data_buffer_copy_data(struct data_buffer *db, size_t offset, size_t size, const void *src);
 
 #ifdef __cplusplus
 } /* extern "C" */

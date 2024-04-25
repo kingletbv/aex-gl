@@ -142,6 +142,10 @@ struct gl_es2_texture_unit {
 struct gl_es2_buffer {
   struct named_object no_;
   
+  /* glGetBufferParameteriv(GL_BUFFER_USAGE)
+   * GL_ES2_STREAM_DRAW, GL_ES2_STATIC_DRAW or GL_ES2_DYNAMIC_DRAW */
+  gl_es2_enum usage_;
+
   struct data_buffer buf_;
 };
 

@@ -86,6 +86,10 @@ extern "C" {
 #define GL_ES2_ONE_MINUS_CONSTANT_ALPHA  0x8004
 #define GL_ES2_SRC_ALPHA_SATURATE        0x0308
 
+#define GL_ES2_STREAM_DRAW  0x88E0
+#define GL_ES2_STATIC_DRAW  0x88E4
+#define GL_ES2_DYNAMIC_DRAW 0x88E8
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02
