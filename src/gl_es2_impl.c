@@ -1675,22 +1675,22 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFuncSep
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMask)(gl_es2_uint mask) {
   struct gl_es2_context *c = gl_es2_ctx();
-  c->stencil_writemask_ = (uint16_t)mask;
-  c->stencil_back_writemask_ = (uint16_t)mask;
+  c->stencil_writemask_ = (uint32_t)mask;
+  c->stencil_back_writemask_ = (uint32_t)mask;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMaskSeparate)(gl_es2_enum face, gl_es2_uint mask) {
   struct gl_es2_context *c = gl_es2_ctx();
   switch (face) {
     case GL_ES2_FRONT_AND_BACK:
-      c->stencil_writemask_ = (uint16_t)mask;
-      c->stencil_back_writemask_ = (uint16_t)mask;
+      c->stencil_writemask_ = (uint32_t)mask;
+      c->stencil_back_writemask_ = (uint32_t)mask;
       break;
     case GL_ES2_FRONT:
-      c->stencil_writemask_ = (uint16_t)mask;
+      c->stencil_writemask_ = (uint32_t)mask;
       break;
     case GL_ES2_BACK:
-      c->stencil_back_writemask_ = (uint16_t)mask;
+      c->stencil_back_writemask_ = (uint32_t)mask;
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
