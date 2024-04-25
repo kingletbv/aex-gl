@@ -5029,7 +5029,9 @@ int main(int argc, char **argv) {
 
   primitive_assembly_draw_elements(&program.pa_, &as, program.vertex_shader_, &program.ar_, &program.cs_, &ras, &program.fragbuf_, program.fragment_shader_,
                                    vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
-                                   screen_width, screen_height, max_z,
+                                   screen_width, screen_height, 
+                                   0, 0, screen_width, screen_height,
+                                   max_z,
                                    rgba32, screen_width*4,
                                    NULL, OUTPUT_WIDTH*4, 4,
                                    NULL, OUTPUT_WIDTH*2, 2,

@@ -2277,6 +2277,8 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       float depth_range_far,
                                       uint32_t screen_width,
                                       uint32_t screen_height,
+                                      int32_t scissor_left, int32_t scissor_bottom_counted_from_bottom,
+                                      int32_t scissor_width, int32_t scissor_height,
                                       uint32_t max_z,
                                       uint8_t *rgba, size_t rgba_stride,
                                       uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
@@ -2305,14 +2307,36 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       primitive_assembly_index_type_t index_type,
                                       void *indices) {
   int r;
-
-
   struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&vertex_shader->cu_, "gl_Position");
   struct sl_function *vmain = sl_compilation_unit_find_function(&vertex_shader->cu_, "main");
 
   struct sl_variable *fgl_FragCoord = sl_compilation_unit_find_variable(&fragment_shader->cu_, "gl_FragCoord");
   struct sl_variable *fgl_FragColor = sl_compilation_unit_find_variable(&fragment_shader->cu_, "gl_FragColor");
   struct sl_function *fmain = sl_compilation_unit_find_function(&fragment_shader->cu_, "main");
+
+  /* Normalize scissor rect from "bottom-left positive-y is up" coordinate system to 
+   * "top-left positive-y is down" coordinate system that rasterizer expects.
+   * Clamp to the actual screen while doing so. */
+  uint32_t norm_scissor_left, norm_scissor_top, norm_scissor_right, norm_scissor_bottom;
+  norm_scissor_left = (scissor_left >= 0) ? (uint32_t)scissor_left : 0;
+  if (scissor_bottom_counted_from_bottom <= (int32_t)screen_height) {
+    norm_scissor_bottom = (scissor_bottom_counted_from_bottom >= 0) ? (screen_height - scissor_bottom_counted_from_bottom) : screen_height;
+  }
+  else {
+    norm_scissor_bottom = 0;
+  }
+  if ((scissor_bottom_counted_from_bottom + scissor_height) <= (int32_t)screen_height) {
+    norm_scissor_top = ((scissor_bottom_counted_from_bottom + scissor_height) >= 0) ? (scissor_bottom_counted_from_bottom + scissor_height) : screen_height;
+  }
+  else {
+    norm_scissor_top = 0;
+  }
+  norm_scissor_right = ((scissor_left + scissor_width) >= 0) ? (uint32_t)(scissor_left + scissor_width) : 0;
+
+  if ((norm_scissor_left >= norm_scissor_right) || (norm_scissor_top >= norm_scissor_bottom)) {
+    /* scissor rect holding no space; no pixel can be emitted, draw call is no-op. */
+    return;
+  }
 
   // XXX: Configure pipeline to handle points, lines or triangles, depending on what mode is.
 
@@ -2466,7 +2490,8 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                                             rgba, rgba_stride,     // bitmap
                                                             zbuf, zbuf_stride, zbuf_step,  // z-buffer
                                                             stencil_buf, stencil_stride, stencil_step,  // stencil buffer
-                                                            0, 0, screen_width, screen_height,  // scissor-rect
+                                                            norm_scissor_left, norm_scissor_top, 
+                                                            norm_scissor_right, norm_scissor_bottom,  // scissor-rect
                                                             sx0, sy0, sz0,
                                                             sx1, sy1, sz1,
                                                             sx2, sy2, sz2,
