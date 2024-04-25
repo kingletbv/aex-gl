@@ -2326,7 +2326,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
     norm_scissor_bottom = 0;
   }
   if ((scissor_bottom_counted_from_bottom + scissor_height) <= (int32_t)screen_height) {
-    norm_scissor_top = ((scissor_bottom_counted_from_bottom + scissor_height) >= 0) ? (scissor_bottom_counted_from_bottom + scissor_height) : screen_height;
+    norm_scissor_top = ((scissor_bottom_counted_from_bottom + scissor_height) >= 0) ? (screen_height - (scissor_bottom_counted_from_bottom + scissor_height)) : screen_height;
   }
   else {
     norm_scissor_top = 0;
