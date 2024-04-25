@@ -253,6 +253,15 @@ struct gl_es2_context {
   /* glUseProgram() - Currently used program */
   struct gl_es2_program *current_program_;
 
+  /* glStencilMask()/glStencilMaskSeparate() - glGet(GL_STENCIL_BACK_WRITEMASK), glGet(GL_STENCIL_WRITEMASK) */
+  uint32_t stencil_back_writemask_, stencil_writemask_;
+
+  /* glDepthMask(f) - glGet(GL_DEPTH_WRITEMASK) */
+  int depth_mask_:1;
+
+  /* glColorMask(r,g,b,a) - glGet(GL_COLOR_WRITEMASK) */
+  int red_mask_:1, green_mask_:1, blue_mask_:1, alpha_mask_:1;
+
   /* glBlendEquation & glGet(GL_BLEND_EQUATION_RGB) & glGet(GL_BLEND_EQUATION_ALPHA) */
   blend_eq_t blend_rgb_eq_;
   blend_eq_t blend_alpha_eq_;

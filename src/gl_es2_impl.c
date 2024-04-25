@@ -1049,6 +1049,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ClearStencil)(
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ColorMask)(gl_es2_boolean red, gl_es2_boolean green, gl_es2_boolean blue, gl_es2_boolean alpha) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  c->red_mask_ = !!red;
+  c->green_mask_ = !!green;
+  c->blue_mask_ = !!blue;
+  c->alpha_mask_ = !!alpha;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompileShader)(gl_es2_uint shader) {
@@ -1322,6 +1327,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthFunc)(gl_
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthMask)(gl_es2_boolean flag) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  c->depth_mask_ = !!flag;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthRangef)(gl_es2_float n, gl_es2_float f) {
@@ -1667,9 +1674,28 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFuncSep
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMask)(gl_es2_uint mask) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  c->stencil_writemask_ = (uint16_t)mask;
+  c->stencil_back_writemask_ = (uint16_t)mask;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMaskSeparate)(gl_es2_enum face, gl_es2_uint mask) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  switch (face) {
+    case GL_ES2_FRONT_AND_BACK:
+      c->stencil_writemask_ = (uint16_t)mask;
+      c->stencil_back_writemask_ = (uint16_t)mask;
+      break;
+    case GL_ES2_FRONT:
+      c->stencil_writemask_ = (uint16_t)mask;
+      break;
+    case GL_ES2_BACK:
+      c->stencil_back_writemask_ = (uint16_t)mask;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilOp)(gl_es2_enum fail, gl_es2_enum zfail, gl_es2_enum zpass) {

@@ -442,6 +442,11 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->element_array_buffer_ = NULL;
   c->current_program_ = NULL;
 
+  c->stencil_writemask_ = ~(uint32_t)0;
+  c->stencil_back_writemask_ = ~(uint32_t)0;
+  c->depth_mask_ = 1;
+  c->red_mask_ = c->green_mask_ = c->blue_mask_ = c->alpha_mask_ = 1;
+
   c->blend_rgb_eq_ = BEQ_FUNC_ADD;
   c->blend_alpha_eq_ = BEQ_FUNC_ADD;
 
