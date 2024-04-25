@@ -442,6 +442,14 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->element_array_buffer_ = NULL;
   c->current_program_ = NULL;
 
+  c->is_scissor_test_enabled_ = 0; /* default off */
+
+  /* should initialize to window-supplied-framebuffer as soon as it's attached */
+  c->scissor_left_ = 0;
+  c->scissor_bottom_counted_from_bottom_ = 0;
+  c->scissor_width_ = 0;
+  c->scissor_height_ = 0;
+
   c->stencil_writemask_ = ~(uint32_t)0;
   c->stencil_back_writemask_ = ~(uint32_t)0;
   c->depth_mask_ = 1;

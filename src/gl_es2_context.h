@@ -256,6 +256,13 @@ struct gl_es2_context {
   /* glStencilMask()/glStencilMaskSeparate() - glGet(GL_STENCIL_BACK_WRITEMASK), glGet(GL_STENCIL_WRITEMASK) */
   uint32_t stencil_back_writemask_, stencil_writemask_;
 
+  /* glEnable(GL_SCISSOR_TEST), glDisable(GL_SCISSOR_TEST), glIsEnabled(GL_SCISSOR_TEST) */
+  int is_scissor_test_enabled_:1;
+
+  /* glScissor() - glGet(GL_SCISSOR_BOX) */
+  int32_t scissor_left_, scissor_bottom_counted_from_bottom_;
+  int32_t scissor_width_, scissor_height_;
+
   /* glDepthMask(f) - glGet(GL_DEPTH_WRITEMASK) */
   int depth_mask_:1;
 

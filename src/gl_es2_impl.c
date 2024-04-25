@@ -1659,6 +1659,42 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(SampleCoverage
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Scissor)(gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if ((width < 0) || (height < 0)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  /* Some more sanity checking beyond the spec, so we can feed it into internals without too much hassle */
+
+  /* can it fit our 32 bit numbers.. */
+  if ((width > INT32_MAX) ||
+      (height > INT32_MAX) ||
+      (x > INT32_MAX) ||
+      (x < INT32_MIN) ||
+      (y > INT32_MAX) ||
+      (y < INT32_MIN)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  /* do the extents not exceed our 32 bit numbers... */
+  int32_t w32 = (int32_t)width;
+  int32_t h32 = (int32_t)height;
+
+  /* width and height guaranteed positive; so only need to check overflow */
+  int32_t x32 = w32 + x;
+  int32_t y32 = h32 + y;
+  if ((x32 < x) ||
+      (y32 < y)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  c->scissor_left_ = x;
+  c->scissor_bottom_counted_from_bottom_ = y;
+  c->scissor_width_ = width;
+  c->scissor_height_ = height;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderBinary)(gl_es2_sizei count, const gl_es2_uint *shaders, gl_es2_enum binaryformat, const void *binary, gl_es2_sizei length) {
