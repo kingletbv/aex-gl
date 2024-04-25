@@ -256,7 +256,7 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->framebuffer_ = NULL;
   c->renderbuffer_ = NULL;
 
-  c->num_active_texture_units_ = GL_ES2_MAX_NUM_TEXTURE_UNITS;
+  c->num_active_texture_units_ = GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS;
   c->current_active_texture_unit_ = 0;
   size_t n;
   for (n = 0; n < c->num_active_texture_units_; ++n) {

@@ -162,7 +162,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindAttribLoca
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
-  if (index >= GL_ES2_MAX_NUM_VERTEX_ATTRIBS) {
+  if (index >= GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }

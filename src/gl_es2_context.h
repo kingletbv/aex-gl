@@ -48,10 +48,10 @@
 /* glGet(GL_MAX_TEXTURE_IMAGE_UNITS)
  * glGet(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS)
  */
-#define GL_ES2_MAX_NUM_TEXTURE_UNITS 64
+#define GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS 64
 
 /* glGet(GL_MAX_VERTEX_ATTRIBS) */
-#define GL_ES2_MAX_NUM_VERTEX_ATTRIBS 1024
+#define GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS 1024
 
 
 #ifdef __cplusplus
@@ -215,7 +215,7 @@ struct gl_es2_context {
 
   /* Currently active texture unit, starts out as 0 */
   size_t current_active_texture_unit_;
-  struct gl_es2_texture_unit active_texture_units_[GL_ES2_MAX_NUM_TEXTURE_UNITS];
+  struct gl_es2_texture_unit active_texture_units_[GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS];
 
   /* glBindBuffer(GL_ARRAY_BUFFER); NULL means use client memory */
   struct gl_es2_buffer *array_buffer_;
