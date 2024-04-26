@@ -438,12 +438,18 @@ void gl_es2_program_cleanup(struct gl_es2_program *prog) {
 void gl_es2_shader_init(struct gl_es2_shader *shad) {
   shad->flagged_for_deletion_ = 0;
   shad->first_program_attached_to_ = NULL;
+
+  shad->compilation_status_ = 0;
+
+  sl_shader_init(&shad->shader_);
 }
 
 void gl_es2_shader_cleanup(struct gl_es2_shader *shad) {
   while (shad->first_program_attached_to_) {
     gl_es2_program_shader_attachment_detach(shad->first_program_attached_to_);
   }
+
+  sl_shader_cleanup(&shad->shader_);
 }
 
 

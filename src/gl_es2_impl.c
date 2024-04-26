@@ -1229,6 +1229,51 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ColorMask)(gl_
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompileShader)(gl_es2_uint shader) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  uintptr_t shad_name = (uintptr_t)shader;
+  struct gl_es2_shader *shad = NULL;
+  shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
+  if (!shad) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  shad->compilation_status_ = 0;
+
+  int r;
+  r = sl_shader_compile(&shad->shader_);
+  switch (r) {
+    case SL_ERR_INVALID_ARG:
+    case SL_ERR_INTERNAL:
+      dx_error(&shad->shader_.gl_info_log_.dx_, "An internal error occurred\n");
+      return;
+    case SL_ERR_NO_MEM:
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    case SL_ERR_OK:
+      break;
+  }
+
+  /* check that we have a main function */
+  struct sl_function *f;
+  f = sl_compilation_unit_find_function(&shad->shader_.cu_, "main");
+  if (!f) {
+    dx_error(&shad->shader_.gl_info_log_.dx_, "Error: shader does not have a main function\n");
+    return;
+  }
+
+  if (f->num_parameters_) {
+    dx_error(&shad->shader_.gl_info_log_.dx_, "Error: shader main() function should not have parameters\n");
+    return;
+  }
+
+  if (f->return_type_->kind_ != sltk_void) {
+    dx_error(&shad->shader_.gl_info_log_.dx_, "Error: shader main() function should have 'void' return type\n");
+    return;
+  }
+
+  shad->compilation_status_ = 1;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompressedTexImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_enum internalformat, gl_es2_sizei width, gl_es2_sizei height, gl_es2_int border, gl_es2_sizei imageSize, const void *data) {
@@ -1292,6 +1337,15 @@ GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateS
   /* else not_ok */
   gl_es2_shader_init(shad);
   shad->type_ = type;
+
+  switch (type) {
+    case GL_ES2_VERTEX_SHADER:
+      sl_shader_set_type(&shad->shader_, SLST_VERTEX_SHADER);
+      break;
+    case GL_ES2_FRAGMENT_SHADER:
+      sl_shader_set_type(&shad->shader_, SLST_FRAGMENT_SHADER);
+      break;
+  }
 
   return shad_name;
 }

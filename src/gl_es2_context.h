@@ -50,6 +50,11 @@
 #include "sampler_2d.h"
 #endif
 
+#ifndef SL_SHADER_H_INCLUDED
+#define SL_SHADER_H_INCLUDED
+#include "sl_shader.h"
+#endif
+
 /* glGet(GL_MAX_TEXTURE_IMAGE_UNITS)
  * glGet(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS)
  */
@@ -200,6 +205,11 @@ struct gl_es2_shader {
 
   /* glGetShaderiv(GL_DELETE_STATUS) */
   int flagged_for_deletion_:1;
+
+  /* glGetShaderiv(GL_COMPILE_STATUS) */
+  int compilation_status_:1;
+
+  struct sl_shader shader_;
 };
 
 struct gl_es2_context {

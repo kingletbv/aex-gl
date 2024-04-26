@@ -143,6 +143,7 @@ int sl_shader_compile(struct sl_shader *sh) {
 
   enum glsl_es1_compiler_result cr;
   if (sh->type_ == SLST_INVALID_SHADER) {
+    dx_error(cc.dx_, "Shader type has not been specified\n");
     r = SL_ERR_INVALID_ARG;
     goto cleanup;
   }
