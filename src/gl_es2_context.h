@@ -149,6 +149,8 @@ struct gl_es2_renderbuffer {
   struct gl_es2_framebuffer_attachment *first_framebuffer_attached_to_;
 
   int width_, height_;
+  size_t num_bytes_per_bitmap_row_;
+  void *bitmap_;
 };
 
 struct gl_es2_texture {
@@ -269,6 +271,18 @@ struct gl_es2_context {
   /* glColorMask(r,g,b,a) - glGet(GL_COLOR_WRITEMASK) */
   int red_mask_:1, green_mask_:1, blue_mask_:1, alpha_mask_:1;
 
+  /* glClearColor(r,g,b,a) - glGet(GL_COLOR_CLEAR_VALUE) */
+  uint8_t clear_color_red_;
+  uint8_t clear_color_grn_;
+  uint8_t clear_color_blu_;
+  uint8_t clear_color_alpha_;
+
+  /* glClearDepth(depth) - glGet(GL_DEPTH_CLEAR_VALUE) */
+  float clear_depth_;
+
+  /* glClearStencil(stencil) - glGet(GL_STENCIL_CLEAR_VALUE) */
+  uint16_t clear_stencil_;
+
   /* glBlendEquation & glGet(GL_BLEND_EQUATION_RGB) & glGet(GL_BLEND_EQUATION_ALPHA) */
   blend_eq_t blend_rgb_eq_;
   blend_eq_t blend_alpha_eq_;
@@ -288,13 +302,14 @@ struct gl_es2_context {
 };
 
 struct gl_es2_context *gl_es2_ctx(void);
+void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *left, uint32_t *top, uint32_t *right, uint32_t *bottom);
 
 void gl_es2_framebuffer_attachment_init(struct gl_es2_framebuffer *fb, struct gl_es2_framebuffer_attachment *fa);
 void gl_es2_framebuffer_attachment_cleanup(struct gl_es2_framebuffer_attachment *fa);
 void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *fa);
 void gl_es2_framebuffer_attachment_attach_texture(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_texture *tex);
 void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_renderbuffer *rb);
-enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struct gl_es2_framebuffer *fb);
+void gl_es2_framebuffer_attachment_raw_ptr(struct gl_es2_framebuffer_attachment *fa, void **prawptr, size_t *pstride);
 
 void gl_es2_program_shader_attachment_init(struct gl_es2_program *prog, struct gl_es2_program_shader_attachment *psa);
 void gl_es2_program_shader_attachment_cleanup(struct gl_es2_program_shader_attachment *psa);
@@ -303,6 +318,8 @@ void gl_es2_program_shader_attachment_attach(struct gl_es2_program_shader_attach
 
 void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb);
 void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb);
+int gl_es2_framebuffer_get_dims(struct gl_es2_framebuffer *fb, int *pwidth, int *pheight);
+enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struct gl_es2_framebuffer *fb);
 
 void gl_es2_renderbuffer_init(struct gl_es2_renderbuffer *rb);
 void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb);

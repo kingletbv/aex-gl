@@ -125,8 +125,7 @@ void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer
   fa->cube_map_face_ = gl_es2_cube_map_positive_x;
 }
 
-enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struct gl_es2_framebuffer *fb) {
-  if (!fb) return gl_es2_framebuffer_incomplete_unsupported;
+int gl_es2_framebuffer_get_dims(struct gl_es2_framebuffer *fb, int *pwidth, int *pheight) {
   int width, height;
   if (fb->color_attachment0_.kind_ == gl_es2_faot_renderbuffer) {
     width = fb->color_attachment0_.v_.rb_->width_;
@@ -168,6 +167,19 @@ enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struc
     }
   }
   else {
+    /* No attachments */
+    *pwidth = *pheight = 0;
+    return 0;
+  }
+  *pwidth = width;
+  *pheight = height;
+  return 1;
+}
+
+enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struct gl_es2_framebuffer *fb) {
+  if (!fb) return gl_es2_framebuffer_incomplete_unsupported;
+  int width, height;
+  if (!gl_es2_framebuffer_get_dims(fb, &width, &height)) {
     /* No attachments */
     return gl_es2_framebuffer_incomplete_missing_attachment;
   }
@@ -288,6 +300,33 @@ enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struc
   return gl_es2_framebuffer_complete;
 }
 
+void gl_es2_framebuffer_attachment_raw_ptr(struct gl_es2_framebuffer_attachment *fa, void **prawptr, size_t *pstride) {
+  switch (fa->kind_) {
+    case gl_es2_faot_none:
+      *prawptr = NULL;
+      *pstride = 0;
+      break;
+    case gl_es2_faot_renderbuffer:
+      *prawptr = fa->v_.rb_->bitmap_;
+      *pstride = fa->v_.rb_->num_bytes_per_bitmap_row_;
+      break;
+    case gl_es2_faot_texture:
+      if (fa->v_.tex_->sampler_2d_.num_maps_) {
+        *prawptr = fa->v_.tex_->sampler_2d_.mipmaps_[0].bitmap_;
+        *pstride = fa->v_.tex_->sampler_2d_.mipmaps_[0].num_bytes_per_bitmap_row_;
+      }
+      else {
+        *prawptr = NULL;
+        *pstride = 0;
+      }
+      break;
+    default:
+      *prawptr = NULL;
+      *pstride = 0;
+      break;
+  }
+}
+
 
 void gl_es2_program_shader_attachment_init(struct gl_es2_program *prog, struct gl_es2_program_shader_attachment *psa) {
   psa->program_ = prog;
@@ -351,6 +390,8 @@ void gl_es2_renderbuffer_init(struct gl_es2_renderbuffer *rb) {
   rb->format_ = gl_es2_renderbuffer_format_none;
   rb->width_ = 0;
   rb->height_ = 0;
+  rb->bitmap_ = NULL;
+  rb->num_bytes_per_bitmap_row_ = 0;
 }
 
 void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb) {
@@ -455,6 +496,10 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->depth_mask_ = 1;
   c->red_mask_ = c->green_mask_ = c->blue_mask_ = c->alpha_mask_ = 1;
 
+  c->clear_color_red_ = c->clear_color_grn_ = c->clear_color_blu_ = c->clear_color_alpha_ = 0;
+  c->clear_depth_ = 1.f;
+  c->clear_stencil_ = 0;
+
   c->blend_rgb_eq_ = BEQ_FUNC_ADD;
   c->blend_alpha_eq_ = BEQ_FUNC_ADD;
 
@@ -514,6 +559,47 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
     gl_es2_shader_cleanup(shad);
     free(shad);
   }
+}
+
+void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *left, uint32_t *top, uint32_t *right, uint32_t *bottom) {
+  /* Normalize scissor rect from "bottom-left positive-y is up" coordinate system to
+   * "top-left positive-y is down" coordinate system that rasterizer expects.
+   * Clamp to the actual screen while doing so. */
+  int screen_width, screen_height;
+  if ((!c->framebuffer_) ||
+      !gl_es2_framebuffer_get_dims(c->framebuffer_, &screen_width, &screen_height)) {
+    *left = *top = *right = *bottom = 0;
+    return;
+  }
+
+  if (!c->is_scissor_test_enabled_) {
+    *left = 0;
+    *top = 0;
+    *right = screen_width;
+    *bottom = screen_height;
+    return;
+  }
+
+  uint32_t norm_scissor_left, norm_scissor_top, norm_scissor_right, norm_scissor_bottom;
+  norm_scissor_left = (c->scissor_left_ >= 0) ? (uint32_t)c->scissor_left_: 0;
+  if (c->scissor_bottom_counted_from_bottom_ <= (int32_t)screen_height) {
+    norm_scissor_bottom = (c->scissor_bottom_counted_from_bottom_  >= 0) ? (screen_height - c->scissor_bottom_counted_from_bottom_) : screen_height;
+  }
+  else {
+    norm_scissor_bottom = 0;
+  }
+  if ((c->scissor_bottom_counted_from_bottom_ + c->scissor_height_) <= (int32_t)screen_height) {
+    norm_scissor_top = ((c->scissor_bottom_counted_from_bottom_ + c->scissor_height_) >= 0) ? (screen_height - (c->scissor_bottom_counted_from_bottom_ + c->scissor_height_)) : screen_height;
+  }
+  else {
+    norm_scissor_top = 0;
+  }
+  norm_scissor_right = ((c->scissor_left_ + c->scissor_width_) >= 0) ? (uint32_t)(c->scissor_left_ + c->scissor_width_) : 0;
+
+  *left = norm_scissor_left;
+  *top = norm_scissor_top;
+  *right = norm_scissor_right;
+  *bottom = norm_scissor_bottom;
 }
 
 static void gl_es2_at_exit_cleanup(void) {

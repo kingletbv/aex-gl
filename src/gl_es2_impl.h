@@ -94,6 +94,10 @@ extern "C" {
 #define GL_ES2_BACK           0x0405
 #define GL_ES2_FRONT_AND_BACK 0x0408
 
+#define GL_ES2_COLOR_BUFFER_BIT   0x4000
+#define GL_ES2_DEPTH_BUFFER_BIT    0x100
+#define GL_ES2_STENCIL_BUFFER_BIT  0x400
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02

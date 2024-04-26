@@ -1037,15 +1037,187 @@ GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CheckFr
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Clear)(gl_es2_bitfield mask) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (gl_es2_framebuffer_complete != gl_es2_framebuffer_check_completeness(c->framebuffer_)) {
+    set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+    return;
+  }
+  uint32_t clear_rect_left;
+  uint32_t clear_rect_top;
+  uint32_t clear_rect_right;
+  uint32_t clear_rect_bottom;
+  gl_es2_ctx_get_normalized_scissor_rect(c, &clear_rect_left, &clear_rect_top, &clear_rect_right, &clear_rect_bottom);
+  uint32_t clear_rect_width = clear_rect_right - clear_rect_left;
+  uint32_t clear_rect_height = clear_rect_bottom - clear_rect_top;
+
+  if (mask & GL_ES2_COLOR_BUFFER_BIT) {
+    void *bitmap;
+    size_t stride;
+    gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->color_attachment0_, &bitmap, &stride);
+    if (bitmap) {
+      if (c->framebuffer_->color_attachment0_.kind_ == gl_es2_faot_renderbuffer) {
+        struct gl_es2_renderbuffer *rb = c->framebuffer_->color_attachment0_.v_.rb_;
+        switch (rb->format_) {
+          case gl_es2_renderbuffer_format_rgba32:
+            blitter_blit_apply_mask4x8(bitmap, stride, 
+                                       c->red_mask_ ? 0xFF : 0x00, 
+                                       c->green_mask_ ? 0xFF : 0x00,
+                                       c->blue_mask_ ? 0xFF : 0x00,
+                                       c->alpha_mask_ ? 0xFF : 0x00,
+                                       c->clear_color_red_,
+                                       c->clear_color_grn_,
+                                       c->clear_color_blu_,
+                                       c->clear_color_alpha_,
+                                       clear_rect_left, clear_rect_top, 
+                                       clear_rect_width, clear_rect_height);
+            break;
+        }
+      }
+      else if (c->framebuffer_->color_attachment0_.kind_ == gl_es2_faot_texture) {
+        struct gl_es2_texture *tex = c->framebuffer_->color_attachment0_.v_.tex_;
+        switch (tex->sampler_2d_.mipmaps_[0].components_) {
+          case s2d_rgb:
+            blitter_blit_apply_mask3x8(bitmap, stride, 
+                                       c->red_mask_ ? 0xFF : 0x00, 
+                                       c->green_mask_ ? 0xFF : 0x00,
+                                       c->blue_mask_ ? 0xFF : 0x00,
+                                       c->clear_color_red_,
+                                       c->clear_color_grn_,
+                                       c->clear_color_blu_,
+                                       clear_rect_left, clear_rect_top, 
+                                       clear_rect_width, clear_rect_height);
+            break;
+          case s2d_rgba:
+            blitter_blit_apply_mask4x8(bitmap, stride, 
+                                       c->red_mask_ ? 0xFF : 0x00, 
+                                       c->green_mask_ ? 0xFF : 0x00,
+                                       c->blue_mask_ ? 0xFF : 0x00,
+                                       c->alpha_mask_ ? 0xFF : 0x00,
+                                       c->clear_color_red_,
+                                       c->clear_color_grn_,
+                                       c->clear_color_blu_,
+                                       c->clear_color_alpha_,
+                                       clear_rect_left, clear_rect_top, 
+                                       clear_rect_width, clear_rect_height);
+            break;
+        }
+      }
+      else {
+        /* Not sure how we got a bitmap yet still got here */
+        set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+        return;
+      }
+    }
+  }
+  if (mask & GL_ES2_DEPTH_BUFFER_BIT) {
+    void *bitmap;
+    size_t stride;
+    gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->depth_attachment_, &bitmap, &stride);
+    if (bitmap) {
+      float clear_depth_f = c->clear_depth_;
+      if (clear_depth_f < 0.f) clear_depth_f = 0.f;
+      if (clear_depth_f > 1.f) clear_depth_f = 1.f;
+
+      if (c->framebuffer_->depth_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+        struct gl_es2_renderbuffer *rb = c->framebuffer_->depth_attachment_.v_.rb_;
+        switch (rb->format_) {
+          case gl_es2_renderbuffer_format_depth16: {
+            uint16_t clear_depth16;
+            uint32_t cd = (uint32_t)floorf(clear_depth_f * 0x10000);
+            clear_depth16 = ((uint16_t)cd) - (uint16_t)(cd >> 16);
+            blitter_blit_apply_mask16(bitmap, stride, c->depth_mask_ ? 0xFFFF : 0x0000, clear_depth16,
+                                      clear_rect_left, clear_rect_top, 
+                                      clear_rect_width, clear_rect_height);
+                                      
+            break;
+          }
+          case gl_es2_renderbuffer_format_depth32: {
+            uint32_t clear_depth32;
+            uint64_t cd = (uint64_t)floorf(clear_depth_f * 0x10000);
+            clear_depth32 = ((uint32_t)cd) - (uint32_t)(cd >> 32);
+
+            blitter_blit_apply_mask32(bitmap, stride, c->depth_mask_ ? 0xFFFFFFFF : 0x00000000, clear_depth32,
+                                      clear_rect_left, clear_rect_top, 
+                                      clear_rect_width, clear_rect_height);
+            break;
+          }
+        }
+      }
+      else if (c->framebuffer_->depth_attachment_.kind_ == gl_es2_faot_texture) {
+        /* Not sure how we got a depth texture given we don't support it yet?
+         * (Would expect framebuffer to be incomplete and not get here.) */
+        set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+        return;
+      }
+      else {
+        /* Not sure how we got a bitmap yet still got here */
+        set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+        return;
+      }
+    }
+  }
+
+  if (mask & GL_ES2_STENCIL_BUFFER_BIT) {
+    void *bitmap;
+    size_t stride;
+    gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->stencil_attachment_, &bitmap, &stride);
+    if (bitmap) {
+      if (c->framebuffer_->depth_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+        struct gl_es2_renderbuffer *rb = c->framebuffer_->stencil_attachment_.v_.rb_;
+        switch (rb->format_) {
+          case gl_es2_renderbuffer_format_stencil16: {
+            blitter_blit_apply_mask16(bitmap, stride, (uint16_t)c->stencil_writemask_, c->clear_stencil_,
+                                      clear_rect_left, clear_rect_top,
+                                      clear_rect_width, clear_rect_height);
+
+            break;
+          }
+        }
+      }
+      else if (c->framebuffer_->depth_attachment_.kind_ == gl_es2_faot_texture) {
+        /* Not sure how we got a stencil texture given we don't support it yet?
+         * (Would expect framebuffer to be incomplete and not get here.) */
+        set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+        return;
+      }
+      else {
+        /* Not sure how we got a bitmap yet still got here */
+        set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+        return;
+      }
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ClearColor)(gl_es2_float red, gl_es2_float green, gl_es2_float blue, gl_es2_float alpha) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (red < 0.f) red = 0.f;
+  if (red > 1.f) red = 1.f;
+  if (green < 0.f) green = 0.f;
+  if (green > 1.f) green = 1.f;
+  if (blue < 0.f) blue = 0.f;
+  if (blue > 1.f) blue = 1.f;
+  if (alpha < 0.f) alpha = 0.f;
+  if (alpha > 1.f) alpha = 1.f;
+  uint32_t ured = (uint32_t)floorf(256.f * red);
+  uint32_t ugreen = (uint32_t)floorf(256.f * green);
+  uint32_t ublue = (uint32_t)floorf(256.f * blue);
+  uint32_t ualpha = (uint32_t)floorf(256.f * alpha);
+  c->clear_color_red_ = ((uint8_t)ured) - (uint8_t)(ured >> 8);
+  c->clear_color_grn_ = ((uint8_t)ugreen) - (uint8_t)(ugreen >> 8);
+  c->clear_color_blu_ = ((uint8_t)ublue) - (uint8_t)(ublue >> 8);
+  c->clear_color_alpha_ = ((uint8_t)ualpha) - (uint8_t)(ualpha >> 8);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ClearDepthf)(gl_es2_float d) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  /* Clamping occurs inside glClear() */
+  c->clear_depth_ = d;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ClearStencil)(gl_es2_int s) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  c->clear_stencil_ = (uint16_t)s;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ColorMask)(gl_es2_boolean red, gl_es2_boolean green, gl_es2_boolean blue, gl_es2_boolean alpha) {
