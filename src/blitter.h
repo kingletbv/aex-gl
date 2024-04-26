@@ -37,6 +37,22 @@ enum blitter_components {
 void blitter_blit(void *dst, const void *src, size_t dst_stride, size_t src_stride, 
                   size_t width, size_t height, enum blitter_components format, enum blitter_data_type src_type);
 
+void blitter_blit_apply_mask8(void *bitmap, size_t stride, uint8_t mask, uint8_t value,
+                              size_t x, size_t y, size_t width, size_t height);
+
+void blitter_blit_apply_mask3x8(void *bitmap, size_t stride, 
+                                uint8_t mask0, uint8_t mask1, uint8_t mask2, 
+                                uint8_t v0, uint8_t v1, uint8_t v2,
+                                size_t x, size_t y, size_t width, size_t height);
+
+void blitter_blit_apply_mask4x8(void *bitmap, size_t stride, 
+                                uint8_t mask0, uint8_t mask1, uint8_t mask2, uint8_t mask3, 
+                                uint8_t v0, uint8_t v1, uint8_t v2, uint8_t v3,
+                                size_t x, size_t y, size_t width, size_t height);
+
+void blitter_blit_apply_mask16(void *bitmap, size_t stride, uint16_t mask, uint16_t value,
+                               size_t x, size_t y, size_t width, size_t height);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

@@ -908,3 +908,539 @@ void blitter_blit(void *dst, const void *src, size_t dst_stride, size_t src_stri
     }
   }
 }
+
+static int blitter_alignment(void *bitmap, size_t stride, int width, size_t bytes_per_pixel) {
+  uintptr_t bmp_uint = (uintptr_t)bitmap;
+  /* Check alignment */
+  uint32_t bmp_alignment = check_alignment((uint32_t)bmp_uint);
+  uint32_t stride_alignment = check_alignment((uint32_t)stride);
+
+  if (stride_alignment < bmp_alignment) bmp_alignment = stride_alignment;
+
+  uint32_t alignment = bmp_alignment;
+
+  size_t bytes_per_row = width * bytes_per_pixel;
+
+  uint32_t width_byte_alignment = check_alignment((uint32_t)bytes_per_row);
+
+  if (width_byte_alignment < alignment) alignment = width_byte_alignment;
+
+  uint32_t max_width_cluster = check_alignment((uint32_t)width);
+
+}
+
+static void blitter_blit_apply_mask_fast64(uint64_t * restrict bitmap, size_t stride64,
+                                           size_t y, size_t x64,
+                                           size_t width64, size_t height,
+                                           uint64_t lmask, uint64_t imask, uint64_t rmask, 
+                                           uint64_t value) {
+  uint64_t * restrict prow = bitmap + stride64 * y + x64;
+  size_t row, col;
+  value = value & imask;
+  if (width64 == 0) {
+    uint64_t mask = lmask & imask & rmask;
+    uint64_t value_ = value & mask;
+    for (row = 0; row < height; ++row) {
+      uint64_t *restrict p = prow;
+      prow += stride64;
+
+      *p = (*p & ~mask) | value_;
+    }
+  }
+  else if (width64 == 1) {
+    uint64_t left_mask = lmask & imask;
+    uint64_t right_mask = imask & rmask;
+    uint64_t left_value = value & left_mask;
+    uint64_t right_value = value & right_mask;
+    for (row = 0; row < height; ++row) {
+      uint64_t *restrict p = prow;
+      prow += stride64;
+
+      p[0] = (p[0] & ~left_mask) | left_value;
+      p[1] = (p[1] & ~right_mask) | right_value;
+    }
+  }
+  else {
+    uint64_t left_mask = lmask & imask;
+    uint64_t right_mask = imask & rmask;
+    uint64_t left_value = value & left_mask;
+    uint64_t right_value = value & right_mask;
+    for (row = 0; row < height; ++row) {
+      uint64_t *restrict p = prow;
+      prow += stride64;
+
+      *p = (*p & ~left_mask) | left_value;
+      p++;
+      for (col = 0; col < (width64 - 1); ++col) {
+        *p = (*p & ~imask) | value;
+        p++;
+      }
+      *p = (*p & ~right_mask) | right_value;
+    }
+  }
+}
+
+
+static void blitter_blit_apply_mask_fast192(uint64_t * restrict bitmap, size_t stride64,
+                                            size_t y, size_t x64,
+                                            size_t width192, size_t height,
+                                            uint64_t lmask0, uint64_t lmask1, uint64_t lmask2,
+                                            uint64_t imask0, uint64_t imask1, uint64_t imask2,
+                                            uint64_t rmask0, uint64_t rmask1, uint64_t rmask2,
+                                            uint64_t value0, uint64_t value1, uint64_t value2) {
+  uint64_t * restrict prow = bitmap + stride64 * y + x64;
+  size_t row, col;
+  value0 = value0 & imask0;
+  value1 = value1 & imask1;
+  value2 = value2 & imask2;
+  if (width192 == 0) {
+    uint64_t mask0 = lmask0 & imask0 & rmask0;
+    uint64_t mask1 = lmask1 & imask1 & rmask1;
+    uint64_t mask2 = lmask2 & imask2 & rmask2;
+    uint64_t value0_ = value0 & mask0;
+    uint64_t value1_ = value1 & mask1;
+    uint64_t value2_ = value2 & mask2;
+    for (row = 0; row < height; ++row) {
+      uint64_t *restrict p = prow;
+      prow += stride64;
+
+      p[0] = (p[0] & ~mask0) | value0_;
+      p[1] = (p[1] & ~mask1) | value1_;
+      p[2] = (p[2] & ~mask2) | value2_;
+    }
+  }
+  else {
+    uint64_t left_mask0 = lmask0 & imask0;
+    uint64_t left_mask1 = lmask1 & imask1;
+    uint64_t left_mask2 = lmask2 & imask2;
+    uint64_t right_mask0 = imask0 & rmask0;
+    uint64_t right_mask1 = imask1 & rmask1;
+    uint64_t right_mask2 = imask2 & rmask2;
+    uint64_t left_value0 = value0 & left_mask0;
+    uint64_t left_value1 = value1 & left_mask1;
+    uint64_t left_value2 = value2 & left_mask2;
+    uint64_t right_value0 = value0 & right_mask0;
+    uint64_t right_value1 = value1 & right_mask1;
+    uint64_t right_value2 = value2 & right_mask2;
+    if (width192 == 1) {
+      for (row = 0; row < height; ++row) {
+        uint64_t *restrict p = prow;
+        prow += stride64;
+
+        p[0] = (p[0] & ~left_mask0) | left_value0;
+        p[1] = (p[1] & ~left_mask1) | left_value1;
+        p[2] = (p[2] & ~left_mask2) | left_value2;
+        p[3] = (p[3] & ~right_mask0) | right_value0;
+        p[4] = (p[4] & ~right_mask1) | right_value1;
+        p[5] = (p[5] & ~right_mask2) | right_value2;
+      }
+    }
+    else {
+      for (row = 0; row < height; ++row) {
+        uint64_t *restrict p = prow;
+        prow += stride64;
+
+        p[0] = (p[0] & ~left_mask0) | left_value0;
+        p[1] = (p[1] & ~left_mask1) | left_value1;
+        p[2] = (p[2] & ~left_mask2) | left_value2;
+        p += 3;
+        for (col = 0; col < (width192 - 1); ++col) {
+          p[0] = (p[0] & ~imask0) | value0;
+          p[1] = (p[1] & ~imask1) | value1;
+          p[2] = (p[2] & ~imask2) | value2;
+          p += 3;
+        }
+        p[0] = (p[0] & ~right_mask0) | right_value0;
+        p[1] = (p[1] & ~right_mask1) | right_value1;
+        p[2] = (p[2] & ~right_mask2) | right_value2;
+      }
+    }
+  }
+}
+
+
+
+void blitter_blit_apply_mask8(void *bitmap, size_t stride, uint8_t mask, uint8_t value,
+                              size_t x, size_t y, size_t width, size_t height) {
+  if (!width) return;
+  if ((((uintptr_t)bitmap) | (uintptr_t)stride) & 0x7) {
+    /* Bitmap wasn't allocated with 64-bit alignment in mind, go slow-path */
+    size_t row, col;
+    uint8_t *prow, *p;
+    prow = ((uint8_t *)bitmap) + stride * y + x;
+    value &= mask;
+    for (row = 0; row < height; ++row) {
+      p = prow;
+      prow += stride;
+      for (col = 0; col < width; ++col) {
+        *p = (*p & ~mask) | value;
+        p++;
+      }
+    }
+    return;
+  }
+
+  size_t right_edge_inclusive = (x + width - 1);
+  uint64_t lmask, imask, rmask;
+  imask = mask | (((uint64_t)imask) << 8);
+  imask |= imask << 16;
+  imask |= imask << 32;
+  lmask = (imask >> (8 * (x & 7)));
+  rmask = (imask << (8 * (7 - (right_edge_inclusive & 7))));
+
+  uint64_t value64 = value | (((uint64_t)value) << 8);
+  value64 |= value64 << 16;
+  value64 |= value64 << 32;
+
+  size_t x64 = x/8;
+  size_t width64 = (right_edge_inclusive/8) - x64;
+  blitter_blit_apply_mask_fast64(bitmap, stride, y, x/8, width64, height, lmask, imask, rmask, value);
+}
+
+static void lsl192(uint64_t *r0, uint64_t *r1, uint64_t *r2, uint64_t l0, uint64_t l1, uint64_t l2, int shift_left) {
+  uint64_t v[] = {
+    0, 0, 0, 0, l0, l1, l2, 0, 0, 0, 0
+  };
+
+  int zero = 192+64;
+  if (shift_left < 0) {
+    zero -= 64;
+    shift_left = 64 - shift_left;
+  }
+  uint64_t sl0 = v[(zero + shift_left) / 64] << (shift_left & 63);
+  sl0 |= (shift_left & 63) ? v[1 + (zero + shift_left) / 64] >> (64 - (shift_left & 63)) : 0;
+  zero += 64;
+  uint64_t sl1 = v[(zero + shift_left) / 64] << (shift_left & 63);
+  sl1 |= (shift_left & 63) ? v[1 + (zero + shift_left) / 64] >> (64 - (shift_left & 63)) : 0;
+  zero += 64;
+  uint64_t sl2 = v[(zero + shift_left) / 64] << (shift_left & 63);
+  sl2 |= (shift_left & 63) ? v[1 + (zero + shift_left) / 64] >> (64 - (shift_left & 63)) : 0;
+  *r0 = sl0;
+  *r1 = sl1;
+  *r2 = sl2;
+}
+
+#define lsr192(r0, r1, r2, l0, l1, l2, shift_right) lsl192(r0,r1,r2,l0,l1,l2,-(int)(shift_right))
+
+void blitter_blit_apply_mask3x8(void *bitmap, size_t stride, 
+                                uint8_t mask0, uint8_t mask1, uint8_t mask2, 
+                                uint8_t v0, uint8_t v1, uint8_t v2,
+                                size_t x, size_t y, size_t width, size_t height) {
+
+  if (!width) return;
+  if ((((uintptr_t)bitmap) | (uintptr_t)stride) & 0x7) {
+    size_t row, col;
+    uint8_t *prow, *p;
+    prow = ((uint8_t *)bitmap) + stride * y + x * 3;
+    v0 &= mask0;
+    v1 &= mask1;
+    v2 &= mask2;
+    for (row = 0; row < height; ++row) {
+      p = prow;
+      prow += stride;
+      for (col = 0; col < width; ++col) {
+        p[0] = (p[0] & ~mask0) | v0;
+        p[1] = (p[1] & ~mask1) | v1;
+        p[2] = (p[2] & ~mask2) | v2;
+        p += 3;
+      }
+    }
+    return;
+  }
+
+  size_t right_edge_inclusive = (x + width - 1);
+
+  union {
+    uint16_t u16;
+    uint8_t v[2];
+  } endian_check;
+  endian_check.u16 = 0x0100;
+  int big_endian = !!endian_check.v[0];
+
+  uint64_t imask0, imask1, imask2;
+  uint64_t value0, value1, value2;
+  if (big_endian) {
+    value0 = (((uint64_t)v0) << 56)
+           | (((uint64_t)v1) << 48)
+           | (((uint64_t)v2) << 40)
+           | (((uint64_t)v0) << 32)
+           | (((uint64_t)v1) << 24)
+           | (((uint64_t)v2) << 16)
+           | (((uint64_t)v0) << 8)
+           | ((uint64_t)v1);
+    value1 = (((uint64_t)v2) << 56)
+           | (((uint64_t)v0) << 48)
+           | (((uint64_t)v1) << 40)
+           | (((uint64_t)v2) << 32)
+           | (((uint64_t)v0) << 24)
+           | (((uint64_t)v1) << 16)
+           | (((uint64_t)v2) << 8)
+           | ((uint64_t)v0);
+    value2 = (((uint64_t)v1) << 56)
+           | (((uint64_t)v2) << 48)
+           | (((uint64_t)v0) << 40)
+           | (((uint64_t)v1) << 32)
+           | (((uint64_t)v2) << 24)
+           | (((uint64_t)v0) << 16)
+           | (((uint64_t)v1) << 8)
+           | ((uint64_t)v2);
+
+    imask0 = (((uint64_t)mask0) << 56)
+           | (((uint64_t)mask1) << 48)
+           | (((uint64_t)mask2) << 40)
+           | (((uint64_t)mask0) << 32)
+           | (((uint64_t)mask1) << 24)
+           | (((uint64_t)mask2) << 16)
+           | (((uint64_t)mask0) << 8)
+           | ((uint64_t)mask1);
+    imask1 = (((uint64_t)mask2) << 56)
+           | (((uint64_t)mask0) << 48)
+           | (((uint64_t)mask1) << 40)
+           | (((uint64_t)mask2) << 32)
+           | (((uint64_t)mask0) << 24)
+           | (((uint64_t)mask1) << 16)
+           | (((uint64_t)mask2) << 8)
+           | ((uint64_t)mask0);
+    imask2 = (((uint64_t)mask1) << 56)
+           | (((uint64_t)mask2) << 48)
+           | (((uint64_t)mask0) << 40)
+           | (((uint64_t)mask1) << 32)
+           | (((uint64_t)mask2) << 24)
+           | (((uint64_t)mask0) << 16)
+           | (((uint64_t)mask1) << 8)
+           | ((uint64_t)mask2);
+  }
+  else {
+    value0 = ((uint64_t)v0)
+           | (((uint64_t)v1) << 8)
+           | (((uint64_t)v2) << 16)
+           | (((uint64_t)v0) << 24)
+           | (((uint64_t)v1) << 32)
+           | (((uint64_t)v2) << 40)
+           | (((uint64_t)v0) << 48)
+           | (((uint64_t)v1) << 56);
+    value1 = ((uint64_t)v2)
+           | (((uint64_t)v0) << 8)
+           | (((uint64_t)v1) << 16)
+           | (((uint64_t)v2) << 24)
+           | (((uint64_t)v0) << 32)
+           | (((uint64_t)v1) << 40)
+           | (((uint64_t)v2) << 48)
+           | (((uint64_t)v0) << 56);
+    value2 = ((uint64_t)v1)
+           | (((uint64_t)v2) << 8)
+           | (((uint64_t)v0) << 16)
+           | (((uint64_t)v1) << 24)
+           | (((uint64_t)v2) << 32)
+           | (((uint64_t)v0) << 40)
+           | (((uint64_t)v1) << 48)
+           | (((uint64_t)v2) << 56);
+
+    imask0 = ((uint64_t)mask0)
+           | (((uint64_t)mask1) << 8)
+           | (((uint64_t)mask2) << 16)
+           | (((uint64_t)mask0) << 24)
+           | (((uint64_t)mask1) << 32)
+           | (((uint64_t)mask2) << 40)
+           | (((uint64_t)mask0) << 48)
+           | (((uint64_t)mask1) << 56);
+    imask1 = ((uint64_t)mask2)
+           | (((uint64_t)mask0) << 8)
+           | (((uint64_t)mask1) << 16)
+           | (((uint64_t)mask2) << 24)
+           | (((uint64_t)mask0) << 32)
+           | (((uint64_t)mask1) << 40)
+           | (((uint64_t)mask2) << 48)
+           | (((uint64_t)mask0) << 56);
+    imask2 = ((uint64_t)mask1)
+           | (((uint64_t)mask2) << 8)
+           | (((uint64_t)mask0) << 16)
+           | (((uint64_t)mask1) << 24)
+           | (((uint64_t)mask2) << 32)
+           | (((uint64_t)mask0) << 40)
+           | (((uint64_t)mask1) << 48)
+           | (((uint64_t)mask2) << 56);
+  }
+  uint64_t left_mask_mask0, left_mask_mask1, left_mask_mask2;
+  uint64_t right_mask_mask0, right_mask_mask1, right_mask_mask2;
+  
+  lsr192(&left_mask_mask0, &left_mask_mask1, &left_mask_mask2,
+         ~(uint64_t)0, ~(uint64_t)0, ~(uint64_t)0,
+         8 * ((x * 3) % 24));
+  
+  lsl192(&right_mask_mask0, &right_mask_mask1, &right_mask_mask2,
+         ~(uint64_t)0, ~(uint64_t)0, ~(uint64_t)0,
+         8 * (23 - ((right_edge_inclusive * 3) % 24)));
+
+  uint64_t lmask0, lmask1, lmask2, rmask0, rmask1, rmask2;
+  lmask0 = imask0 & left_mask_mask0;
+  lmask1 = imask1 & left_mask_mask1;
+  lmask2 = imask2 & left_mask_mask2;
+  rmask0 = imask0 & right_mask_mask0;
+  rmask1 = imask1 & right_mask_mask1;
+  rmask2 = imask2 & right_mask_mask2;
+
+  size_t x192 = x/24;
+  size_t width192 = ((right_edge_inclusive*3)/24) - x192;
+  size_t x64 = x192*3;
+  blitter_blit_apply_mask_fast192(bitmap, stride, y, x64, width192, height,
+                                  lmask0, lmask1, lmask2,
+                                  imask0, imask1, imask2,
+                                  rmask0, rmask1, rmask2,
+                                  value0, value1, value2);
+
+}
+
+void blitter_blit_apply_mask4x8(void *bitmap, size_t stride, 
+                                uint8_t mask0, uint8_t mask1, uint8_t mask2, uint8_t mask3,
+                                uint8_t v0, uint8_t v1, uint8_t v2, uint8_t v3,
+                                size_t x, size_t y, size_t width, size_t height) {
+
+  if (!width) return;
+  if ((((uintptr_t)bitmap) | (uintptr_t)stride) & 0x7) {
+    size_t row, col;
+    uint8_t * restrict prow, * restrict p;
+    prow = ((uint8_t * restrict)bitmap) + stride * y + x * 3;
+    v0 &= mask0;
+    v1 &= mask1;
+    v2 &= mask2;
+    v3 &= mask3;
+    for (row = 0; row < height; ++row) {
+      p = prow;
+      prow += stride;
+      for (col = 0; col < width; ++col) {
+        p[0] = (p[0] & ~mask0) | v0;
+        p[1] = (p[1] & ~mask1) | v1;
+        p[2] = (p[2] & ~mask2) | v2;
+        p[3] = (p[3] & ~mask3) | v3;
+        p += 4;
+      }
+    }
+    return;
+  }
+
+  size_t right_edge_inclusive = (x + width - 1);
+
+  union {
+    uint16_t u16;
+    uint8_t v[2];
+  } endian_check;
+  endian_check.u16 = 0x0100;
+  int big_endian = !!endian_check.v[0];
+
+  uint64_t imask;
+  uint64_t value;
+  if (big_endian) {
+    value = (((uint64_t)v0) << 56)
+          | (((uint64_t)v1) << 48)
+          | (((uint64_t)v2) << 40)
+          | (((uint64_t)v3) << 32)
+          | (((uint64_t)v0) << 24)
+          | (((uint64_t)v1) << 16)
+          | (((uint64_t)v2) << 8)
+          | ((uint64_t)v3);
+
+    imask = (((uint64_t)mask0) << 56)
+          | (((uint64_t)mask1) << 48)
+          | (((uint64_t)mask2) << 40)
+          | (((uint64_t)mask3) << 32)
+          | (((uint64_t)mask0) << 24)
+          | (((uint64_t)mask1) << 16)
+          | (((uint64_t)mask2) << 8)
+          | ((uint64_t)mask3);
+  }
+  else {
+    value = ((uint64_t)v0)
+          | (((uint64_t)v1) << 8)
+          | (((uint64_t)v2) << 16)
+          | (((uint64_t)v3) << 24)
+          | (((uint64_t)v0) << 32)
+          | (((uint64_t)v1) << 40)
+          | (((uint64_t)v2) << 48)
+          | (((uint64_t)v3) << 56);
+
+    imask = ((uint64_t)mask0)
+          | (((uint64_t)mask1) << 8)
+          | (((uint64_t)mask2) << 16)
+          | (((uint64_t)mask3) << 24)
+          | (((uint64_t)mask0) << 32)
+          | (((uint64_t)mask1) << 40)
+          | (((uint64_t)mask2) << 48)
+          | (((uint64_t)mask3) << 56);
+  }
+  uint64_t left_mask_mask;
+  uint64_t right_mask_mask;
+  
+  left_mask_mask = (~(uint64_t)0) >> (32 * (x & 1));
+  right_mask_mask = (~(uint64_t)0) << (32 * (1 - (right_edge_inclusive & 1)));
+
+  uint64_t lmask, rmask;
+  lmask = imask & left_mask_mask;
+  rmask = imask & right_mask_mask;
+
+  size_t x64 = x/8;
+  size_t width64 = (right_edge_inclusive/8) - x64;
+  blitter_blit_apply_mask_fast64(bitmap, stride, y, x64, width64, height,
+                                  lmask, imask, rmask, value);
+}
+
+void blitter_blit_apply_mask16(void *bitmap, size_t stride, uint16_t mask, uint16_t value,
+                               size_t x, size_t y, size_t width, size_t height) {
+  if (!width) return;
+  if ((((uintptr_t)bitmap) | (uintptr_t)stride) & 0x7) {
+    size_t row, col;
+    uint8_t * restrict prow, * restrict p;
+    value &= mask;
+    uint8_t v0, v1;
+    uint8_t m0, m1;
+    union {
+      uint16_t u16;
+      uint8_t u8[2];
+    } endian_xlat;
+    prow = ((uint8_t * restrict )bitmap) + stride * y + x * 2;
+    endian_xlat.u16 = value;
+    v0 = endian_xlat.u8[0];
+    v1 = endian_xlat.u8[1];
+    endian_xlat.u16 = mask;
+    m0 = endian_xlat.u8[0];
+    m1 = endian_xlat.u8[1];
+    for (row = 0; row < height; ++row) {
+      p = prow;
+      prow += stride;
+      for (col = 0; col < width; ++col) {
+        p[0] = (p[0] & ~m0) | v0;
+        p[1] = (p[1] & ~m1) | v1;
+        p += 2;
+      }
+    }
+    return;
+  }
+
+  size_t right_edge_inclusive = (x + width - 1);
+
+  uint64_t imask;
+  uint64_t ivalue;
+  ivalue = (((uint64_t)value) << 48)
+         | (((uint64_t)value) << 32)
+         | (((uint64_t)value) << 16)
+         | ((uint64_t)value);
+  imask = (((uint64_t)mask) << 48)
+        | (((uint64_t)mask) << 32)
+        | (((uint64_t)mask) << 16)
+        | ((uint64_t)mask);
+
+  uint64_t left_mask_mask;
+  uint64_t right_mask_mask;
+  
+  left_mask_mask = (~(uint64_t)0) >> (16 * (x & 3));
+  right_mask_mask = (~(uint64_t)0) << (16 * (3 - (right_edge_inclusive & 3)));
+
+  uint64_t lmask, rmask;
+  lmask = imask & left_mask_mask;
+  rmask = imask & right_mask_mask;
+
+  size_t x64 = x/4;
+  size_t width64 = (right_edge_inclusive/4) - x64;
+  blitter_blit_apply_mask_fast64(bitmap, stride, y, x64, width64, height,
+                                  lmask, imask, rmask, ivalue);
+}
