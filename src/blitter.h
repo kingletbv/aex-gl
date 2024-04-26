@@ -53,6 +53,10 @@ void blitter_blit_apply_mask4x8(void *bitmap, size_t stride,
 void blitter_blit_apply_mask16(void *bitmap, size_t stride, uint16_t mask, uint16_t value,
                                size_t x, size_t y, size_t width, size_t height);
 
+void blitter_blit_apply_mask32(void *bitmap, size_t stride, uint32_t mask, uint32_t value,
+                               size_t x, size_t y, size_t width, size_t height);
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

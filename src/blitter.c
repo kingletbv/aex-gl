@@ -1378,8 +1378,8 @@ void blitter_blit_apply_mask4x8(void *bitmap, size_t stride,
   lmask = imask & left_mask_mask;
   rmask = imask & right_mask_mask;
 
-  size_t x64 = x/8;
-  size_t width64 = (right_edge_inclusive/8) - x64;
+  size_t x64 = x/2;
+  size_t width64 = (right_edge_inclusive/2) - x64;
   blitter_blit_apply_mask_fast64(bitmap, stride, y, x64, width64, height,
                                   lmask, imask, rmask, value);
 }
@@ -1443,4 +1443,67 @@ void blitter_blit_apply_mask16(void *bitmap, size_t stride, uint16_t mask, uint1
   size_t width64 = (right_edge_inclusive/4) - x64;
   blitter_blit_apply_mask_fast64(bitmap, stride, y, x64, width64, height,
                                   lmask, imask, rmask, ivalue);
+}
+
+void blitter_blit_apply_mask32(void *bitmap, size_t stride, uint32_t mask, uint32_t value,
+                               size_t x, size_t y, size_t width, size_t height) {
+  if (!width) return;
+  if ((((uintptr_t)bitmap) | (uintptr_t)stride) & 0x7) {
+    size_t row, col;
+    uint8_t * restrict prow, * restrict p;
+    value &= mask;
+    uint8_t v0, v1, v2, v3;
+    uint8_t m0, m1, m2, m3;
+    union {
+      uint32_t u32;
+      uint8_t u8[4];
+    } endian_xlat;
+    prow = ((uint8_t * restrict )bitmap) + stride * y + x * 4;
+    endian_xlat.u32 = value;
+    v0 = endian_xlat.u8[0];
+    v1 = endian_xlat.u8[1];
+    v2 = endian_xlat.u8[2];
+    v3 = endian_xlat.u8[3];
+    endian_xlat.u32 = mask;
+    m0 = endian_xlat.u8[0];
+    m1 = endian_xlat.u8[1];
+    m2 = endian_xlat.u8[2];
+    m3 = endian_xlat.u8[3];
+    for (row = 0; row < height; ++row) {
+      p = prow;
+      prow += stride;
+      for (col = 0; col < width; ++col) {
+        p[0] = (p[0] & ~m0) | v0;
+        p[1] = (p[1] & ~m1) | v1;
+        p[2] = (p[2] & ~m2) | v2;
+        p[3] = (p[3] & ~m3) | v3;
+        p += 4;
+      }
+    }
+    return;
+  }
+
+  size_t right_edge_inclusive = (x + width - 1);
+
+  uint64_t imask;
+  uint64_t ivalue;
+  ivalue = (((uint64_t)value) << 32)
+         | ((uint64_t)value);
+  imask = (((uint64_t)mask) << 32)
+        | ((uint64_t)mask);
+
+  uint64_t left_mask_mask;
+  uint64_t right_mask_mask;
+  
+  left_mask_mask = (~(uint64_t)0) >> (32 * (x & 1));
+  right_mask_mask = (~(uint64_t)0) << (32 * (1 - (right_edge_inclusive & 1)));
+
+  uint64_t lmask, rmask;
+  lmask = imask & left_mask_mask;
+  rmask = imask & right_mask_mask;
+
+  size_t x64 = x/2;
+  size_t width64 = (right_edge_inclusive/2) - x64;
+  blitter_blit_apply_mask_fast64(bitmap, stride, y, x64, width64, height,
+                                  lmask, imask, rmask, value);
 }
