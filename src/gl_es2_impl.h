@@ -98,6 +98,9 @@ extern "C" {
 #define GL_ES2_DEPTH_BUFFER_BIT    0x100
 #define GL_ES2_STENCIL_BUFFER_BIT  0x400
 
+#define GL_ES2_NUM_COMPRESSED_TEXTURE_FORMATS 0x86A2
+#define GL_ES2_COMPRESSED_TEXTURE_FORMATS     0x86A3
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02
