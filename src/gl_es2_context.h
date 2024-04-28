@@ -336,6 +336,7 @@ void gl_es2_program_shader_attachment_attach(struct gl_es2_program_shader_attach
 void gl_es2_framebuffer_init(struct gl_es2_framebuffer *fb);
 void gl_es2_framebuffer_cleanup(struct gl_es2_framebuffer *fb);
 int gl_es2_framebuffer_get_dims(struct gl_es2_framebuffer *fb, int *pwidth, int *pheight);
+int gl_es2_framebuffer_get_bitmap_row_num(struct gl_es2_framebuffer *fa, int y);
 enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struct gl_es2_framebuffer *fb);
 
 void gl_es2_renderbuffer_init(struct gl_es2_renderbuffer *rb);

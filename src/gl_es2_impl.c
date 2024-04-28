@@ -1291,6 +1291,16 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D
   struct gl_es2_texture *tex = NULL;
   struct sampler_2d *s2d = NULL;;
   struct gl_es2_texture_unit *tu = &c->active_texture_units_[c->current_active_texture_unit_];
+  if (level < 0) {
+    /* level is negative */
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (border) {
+    /* border is not 0 */
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
   switch (target) {
     case GL_ES2_TEXTURE_2D:
       tex = tu->texture_2d_;
@@ -1305,6 +1315,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D
     case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z:
       tex = tu->texture_cube_map_;
       if (tex->kind_ != gl_es2_texture_cube_map) break;
+      if (width != height) {
+        /* target is one of the six cube map 2D image targets and the width and height parameters are not equal. */
+        set_gl_err(GL_ES2_INVALID_VALUE);
+        return;
+      }
       switch (target) {
         case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: s2d = &tex->texture_cube_map_positive_x_; break;
         case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: s2d = &tex->texture_cube_map_negative_x_; break;
@@ -1401,6 +1416,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D
       s2d_format = s2d_rgba;
       dst_format = blit_format_rgba;
       break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
   }
 
   r = sampler_2d_set_storage(s2d, level, s2d_format, width, height);
@@ -1414,11 +1432,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D
   }
   void *src_ptr;
   size_t src_stride;
+
   gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->color_attachment0_, &src_ptr, &src_stride);
   blitter_blit_format(s2d->mipmaps_[level].bitmap_, dst_format, src_ptr, src_format,
                       s2d->mipmaps_[level].num_bytes_per_bitmap_row_, 0, 0,
-                      src_stride, x, y, width, height);
-                      
+                      src_stride, x, gl_es2_framebuffer_get_bitmap_row_num(c->framebuffer_, y + height), width, height);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_int xoffset, gl_es2_int yoffset, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {

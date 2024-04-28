@@ -217,6 +217,14 @@ int gl_es2_framebuffer_get_dims(struct gl_es2_framebuffer *fb, int *pwidth, int 
   return 1;
 }
 
+int gl_es2_framebuffer_get_bitmap_row_num(struct gl_es2_framebuffer *fa, int y) {
+  int width = 0, height = 0;
+  if (!gl_es2_framebuffer_get_dims(fa, &width, &height)) {
+    return 0;
+  }
+  return height - y;
+}
+
 enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struct gl_es2_framebuffer *fb) {
   if (!fb) return gl_es2_framebuffer_incomplete_unsupported;
   int width, height;
