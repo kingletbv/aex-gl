@@ -1075,7 +1075,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Clear)(gl_es2_
       }
       else if (c->framebuffer_->color_attachment0_.kind_ == gl_es2_faot_texture) {
         struct gl_es2_texture *tex = c->framebuffer_->color_attachment0_.v_.tex_;
-        switch (tex->sampler_2d_.mipmaps_[0].components_) {
+        switch (tex->texture_2d_.mipmaps_[0].components_) {
           case s2d_rgb:
             blitter_blit_apply_mask3x8(bitmap, stride, 
                                        c->red_mask_ ? 0xFF : 0x00, 
@@ -1287,6 +1287,138 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompressedTexS
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_enum internalformat, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height, gl_es2_int border) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_texture *tex = NULL;
+  struct sampler_2d *s2d = NULL;;
+  struct gl_es2_texture_unit *tu = &c->active_texture_units_[c->current_active_texture_unit_];
+  switch (target) {
+    case GL_ES2_TEXTURE_2D:
+      tex = tu->texture_2d_;
+      if (tex->kind_ != gl_es2_texture_2d) break;
+      s2d = &tex->texture_2d_;
+      break;
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X:
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X:
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y:
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z:
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+      tex = tu->texture_cube_map_;
+      if (tex->kind_ != gl_es2_texture_cube_map) break;
+      switch (target) {
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: s2d = &tex->texture_cube_map_positive_x_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: s2d = &tex->texture_cube_map_negative_x_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: s2d = &tex->texture_cube_map_positive_y_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: s2d = &tex->texture_cube_map_negative_y_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: s2d = &tex->texture_cube_map_positive_z_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: s2d = &tex->texture_cube_map_negative_z_; break;
+      }
+      break;
+  }
+  if (!s2d) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (gl_es2_framebuffer_check_completeness(c->framebuffer_) != gl_es2_framebuffer_complete) {
+    set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+    return;
+  }
+
+  enum blitter_format src_format;
+
+  if (c->framebuffer_->color_attachment0_.kind_ == gl_es2_faot_none) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  else if (c->framebuffer_->color_attachment0_.kind_ == gl_es2_faot_renderbuffer) {
+    struct gl_es2_renderbuffer *rb = c->framebuffer_->color_attachment0_.v_.rb_;
+    if (rb->format_ == gl_es2_renderbuffer_format_rgba32) {
+      src_format = blit_format_rgba;
+    }
+    else {
+      /* invalid renderbuffer framebuffer attachment */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  else if (c->framebuffer_->color_attachment0_.kind_ == gl_es2_faot_texture) {
+    struct gl_es2_texture *tex = c->framebuffer_->color_attachment0_.v_.tex_;
+    struct sampler_2d *src = NULL;
+    if (tex->kind_ == gl_es2_texture_2d) {
+      src = &tex->texture_2d_;
+    }
+    else if (tex->kind_ == gl_es2_texture_cube_map) {
+      switch (c->framebuffer_->color_attachment0_.cube_map_face_) {
+        case gl_es2_cube_map_positive_x: src = &tex->texture_cube_map_positive_x_; break;
+        case gl_es2_cube_map_negative_x: src = &tex->texture_cube_map_negative_x_; break;
+        case gl_es2_cube_map_positive_y: src = &tex->texture_cube_map_positive_y_; break;
+        case gl_es2_cube_map_negative_y: src = &tex->texture_cube_map_negative_y_; break;
+        case gl_es2_cube_map_positive_z: src = &tex->texture_cube_map_positive_z_; break;
+        case gl_es2_cube_map_negative_z: src = &tex->texture_cube_map_negative_z_; break;
+      }
+    }
+    if (!src) {
+      /* invalid texture framebuffer attachment */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    switch (src->components_) {
+      case s2d_alpha:           src_format = blit_format_alpha; break;
+      case s2d_luminance:       src_format = blit_format_alpha; break;
+      case s2d_luminance_alpha: src_format = blit_format_luminance_alpha; break;
+      case s2d_rgb:             src_format = blit_format_rgb; break;
+      case s2d_rgba:            src_format = blit_format_rgba; break;
+      default:
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+    }
+  }
+  else {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  int r;
+  enum s2d_tex_components s2d_format;
+  enum blitter_format dst_format;
+  switch (internalformat) {
+    case GL_ES2_ALPHA:
+      s2d_format = s2d_alpha;
+      dst_format = blit_format_alpha;
+      break;
+    case GL_ES2_LUMINANCE:
+      s2d_format = s2d_luminance;
+      dst_format = blit_format_luminance;
+      break;
+    case GL_ES2_LUMINANCE_ALPHA:
+      s2d_format = s2d_luminance_alpha;
+      dst_format = blit_format_luminance_alpha;
+      break;
+    case GL_ES2_RGB:
+      s2d_format = s2d_rgb;
+      dst_format = blit_format_rgb;
+      break;
+    case GL_ES2_RGBA:
+      s2d_format = s2d_rgba;
+      dst_format = blit_format_rgba;
+      break;
+  }
+
+  r = sampler_2d_set_storage(s2d, level, s2d_format, width, height);
+  if (r == SL_ERR_NO_MEM) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  else if (r == SL_ERR_INVALID_ARG) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  void *src_ptr;
+  size_t src_stride;
+  gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->color_attachment0_, &src_ptr, &src_stride);
+  blitter_blit_format(s2d->mipmaps_[level].bitmap_, dst_format, src_ptr, src_format,
+                      s2d->mipmaps_[level].num_bytes_per_bitmap_row_, 0, 0,
+                      src_stride, x, y, width, height);
+                      
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_int xoffset, gl_es2_int yoffset, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {

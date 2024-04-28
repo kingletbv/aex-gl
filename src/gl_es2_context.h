@@ -165,7 +165,13 @@ struct gl_es2_texture {
 
   struct gl_es2_framebuffer_attachment *first_framebuffer_attached_to_;
 
-  struct sampler_2d sampler_2d_;
+  struct sampler_2d texture_2d_;
+  struct sampler_2d texture_cube_map_positive_x_;
+  struct sampler_2d texture_cube_map_negative_x_;
+  struct sampler_2d texture_cube_map_positive_y_;
+  struct sampler_2d texture_cube_map_negative_y_;
+  struct sampler_2d texture_cube_map_positive_z_;
+  struct sampler_2d texture_cube_map_negative_z_;
 };
 
 struct gl_es2_texture_unit {
@@ -320,6 +326,7 @@ void gl_es2_framebuffer_attachment_detach(struct gl_es2_framebuffer_attachment *
 void gl_es2_framebuffer_attachment_attach_texture(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_texture *tex);
 void gl_es2_framebuffer_attachment_attach_renderbuffer(struct gl_es2_framebuffer_attachment *fa, struct gl_es2_renderbuffer *rb);
 void gl_es2_framebuffer_attachment_raw_ptr(struct gl_es2_framebuffer_attachment *fa, void **prawptr, size_t *pstride);
+struct sampler_2d *gl_es2_framebuffer_attachment_get_texture_sampler_2d(struct gl_es2_framebuffer_attachment *fa);
 
 void gl_es2_program_shader_attachment_init(struct gl_es2_program *prog, struct gl_es2_program_shader_attachment *psa);
 void gl_es2_program_shader_attachment_cleanup(struct gl_es2_program_shader_attachment *psa);
@@ -336,6 +343,7 @@ void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb);
 
 void gl_es2_texture_init(struct gl_es2_texture *tex);
 void gl_es2_texture_cleanup(struct gl_es2_texture *tex);
+struct sampler_2d *gl_es2_texture_get_sampler_2d_for_cube_map_face(struct gl_es2_texture *tex, enum gl_es2_cube_map_face cube_map_face);
 
 void gl_es2_buffer_init(struct gl_es2_buffer *buf);
 void gl_es2_buffer_cleanup(struct gl_es2_buffer *buf);
