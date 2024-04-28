@@ -572,6 +572,8 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->clear_depth_ = 1.f;
   c->clear_stencil_ = 0;
 
+  c->is_blend_enabled_ = 0;
+
   c->blend_rgb_eq_ = BEQ_FUNC_ADD;
   c->blend_alpha_eq_ = BEQ_FUNC_ADD;
 
@@ -581,6 +583,13 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->blend_dst_alpha_fn_ = BF_ZERO;
 
   c->blend_color_red_ = c->blend_color_grn_ = c->blend_color_blu_ = c->blend_color_alpha_ = 0;
+
+  c->is_stencil_test_enabled_ = 0;
+  c->is_polygon_offset_fill_enabled_ = 0;
+
+  c->is_dither_enabled_ = 0;
+  c->is_sample_alpha_to_coverage_enabled_ = 0;
+  c->is_sample_coverage_enabled_ = 0;
 }
 
 void gl_es2_ctx_cleanup(struct gl_es2_context *c) {

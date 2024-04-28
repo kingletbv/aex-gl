@@ -320,6 +320,9 @@ struct gl_es2_context {
   /* glClearStencil(stencil) - glGet(GL_STENCIL_CLEAR_VALUE) */
   uint16_t clear_stencil_;
 
+  /* is blending enabled? glEnable/glDisable(GL_BLEND) */
+  int is_blend_enabled_:1;
+
   /* glBlendEquation & glGet(GL_BLEND_EQUATION_RGB) & glGet(GL_BLEND_EQUATION_ALPHA) */
   blend_eq_t blend_rgb_eq_;
   blend_eq_t blend_alpha_eq_;
@@ -336,6 +339,24 @@ struct gl_es2_context {
   uint8_t blend_color_grn_;
   uint8_t blend_color_blu_;
   uint8_t blend_color_alpha_;
+
+  /* Is stencil testing and writing enabled? glEnable/glDisable(GL_STENCIL_TEST) */
+  int is_stencil_test_enabled_:1;
+
+  /* Is polygon offset enabled? glPolygonOffset(), glEnable/glDisable(GL_POLYGON_OFFSET_FILL) */
+  int is_polygon_offset_fill_enabled_:1;
+
+  /* is dithering enabled? - glEnable/glDisable(GL_DITHER)
+   * (not supported) */
+  int is_dither_enabled_:1;
+
+  /* Is sample alpha to coverage enabled? - glEnable/glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE)
+   * (not supported) */
+  int is_sample_alpha_to_coverage_enabled_:1;
+
+  /* Is sample coverage enabled? - glEnable/glDisable(GL_SAMPLE_COVERAGE)
+   * (not supported) */
+  int is_sample_coverage_enabled_:1;
 };
 
 struct gl_es2_context *gl_es2_ctx(void);

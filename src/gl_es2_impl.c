@@ -1945,13 +1945,36 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DetachShader)(
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Disable)(gl_es2_enum cap) {
   struct gl_es2_context *c = gl_es2_ctx();
   switch (cap) {
+    case GL_ES2_BLEND:
+      c->is_blend_enabled_ = 0;
+      break;
     case GL_ES2_CULL_FACE:
       c->is_culling_enabled_ = 0;
       break;
     case GL_ES2_DEPTH_TEST:
       c->is_depth_test_enabled_ = 0;
       break;
-
+    case GL_ES2_DITHER:
+      c->is_dither_enabled_ = 0;
+      break;
+    case GL_ES2_POLYGON_OFFSET_FILL:
+      c->is_polygon_offset_fill_enabled_ = 0;
+      break;
+    case GL_ES2_SAMPLE_ALPHA_TO_COVERAGE:
+      c->is_sample_alpha_to_coverage_enabled_ = 0;
+      break;
+    case GL_ES2_SAMPLE_COVERAGE:
+      c->is_sample_coverage_enabled_ = 0;
+      break;
+    case GL_ES2_SCISSOR_TEST:
+      c->is_scissor_test_enabled_ = 0;
+      break;
+    case GL_ES2_STENCIL_TEST:
+      c->is_stencil_test_enabled_ = 0;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
   }
 }
 
@@ -1967,11 +1990,32 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawElements)(
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Enable)(gl_es2_enum cap) {
   struct gl_es2_context *c = gl_es2_ctx();
   switch (cap) {
+    case GL_ES2_BLEND:
+      c->is_blend_enabled_ = 1;
+      break;
     case GL_ES2_CULL_FACE:
       c->is_culling_enabled_ = 1;
       break;
     case GL_ES2_DEPTH_TEST:
       c->is_depth_test_enabled_ = 1;
+      break;
+    case GL_ES2_DITHER:
+      c->is_dither_enabled_ = 1;
+      break;
+    case GL_ES2_POLYGON_OFFSET_FILL:
+      c->is_polygon_offset_fill_enabled_ = 1;
+      break;
+    case GL_ES2_SAMPLE_ALPHA_TO_COVERAGE:
+      c->is_sample_alpha_to_coverage_enabled_ = 1;
+      break;
+    case GL_ES2_SAMPLE_COVERAGE:
+      c->is_sample_coverage_enabled_ = 1;
+      break;
+    case GL_ES2_SCISSOR_TEST:
+      c->is_scissor_test_enabled_ = 1;
+      break;
+    case GL_ES2_STENCIL_TEST:
+      c->is_stencil_test_enabled_ = 1;
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -2250,12 +2294,35 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsBu
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsEnabled)(gl_es2_enum cap) {
   struct gl_es2_context *c = gl_es2_ctx();
   int result = 0;
+
   switch (cap) {
+    case GL_ES2_BLEND:
+      result = c->is_blend_enabled_;
+      break;
     case GL_ES2_CULL_FACE:
       result = c->is_culling_enabled_;
       break;
     case GL_ES2_DEPTH_TEST:
       result = c->is_depth_test_enabled_;
+      break;
+    case GL_ES2_DITHER:
+      result = c->is_dither_enabled_;
+      break;
+    case GL_ES2_POLYGON_OFFSET_FILL:
+      result = c->is_polygon_offset_fill_enabled_;
+      break;
+    case GL_ES2_SAMPLE_ALPHA_TO_COVERAGE:
+      result = c->is_sample_alpha_to_coverage_enabled_;
+      break;
+    case GL_ES2_SAMPLE_COVERAGE:
+      result = c->is_sample_coverage_enabled_;
+      break;
+    case GL_ES2_SCISSOR_TEST:
+      result = c->is_scissor_test_enabled_;
+      break;
+    case GL_ES2_STENCIL_TEST:
+      result = c->is_stencil_test_enabled_;
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       return 0;
