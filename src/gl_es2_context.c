@@ -552,6 +552,9 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->is_culling_enabled_ = 0;
   c->cull_face_mode_ = gl_es2_cull_face_back;
 
+  c->near_plane_ = 0.f;
+  c->far_plane_ = 1.f;
+
   c->is_scissor_test_enabled_ = 0; /* default off */
 
   /* should initialize to window-supplied-framebuffer as soon as it's attached */

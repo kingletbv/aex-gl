@@ -283,6 +283,9 @@ struct gl_es2_context {
   /* glDepthFunc() - glGet(GL_DEPTH_FUNC) */
   primitive_assembly_zbuf_func_t zbuf_func_;
 
+  /* near and far clipping planes, glDepthRangef(), glGet(GL_DEPTH_RANGE) */
+  float near_plane_, far_plane_;
+
   /* is culling enabled ? - glEnable/glDisable(GL_CULL_FACE) */
   int is_culling_enabled_:1;
 

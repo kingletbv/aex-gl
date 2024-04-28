@@ -1907,6 +1907,13 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthMask)(gl_
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthRangef)(gl_es2_float n, gl_es2_float f) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (n < 0.f) n = 0.f;
+  if (n > 1.f) n = 1.f;
+  if (f < 0.f) f = 0.f;
+  if (f > 1.f) f = 1.f;
+  c->near_plane_ = n;
+  c->far_plane_ = f;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DetachShader)(gl_es2_uint program, gl_es2_uint shader) {
@@ -2089,6 +2096,23 @@ GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttri
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(gl_es2_enum pname, gl_es2_boolean *data) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  switch (pname) {
+    case GL_ES2_NUM_COMPRESSED_TEXTURE_FORMATS:
+      /* No compressed texture formats support */
+      *data = GL_ES2_FALSE;
+      break;
+    case GL_ES2_COMPRESSED_TEXTURE_FORMATS:
+      /* Array size, as per above, is 0; no compressed texture formats supported. */
+      break;
+    case GL_ES2_DEPTH_RANGE:
+      data[0] = (c->near_plane_ == 0.f) ? GL_ES2_FALSE : GL_ES2_TRUE;
+      data[1] = (c->far_plane_ == 0.f) ? GL_ES2_FALSE : GL_ES2_TRUE;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBufferParameteriv)(gl_es2_enum target, gl_es2_enum pname, gl_es2_int *params) {
@@ -2102,12 +2126,30 @@ GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetErro
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_es2_enum pname, gl_es2_float *data) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  switch (pname) {
+    case GL_ES2_NUM_COMPRESSED_TEXTURE_FORMATS:
+      /* No compressed texture formats support */
+      *data = 0.f;
+      break;
+    case GL_ES2_COMPRESSED_TEXTURE_FORMATS:
+      /* Array size, as per above, is 0; no compressed texture formats supported; so data should not be set. */
+      break;
+    case GL_ES2_DEPTH_RANGE:
+      data[0] = c->near_plane_;
+      data[1] = c->far_plane_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebufferAttachmentParameteriv)(gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum pname, gl_es2_int *params) {
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(gl_es2_enum pname, gl_es2_int *data) {
+  struct gl_es2_context *c = gl_es2_ctx();
   switch (pname) {
     case GL_ES2_NUM_COMPRESSED_TEXTURE_FORMATS:
       /* No compressed texture formats support */
@@ -2115,6 +2157,13 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
       break;
     case GL_ES2_COMPRESSED_TEXTURE_FORMATS:
       /* Array size, as per above, is 0; no compressed texture formats supported. */
+      break;
+    case GL_ES2_DEPTH_RANGE:
+      data[0] = (gl_es2_int)floorf(0.5f + c->near_plane_);
+      data[1] = (gl_es2_int)floorf(0.5f + c->far_plane_);
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
       break;
   }
 }

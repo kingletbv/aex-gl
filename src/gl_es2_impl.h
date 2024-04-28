@@ -108,6 +108,8 @@ extern "C" {
 #define GL_ES2_SCISSOR_TEST 0x0C11
 #define GL_ES2_CULL_FACE    0x0B44
 
+#define GL_ES2_DEPTH_RANGE 0x0B70
+
 #define GL_ES2_NEVER    0x0200
 #define GL_ES2_LESS     0x0201
 #define GL_ES2_EQUAL    0x0202
