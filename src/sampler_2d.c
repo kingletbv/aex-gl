@@ -1052,7 +1052,7 @@ void builtin_texture2DProjLod_v4_runtime(struct sl_execution *exec, int exec_cha
 int sampler_2d_set_storage(struct sampler_2d *s2d, int level, enum s2d_tex_components internal_format, int width, int height) {
   if (s2d->num_maps_ <= level) {
     /* Resize to fit level, within reason for level */
-    if (level >= 32) return SL_ERR_INVALID_ARG;
+    if (level >= SAMPLER_2D_MAX_NUM_MIPMAPS) return SL_ERR_INVALID_ARG;
     struct sampler_2d_map *s2dm = (struct sampler_2d_map *)realloc(s2d->mipmaps_, (level + 1) * sizeof(struct sampler_2d_map));
     if (!s2dm) return SL_ERR_NO_MEM;
     size_t n;

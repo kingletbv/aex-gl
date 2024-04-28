@@ -25,6 +25,8 @@
 #include "blitter.h"
 #endif
 
+#define SAMPLER_2D_MAX_NUM_MIPMAPS 32
+
 #ifdef __cplusplus
 extern "C" {
 #endif
