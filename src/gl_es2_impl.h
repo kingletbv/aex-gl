@@ -103,6 +103,8 @@ extern "C" {
 #define GL_ES2_STATIC_DRAW  0x88E4
 #define GL_ES2_DYNAMIC_DRAW 0x88E8
 
+#define GL_ES2_CULL_FACE 0x0B44
+
 #define GL_ES2_FRONT          0x0404
 #define GL_ES2_BACK           0x0405
 #define GL_ES2_FRONT_AND_BACK 0x0408

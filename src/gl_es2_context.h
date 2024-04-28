@@ -105,6 +105,12 @@ enum gl_es2_renderbuffer_format {
   gl_es2_renderbuffer_format_stencil16
 };
 
+enum gl_es2_cull_face {
+  gl_es2_cull_face_front,
+  gl_es2_cull_face_back,
+  gl_es2_cull_face_front_and_back /* both sides rejected, but lines and points still pass */
+};
+
 struct gl_es2_framebuffer_attachment {
   enum gl_es2_framebuffer_attachment_object_type kind_;
 
@@ -270,6 +276,12 @@ struct gl_es2_context {
 
   /* glUseProgram() - Currently used program */
   struct gl_es2_program *current_program_;
+
+  /* is culling enabled ? - glEnable/glDisable(GL_CULL_FACE) */
+  int is_culling_enabled_:1;
+
+  /* glCullFace() - glGet(GL_CULL_FACE_MODE) */
+  enum gl_es2_cull_face cull_face_mode_;
 
   /* glStencilMask()/glStencilMaskSeparate() - glGet(GL_STENCIL_BACK_WRITEMASK), glGet(GL_STENCIL_WRITEMASK) */
   uint32_t stencil_back_writemask_, stencil_writemask_;

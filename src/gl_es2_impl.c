@@ -1669,6 +1669,21 @@ GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateS
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CullFace)(gl_es2_enum mode) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  switch (mode) {
+    case GL_ES2_FRONT:
+      c->cull_face_mode_ = gl_es2_cull_face_front;
+      break;
+    case GL_ES2_BACK:
+      c->cull_face_mode_ = gl_es2_cull_face_back;
+      break;
+    case GL_ES2_FRONT_AND_BACK:
+      c->cull_face_mode_ = gl_es2_cull_face_front_and_back;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteBuffers)(gl_es2_sizei n, const gl_es2_uint *buffers) {
@@ -1905,6 +1920,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DetachShader)(
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Disable)(gl_es2_enum cap) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  switch (cap) {
+    case GL_ES2_CULL_FACE:
+      c->is_culling_enabled_ = 0;
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DisableVertexAttribArray)(gl_es2_uint index) {
@@ -1917,6 +1938,15 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawElements)(
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Enable)(gl_es2_enum cap) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  switch (cap) {
+    case GL_ES2_CULL_FACE:
+      c->is_culling_enabled_ = 1;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(EnableVertexAttribArray)(gl_es2_uint index) {
@@ -2146,7 +2176,18 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsBu
 }
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsEnabled)(gl_es2_enum cap) {
-  return GL_ES2_FALSE;
+  struct gl_es2_context *c = gl_es2_ctx();
+  int result = 0;
+  switch (cap) {
+    case GL_ES2_CULL_FACE:
+      result = c->is_culling_enabled_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return 0;
+  }
+
+  return result ? GL_ES2_TRUE : GL_ES2_FALSE;
 }
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsFramebuffer)(gl_es2_uint framebuffer) {
