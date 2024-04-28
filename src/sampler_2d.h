@@ -65,7 +65,7 @@ struct sampler_2d {
   enum s2d_wrap wrap_s_, wrap_t_;           
   enum s2d_filter min_filter_;  /* any of s2d_filter */
   enum s2d_filter mag_filter_;  /* s2d_nearest, s2d_linear, no other */
-  enum s2d_tex_components_ components_;
+  enum s2d_tex_components components_;
 
   /* A sampler (texture) is complete if, when min_filter_
    * indicates mipmapping, all levels are filled and have the same components_
@@ -99,6 +99,7 @@ struct sampler_2d {
 void sampler_2d_init(struct sampler_2d *s2d);
 void sampler_2d_cleanup(struct sampler_2d *s2d);
 
+int sampler_2d_set_storage(struct sampler_2d *s2d, int level, enum s2d_tex_components internal_format, int width, int height);
 int sampler_2d_set_image(struct sampler_2d *s2d, int level, enum s2d_tex_components internal_format, int width, int height,
                          enum blitter_data_type src_datatype, void *src_data);
 int sampler_2d_generate_mipmaps(struct sampler_2d *s2d);
