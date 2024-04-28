@@ -1507,3 +1507,1961 @@ void blitter_blit_apply_mask32(void *bitmap, size_t stride, uint32_t mask, uint3
   blitter_blit_apply_mask_fast64(bitmap, stride, y, x64, width64, height,
                                   lmask, imask, rmask, value);
 }
+
+static void blitter_blit_alpha_to_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t alpha = psrc[0];
+      pdst[0] = alpha;
+      psrc += 1;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_alpha_to_luminance(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = 0x00;
+      pdst[0] = red;
+      psrc += 1;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_alpha_to_luminance_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = 0x00;
+      uint8_t alpha = psrc[0];
+      pdst[0] = red;
+      pdst[1] = alpha;
+      psrc += 1;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_alpha_to_rgb(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 3 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = 0x00;
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      psrc += 1;
+      pdst += 3;
+    }
+  }
+}
+
+static void blitter_blit_alpha_to_rgba(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 4 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = 0x00;
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      uint8_t alpha = psrc[0];
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      pdst[3] = alpha;
+      psrc += 1;
+      pdst += 4;
+    }
+  }
+}
+
+static void blitter_blit_alpha_to_565(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = 0x00;
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07E0)
+                      | ((((uint16_t)blue) >> 3) & 0x001F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 1;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_alpha_to_4444(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = 0x00;
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      uint8_t alpha = psrc[0];
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF000)
+                      | ((((uint16_t)green) << 4) & 0x0F00)
+                      |  (((uint16_t)blue) & 0x00F0)
+                      | ((((uint16_t)alpha) >> 4) & 0x000F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 1;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_alpha_to_5551(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = 0x00;
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      uint8_t alpha = psrc[0];
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07C0)
+                      | ((((uint16_t)blue) >> 2) & 0x003E)
+                      | ((((uint16_t)alpha) >> 7) & 0x0001);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 1;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_luminance_to_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t alpha = 0xFF;
+      pdst[0] = alpha;
+      psrc += 1;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_luminance_to_luminance(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      pdst[0] = red;
+      psrc += 1;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_luminance_to_luminance_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t alpha = 0xFF;
+      pdst[0] = red;
+      pdst[1] = alpha;
+      psrc += 1;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_luminance_to_rgb(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 3 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      psrc += 1;
+      pdst += 3;
+    }
+  }
+}
+
+static void blitter_blit_luminance_to_rgba(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 4 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      uint8_t alpha = 0xFF;
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      pdst[3] = alpha;
+      psrc += 1;
+      pdst += 4;
+    }
+  }
+}
+
+static void blitter_blit_luminance_to_565(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07E0)
+                      | ((((uint16_t)blue) >> 3) & 0x001F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 1;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_luminance_to_4444(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      uint8_t alpha = 0xFF;
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF000)
+                      | ((((uint16_t)green) << 4) & 0x0F00)
+                      |  (((uint16_t)blue) & 0x00F0)
+                      | ((((uint16_t)alpha) >> 4) & 0x000F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 1;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_luminance_to_5551(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 1 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      uint8_t alpha = 0xFF;
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07C0)
+                      | ((((uint16_t)blue) >> 2) & 0x003E)
+                      | ((((uint16_t)alpha) >> 7) & 0x0001);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 1;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_luminance_alpha_to_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t alpha = psrc[1];
+      pdst[0] = alpha;
+      psrc += 2;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_luminance_alpha_to_luminance(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      pdst[0] = red;
+      psrc += 2;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_luminance_alpha_to_luminance_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t alpha = psrc[1];
+      pdst[0] = red;
+      pdst[1] = alpha;
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_luminance_alpha_to_rgb(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 3 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      psrc += 2;
+      pdst += 3;
+    }
+  }
+}
+
+static void blitter_blit_luminance_alpha_to_rgba(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 4 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      uint8_t alpha = psrc[1];
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      pdst[3] = alpha;
+      psrc += 2;
+      pdst += 4;
+    }
+  }
+}
+
+static void blitter_blit_luminance_alpha_to_565(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07E0)
+                      | ((((uint16_t)blue) >> 3) & 0x001F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_luminance_alpha_to_4444(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      uint8_t alpha = psrc[1];
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF000)
+                      | ((((uint16_t)green) << 4) & 0x0F00)
+                      |  (((uint16_t)blue) & 0x00F0)
+                      | ((((uint16_t)alpha) >> 4) & 0x000F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_luminance_alpha_to_5551(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = 0x00;
+      uint8_t blue = 0x00;
+      uint8_t alpha = psrc[1];
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07C0)
+                      | ((((uint16_t)blue) >> 2) & 0x003E)
+                      | ((((uint16_t)alpha) >> 7) & 0x0001);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_rgb_to_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 3 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t alpha = 0xFF;
+      pdst[0] = alpha;
+      psrc += 3;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_rgb_to_luminance(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 3 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      pdst[0] = red;
+      psrc += 3;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_rgb_to_luminance_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 3 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t alpha = 0xFF;
+      pdst[0] = red;
+      pdst[1] = alpha;
+      psrc += 3;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_rgb_to_rgb(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 3 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 3 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      psrc += 3;
+      pdst += 3;
+    }
+  }
+}
+
+static void blitter_blit_rgb_to_rgba(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 3 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 4 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      uint8_t alpha = 0xFF;
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      pdst[3] = alpha;
+      psrc += 3;
+      pdst += 4;
+    }
+  }
+}
+
+static void blitter_blit_rgb_to_565(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 3 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07E0)
+                      | ((((uint16_t)blue) >> 3) & 0x001F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 3;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_rgb_to_4444(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 3 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      uint8_t alpha = 0xFF;
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF000)
+                      | ((((uint16_t)green) << 4) & 0x0F00)
+                      |  (((uint16_t)blue) & 0x00F0)
+                      | ((((uint16_t)alpha) >> 4) & 0x000F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 3;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_rgb_to_5551(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 3 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      uint8_t alpha = 0xFF;
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07C0)
+                      | ((((uint16_t)blue) >> 2) & 0x003E)
+                      | ((((uint16_t)alpha) >> 7) & 0x0001);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 3;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_rgba_to_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 4 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t alpha = psrc[3];
+      pdst[0] = alpha;
+      psrc += 4;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_rgba_to_luminance(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 4 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      pdst[0] = red;
+      psrc += 4;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_rgba_to_luminance_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 4 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t alpha = psrc[3];
+      pdst[0] = red;
+      pdst[1] = alpha;
+      psrc += 4;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_rgba_to_rgb(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 4 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 3 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      psrc += 4;
+      pdst += 3;
+    }
+  }
+}
+
+static void blitter_blit_rgba_to_rgba(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 4 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 4 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      uint8_t alpha = psrc[3];
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      pdst[3] = alpha;
+      psrc += 4;
+      pdst += 4;
+    }
+  }
+}
+
+static void blitter_blit_rgba_to_565(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 4 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07E0)
+                      | ((((uint16_t)blue) >> 3) & 0x001F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 4;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_rgba_to_4444(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 4 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      uint8_t alpha = psrc[3];
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF000)
+                      | ((((uint16_t)green) << 4) & 0x0F00)
+                      |  (((uint16_t)blue) & 0x00F0)
+                      | ((((uint16_t)alpha) >> 4) & 0x000F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 4;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_rgba_to_5551(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 4 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      uint8_t red = psrc[0];
+      uint8_t green = psrc[1];
+      uint8_t blue = psrc[2];
+      uint8_t alpha = psrc[3];
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07C0)
+                      | ((((uint16_t)blue) >> 2) & 0x003E)
+                      | ((((uint16_t)alpha) >> 7) & 0x0001);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 4;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_565_to_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t alpha = 0xFF;
+      pdst[0] = alpha;
+      psrc += 2;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_565_to_luminance(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      pdst[0] = red;
+      psrc += 2;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_565_to_luminance_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t alpha = 0xFF;
+      pdst[0] = red;
+      pdst[1] = alpha;
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_565_to_rgb(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 3 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xFC) | ((source_word.u16 >> 9) & 0x03));
+      uint8_t blue = (uint8_t)(((source_word.u16 << 3) & 0xF8) | ((source_word.u16 >> 2) & 0x07));
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      psrc += 2;
+      pdst += 3;
+    }
+  }
+}
+
+static void blitter_blit_565_to_rgba(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 4 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xFC) | ((source_word.u16 >> 9) & 0x03));
+      uint8_t blue = (uint8_t)(((source_word.u16 << 3) & 0xF8) | ((source_word.u16 >> 2) & 0x07));
+      uint8_t alpha = 0xFF;
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      pdst[3] = alpha;
+      psrc += 2;
+      pdst += 4;
+    }
+  }
+}
+
+static void blitter_blit_565_to_565(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xFC) | ((source_word.u16 >> 9) & 0x03));
+      uint8_t blue = (uint8_t)(((source_word.u16 << 3) & 0xF8) | ((source_word.u16 >> 2) & 0x07));
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07E0)
+                      | ((((uint16_t)blue) >> 3) & 0x001F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_565_to_4444(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xFC) | ((source_word.u16 >> 9) & 0x03));
+      uint8_t blue = (uint8_t)(((source_word.u16 << 3) & 0xF8) | ((source_word.u16 >> 2) & 0x07));
+      uint8_t alpha = 0xFF;
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF000)
+                      | ((((uint16_t)green) << 4) & 0x0F00)
+                      |  (((uint16_t)blue) & 0x00F0)
+                      | ((((uint16_t)alpha) >> 4) & 0x000F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_565_to_5551(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xFC) | ((source_word.u16 >> 9) & 0x03));
+      uint8_t blue = (uint8_t)(((source_word.u16 << 3) & 0xF8) | ((source_word.u16 >> 2) & 0x07));
+      uint8_t alpha = 0xFF;
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07C0)
+                      | ((((uint16_t)blue) >> 2) & 0x003E)
+                      | ((((uint16_t)alpha) >> 7) & 0x0001);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_4444_to_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t alpha = (uint8_t)(((source_word.u16 << 4) & 0xF0) | (source_word.u16 & 0x0F));
+      pdst[0] = alpha;
+      psrc += 2;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_4444_to_luminance(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF0) | ((source_word.u16 >> 12) & 0x0F));
+      pdst[0] = red;
+      psrc += 2;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_4444_to_luminance_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF0) | ((source_word.u16 >> 12) & 0x0F));
+      uint8_t alpha = (uint8_t)(((source_word.u16 << 4) & 0xF0) | (source_word.u16 & 0x0F));
+      pdst[0] = red;
+      pdst[1] = alpha;
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_4444_to_rgb(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 3 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF0) | ((source_word.u16 >> 12) & 0x0F));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 4) & 0xF0) | ((source_word.u16 >> 8) & 0x0F));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF0) | ((source_word.u16 >> 4) & 0x0F));
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      psrc += 2;
+      pdst += 3;
+    }
+  }
+}
+
+static void blitter_blit_4444_to_rgba(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 4 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF0) | ((source_word.u16 >> 12) & 0x0F));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 4) & 0xF0) | ((source_word.u16 >> 8) & 0x0F));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF0) | ((source_word.u16 >> 4) & 0x0F));
+      uint8_t alpha = (uint8_t)(((source_word.u16 << 4) & 0xF0) | (source_word.u16 & 0x0F));
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      pdst[3] = alpha;
+      psrc += 2;
+      pdst += 4;
+    }
+  }
+}
+
+static void blitter_blit_4444_to_565(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF0) | ((source_word.u16 >> 12) & 0x0F));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 4) & 0xF0) | ((source_word.u16 >> 8) & 0x0F));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF0) | ((source_word.u16 >> 4) & 0x0F));
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07E0)
+                      | ((((uint16_t)blue) >> 3) & 0x001F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_4444_to_4444(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF0) | ((source_word.u16 >> 12) & 0x0F));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 4) & 0xF0) | ((source_word.u16 >> 8) & 0x0F));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF0) | ((source_word.u16 >> 4) & 0x0F));
+      uint8_t alpha = (uint8_t)(((source_word.u16 << 4) & 0xF0) | (source_word.u16 & 0x0F));
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF000)
+                      | ((((uint16_t)green) << 4) & 0x0F00)
+                      |  (((uint16_t)blue) & 0x00F0)
+                      | ((((uint16_t)alpha) >> 4) & 0x000F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_4444_to_5551(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF0) | ((source_word.u16 >> 12) & 0x0F));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 4) & 0xF0) | ((source_word.u16 >> 8) & 0x0F));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF0) | ((source_word.u16 >> 4) & 0x0F));
+      uint8_t alpha = (uint8_t)(((source_word.u16 << 4) & 0xF0) | (source_word.u16 & 0x0F));
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07C0)
+                      | ((((uint16_t)blue) >> 2) & 0x003E)
+                      | ((((uint16_t)alpha) >> 7) & 0x0001);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_5551_to_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t alpha = (uint8_t)((0x100 - (source_word.u16 & 0x0001)) & 0xFF);
+      pdst[0] = alpha;
+      psrc += 2;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_5551_to_luminance(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 1 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      pdst[0] = red;
+      psrc += 2;
+      pdst += 1;
+    }
+  }
+}
+
+static void blitter_blit_5551_to_luminance_alpha(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t alpha = (uint8_t)((0x100 - (source_word.u16 & 0x0001)) & 0xFF);
+      pdst[0] = red;
+      pdst[1] = alpha;
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_5551_to_rgb(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 3 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xF8) | ((source_word.u16 >> 8) & 0x07));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF8) | ((source_word.u16 >> 5) & 0x07));
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      psrc += 2;
+      pdst += 3;
+    }
+  }
+}
+
+static void blitter_blit_5551_to_rgba(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 4 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xF8) | ((source_word.u16 >> 8) & 0x07));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF8) | ((source_word.u16 >> 5) & 0x07));
+      uint8_t alpha = (uint8_t)((0x100 - (source_word.u16 & 0x0001)) & 0xFF);
+      pdst[0] = red;
+      pdst[1] = green;
+      pdst[2] = blue;
+      pdst[3] = alpha;
+      psrc += 2;
+      pdst += 4;
+    }
+  }
+}
+
+static void blitter_blit_5551_to_565(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xF8) | ((source_word.u16 >> 8) & 0x07));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF8) | ((source_word.u16 >> 5) & 0x07));
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07E0)
+                      | ((((uint16_t)blue) >> 3) & 0x001F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_5551_to_4444(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xF8) | ((source_word.u16 >> 8) & 0x07));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF8) | ((source_word.u16 >> 5) & 0x07));
+      uint8_t alpha = (uint8_t)((0x100 - (source_word.u16 & 0x0001)) & 0xFF);
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF000)
+                      | ((((uint16_t)green) << 4) & 0x0F00)
+                      |  (((uint16_t)blue) & 0x00F0)
+                      | ((((uint16_t)alpha) >> 4) & 0x000F);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+static void blitter_blit_5551_to_5551(void *dst, const void *src, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {  size_t row, col;
+  uint8_t *restrict psrc, *restrict psrc_row;
+  uint8_t *restrict pdst, *restrict pdst_row;
+  psrc_row = ((uint8_t * restrict)src) + src_x * 2 + src_y * src_stride;
+  pdst_row = ((uint8_t * restrict)dst) + dst_x * 2 + dst_y * dst_stride;
+  for (row = 0; row < height; ++row) {
+    psrc = psrc_row;
+    psrc_row += src_stride;
+    pdst = pdst_row;
+    pdst_row += dst_stride;
+    for (col = 0; col < width; ++col) {
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } source_word;
+      source_word.u8[0] = psrc[0];
+      source_word.u8[1] = psrc[1];
+      uint8_t red = (uint8_t)(((source_word.u16 >> 8) & 0xF8) | ((source_word.u16 >> 13) & 0x07));
+      uint8_t green = (uint8_t)(((source_word.u16 >> 3) & 0xF8) | ((source_word.u16 >> 8) & 0x07));
+      uint8_t blue = (uint8_t)((source_word.u16 & 0xF8) | ((source_word.u16 >> 5) & 0x07));
+      uint8_t alpha = (uint8_t)((0x100 - (source_word.u16 & 0x0001)) & 0xFF);
+      union {
+        uint16_t u16;
+        uint8_t u8[2];
+      } target_word;
+      target_word.u16 = ((((uint16_t)red) << 8) & 0xF800)
+                      | ((((uint16_t)green) << 3) & 0x07C0)
+                      | ((((uint16_t)blue) >> 2) & 0x003E)
+                      | ((((uint16_t)alpha) >> 7) & 0x0001);
+      pdst[0] = target_word.u8[0];
+      pdst[1] = target_word.u8[1];
+      psrc += 2;
+      pdst += 2;
+    }
+  }
+}
+
+void blitter_blit_format(void *dst, enum blitter_format dst_format, const void *src, enum blitter_format src_format, size_t dst_stride, size_t dst_x, size_t dst_y, size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height) {
+  /* Dispatch to the appropriate function */
+  switch (dst_format) {
+    case blit_format_alpha:
+      switch (src_format) {
+        case blit_format_alpha:
+          blitter_blit_alpha_to_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance:
+          blitter_blit_luminance_to_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance_alpha:
+          blitter_blit_luminance_alpha_to_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgb:
+          blitter_blit_rgb_to_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgba:
+          blitter_blit_rgba_to_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_565:
+          blitter_blit_565_to_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_4444:
+          blitter_blit_4444_to_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_5551:
+          blitter_blit_5551_to_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+      }
+      break;
+    case blit_format_luminance:
+      switch (src_format) {
+        case blit_format_alpha:
+          blitter_blit_alpha_to_luminance(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance:
+          blitter_blit_luminance_to_luminance(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance_alpha:
+          blitter_blit_luminance_alpha_to_luminance(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgb:
+          blitter_blit_rgb_to_luminance(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgba:
+          blitter_blit_rgba_to_luminance(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_565:
+          blitter_blit_565_to_luminance(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_4444:
+          blitter_blit_4444_to_luminance(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_5551:
+          blitter_blit_5551_to_luminance(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+      }
+      break;
+    case blit_format_luminance_alpha:
+      switch (src_format) {
+        case blit_format_alpha:
+          blitter_blit_alpha_to_luminance_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance:
+          blitter_blit_luminance_to_luminance_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance_alpha:
+          blitter_blit_luminance_alpha_to_luminance_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgb:
+          blitter_blit_rgb_to_luminance_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgba:
+          blitter_blit_rgba_to_luminance_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_565:
+          blitter_blit_565_to_luminance_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_4444:
+          blitter_blit_4444_to_luminance_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_5551:
+          blitter_blit_5551_to_luminance_alpha(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+      }
+      break;
+    case blit_format_rgb:
+      switch (src_format) {
+        case blit_format_alpha:
+          blitter_blit_alpha_to_rgb(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance:
+          blitter_blit_luminance_to_rgb(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance_alpha:
+          blitter_blit_luminance_alpha_to_rgb(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgb:
+          blitter_blit_rgb_to_rgb(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgba:
+          blitter_blit_rgba_to_rgb(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_565:
+          blitter_blit_565_to_rgb(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_4444:
+          blitter_blit_4444_to_rgb(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_5551:
+          blitter_blit_5551_to_rgb(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+      }
+      break;
+    case blit_format_rgba:
+      switch (src_format) {
+        case blit_format_alpha:
+          blitter_blit_alpha_to_rgba(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance:
+          blitter_blit_luminance_to_rgba(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance_alpha:
+          blitter_blit_luminance_alpha_to_rgba(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgb:
+          blitter_blit_rgb_to_rgba(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgba:
+          blitter_blit_rgba_to_rgba(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_565:
+          blitter_blit_565_to_rgba(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_4444:
+          blitter_blit_4444_to_rgba(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_5551:
+          blitter_blit_5551_to_rgba(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+      }
+      break;
+    case blit_format_565:
+      switch (src_format) {
+        case blit_format_alpha:
+          blitter_blit_alpha_to_565(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance:
+          blitter_blit_luminance_to_565(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance_alpha:
+          blitter_blit_luminance_alpha_to_565(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgb:
+          blitter_blit_rgb_to_565(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgba:
+          blitter_blit_rgba_to_565(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_565:
+          blitter_blit_565_to_565(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_4444:
+          blitter_blit_4444_to_565(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_5551:
+          blitter_blit_5551_to_565(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+      }
+      break;
+    case blit_format_4444:
+      switch (src_format) {
+        case blit_format_alpha:
+          blitter_blit_alpha_to_4444(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance:
+          blitter_blit_luminance_to_4444(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance_alpha:
+          blitter_blit_luminance_alpha_to_4444(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgb:
+          blitter_blit_rgb_to_4444(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgba:
+          blitter_blit_rgba_to_4444(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_565:
+          blitter_blit_565_to_4444(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_4444:
+          blitter_blit_4444_to_4444(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_5551:
+          blitter_blit_5551_to_4444(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+      }
+      break;
+    case blit_format_5551:
+      switch (src_format) {
+        case blit_format_alpha:
+          blitter_blit_alpha_to_5551(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance:
+          blitter_blit_luminance_to_5551(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_luminance_alpha:
+          blitter_blit_luminance_alpha_to_5551(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgb:
+          blitter_blit_rgb_to_5551(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_rgba:
+          blitter_blit_rgba_to_5551(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_565:
+          blitter_blit_565_to_5551(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_4444:
+          blitter_blit_4444_to_5551(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+        case blit_format_5551:
+          blitter_blit_5551_to_5551(dst, src, dst_stride, dst_x, dst_y, src_stride, src_x, src_y, width, height);
+          break;
+      }
+      break;
+  }
+}

@@ -34,6 +34,17 @@ enum blitter_components {
   blit_rgba
 };
 
+enum blitter_format {
+  blit_format_alpha,            /* 1 byte per pixel; occupies A channel */
+  blit_format_luminance,        /* 1 byte per pixel; occupies R channel */
+  blit_format_luminance_alpha,  /* 2 bytes per pixel; occupies R and A channels */
+  blit_format_rgb,              /* 3 bytes per pixel */
+  blit_format_rgba,             /* 4 bytes per pixel */
+  blit_format_565,              /* 16 bits per pixel in the endianness of the platform */
+  blit_format_4444,             /* 16 bits per pixel in the endianness of the platform */
+  blit_format_5551              /* 16 bits per pixel in the endianness of the platform */
+};
+
 void blitter_blit(void *dst, const void *src, size_t dst_stride, size_t src_stride, 
                   size_t width, size_t height, enum blitter_components format, enum blitter_data_type src_type);
 
@@ -56,6 +67,9 @@ void blitter_blit_apply_mask16(void *bitmap, size_t stride, uint16_t mask, uint1
 void blitter_blit_apply_mask32(void *bitmap, size_t stride, uint32_t mask, uint32_t value,
                                size_t x, size_t y, size_t width, size_t height);
 
+void blitter_blit_format(void *dst, enum blitter_format dst_format, const void *src, enum blitter_format src_format, 
+                         size_t dst_stride, size_t dst_x, size_t dst_y, 
+                         size_t src_stride, size_t src_x, size_t src_y, size_t width, size_t height);
 
 #ifdef __cplusplus
 } /* extern "C" */
