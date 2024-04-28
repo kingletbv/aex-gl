@@ -103,7 +103,19 @@ extern "C" {
 #define GL_ES2_STATIC_DRAW  0x88E4
 #define GL_ES2_DYNAMIC_DRAW 0x88E8
 
-#define GL_ES2_CULL_FACE 0x0B44
+#define GL_ES2_DEPTH_TEST   0x0B71
+#define GL_ES2_STENCIL_TEST 0x0B90
+#define GL_ES2_SCISSOR_TEST 0x0C11
+#define GL_ES2_CULL_FACE    0x0B44
+
+#define GL_ES2_NEVER    0x0200
+#define GL_ES2_LESS     0x0201
+#define GL_ES2_EQUAL    0x0202
+#define GL_ES2_LEQUAL   0x0203
+#define GL_ES2_GREATER  0x0204
+#define GL_ES2_NOTEQUAL 0x0205
+#define GL_ES2_GEQUAL   0x0206
+#define GL_ES2_ALWAYS   0x0207
 
 #define GL_ES2_FRONT          0x0404
 #define GL_ES2_BACK           0x0405

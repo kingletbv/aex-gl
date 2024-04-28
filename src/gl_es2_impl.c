@@ -1883,6 +1883,22 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteTextures
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthFunc)(gl_es2_enum func) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  primitive_assembly_zbuf_func_t zbuf_func;
+  switch (func) {
+    case GL_ES2_NEVER:    zbuf_func = PAZF_NEVER; break;
+    case GL_ES2_LESS:     zbuf_func = PAZF_LESS; break;
+    case GL_ES2_EQUAL:    zbuf_func = PAZF_EQUAL; break;
+    case GL_ES2_LEQUAL:   zbuf_func = PAZF_LEQUAL; break;
+    case GL_ES2_GREATER:  zbuf_func = PAZF_GREATER; break;
+    case GL_ES2_NOTEQUAL: zbuf_func = PAZF_NOTEQUAL; break;
+    case GL_ES2_GEQUAL:   zbuf_func = PAZF_GEQUAL; break;
+    case GL_ES2_ALWAYS:   zbuf_func = PAZF_ALWAYS; break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+  c->zbuf_func_ = zbuf_func;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthMask)(gl_es2_boolean flag) {
@@ -1925,6 +1941,10 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Disable)(gl_es
     case GL_ES2_CULL_FACE:
       c->is_culling_enabled_ = 0;
       break;
+    case GL_ES2_DEPTH_TEST:
+      c->is_depth_test_enabled_ = 0;
+      break;
+
   }
 }
 
@@ -1942,6 +1962,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Enable)(gl_es2
   switch (cap) {
     case GL_ES2_CULL_FACE:
       c->is_culling_enabled_ = 1;
+      break;
+    case GL_ES2_DEPTH_TEST:
+      c->is_depth_test_enabled_ = 1;
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -2182,6 +2205,8 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsEn
     case GL_ES2_CULL_FACE:
       result = c->is_culling_enabled_;
       break;
+    case GL_ES2_DEPTH_TEST:
+      result = c->is_depth_test_enabled_;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       return 0;

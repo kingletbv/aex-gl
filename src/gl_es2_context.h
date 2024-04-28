@@ -277,6 +277,12 @@ struct gl_es2_context {
   /* glUseProgram() - Currently used program */
   struct gl_es2_program *current_program_;
 
+  /* is depth testing enabled ? - glEnable/glDisable(GL_DEPTH_TEST) */
+  int is_depth_test_enabled_:1;
+
+  /* glDepthFunc() - glGet(GL_DEPTH_FUNC) */
+  primitive_assembly_zbuf_func_t zbuf_func_;
+
   /* is culling enabled ? - glEnable/glDisable(GL_CULL_FACE) */
   int is_culling_enabled_:1;
 

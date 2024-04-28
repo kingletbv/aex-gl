@@ -546,6 +546,9 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->element_array_buffer_ = NULL;
   c->current_program_ = NULL;
 
+  c->is_depth_test_enabled_ = 0;
+  c->zbuf_func_ = PAZF_LESS;
+
   c->is_culling_enabled_ = 0;
   c->cull_face_mode_ = gl_es2_cull_face_back;
 
