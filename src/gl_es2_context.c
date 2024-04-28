@@ -551,6 +551,7 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
 
   c->is_culling_enabled_ = 0;
   c->cull_face_mode_ = gl_es2_cull_face_back;
+  c->front_face_ = gl_es2_front_face_counterclockwise;
 
   c->near_plane_ = 0.f;
   c->far_plane_ = 1.f;

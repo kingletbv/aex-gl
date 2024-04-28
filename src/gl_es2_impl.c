@@ -2083,6 +2083,18 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferTex
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FrontFace)(gl_es2_enum mode) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  switch (mode) {
+    case GL_ES2_CW:
+      c->front_face_ = gl_es2_front_face_clockwise;
+      break;
+    case GL_ES2_CCW:
+      c->front_face_ = gl_es2_front_face_counterclockwise;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenBuffers)(gl_es2_sizei n, gl_es2_uint *buffers) {
@@ -2153,6 +2165,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
       data[0] = (c->near_plane_ == 0.f) ? GL_ES2_FALSE : GL_ES2_TRUE;
       data[1] = (c->far_plane_ == 0.f) ? GL_ES2_FALSE : GL_ES2_TRUE;
       break;
+    case GL_ES2_FRONT_FACE:
+      switch (c->front_face_) {
+        case gl_es2_front_face_clockwise:        data[0] = (gl_es2_boolean)(GL_ES2_CW ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+        case gl_es2_front_face_counterclockwise: data[0] = (gl_es2_boolean)(GL_ES2_CCW ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      }
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2183,6 +2201,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
       data[0] = c->near_plane_;
       data[1] = c->far_plane_;
       break;
+    case GL_ES2_FRONT_FACE:
+      switch (c->front_face_) {
+        case gl_es2_front_face_clockwise:        data[0] = (float)GL_ES2_CW; break;
+        case gl_es2_front_face_counterclockwise: data[0] = (float)GL_ES2_CCW; break;
+      }
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2205,6 +2229,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
     case GL_ES2_DEPTH_RANGE:
       data[0] = (gl_es2_int)floorf(0.5f + c->near_plane_);
       data[1] = (gl_es2_int)floorf(0.5f + c->far_plane_);
+      break;
+    case GL_ES2_FRONT_FACE:
+      switch (c->front_face_) {
+        case gl_es2_front_face_clockwise:        data[0] = (gl_es2_int)GL_ES2_CW; break;
+        case gl_es2_front_face_counterclockwise: data[0] = (gl_es2_int)GL_ES2_CCW; break;
+      }
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);

@@ -111,6 +111,11 @@ enum gl_es2_cull_face {
   gl_es2_cull_face_front_and_back /* both sides rejected, but lines and points still pass */
 };
 
+enum gl_es2_front_face {
+  gl_es2_front_face_clockwise,
+  gl_es2_front_face_counterclockwise
+};
+
 struct gl_es2_framebuffer_attachment {
   enum gl_es2_framebuffer_attachment_object_type kind_;
 
@@ -291,6 +296,9 @@ struct gl_es2_context {
 
   /* glCullFace() - glGet(GL_CULL_FACE_MODE) */
   enum gl_es2_cull_face cull_face_mode_;
+
+  /* glFrontFace() - glGet(GL_FRONT_FACE) */
+  enum gl_es2_front_face front_face_;
 
   /* glStencilMask()/glStencilMaskSeparate() - glGet(GL_STENCIL_BACK_WRITEMASK), glGet(GL_STENCIL_WRITEMASK) */
   uint32_t stencil_back_writemask_, stencil_writemask_;

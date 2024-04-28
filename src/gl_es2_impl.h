@@ -115,6 +115,7 @@ extern "C" {
 #define GL_ES2_CULL_FACE    0x0B44
 
 #define GL_ES2_DEPTH_RANGE 0x0B70
+#define GL_ES2_FRONT_FACE  0x0B46
 
 #define GL_ES2_NEVER    0x0200
 #define GL_ES2_LESS     0x0201
@@ -128,6 +129,9 @@ extern "C" {
 #define GL_ES2_FRONT          0x0404
 #define GL_ES2_BACK           0x0405
 #define GL_ES2_FRONT_AND_BACK 0x0408
+
+#define GL_ES2_CW  0x0900
+#define GL_ES2_CCW 0x0901
 
 #define GL_ES2_COLOR_BUFFER_BIT   0x4000
 #define GL_ES2_DEPTH_BUFFER_BIT    0x100
