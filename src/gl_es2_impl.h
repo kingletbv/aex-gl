@@ -73,6 +73,14 @@ extern "C" {
 #define GL_ES2_RGB             0x1907
 #define GL_ES2_RGBA            0x1908
 
+#define GL_ES2_POINTS              0x0000
+#define GL_ES2_LINE_STRIP          0x0003
+#define GL_ES2_LINE_LOOP           0x0002
+#define GL_ES2_LINES               0x0001
+#define GL_ES2_TRIANGLE_STRIP      0x0005
+#define GL_ES2_TRIANGLE_FAN        0x0006
+#define GL_ES2_TRIANGLES           0x0004
+
 #define GL_ES2_ARRAY_BUFFER         0x8892
 #define GL_ES2_ELEMENT_ARRAY_BUFFER 0x8893
 

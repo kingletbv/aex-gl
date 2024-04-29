@@ -60,6 +60,11 @@
 #include "attrib_set.h"
 #endif
 
+#ifndef RASTERIZER_H_INCLUDED
+#define RASTERIZER_H_INCLUDED
+#include "rasterizer.h"
+#endif
+
 /* glGet(GL_MAX_TEXTURE_IMAGE_UNITS)
  * glGet(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS)
  */
@@ -263,6 +268,8 @@ struct gl_es2_context {
   struct named_object_table shader_not_;
 
   struct attrib_set attribs_;
+
+  struct rasterizer ras_;
 
   /* currently bound targets */
 

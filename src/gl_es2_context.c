@@ -538,6 +538,8 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
 
   attrib_set_init(&c->attribs_);
 
+  rasterizer_init(&c->ras_);
+
   c->framebuffer_ = NULL;
   c->renderbuffer_ = NULL;
 
@@ -650,6 +652,8 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
   }
 
   attrib_set_cleanup(&c->attribs_);
+
+  rasterizer_cleanup(&c->ras_);
 }
 
 static int gl_es2_ctx_complete_initialization(struct gl_es2_context *c) {

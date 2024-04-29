@@ -2305,6 +2305,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       primitive_assembly_mode_t mode, 
                                       size_t num_elements,
                                       primitive_assembly_index_type_t index_type,
+                                      size_t arrayed_starting_index,
                                       void *indices) {
   int r;
   struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&vertex_shader->cu_, "gl_Position");
@@ -2337,6 +2338,8 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
     /* scissor rect holding no space; no pixel can be emitted, draw call is no-op. */
     return;
   }
+
+  pa->index_at_ = indices ? 0 : arrayed_starting_index;
 
   // XXX: Configure pipeline to handle points, lines or triangles, depending on what mode is.
 

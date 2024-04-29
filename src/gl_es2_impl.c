@@ -1992,7 +1992,186 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DisableVertexA
   c->attribs_.attribs_[i_index].enabled_ = 0;
 }
 
+static int gl_mode_to_pam(gl_es2_enum mode, primitive_assembly_mode_t *ppam) {
+  primitive_assembly_mode_t pam;
+  switch (mode) {
+    case GL_ES2_POINTS:         pam = PAM_POINTS; break;
+    case GL_ES2_LINE_STRIP:     pam = PAM_LINE_STRIP; break;
+    case GL_ES2_LINE_LOOP:      pam = PAM_LINE_LOOP; break;
+    case GL_ES2_LINES:          pam = PAM_LINES; break;
+    case GL_ES2_TRIANGLE_STRIP: pam = PAM_TRIANGLE_STRIP; break;
+    case GL_ES2_TRIANGLE_FAN:   pam = PAM_TRIANGLE_FAN; break;
+    case GL_ES2_TRIANGLES:      pam = PAM_TRIANGLES; break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return 0;
+  }
+  *ppam = pam;
+  return 1;
+}
+
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl_es2_enum mode, gl_es2_int first, gl_es2_sizei count) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  primitive_assembly_mode_t pam;
+  if (!gl_mode_to_pam(mode, &pam)) return;
+
+  if (!c->current_program_) {
+    /* Current program is invalid, however, no error is generated for this case (as per spec.) */
+    return;
+  }
+
+  if (gl_es2_framebuffer_complete != gl_es2_framebuffer_check_completeness(c->framebuffer_)) {
+    set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+    return;
+  }
+
+  int width, height;
+  gl_es2_framebuffer_get_dims(c->framebuffer_, &width, &height);
+
+  struct sl_program *prog = &c->current_program_->program_;
+
+  int32_t scissor_left, scissor_bottom, scissor_width, scissor_height;
+
+  scissor_left = 0; scissor_bottom = 0; scissor_width = width; scissor_height = height;
+  if (c->is_scissor_test_enabled_) {
+    scissor_left = c->scissor_left_;
+    scissor_bottom = c->scissor_bottom_counted_from_bottom_;
+    scissor_width = c->scissor_width_;
+    scissor_height = c->scissor_height_;
+  }
+
+  /* XXX: Get these from viewport settings */
+  int32_t vp_x, vp_y, vp_width, vp_height;
+  vp_x = 0; vp_y = 0; vp_width = width; vp_height = height;
+
+  /* Default max_z is 32 bits to set it to some value, the actual max_z
+   * is the depth buffer attachment's bit depth */
+  uint32_t max_z = 0xFFFFFFFF;
+  size_t zbuf_step = 0;
+  int have_zbuf = 0;
+  if (c->framebuffer_->depth_attachment_.kind_ == gl_es2_faot_none) {
+  }
+  else if (c->framebuffer_->depth_attachment_.kind_ == gl_es2_faot_renderbuffer) {
+    struct gl_es2_renderbuffer *rb = c->framebuffer_->depth_attachment_.v_.rb_;
+    if (rb) {
+      switch (rb->format_) {
+        case gl_es2_renderbuffer_format_depth16:
+          max_z = 0xFFFF;
+          zbuf_step = 2;
+          have_zbuf = 1;
+          break;
+        case gl_es2_renderbuffer_format_depth32:
+          max_z = 0xFFFFFFFF;
+          zbuf_step = 4;
+          have_zbuf =1;
+          break;
+      }
+    }
+  }
+  else if (c->framebuffer_->depth_attachment_.kind_ == gl_es2_faot_texture) {
+    /* No known texture formats for depth buffers as of yet */
+  }
+  void *rgba_buffer_ptr = NULL;
+  size_t rgba_buffer_stride = 0;
+  gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->color_attachment0_, &rgba_buffer_ptr, &rgba_buffer_stride);
+  int is_red_enabled, is_green_enabled, is_blue_enabled, is_alpha_enabled;
+  is_red_enabled = !!rgba_buffer_ptr && c->red_mask_;
+  is_green_enabled = !!rgba_buffer_ptr && c->green_mask_;
+  is_blue_enabled = !!rgba_buffer_ptr && c->blue_mask_;
+  is_alpha_enabled = !!rgba_buffer_ptr && c->alpha_mask_;
+
+  void *depth_buffer_ptr = NULL;
+  size_t depth_buffer_stride = 0;
+  gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->depth_attachment_, &depth_buffer_ptr, &depth_buffer_stride);
+  int is_zbuf_enabled = (!!depth_buffer_ptr) && c->is_depth_test_enabled_;
+
+  void  *stencil_buffer_ptr = NULL;
+  size_t stencil_buffer_stride = 0;
+  gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->stencil_attachment_, &stencil_buffer_ptr, &stencil_buffer_stride);
+  int is_stencil_enabled = (!!stencil_buffer_ptr) && c->is_stencil_test_enabled_;
+
+  struct stencil_settings {
+    uint32_t mask;
+    primitive_assembly_stencil_func_t func;
+    uint32_t func_ref;
+    uint32_t func_mask;
+    primitive_assembly_stencil_op_t sfail;
+    primitive_assembly_stencil_op_t zfail;
+    primitive_assembly_stencil_op_t zpass;
+  } stencil_cw, stencil_ccw;
+  struct stencil_settings *ss_front, *ss_back;
+
+  if (c->front_face_ == gl_es2_front_face_clockwise) {
+    ss_front = &stencil_cw;
+    ss_back = &stencil_ccw;
+  }
+  else {
+    ss_front = &stencil_ccw;
+    ss_back = &stencil_cw;
+  }
+
+  ss_front->mask = c->stencil_writemask_;
+  ss_back->mask = c->stencil_back_writemask_;
+
+  /* XXX: Fill out ss_front and ss_back when glStencilXXX functions have been implemented. */
+
+  struct stencil_settings *ss_both[] = { ss_front, ss_back };
+  size_t n;
+  for (n = 0; n < (sizeof(ss_both)/sizeof(*ss_both)); ++n) {
+    struct stencil_settings *ss = ss_both[n];
+    ss->func = PASF_ALWAYS;
+    ss->func_mask = ~(uint32_t)0;
+    ss->func_ref = 0;
+    ss->sfail = PASO_KEEP;
+    ss->zfail = PASO_KEEP;
+    ss->zpass = PASO_KEEP;
+  }
+
+  blend_eq_t rgb_eq = c->blend_rgb_eq_; 
+  blend_eq_t alpha_eq = c->blend_alpha_eq_;
+  blend_func_t src_rgb_fn = c->blend_src_rgb_fn_; 
+  blend_func_t src_alpha_fn = c->blend_src_alpha_fn_;
+  blend_func_t dst_rgb_fn = c->blend_dst_rgb_fn_; 
+  blend_func_t dst_alpha_fn = c->blend_dst_alpha_fn_;
+  if (!c->is_blend_enabled_) {
+    /* Blending is disabled, revert to default settings, these are just a plain copy of the fragment */
+    rgb_eq = BEQ_FUNC_ADD;
+    alpha_eq = BEQ_FUNC_ADD;
+
+    src_rgb_fn = BF_ONE;
+    src_alpha_fn = BF_ONE;
+    dst_rgb_fn = BF_ZERO;
+    dst_alpha_fn = BF_ZERO;
+  }
+
+  primitive_assembly_draw_elements(&prog->pa_, &c->attribs_, prog->vertex_shader_, &prog->ar_, &prog->cs_, &c->ras_, 
+                                   &prog->fragbuf_, prog->fragment_shader_,
+                                   vp_x, vp_y, vp_width, vp_height, 
+                                   c->near_plane_, c->far_plane_,
+                                   (uint32_t)width, (uint32_t)height, 
+                                   scissor_left, scissor_bottom, scissor_width, scissor_height,
+                                   max_z,
+                                   rgba_buffer_ptr, rgba_buffer_stride,
+                                   depth_buffer_ptr, depth_buffer_stride, zbuf_step,
+                                   stencil_buffer_ptr, stencil_buffer_stride, 2,
+                                   is_stencil_enabled, /* no stencil test */
+                                   /* Settings for stencil on clockwise triangles: */
+                                   stencil_cw.mask, /* clockwise stencil mask: all output bits enabled */
+                                   stencil_cw.func, /* clockwise stencil test: never pass */
+                                   stencil_cw.func_ref, stencil_cw.func_mask, /* clockwise stencil function reference value and function mask value */
+                                   stencil_cw.sfail, stencil_cw.zfail, stencil_cw.zpass, /* clockwise stencil-fail, stencil-success, stencil&depth-success: all keep */
+                                   /* Same for counter-clockwise: */
+                                   stencil_ccw.mask,
+                                   stencil_ccw.func,
+                                   stencil_ccw.func_ref, stencil_ccw.func_mask,
+                                   stencil_ccw.sfail, stencil_ccw.zfail, stencil_ccw.zpass,
+                                   is_zbuf_enabled, c->zbuf_func_, is_zbuf_enabled && c->depth_mask_, /* enable_zbuf_test, zbuf_func, enable_zbuf_write */
+                                   is_red_enabled, is_green_enabled, is_blue_enabled, is_alpha_enabled,
+                                   rgb_eq, alpha_eq,
+                                   src_rgb_fn, src_alpha_fn,
+                                   dst_rgb_fn, dst_alpha_fn,
+                                   c->blend_color_red_, c->blend_color_grn_, c->blend_color_blu_, c->blend_color_alpha_,
+                                   pam, count, PAIT_UNSIGNED_INT, first, NULL);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawElements)(gl_es2_enum mode, gl_es2_sizei count, gl_es2_enum type, const void *indices) {
@@ -2500,6 +2679,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderSource)(
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFunc)(gl_es2_enum func, gl_es2_int ref, gl_es2_uint mask) {
+
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFuncSeparate)(gl_es2_enum face, gl_es2_enum func, gl_es2_int ref, gl_es2_uint mask) {

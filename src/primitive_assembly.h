@@ -221,6 +221,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       primitive_assembly_mode_t mode,
                                       size_t num_elements,
                                       primitive_assembly_index_type_t index_type,
+                                      size_t arrayed_starting_index,
                                       void *indices);
 
 #ifdef __cplusplus

@@ -5052,7 +5052,7 @@ int main(int argc, char **argv) {
                                    BF_SRC_ALPHA, BF_SRC_ALPHA,
                                    BF_ONE_MINUS_SRC_ALPHA, BF_ONE_MINUS_SRC_ALPHA,
                                    0, 0, 0, 0,
-                                   PAM_TRIANGLES, 3, PAIT_UNSIGNED_INT, indices);
+                                   PAM_TRIANGLES, 3, PAIT_UNSIGNED_INT, 0, indices);
 
   exit_ret = EXIT_SUCCESS;
 exit_cleanup:
