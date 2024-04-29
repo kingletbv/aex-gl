@@ -107,7 +107,7 @@ static void check_old_program_for_deletion(struct gl_es2_program *old_prog) {
   }
 }
 
-static gl_es2_int stencil_func_pasf_to_gl(primitive_assembly_stencil_func_t pasf) {
+static gl_es2_enum stencil_func_pasf_to_gl(primitive_assembly_stencil_func_t pasf) {
   switch (pasf) {
     case PASF_EQUAL: return GL_ES2_EQUAL;
     case PASF_NOTEQUAL: return GL_ES2_NOTEQUAL;
@@ -121,6 +121,35 @@ static gl_es2_int stencil_func_pasf_to_gl(primitive_assembly_stencil_func_t pasf
   return 0;
 }
 
+static gl_es2_enum stencil_op_paso_to_gl(primitive_assembly_stencil_op_t paso) {
+  switch (paso) {
+    case PASO_ZERO:      return GL_ES2_ZERO;
+    case PASO_REPLACE:   return GL_ES2_REPLACE;
+    case PASO_INCR:      return GL_ES2_INCR;
+    case PASO_DECR:      return GL_ES2_DECR;
+    case PASO_INCR_WRAP: return GL_ES2_INCR_WRAP;
+    case PASO_DECR_WRAP: return GL_ES2_DECR_WRAP;
+    case PASO_KEEP:      return GL_ES2_KEEP;
+    case PASO_INVERT:    return GL_ES2_INVERT;
+  }
+  return 0;
+}
+
+static int stencil_op_gl_to_paso(gl_es2_enum gl_op, primitive_assembly_stencil_op_t *ppaso) {
+  switch (gl_op) {
+    case GL_ES2_ZERO: *ppaso = PASO_ZERO; break;
+    case GL_ES2_REPLACE: *ppaso = PASO_REPLACE; break;
+    case GL_ES2_INCR: *ppaso = PASO_INCR; break;
+    case GL_ES2_DECR: *ppaso = PASO_DECR; break;
+    case GL_ES2_INCR_WRAP: *ppaso = PASO_INCR_WRAP; break;
+    case GL_ES2_DECR_WRAP: *ppaso = PASO_DECR_WRAP; break;
+    case GL_ES2_KEEP: *ppaso = PASO_KEEP; break;
+    case GL_ES2_INVERT: *ppaso = PASO_INVERT; break;
+    default:
+      return 0;
+  }
+  return 1;
+}
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture) {
   struct gl_es2_context *c = gl_es2_ctx();
@@ -2135,18 +2164,15 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl
   ss_front->func = c->stencil_func_;
   ss_front->func_mask = c->stencil_func_mask_;
   ss_front->func_ref = c->stencil_func_ref_;
+  ss_front->sfail = c->stencil_sfail_;
+  ss_front->zfail = c->stencil_zfail_;
+  ss_front->zpass = c->stencil_zpass_;
   ss_back->func = c->stencil_back_func_;
   ss_back->func_mask = c->stencil_back_func_mask_;
   ss_back->func_ref = c->stencil_back_func_ref_;
-
-  struct stencil_settings *ss_both[] = { ss_front, ss_back };
-  size_t n;
-  for (n = 0; n < (sizeof(ss_both)/sizeof(*ss_both)); ++n) {
-    struct stencil_settings *ss = ss_both[n];
-    ss->sfail = PASO_KEEP;
-    ss->zfail = PASO_KEEP;
-    ss->zpass = PASO_KEEP;
-  }
+  ss_back->sfail = c->stencil_back_sfail_;
+  ss_back->zfail = c->stencil_back_zfail_;
+  ss_back->zpass = c->stencil_back_zpass_;
 
   blend_eq_t rgb_eq = c->blend_rgb_eq_; 
   blend_eq_t alpha_eq = c->blend_alpha_eq_;
@@ -2434,6 +2460,25 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
         data[0] = GL_ES2_FALSE;
       }
       break;
+    case GL_ES2_STENCIL_FAIL:
+      data[0] = (gl_es2_boolean)(stencil_op_paso_to_gl(c->stencil_sfail_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_STENCIL_PASS_DEPTH_PASS:
+      data[0] = (gl_es2_boolean)(stencil_op_paso_to_gl(c->stencil_zpass_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_STENCIL_PASS_DEPTH_FAIL:
+      data[0] = (gl_es2_boolean)(stencil_op_paso_to_gl(c->stencil_zfail_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_STENCIL_BACK_FAIL:
+      data[0] = (gl_es2_boolean)(stencil_op_paso_to_gl(c->stencil_back_sfail_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_STENCIL_BACK_PASS_DEPTH_PASS:
+      data[0] = (gl_es2_boolean)(stencil_op_paso_to_gl(c->stencil_back_zpass_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_STENCIL_BACK_PASS_DEPTH_FAIL:
+      data[0] = (gl_es2_boolean)(stencil_op_paso_to_gl(c->stencil_back_zfail_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2511,6 +2556,25 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
         data[0] = 0.f;
       }
       break;
+    case GL_ES2_STENCIL_FAIL:
+      data[0] = (float)stencil_op_paso_to_gl(c->stencil_sfail_);
+      break;
+    case GL_ES2_STENCIL_PASS_DEPTH_PASS:
+      data[0] = (float)stencil_op_paso_to_gl(c->stencil_zpass_);
+      break;
+    case GL_ES2_STENCIL_PASS_DEPTH_FAIL:
+      data[0] = (float)stencil_op_paso_to_gl(c->stencil_zfail_);
+      break;
+    case GL_ES2_STENCIL_BACK_FAIL:
+      data[0] = (float)stencil_op_paso_to_gl(c->stencil_back_sfail_);
+      break;
+    case GL_ES2_STENCIL_BACK_PASS_DEPTH_PASS:
+      data[0] = (float)stencil_op_paso_to_gl(c->stencil_back_zpass_);
+      break;
+    case GL_ES2_STENCIL_BACK_PASS_DEPTH_FAIL:
+      data[0] = (float)stencil_op_paso_to_gl(c->stencil_back_zfail_);
+      break;
+
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2581,6 +2645,25 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
         data[0] = 0;
       }
       break;
+    case GL_ES2_STENCIL_FAIL:
+      data[0] = (gl_es2_int)stencil_op_paso_to_gl(c->stencil_sfail_);
+      break;
+    case GL_ES2_STENCIL_PASS_DEPTH_PASS:
+      data[0] = (gl_es2_int)stencil_op_paso_to_gl(c->stencil_zpass_);
+      break;
+    case GL_ES2_STENCIL_PASS_DEPTH_FAIL:
+      data[0] = (gl_es2_int)stencil_op_paso_to_gl(c->stencil_zfail_);
+      break;
+    case GL_ES2_STENCIL_BACK_FAIL:
+      data[0] = (gl_es2_int)stencil_op_paso_to_gl(c->stencil_back_sfail_);
+      break;
+    case GL_ES2_STENCIL_BACK_PASS_DEPTH_PASS:
+      data[0] = (gl_es2_int)stencil_op_paso_to_gl(c->stencil_back_zpass_);
+      break;
+    case GL_ES2_STENCIL_BACK_PASS_DEPTH_FAIL:
+      data[0] = (gl_es2_int)stencil_op_paso_to_gl(c->stencil_back_zfail_);
+      break;
+
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2897,10 +2980,48 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMaskSep
   }
 }
 
-GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilOp)(gl_es2_enum fail, gl_es2_enum zfail, gl_es2_enum zpass) {
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilOp)(gl_es2_enum sfail, gl_es2_enum dpfail, gl_es2_enum dppass) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  primitive_assembly_stencil_op_t sfail_op, dpfail_op, dppass_op;
+  if (!stencil_op_gl_to_paso(sfail, &sfail_op) ||
+    !stencil_op_gl_to_paso(dpfail, &dpfail_op) ||
+    !stencil_op_gl_to_paso(dppass, &dppass_op)) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  c->stencil_sfail_ = sfail_op;
+  c->stencil_zfail_ = dpfail_op;
+  c->stencil_zpass_ = dppass_op;
+  c->stencil_back_sfail_ = sfail_op;
+  c->stencil_back_zfail_ = dpfail_op;
+  c->stencil_back_zpass_ = dppass_op;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilOpSeparate)(gl_es2_enum face, gl_es2_enum sfail, gl_es2_enum dpfail, gl_es2_enum dppass) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if ((face != GL_ES2_FRONT) && (face != GL_ES2_BACK) && (face != GL_ES2_FRONT_AND_BACK)) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  primitive_assembly_stencil_op_t sfail_op, dpfail_op, dppass_op;
+  if (!stencil_op_gl_to_paso(sfail, &sfail_op) ||
+      !stencil_op_gl_to_paso(dpfail, &dpfail_op) ||
+      !stencil_op_gl_to_paso(dppass, &dppass_op)) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  if ((face == GL_ES2_FRONT) || (face == GL_ES2_FRONT_AND_BACK)) {
+    c->stencil_sfail_ = sfail_op;
+    c->stencil_zfail_ = dpfail_op;
+    c->stencil_zpass_ = dppass_op;
+  }
+  if ((face == GL_ES2_BACK) || (face == GL_ES2_FRONT_AND_BACK)) {
+    c->stencil_back_sfail_ = sfail_op;
+    c->stencil_back_zfail_ = dpfail_op;
+    c->stencil_back_zpass_ = dppass_op;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_int internalformat, gl_es2_sizei width, gl_es2_sizei height, gl_es2_int border, gl_es2_enum format, gl_es2_enum type, const void *pixels) {

@@ -578,6 +578,19 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
 
   c->stencil_writemask_ = ~(uint32_t)0;
   c->stencil_back_writemask_ = ~(uint32_t)0;
+  c->stencil_func_ = PASF_ALWAYS;
+  c->stencil_func_ref_ = 0;
+  c->stencil_func_mask_ = ~(uint32_t)0;
+  c->stencil_back_func_ = PASF_ALWAYS;
+  c->stencil_back_func_ref_ = 0;
+  c->stencil_back_func_mask_ = ~(uint32_t)0;
+  c->stencil_sfail_ = PASO_KEEP;
+  c->stencil_zfail_ = PASO_KEEP;
+  c->stencil_zpass_ = PASO_KEEP;
+  c->stencil_back_sfail_ = PASO_KEEP;
+  c->stencil_back_zfail_ = PASO_KEEP;
+  c->stencil_back_zpass_ = PASO_KEEP;
+
   c->depth_mask_ = 1;
   c->red_mask_ = c->green_mask_ = c->blue_mask_ = c->alpha_mask_ = 1;
 
