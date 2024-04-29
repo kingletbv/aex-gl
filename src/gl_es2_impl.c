@@ -151,6 +151,88 @@ static int stencil_op_gl_to_paso(gl_es2_enum gl_op, primitive_assembly_stencil_o
   return 1;
 }
 
+static int get_tex_target(gl_es2_enum target, struct gl_es2_texture *tex, struct sampler_2d **ps2d) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_texture_unit *tu = &c->active_texture_units_[c->current_active_texture_unit_];
+  struct sampler_2d *s2d = NULL;
+  switch (target) {
+    case GL_ES2_TEXTURE_2D:
+      if (tex->kind_ != gl_es2_texture_2d) break;
+      s2d = &tex->texture_2d_;
+      break;
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X:
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X:
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y:
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z:
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+      tex = tu->texture_cube_map_;
+      if (tex->kind_ != gl_es2_texture_cube_map) break;
+      switch (target) {
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: s2d = &tex->texture_cube_map_positive_x_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: s2d = &tex->texture_cube_map_negative_x_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: s2d = &tex->texture_cube_map_positive_y_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: s2d = &tex->texture_cube_map_negative_y_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: s2d = &tex->texture_cube_map_positive_z_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: s2d = &tex->texture_cube_map_negative_z_; break;
+      }
+      break;
+    default:
+      /* target is invalid */
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return 0;
+  }
+  if (!s2d) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return 0;
+  }
+  *ps2d = s2d;
+  return 1;
+}
+
+static int get_active_tex_target(gl_es2_enum target, struct gl_es2_texture **ptex, struct sampler_2d **ps2d) {
+  int r = 0;
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_texture_unit *tu = &c->active_texture_units_[c->current_active_texture_unit_];
+  struct gl_es2_texture *tex = NULL;
+  struct sampler_2d *s2d = NULL;
+  switch (target) {
+    case GL_ES2_TEXTURE_2D:
+      tex = tu->texture_2d_;
+      r = get_tex_target(target, tex, ps2d);
+      break;
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X:
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X:
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y:
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z:
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+      tex = tu->texture_cube_map_;
+      if (tex->kind_ != gl_es2_texture_cube_map) break;
+      r = get_tex_target(target, tex, ps2d);
+      break;
+    default:
+      /* target is invalid */
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return 0;
+  }
+  if (r) *ptex = tex;
+  return r;
+}
+
+
+static enum gl_es2_cube_map_face tex_target_gl_to_cubemap_face(gl_es2_enum textarget) {
+  switch (textarget) {
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: return gl_es2_cube_map_positive_x;
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: return gl_es2_cube_map_negative_x;
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: return gl_es2_cube_map_positive_y;
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: return gl_es2_cube_map_negative_y;
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: return gl_es2_cube_map_positive_z;
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: return gl_es2_cube_map_negative_z;
+  }
+  return gl_es2_cube_map_positive_x;
+}
+
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture) {
   struct gl_es2_context *c = gl_es2_ctx();
   if (texture >= c->num_active_texture_units_) {
@@ -1345,43 +1427,15 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
-  switch (target) {
-    case GL_ES2_TEXTURE_2D:
-      tex = tu->texture_2d_;
-      if (tex->kind_ != gl_es2_texture_2d) break;
-      s2d = &tex->texture_2d_;
-      break;
-    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X:
-    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X:
-    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y:
-    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z:
-    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z:
-      tex = tu->texture_cube_map_;
-      if (tex->kind_ != gl_es2_texture_cube_map) break;
-      if (width != height) {
-        /* target is one of the six cube map 2D image targets and the width and height parameters are not equal. */
-        set_gl_err(GL_ES2_INVALID_VALUE);
-        return;
-      }
-      switch (target) {
-        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: s2d = &tex->texture_cube_map_positive_x_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: s2d = &tex->texture_cube_map_negative_x_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: s2d = &tex->texture_cube_map_positive_y_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: s2d = &tex->texture_cube_map_negative_y_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: s2d = &tex->texture_cube_map_positive_z_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: s2d = &tex->texture_cube_map_negative_z_; break;
-      }
-      break;
-    default:
-      /* target is invalid */
-      set_gl_err(GL_ES2_INVALID_ENUM);
-      return;
-  }
-  if (!s2d) {
-    set_gl_err(GL_ES2_INVALID_OPERATION);
+  if (!get_active_tex_target(target, &tex, &s2d)) {
     return;
   }
+  if ((tex->kind_ == gl_es2_texture_cube_map) && (width != height)) {
+    /* target is one of the six cube map 2D image targets and the width and height parameters are not equal. */
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
   if (gl_es2_framebuffer_check_completeness(c->framebuffer_) != gl_es2_framebuffer_complete) {
     set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
     return;
@@ -2345,6 +2399,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferRen
       return;
     }
   }
+  /* Note: type is not checked here, but at glCheckFramebufferStatus() */
   switch (attachment) {
     case GL_ES2_COLOR_ATTACHMENT0:
       gl_es2_framebuffer_attachment_attach_renderbuffer(&c->framebuffer_->color_attachment0_, rb);
@@ -2363,6 +2418,62 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferRen
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferTexture2D)(gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum textarget, gl_es2_uint texture, gl_es2_int level) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (target != GL_ES2_FRAMEBUFFER) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  if (!texture) {
+    /* Detach operation */
+    struct gl_es2_framebuffer_attachment *fa = NULL;
+    if (attachment == GL_ES2_COLOR_ATTACHMENT0) {
+      fa = &c->framebuffer_->color_attachment0_;
+    }
+    else if (attachment == GL_ES2_DEPTH_ATTACHMENT) {
+      fa = &c->framebuffer_->depth_attachment_;
+    }
+    else if (attachment == GL_ES2_STENCIL_ATTACHMENT) {
+      fa = &c->framebuffer_->stencil_attachment_;
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+    }
+    gl_es2_framebuffer_attachment_detach(fa);
+    return;
+  }
+
+  struct gl_es2_texture *tex = NULL;
+  uintptr_t tex_name = (uintptr_t)texture;
+  tex = (struct gl_es2_texture *)not_find(&c->texture_not_, tex_name);
+  if (!tex) {
+    /* texture is not the name of an existing texture object */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  struct sampler_2d *s2d = NULL;
+  if (!get_tex_target(textarget, tex, &s2d)) {
+    return;
+  }
+  struct gl_es2_framebuffer_attachment *fa = NULL;
+  if (attachment == GL_ES2_COLOR_ATTACHMENT0) {
+    fa = &c->framebuffer_->color_attachment0_;
+  }
+  else if (attachment == GL_ES2_DEPTH_ATTACHMENT) {
+    fa = &c->framebuffer_->depth_attachment_;
+  }
+  else if (attachment == GL_ES2_STENCIL_ATTACHMENT) {
+    fa = &c->framebuffer_->stencil_attachment_;
+  }
+  else {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  gl_es2_framebuffer_attachment_attach_texture(fa, tex);
+  fa->cube_map_face_ = tex_target_gl_to_cubemap_face(textarget);
+  fa->level_ = level;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FrontFace)(gl_es2_enum mode) {
