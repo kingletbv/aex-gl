@@ -170,9 +170,9 @@ int primitive_assembly_alloc_buffers(struct primitive_assembly *pa);
 
 void primitive_assembly_cleanup(struct primitive_assembly *pa);
 
-int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint8_t *indices, size_t num_indices);
-int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint16_t *indices, size_t num_indices);
-int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint32_t *indices, size_t num_indices);
+int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, const uint8_t *indices, size_t num_indices);
+int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, const uint16_t *indices, size_t num_indices);
+int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, const uint32_t *indices, size_t num_indices);
 int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, size_t num_elements);
 
 int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attrib_set *as, struct sl_execution *exec);
@@ -223,7 +223,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       size_t num_elements,
                                       primitive_assembly_index_type_t index_type,
                                       size_t arrayed_starting_index,
-                                      void *indices);
+                                      const void *indices);
 
 #ifdef __cplusplus
 } /* extern "C" */

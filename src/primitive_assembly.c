@@ -284,7 +284,7 @@ void primitive_assembly_cleanup(struct primitive_assembly *pa) {
   if (pa->slab_) free(pa->slab_);
 }
 
-int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint8_t *indices, size_t num_indices) {
+int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, const uint8_t *indices, size_t num_indices) {
   /* Note: primitive_assembly_elements_u8, primitive_assembly_elements_u16 and primitive_assembly_elements_u32 share pretty much the
    *       same code with a different index type. If you fix a bug here, chances are you'll need to fix it there as well. */
   switch (pa->continue_at_) {
@@ -472,7 +472,7 @@ int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_
   }
 }
 
-int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint16_t *indices, size_t num_indices) {
+int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, const uint16_t *indices, size_t num_indices) {
   /* Note: primitive_assembly_elements_u8, primitive_assembly_elements_u16 and primitive_assembly_elements_u32 share pretty much the
    *       same code with a different index type. If you fix a bug here, chances are you'll need to fix it there as well. */
   switch (pa->continue_at_) {
@@ -660,7 +660,7 @@ int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib
   }
 }
 
-int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, uint32_t *indices, size_t num_indices) {
+int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, const uint32_t *indices, size_t num_indices) {
   /* Note: primitive_assembly_elements_u8, primitive_assembly_elements_u16 and primitive_assembly_elements_u32 share pretty much the
    *       same code with a different index type. If you fix a bug here, chances are you'll need to fix it there as well. */
   switch (pa->continue_at_) {
@@ -2307,7 +2307,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       size_t num_elements,
                                       primitive_assembly_index_type_t index_type,
                                       size_t arrayed_starting_index,
-                                      void *indices) {
+                                      const void *indices) {
   int r;
   struct sl_variable *vgl_Position = sl_compilation_unit_find_variable(&vertex_shader->cu_, "gl_Position");
   struct sl_function *vmain = sl_compilation_unit_find_function(&vertex_shader->cu_, "main");

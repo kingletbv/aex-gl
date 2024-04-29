@@ -2054,16 +2054,16 @@ static int gl_mode_to_pam(gl_es2_enum mode, primitive_assembly_mode_t *ppam) {
   return 1;
 }
 
-GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl_es2_enum mode, gl_es2_int first, gl_es2_sizei count) {
+static void perform_draw(primitive_assembly_mode_t mode, 
+                         size_t num_elements,
+                         primitive_assembly_index_type_t index_type,
+                         size_t arrayed_starting_index,
+                         const void *indices) {
   struct gl_es2_context *c = gl_es2_ctx();
-  primitive_assembly_mode_t pam;
-  if (!gl_mode_to_pam(mode, &pam)) return;
-
   if (!c->current_program_) {
     /* Current program is invalid, however, no error is generated for this case (as per spec.) */
     return;
   }
-
   if (gl_es2_framebuffer_complete != gl_es2_framebuffer_check_completeness(c->framebuffer_)) {
     set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
     return;
@@ -2220,10 +2220,40 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl
                                    c->blend_color_red_, c->blend_color_grn_, c->blend_color_blu_, c->blend_color_alpha_,
                                    c->is_polygon_offset_fill_enabled_ ? c->polygon_offset_factor_ : 0.f, 
                                    c->is_polygon_offset_fill_enabled_ ? c->polygon_offset_units_ : 0.f,
-                                   pam, count, PAIT_UNSIGNED_INT, first, NULL);
+                                   mode, num_elements, index_type, arrayed_starting_index, indices);
+}
+
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl_es2_enum mode, gl_es2_int first, gl_es2_sizei count) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  primitive_assembly_mode_t pam;
+  if (!gl_mode_to_pam(mode, &pam)) return;
+
+  perform_draw(pam, count, PAIT_UNSIGNED_INT, first, NULL);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawElements)(gl_es2_enum mode, gl_es2_sizei count, gl_es2_enum type, const void *indices) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  primitive_assembly_mode_t pam;
+  if (!gl_mode_to_pam(mode, &pam)) return;
+
+  primitive_assembly_index_type_t pait;
+
+  switch (type) {
+    case GL_ES2_UNSIGNED_BYTE:
+      pait = PAIT_UNSIGNED_BYTE;
+      break;
+    case GL_ES2_UNSIGNED_SHORT:
+      pait = PAIT_UNSIGNED_SHORT;
+      break;
+    case GL_ES2_UNSIGNED_INT: /* strictly speaking not in spec but we'll support it because it's useful */
+      pait = PAIT_UNSIGNED_INT;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  perform_draw(pam, count, pait, 0, indices);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Enable)(gl_es2_enum cap) {

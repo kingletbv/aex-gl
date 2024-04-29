@@ -159,6 +159,10 @@ extern "C" {
 #define GL_ES2_GEQUAL   0x0206
 #define GL_ES2_ALWAYS   0x0207
 
+#define GL_ES2_UNSIGNED_BYTE  0x1401
+#define GL_ES2_UNSIGNED_SHORT 0x1403
+#define GL_ES2_UNSIGNED_INT   0x1405
+
 #define GL_ES2_FRONT          0x0404
 #define GL_ES2_BACK           0x0405
 #define GL_ES2_FRONT_AND_BACK 0x0408
