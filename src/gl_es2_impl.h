@@ -171,6 +171,10 @@ extern "C" {
 #define GL_ES2_FLOAT_MAT3 0x8B5B
 #define GL_ES2_FLOAT_MAT4 0x8B5C
 
+#define GL_ES2_ACTIVE_ATTRIBUTES           0x8B89
+#define GL_ES2_ACTIVE_ATTRIBUTE_MAX_LENGTH 0x8B8A
+
+
 #define GL_ES2_FRONT          0x0404
 #define GL_ES2_BACK           0x0405
 #define GL_ES2_FRONT_AND_BACK 0x0408
