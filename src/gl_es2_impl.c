@@ -2556,7 +2556,82 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenTextures)(g
   generic_name_gen(&c->texture_rra_, n, textures);
 }
 
-GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveAttrib)(gl_es2_uint program, gl_es2_uint index, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_int *size, gl_es2_enum *type, gl_es2_char *name) {
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveAttrib)(gl_es2_uint program, gl_es2_uint index, gl_es2_sizei bufsize, gl_es2_sizei *length, gl_es2_int *size, gl_es2_enum *type, gl_es2_char *name) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (bufsize < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (((size_t)index) >= prog->program_.abt_.num_attrib_bindings_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  struct attrib_binding *ab = prog->program_.abt_.attrib_bindings_[index];
+
+  if (!ab->var_) {
+    /* Attribute binding with no variable.. we'll assume the link failed though 
+     * this could also be a glBindAttribLocation() that later did not link / was
+     * not found in the program. */
+    if (size) *size = 0;
+    if (type) *type = GL_ES2_FLOAT;
+  }
+  else {
+    struct sl_type *t = sl_type_unqualified(ab->var_->type_);
+    uint64_t num_elements_in_array = 1;
+    if (t->kind_ == sltk_array) {
+      /* We'll tolerate arrays even though they're not supported in ES 2.0 */
+      num_elements_in_array = t->array_size_;
+      if (num_elements_in_array > INT_MAX) {
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+      }
+      t = sl_type_unqualified(t->derived_type_);
+    }
+    switch (t->kind_) {
+      case sltk_float:
+        if (type) *type = GL_ES2_FLOAT;
+        break;
+      case sltk_vec2:
+        if (type) *type = GL_ES2_FLOAT_VEC2;
+        break;
+      case sltk_vec3:
+        if (type) *type = GL_ES2_FLOAT_VEC3;
+        break;
+      case sltk_vec4:
+        if (type) *type = GL_ES2_FLOAT_VEC4;
+        break;
+      case sltk_mat2:
+        if (type) *type = GL_ES2_FLOAT_MAT2;
+        break;
+      case sltk_mat3:
+        if (type) *type = GL_ES2_FLOAT_MAT3;
+        break;
+      case sltk_mat4:
+        if (type) *type = GL_ES2_FLOAT_MAT4;
+        break;
+      default:
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+    }
+    if (size) *size = (gl_es2_int)num_elements_in_array;
+  }
+  size_t len = strlen(ab->name_);
+  if (length) *length = (gl_es2_sizei)len;
+  if (name) {
+    if (bufsize > len) {
+      strcpy(name, ab->name_);
+    }
+    else if (bufsize > 0) {
+      memcpy(name, ab->name_, bufsize - 1);
+      name[bufsize - 1] = '\0';
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveUniform)(gl_es2_uint program, gl_es2_uint index, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_int *size, gl_es2_enum *type, gl_es2_char *name) {

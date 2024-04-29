@@ -53,6 +53,8 @@ void attrib_binding_cleanup(struct attrib_binding *ab) {
 void abt_init(struct attrib_binding_table *abt) {
   abt->root_ = NULL;
   abt->seq_ = NULL;
+  abt->num_attrib_bindings_ = abt->num_attrib_bindings_allocated_ = 0;
+  abt->attrib_bindings_ = NULL;
 }
 
 void abt_cleanup(struct attrib_binding_table *abt) {
@@ -62,6 +64,7 @@ void abt_cleanup(struct attrib_binding_table *abt) {
     attrib_binding_cleanup(ab);
     free(ab);
   }
+  if (abt->attrib_bindings_) free(abt->attrib_bindings_);
 }
 
 static struct attrib_binding *abt_rotate_left(struct attrib_binding_table *abt, struct attrib_binding *A) {
@@ -507,13 +510,30 @@ struct attrib_binding *abt_find(struct attrib_binding_table *abt, const char *na
   return NULL; /* not found */
 }
 
-struct attrib_binding *abt_alloc_attrib_binding(const char *name, size_t name_len) {
+struct attrib_binding *abt_alloc_attrib_binding(struct attrib_binding_table *abt, const char *name, size_t name_len) {
   struct attrib_binding *ab = (struct attrib_binding *)malloc(sizeof(struct attrib_binding) + name_len + 1 /* null terminator */);
   if (!ab) return NULL;
+  if (abt->num_attrib_bindings_ == abt->num_attrib_bindings_allocated_) {
+    size_t new_num_attrib_bindings_allocated_ = abt->num_attrib_bindings_allocated_ * 2 + 1;
+    if (new_num_attrib_bindings_allocated_ <= abt->num_attrib_bindings_allocated_) {
+      free(ab);
+      return NULL;
+    }
+    struct attrib_binding **new_attrib_bindings = (struct attrib_binding **)realloc(abt->attrib_bindings_, new_num_attrib_bindings_allocated_ * sizeof(struct attrib_binding *));
+    if (!new_attrib_bindings) {
+      free(ab);
+      return NULL;
+    }
+    abt->attrib_bindings_ = new_attrib_bindings;
+    abt->num_attrib_bindings_allocated_ = new_num_attrib_bindings_allocated_;
+  }
   attrib_binding_init(ab);
   memcpy(ab->name_, name, name_len);
   ab->name_[name_len] = '\0';
   ab->name_len_ = name_len;
+  ab->attrib_variable_index_ = abt->num_attrib_bindings_;
+  abt->attrib_bindings_[abt->num_attrib_bindings_++] = ab;
+
   return ab;
 }
 
@@ -522,7 +542,7 @@ attrib_binding_table_result_t abt_find_or_insert(struct attrib_binding_table *ab
   s = abt->root_;
   if (!s) {
     /* Have insertion point at the root */
-    struct attrib_binding *nab = abt_alloc_attrib_binding(name, name_len);
+    struct attrib_binding *nab = abt_alloc_attrib_binding(abt, name, name_len);
     if (!nab) return ABT_NOMEM;
     nab->next_ = nab->prev_ = nab;
     abt->seq_ = nab;
@@ -536,7 +556,7 @@ attrib_binding_table_result_t abt_find_or_insert(struct attrib_binding_table *ab
     if (cmp < 0) {
       if (!s->left_) {
         /* Have insertion point */
-        struct attrib_binding *nab = abt_alloc_attrib_binding(name, name_len);
+        struct attrib_binding *nab = abt_alloc_attrib_binding(abt, name, name_len);
         if (!nab) return ABT_NOMEM;
         nab->parent_ = s;
         s->left_ = nab;
@@ -555,7 +575,7 @@ attrib_binding_table_result_t abt_find_or_insert(struct attrib_binding_table *ab
     else if (cmp > 0) {
       if (!s->right_) {
         /* Have insertion point */
-        struct attrib_binding *nab = abt_alloc_attrib_binding(name, name_len);
+        struct attrib_binding *nab = abt_alloc_attrib_binding(abt, name, name_len);
         if (!nab) return ABT_NOMEM;
 
         nab->parent_ = s;

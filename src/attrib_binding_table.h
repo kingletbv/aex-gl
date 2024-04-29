@@ -36,6 +36,9 @@ struct attrib_binding {
    * bound manually (via bound_index_) but not yet linked. */
   int active_index_;
 
+  /* Index of this attribute binding as found in attrib_binding_table::attrib_bindings_ */
+  size_t attrib_variable_index_;
+
   /* Pointer to the vertex variable this is bound to, post program linking.
    * Can be NULL if the variable is not declared or used in the vertex program. */
   struct sl_variable *var_;
@@ -51,6 +54,14 @@ struct attrib_binding_table {
 
   /* Cyclic chain of all bound attributes in order of creation */
   struct attrib_binding *seq_;
+
+  /* Array of all attrib_binding's currently created, this allows random
+   * access by index; each newly inserted attrib_binding (through abt_find_or_insert)
+   * is automatically inserted in this list. Its index is stored in 
+   * attrib_binding::attrib_variable_index_ */
+  size_t num_attrib_bindings_;
+  size_t num_attrib_bindings_allocated_;
+  struct attrib_binding **attrib_bindings_;
 };
 
 void abt_init(struct attrib_binding_table *abt);
