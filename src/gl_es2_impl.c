@@ -2497,6 +2497,48 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenBuffers)(gl
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenerateMipmap)(gl_es2_enum target) {
+  gl_es2_enum t2d_targets[] = { GL_ES2_TEXTURE_2D };
+  gl_es2_enum cube_targets[] = { GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X, GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X,
+                                 GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+                                 GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z };
+
+  gl_es2_enum *targets = NULL;
+  size_t num_targets = 0;
+  if (target == GL_ES2_TEXTURE_2D) {
+    targets = t2d_targets;
+    num_targets = sizeof(t2d_targets)/sizeof(*t2d_targets);
+  }
+  else if (target == GL_ES2_TEXTURE_CUBE_MAP) {
+    targets = cube_targets;
+    num_targets = sizeof(cube_targets)/sizeof(*cube_targets);
+  }
+  else {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  size_t n;
+  for (n = 0; n < num_targets; ++n) {
+    struct gl_es2_texture *tex = NULL;
+    struct sampler_2d *s2d = NULL;
+
+    if (!get_active_tex_target(targets[n], &tex, &s2d)) {
+      return;
+    }
+    switch (sampler_2d_generate_mipmaps(s2d)) {
+      case SL_ERR_INVALID_ARG:
+        /* no level 0 */
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+      case SL_ERR_OVERFLOW:
+      case SL_ERR_NO_MEM:
+        set_gl_err(GL_ES2_OUT_OF_MEMORY);
+        return;
+      default:
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenFramebuffers)(gl_es2_sizei n, gl_es2_uint *framebuffers) {
