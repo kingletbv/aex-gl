@@ -107,6 +107,21 @@ static void check_old_program_for_deletion(struct gl_es2_program *old_prog) {
   }
 }
 
+static gl_es2_int stencil_func_pasf_to_gl(primitive_assembly_stencil_func_t pasf) {
+  switch (pasf) {
+    case PASF_EQUAL: return GL_ES2_EQUAL;
+    case PASF_NOTEQUAL: return GL_ES2_NOTEQUAL;
+    case PASF_LESS: return GL_ES2_LESS;
+    case PASF_GREATER: return GL_ES2_GREATER;
+    case PASF_LEQUAL: return GL_ES2_LEQUAL;
+    case PASF_GEQUAL: return GL_ES2_GEQUAL;
+    case PASF_ALWAYS: return GL_ES2_ALWAYS;
+    case PASF_NEVER: return GL_ES2_NEVER;
+  }
+  return 0;
+}
+
+
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture) {
   struct gl_es2_context *c = gl_es2_ctx();
   if (texture >= c->num_active_texture_units_) {
@@ -2117,14 +2132,17 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl
   ss_back->mask = c->stencil_back_writemask_;
 
   /* XXX: Fill out ss_front and ss_back when glStencilXXX functions have been implemented. */
+  ss_front->func = c->stencil_func_;
+  ss_front->func_mask = c->stencil_func_mask_;
+  ss_front->func_ref = c->stencil_func_ref_;
+  ss_back->func = c->stencil_back_func_;
+  ss_back->func_mask = c->stencil_back_func_mask_;
+  ss_back->func_ref = c->stencil_back_func_ref_;
 
   struct stencil_settings *ss_both[] = { ss_front, ss_back };
   size_t n;
   for (n = 0; n < (sizeof(ss_both)/sizeof(*ss_both)); ++n) {
     struct stencil_settings *ss = ss_both[n];
-    ss->func = PASF_ALWAYS;
-    ss->func_mask = ~(uint32_t)0;
-    ss->func_ref = 0;
     ss->sfail = PASO_KEEP;
     ss->zfail = PASO_KEEP;
     ss->zpass = PASO_KEEP;
@@ -2388,6 +2406,34 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
       data[2] = (gl_es2_boolean)(c->vp_width_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
       data[3] = (gl_es2_boolean)(c->vp_height_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
       break;
+    case GL_ES2_STENCIL_FUNC:
+      data[0] = (gl_es2_boolean)(stencil_func_pasf_to_gl(c->stencil_func_) ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      break;
+    case GL_ES2_STENCIL_VALUE_MASK:
+      data[0] = (gl_es2_boolean)(c->stencil_back_func_mask_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      break;
+    case GL_ES2_STENCIL_REF:
+      data[0] = (gl_es2_boolean)(c->stencil_back_func_ref_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      break;
+    case GL_ES2_STENCIL_BACK_FUNC:
+      data[0] = (gl_es2_boolean)(c->stencil_back_func_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      break;
+    case GL_ES2_STENCIL_BACK_VALUE_MASK:
+      data[0] = (gl_es2_boolean)(c->stencil_back_func_mask_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      break;
+    case GL_ES2_STENCIL_BACK_REF:
+      data[0] = (gl_es2_boolean)(c->stencil_back_func_ref_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      break;
+    case GL_ES2_STENCIL_BITS:
+      if (c->framebuffer_ &&
+        c->framebuffer_->stencil_attachment_.kind_ == gl_es2_faot_renderbuffer &&
+        c->framebuffer_->stencil_attachment_.v_.rb_->format_ == gl_es2_renderbuffer_format_stencil16) {
+        data[0] = GL_ES2_TRUE;
+      }
+      else {
+        data[0] = GL_ES2_FALSE;
+      }
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2437,6 +2483,34 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
       data[2] = (float)c->vp_width_;
       data[3] = (float)c->vp_height_;
       break;
+    case GL_ES2_STENCIL_FUNC:
+      data[0] = (float)stencil_func_pasf_to_gl(c->stencil_func_);
+      break;
+    case GL_ES2_STENCIL_VALUE_MASK:
+      data[0] = (float)c->stencil_back_func_mask_;
+      break;
+    case GL_ES2_STENCIL_REF:
+      data[0] = (float)c->stencil_back_func_ref_;
+      break;
+    case GL_ES2_STENCIL_BACK_FUNC:
+      data[0] = (float)c->stencil_back_func_;
+      break;
+    case GL_ES2_STENCIL_BACK_VALUE_MASK:
+      data[0] = (float)c->stencil_back_func_mask_;
+      break;
+    case GL_ES2_STENCIL_BACK_REF:
+      data[0] = (float)c->stencil_back_func_ref_;
+      break;
+    case GL_ES2_STENCIL_BITS:
+      if (c->framebuffer_ && 
+          c->framebuffer_->stencil_attachment_.kind_ == gl_es2_faot_renderbuffer &&
+          c->framebuffer_->stencil_attachment_.v_.rb_->format_ == gl_es2_renderbuffer_format_stencil16) {
+        data[0] = (float)16;
+      }
+      else {
+        data[0] = 0.f;
+      }
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2478,6 +2552,34 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
       data[1] = (gl_es2_int)c->vp_y_;
       data[2] = (gl_es2_int)c->vp_width_;
       data[3] = (gl_es2_int)c->vp_height_;
+      break;
+    case GL_ES2_STENCIL_FUNC:
+      data[0] = stencil_func_pasf_to_gl(c->stencil_func_);
+      break;
+    case GL_ES2_STENCIL_VALUE_MASK: 
+      data[0] = (gl_es2_int)c->stencil_back_func_mask_;
+      break;
+    case GL_ES2_STENCIL_REF: 
+      data[0] = (gl_es2_int)c->stencil_back_func_ref_;
+      break;
+    case GL_ES2_STENCIL_BACK_FUNC: 
+      data[0] = (gl_es2_int)c->stencil_back_func_;
+      break;
+    case GL_ES2_STENCIL_BACK_VALUE_MASK: 
+      data[0] = (gl_es2_int)c->stencil_back_func_mask_;
+      break;
+    case GL_ES2_STENCIL_BACK_REF: 
+      data[0] = (gl_es2_int)c->stencil_back_func_ref_;
+      break;
+    case GL_ES2_STENCIL_BITS:
+      if (c->framebuffer_ && 
+          c->framebuffer_->stencil_attachment_.kind_ == gl_es2_faot_renderbuffer &&
+          c->framebuffer_->stencil_attachment_.v_.rb_->format_ == gl_es2_renderbuffer_format_stencil16) {
+        data[0] = (gl_es2_int)16;
+      }
+      else {
+        data[0] = 0;
+      }
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -2712,10 +2814,62 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderSource)(
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFunc)(gl_es2_enum func, gl_es2_int ref, gl_es2_uint mask) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  primitive_assembly_stencil_func_t stencil_func;
+  switch (func) {
+    case GL_ES2_NEVER:    stencil_func = PASF_NEVER; break;
+    case GL_ES2_LESS:     stencil_func = PASF_LESS; break;
+    case GL_ES2_LEQUAL:   stencil_func = PASF_LEQUAL; break;
+    case GL_ES2_GREATER:  stencil_func = PASF_GREATER; break;
+    case GL_ES2_GEQUAL:   stencil_func = PASF_GEQUAL; break;
+    case GL_ES2_EQUAL:    stencil_func = PASF_EQUAL; break;
+    case GL_ES2_NOTEQUAL: stencil_func = PASF_NOTEQUAL; break;
+    case GL_ES2_ALWAYS:   stencil_func = PASF_ALWAYS; break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 
+  c->stencil_func_ = stencil_func;
+  c->stencil_func_ref_ = (uint32_t)ref;
+  c->stencil_func_mask_ = (uint32_t)mask;
+  c->stencil_back_func_ = stencil_func;
+  c->stencil_back_func_ref_ = (uint32_t)ref;
+  c->stencil_back_func_mask_ = (uint32_t)mask;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFuncSeparate)(gl_es2_enum face, gl_es2_enum func, gl_es2_int ref, gl_es2_uint mask) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  primitive_assembly_stencil_func_t stencil_func;
+  switch (func) {
+    case GL_ES2_NEVER:    stencil_func = PASF_NEVER; break;
+    case GL_ES2_LESS:     stencil_func = PASF_LESS; break;
+    case GL_ES2_LEQUAL:   stencil_func = PASF_LEQUAL; break;
+    case GL_ES2_GREATER:  stencil_func = PASF_GREATER; break;
+    case GL_ES2_GEQUAL:   stencil_func = PASF_GEQUAL; break;
+    case GL_ES2_EQUAL:    stencil_func = PASF_EQUAL; break;
+    case GL_ES2_NOTEQUAL: stencil_func = PASF_NOTEQUAL; break;
+    case GL_ES2_ALWAYS:   stencil_func = PASF_ALWAYS; break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  if ((face != GL_ES2_FRONT) && (face != GL_ES2_BACK) && (face != GL_ES2_FRONT_AND_BACK)) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  if ((face == GL_ES2_FRONT) || (face == GL_ES2_FRONT_AND_BACK)) {
+    c->stencil_func_ = stencil_func;
+    c->stencil_func_ref_ = (uint32_t)ref;
+    c->stencil_func_mask_ = (uint32_t)mask;
+  }
+  if ((face == GL_ES2_BACK) || (face == GL_ES2_FRONT_AND_BACK)) {
+    c->stencil_back_func_ = stencil_func;
+    c->stencil_back_func_ref_ = (uint32_t)ref;
+    c->stencil_back_func_mask_ = (uint32_t)mask;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMask)(gl_es2_uint mask) {

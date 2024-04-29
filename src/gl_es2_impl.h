@@ -126,6 +126,13 @@ extern "C" {
 #define GL_ES2_FRONT_FACE        0x0B46
 #define GL_ES2_MAX_VIEWPORT_DIMS 0x0D3A
 #define GL_ES2_VIEWPORT          0x0BA2
+#define GL_ES2_STENCIL_FUNC            0x0B92
+#define GL_ES2_STENCIL_VALUE_MASK      0x0B93
+#define GL_ES2_STENCIL_REF             0x0B97
+#define GL_ES2_STENCIL_BACK_FUNC       0x8800
+#define GL_ES2_STENCIL_BACK_VALUE_MASK 0x8CA4
+#define GL_ES2_STENCIL_BACK_REF        0x8CA3
+#define GL_ES2_STENCIL_BITS      0x0D57
 
 #define GL_ES2_NEVER    0x0200
 #define GL_ES2_LESS     0x0201

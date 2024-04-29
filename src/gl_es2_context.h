@@ -323,6 +323,25 @@ struct gl_es2_context {
   /* glStencilMask()/glStencilMaskSeparate() - glGet(GL_STENCIL_BACK_WRITEMASK), glGet(GL_STENCIL_WRITEMASK) */
   uint32_t stencil_back_writemask_, stencil_writemask_;
 
+  /* glStencilFunc()/glStencilFuncSeparate() - glGet(GL_STENCIL_FUNC/GL_STENCIL_VALUE_MASK/GL_STENCIL_REF/ ..
+   * .. GL_STENCIL_BACK_FUNC/GL_STENCIL_BACK_VALUE_MASK/GL_STENCIL_BACK_REF) */
+  primitive_assembly_stencil_func_t stencil_func_;
+  uint32_t stencil_func_ref_;
+  uint32_t stencil_func_mask_;
+
+  primitive_assembly_stencil_func_t stencil_back_func_;
+  uint32_t stencil_back_func_ref_;
+  uint32_t stencil_back_func_mask_;
+
+  primitive_assembly_stencil_op_t stencil_sfail_;
+  primitive_assembly_stencil_op_t stencil_zfail_;
+  primitive_assembly_stencil_op_t stencil_zpass_;
+
+  primitive_assembly_stencil_op_t stencil_back_sfail_;
+  primitive_assembly_stencil_op_t stencil_back_zfail_;
+  primitive_assembly_stencil_op_t stencil_back_zpass_;
+
+
   /* glEnable(GL_SCISSOR_TEST), glDisable(GL_SCISSOR_TEST), glIsEnabled(GL_SCISSOR_TEST) */
   int is_scissor_test_enabled_:1;
 
