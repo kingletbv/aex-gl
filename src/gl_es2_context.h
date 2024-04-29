@@ -73,6 +73,10 @@
 /* glGet(GL_MAX_VERTEX_ATTRIBS) */
 #define GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS 1024
 
+/* glGet(GL_MAX_VIEWPORT_DIMS)
+ * as per design document "Bits of precision needed to determine area of 2D triangle.docx" */
+#define GL_ES2_IMPL_MAX_VIEWPORT_DIMS 4194304
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -303,6 +307,9 @@ struct gl_es2_context {
 
   /* near and far clipping planes, glDepthRangef(), glGet(GL_DEPTH_RANGE) */
   float near_plane_, far_plane_;
+
+  /* viewport, glViewport(), glGet(GL_VIEWPORT) and related glGet(GL_MAX_VIEWPORT_DIMS) */
+  int32_t vp_x_, vp_y_, vp_width_, vp_height_;
 
   /* is culling enabled ? - glEnable/glDisable(GL_CULL_FACE) */
   int is_culling_enabled_:1;

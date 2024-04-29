@@ -2040,9 +2040,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl
     scissor_height = c->scissor_height_;
   }
 
-  /* XXX: Get these from viewport settings */
+  /* Get these from viewport settings */
   int32_t vp_x, vp_y, vp_width, vp_height;
-  vp_x = 0; vp_y = 0; vp_width = width; vp_height = height;
+  vp_x = c->vp_x_; 
+  vp_y = c->vp_y_; 
+  vp_width = c->vp_width_; 
+  vp_height = c->vp_height_;
 
   /* Default max_z is 32 bits to set it to some value, the actual max_z
    * is the depth buffer attachment's bit depth */
@@ -2375,6 +2378,16 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
         case gl_es2_front_face_counterclockwise: data[0] = (gl_es2_boolean)(GL_ES2_CCW ? GL_ES2_TRUE : GL_ES2_FALSE); break;
       }
       break;
+    case GL_ES2_MAX_VIEWPORT_DIMS:
+      data[0] = (gl_es2_boolean)(GL_ES2_IMPL_MAX_VIEWPORT_DIMS ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      data[1] = (gl_es2_boolean)(GL_ES2_IMPL_MAX_VIEWPORT_DIMS ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      break;
+    case GL_ES2_VIEWPORT:
+      data[0] = (gl_es2_boolean)(c->vp_x_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      data[1] = (gl_es2_boolean)(c->vp_y_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      data[2] = (gl_es2_boolean)(c->vp_width_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      data[3] = (gl_es2_boolean)(c->vp_height_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2414,6 +2427,16 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
         case gl_es2_front_face_counterclockwise: data[0] = (float)GL_ES2_CCW; break;
       }
       break;
+    case GL_ES2_MAX_VIEWPORT_DIMS:
+      data[0] = (float)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
+      data[1] = (float)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
+      break;
+    case GL_ES2_VIEWPORT:
+      data[0] = (float)c->vp_x_;
+      data[1] = (float)c->vp_y_;
+      data[2] = (float)c->vp_width_;
+      data[3] = (float)c->vp_height_;
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2445,6 +2468,16 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
         case gl_es2_front_face_clockwise:        data[0] = (gl_es2_int)GL_ES2_CW; break;
         case gl_es2_front_face_counterclockwise: data[0] = (gl_es2_int)GL_ES2_CCW; break;
       }
+      break;
+    case GL_ES2_MAX_VIEWPORT_DIMS:
+      data[0] = (gl_es2_int)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
+      data[1] = (gl_es2_int)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
+      break;
+    case GL_ES2_VIEWPORT:
+      data[0] = (gl_es2_int)c->vp_x_;
+      data[1] = (gl_es2_int)c->vp_y_;
+      data[2] = (gl_es2_int)c->vp_width_;
+      data[3] = (gl_es2_int)c->vp_height_;
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -2841,5 +2874,28 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttribPo
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Viewport)(gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  
+  if ((width < 0) || (height < 0)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  
+  if (x < INT_MIN) x = INT_MIN;
+  if (x > INT_MAX) x = INT_MAX;
+  if (y < INT_MIN) y = INT_MIN;
+  if (y > INT_MAX) y = INT_MAX;
+
+  if (width > GL_ES2_IMPL_MAX_VIEWPORT_DIMS) {
+    width = GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
+  }
+  if (height > GL_ES2_IMPL_MAX_VIEWPORT_DIMS) {
+    height = GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
+  }
+  
+  c->vp_x_ = (int32_t)x;
+  c->vp_y_ = (int32_t)y;
+  c->vp_width_ = (int32_t)width;
+  c->vp_height_ = (int32_t)height;
 }
 

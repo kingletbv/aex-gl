@@ -565,6 +565,9 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->near_plane_ = 0.f;
   c->far_plane_ = 1.f;
 
+  c->vp_x_ = c->vp_y_ = 0;
+  c->vp_width_ = c->vp_height_ = 0;
+
   c->is_scissor_test_enabled_ = 0; /* default off */
 
   /* should initialize to window-supplied-framebuffer as soon as it's attached */
