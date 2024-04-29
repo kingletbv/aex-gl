@@ -59,6 +59,9 @@ int sl_uniform_get_location_info(struct sl_uniform_table *ut, size_t location, v
 /* Maximum possible length of a uniform location name, including a null terminator. */
 int sl_uniform_table_max_name_length(struct sl_uniform_table *ut, size_t *pmax_name_length);
 
+/* Total number of locations, *pnum_locations will receive the first "non" location */
+int sl_uniform_table_num_locations(struct sl_uniform_table *ut, size_t *pnum_locations);
+
 int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, size_t offset, size_t *pnum_slab_bytes_consumed, struct sl_reg_alloc *ra);
 
 #ifdef __cplusplus

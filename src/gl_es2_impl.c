@@ -2634,7 +2634,94 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveAttri
   }
 }
 
-GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveUniform)(gl_es2_uint program, gl_es2_uint index, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_int *size, gl_es2_enum *type, gl_es2_char *name) {
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveUniform)(gl_es2_uint program, gl_es2_uint index, gl_es2_sizei bufsize, gl_es2_sizei *length, gl_es2_int *size, gl_es2_enum *type, gl_es2_char *name) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (bufsize < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *slab_mem = NULL;
+  sl_reg_alloc_kind_t location_type;
+  size_t name_length = 0;
+  size_t final_array_size = 0;
+  size_t entry_in_final_array = 0;
+  /* First call to check name length, then, if name is requested, call again to get name */
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, (size_t)index, &slab_mem, &location_type, &name_length, NULL, &final_array_size, &entry_in_final_array);
+  switch (r) {
+    case SL_ERR_INVALID_ARG:
+      set_gl_err(GL_ES2_INVALID_VALUE);
+      return;
+    case SL_ERR_OVERFLOW:
+    case SL_ERR_NO_MEM:
+    case SL_ERR_INTERNAL:
+    default:
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    case SL_ERR_OK:
+      break;
+  }
+  if (bufsize && name) {
+    if (bufsize > (name_length + 1)) {
+      /* Size is big enough */
+      sl_uniform_get_location_info(&prog->program_.uniforms_, (size_t)index, NULL, NULL, NULL, name, NULL, NULL);
+    }
+    else {
+      /* Name is to be truncated, allocate full buffer & then copy truncated version */
+      char *fullnamebuf = (char *)malloc(name_length + 1);
+      if (!fullnamebuf) {
+        set_gl_err(GL_ES2_OUT_OF_MEMORY);
+        return;
+      }
+      fullnamebuf[0] = '\0';
+      sl_uniform_get_location_info(&prog->program_.uniforms_, (size_t)index, NULL, NULL, NULL, fullnamebuf, NULL, NULL);
+      fullnamebuf[name_length] = '\0';
+      memcpy(name, fullnamebuf, bufsize - 1);
+      name[bufsize - 1] = '\0';
+      free(fullnamebuf);
+    }
+  }
+  if (length) *length = (gl_es2_sizei)name_length;
+  if (size) {
+    if (!entry_in_final_array) {
+      /* Leads an array, therefore gets the size */
+      *size = (gl_es2_int)final_array_size;
+    }
+    else {
+      *size = 1;
+    }
+  }
+  if (type) {
+    switch (location_type) {
+      case slrak_float:       *type = GL_ES2_FLOAT; break;
+      case slrak_int:         *type = GL_ES2_INT; break;
+      case slrak_bool:        *type = GL_ES2_BOOL; break;
+      case slrak_vec2:        *type = GL_ES2_FLOAT_VEC2; break;
+      case slrak_vec3:        *type = GL_ES2_FLOAT_VEC3; break;
+      case slrak_vec4:        *type = GL_ES2_FLOAT_VEC4; break;
+      case slrak_bvec2:       *type = GL_ES2_BOOL_VEC2; break;
+      case slrak_bvec3:       *type = GL_ES2_BOOL_VEC3; break;
+      case slrak_bvec4:       *type = GL_ES2_BOOL_VEC4; break;
+      case slrak_ivec2:       *type = GL_ES2_INT_VEC2; break;
+      case slrak_ivec3:       *type = GL_ES2_INT_VEC3; break;
+      case slrak_ivec4:       *type = GL_ES2_INT_VEC4; break;
+      case slrak_mat2:        *type = GL_ES2_FLOAT_MAT2; break;
+      case slrak_mat3:        *type = GL_ES2_FLOAT_MAT3; break;
+      case slrak_mat4:        *type = GL_ES2_FLOAT_MAT4; break;
+      case slrak_sampler2D:   *type = GL_ES2_SAMPLER_2D; break;
+      case slrak_samplerCube: *type = GL_ES2_SAMPLER_CUBE; break;
+      default:
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+    }
+  }
+
 
 }
 
@@ -2975,6 +3062,44 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramiv)(
         } while (ab != prog->program_.abt_.seq_);
       }
       *params = (gl_es2_int)max_length;
+      break;
+    }
+    case GL_ES2_ACTIVE_UNIFORMS: {
+      int r;
+      size_t num_locations = 0;
+      r = sl_uniform_table_num_locations(&prog->program_.uniforms_, &num_locations);
+      if (r == SL_ERR_NO_MEM) {
+        set_gl_err(GL_ES2_OUT_OF_MEMORY);
+        return;
+      }
+      else if (r) {
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+      }
+      if (num_locations > INT_MAX) {
+        set_gl_err(GL_ES2_INVALID_VALUE);
+        return;
+      }
+      *params = (gl_es2_int)num_locations;
+      break;
+    }
+    case GL_ES2_ACTIVE_UNIFORM_MAX_LENGTH: {
+      size_t max_name_length = 0;
+      int r;
+      r = sl_uniform_table_max_name_length(&prog->program_.uniforms_, &max_name_length);
+      if (r == SL_ERR_NO_MEM) {
+        set_gl_err(GL_ES2_OUT_OF_MEMORY);
+        return;
+      }
+      else if (r) {
+        set_gl_err(GL_ES2_INVALID_OPERATION);
+        return;
+      }
+      if (max_name_length > INT_MAX) {
+        set_gl_err(GL_ES2_INVALID_VALUE);
+        return;
+      }
+      *params = (gl_es2_int)max_name_length;
       break;
     }
   }

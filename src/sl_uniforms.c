@@ -715,6 +715,28 @@ int sl_uniform_table_max_name_length(struct sl_uniform_table *ut, size_t *pmax_n
   return 0;
 }
 
+int sl_uniform_table_num_locations(struct sl_uniform_table *ut, size_t *pnum_locations) {
+  int r;
+  struct sl_uniform *u = ut->uniforms_;
+  size_t max_num_locations = 0;
+  if (u) {
+    do {
+      u = u->chain_;
+
+      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : u->fragment_variable_;
+
+      size_t num_locations = 0;
+      r = sl_uniform_get_reg_alloc_num_indices(&v->reg_alloc_, &num_locations);
+      if (r) return r;
+      
+      max_num_locations += num_locations;
+
+    } while (u != ut->uniforms_);
+  }
+  *pnum_locations = max_num_locations;
+  return SL_ERR_OK;
+}
+
 static void sl_uniform_load_f(size_t num, float *dst, float val) {
   float *restrict p = (float * restrict)dst;
   while (num--) {
