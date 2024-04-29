@@ -32,6 +32,11 @@
 #include "sampler_2d.h"
 #endif
 
+#ifndef SL_DEFS_H_INCLUDED
+#define SL_DEFS_H_INCLUDED
+#include "sl_defs.h"
+#endif
+
 /* XXX: Important: no TLS, no locks, no atomics, nary a cli/sti: no thread safety. */
 
 static struct gl_es2_context g_ctx_ = { 0 };
@@ -531,6 +536,8 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   ref_range_allocator_init(&c->shader_rra_);
   not_init(&c->shader_not_);
 
+  attrib_set_init(&c->attribs_);
+
   c->framebuffer_ = NULL;
   c->renderbuffer_ = NULL;
 
@@ -641,6 +648,16 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
     gl_es2_shader_cleanup(shad);
     free(shad);
   }
+
+  attrib_set_cleanup(&c->attribs_);
+}
+
+static int gl_es2_ctx_complete_initialization(struct gl_es2_context *c) {
+  if (attrib_alloc_fixed_num_attribs(&c->attribs_, GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS)) {
+    c->current_error_ = GL_ES2_OUT_OF_MEMORY;
+    return SL_ERR_NO_MEM;
+  }
+  return SL_ERR_OK;
 }
 
 void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *left, uint32_t *top, uint32_t *right, uint32_t *bottom) {
@@ -692,7 +709,15 @@ static void gl_es2_at_exit_cleanup(void) {
 
 struct gl_es2_context *gl_es2_ctx(void) {
   if (!g_ctx_is_initialized_) {
+    /* Fixed initialization to known-good state */
     gl_es2_ctx_init(&g_ctx_);
+
+    /* Complete initialization with may-fail allocations */
+    if (SL_ERR_OK != gl_es2_ctx_complete_initialization(&g_ctx_)) {
+      /* Failed allocations -- error will have been
+       * set. We will allow this to continue to fail as things
+       * will implode if we return NULL. */
+    }
     g_ctx_is_initialized_ = 1;
     atexit(gl_es2_at_exit_cleanup);
   }
@@ -700,3 +725,24 @@ struct gl_es2_context *gl_es2_ctx(void) {
   return &g_ctx_;
 }
 
+int gl_es2_initialize_context(void) {
+  if (!g_ctx_is_initialized_) {
+    /* Fixed initialization to known-good state */
+    gl_es2_ctx_init(&g_ctx_);
+
+    /* Complete initialization with may-fail allocations */
+    if (!gl_es2_ctx_complete_initialization(&g_ctx_)) {
+      /* Failed allocations.
+       * NOTE: Unlike the above, here we cleanup and return 
+       *       the -1; reason is that we can now expect the
+       *       caller to anticipate and handle any failure,
+       *       unlike gl_es2_ctx() where callers may assume
+       *       success. */
+      gl_es2_ctx_cleanup(&g_ctx_);
+      return SL_ERR_NO_MEM;
+    }
+    g_ctx_is_initialized_ = 1;
+    atexit(gl_es2_at_exit_cleanup);
+  }
+  return SL_ERR_OK;
+}

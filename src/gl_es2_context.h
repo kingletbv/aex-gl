@@ -55,6 +55,11 @@
 #include "sl_shader.h"
 #endif
 
+#ifndef ATTRIB_SET_H_INCLUDED
+#define ATTRIB_SET_H_INCLUDED
+#include "attrib_set.h"
+#endif
+
 /* glGet(GL_MAX_TEXTURE_IMAGE_UNITS)
  * glGet(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS)
  */
@@ -62,7 +67,6 @@
 
 /* glGet(GL_MAX_VERTEX_ATTRIBS) */
 #define GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS 1024
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -258,6 +262,8 @@ struct gl_es2_context {
   struct ref_range_allocator shader_rra_;
   struct named_object_table shader_not_;
 
+  struct attrib_set attribs_;
+
   /* currently bound targets */
 
   /* glBindFramebuffer(GL_FRAMEBUFFER) */
@@ -367,7 +373,17 @@ struct gl_es2_context {
   int is_sample_coverage_enabled_:1;
 };
 
+/* initializes the global context, returns SL_ERR_OK (sl_defs.h) for success or
+ * SL_ERR_NO_MEM for failure.
+ * Upon failure, no context will have been initialized. */
+int gl_es2_initialize_context(void);
+
+/* Returns the global context. If one has not been initialized, initialize it and
+ * return it. If the initialization fails (no memory), set the error to the context
+ * and return it anyway (so here, unlike gl_es2_initialize_context(), we will always
+ * end up with a context returned no matter what, even if it is a failed context.) */
 struct gl_es2_context *gl_es2_ctx(void);
+
 void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *left, uint32_t *top, uint32_t *right, uint32_t *bottom);
 
 void gl_es2_framebuffer_attachment_init(struct gl_es2_framebuffer *fb, struct gl_es2_framebuffer_attachment *fa);

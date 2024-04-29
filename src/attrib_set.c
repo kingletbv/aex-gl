@@ -98,3 +98,27 @@ int attrib_set_alloc_attrib(struct attrib_set *as) {
   attrib_set_attrib_init(&as->attribs_[as->num_attribs_], NULL);
   return (int)as->num_attribs_++;
 }
+
+int attrib_alloc_fixed_num_attribs(struct attrib_set *as, size_t num_attribs) {
+  if (num_attribs > as->num_attribs_allocated_) {
+    size_t new_num_attribs_allocated = num_attribs;
+    if (new_num_attribs_allocated > INT_MAX) {
+      /* overflow */
+      return -1;
+    }
+
+    struct attrib *new_attribs = (struct attrib *)realloc(as->attribs_, sizeof(struct attrib) * new_num_attribs_allocated);
+    if (!new_attribs) {
+      /* enomem */
+      return -1;
+    }
+
+    as->attribs_ = new_attribs;
+    as->num_attribs_allocated_ = new_num_attribs_allocated;
+  }
+  size_t n;
+  for (n = as->num_attribs_; n < num_attribs; ++n) {
+    attrib_set_attrib_init(&as->attribs_[n], NULL);
+  }
+  return 0;
+}

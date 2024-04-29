@@ -1979,6 +1979,17 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Disable)(gl_es
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DisableVertexAttribArray)(gl_es2_uint index) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > UINT_MAX) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  unsigned int i_index = (unsigned int)index;
+  if (i_index >= c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[i_index].enabled_ = 0;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl_es2_enum mode, gl_es2_int first, gl_es2_sizei count) {
@@ -2024,6 +2035,17 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Enable)(gl_es2
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(EnableVertexAttribArray)(gl_es2_uint index) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > UINT_MAX) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  unsigned int i_index = (unsigned int)index;
+  if (i_index >= c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[i_index].enabled_ = 1;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Finish)(void) {
@@ -2154,6 +2176,9 @@ GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttri
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(gl_es2_enum pname, gl_es2_boolean *data) {
   struct gl_es2_context *c = gl_es2_ctx();
   switch (pname) {
+    case GL_ES2_MAX_VERTEX_ATTRIBS:
+      *data = (!GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS) ? GL_ES2_FALSE : GL_ES2_TRUE;
+      break;
     case GL_ES2_NUM_COMPRESSED_TEXTURE_FORMATS:
       /* No compressed texture formats support */
       *data = GL_ES2_FALSE;
@@ -2190,6 +2215,9 @@ GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetErro
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_es2_enum pname, gl_es2_float *data) {
   struct gl_es2_context *c = gl_es2_ctx();
   switch (pname) {
+    case GL_ES2_MAX_VERTEX_ATTRIBS:
+      *data = (float)GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS;
+      break;
     case GL_ES2_NUM_COMPRESSED_TEXTURE_FORMATS:
       /* No compressed texture formats support */
       *data = 0.f;
@@ -2219,6 +2247,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(gl_es2_enum pname, gl_es2_int *data) {
   struct gl_es2_context *c = gl_es2_ctx();
   switch (pname) {
+    case GL_ES2_MAX_VERTEX_ATTRIBS:
+      *data = GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS;
+      break;
     case GL_ES2_NUM_COMPRESSED_TEXTURE_FORMATS:
       /* No compressed texture formats support */
       *data = 0;

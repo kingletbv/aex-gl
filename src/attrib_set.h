@@ -107,6 +107,7 @@ void attrib_set_init(struct attrib_set *as);
 void attrib_set_cleanup(struct attrib_set *as);
 
 int attrib_set_alloc_attrib(struct attrib_set *as);
+int attrib_alloc_fixed_num_attribs(struct attrib_set *as, size_t num_attribs);
 
 #ifdef  __cplusplus
 } /* extern "C" */
