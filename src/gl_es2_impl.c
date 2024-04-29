@@ -2218,6 +2218,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl
                                    src_rgb_fn, src_alpha_fn,
                                    dst_rgb_fn, dst_alpha_fn,
                                    c->blend_color_red_, c->blend_color_grn_, c->blend_color_blu_, c->blend_color_alpha_,
+                                   c->is_polygon_offset_fill_enabled_ ? c->polygon_offset_factor_ : 0.f, 
+                                   c->is_polygon_offset_fill_enabled_ ? c->polygon_offset_units_ : 0.f,
                                    pam, count, PAIT_UNSIGNED_INT, first, NULL);
 }
 
@@ -2478,6 +2480,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
     case GL_ES2_STENCIL_BACK_PASS_DEPTH_FAIL:
       data[0] = (gl_es2_boolean)(stencil_op_paso_to_gl(c->stencil_back_zfail_) ? GL_ES2_TRUE : GL_ES2_FALSE);
       break;
+    case GL_ES2_POLYGON_OFFSET_FACTOR:
+      data[0] = (gl_es2_boolean)((c->polygon_offset_factor_ == 0.f) ? GL_ES2_FALSE : GL_ES2_TRUE);
+      break;
+    case GL_ES2_POLYGON_OFFSET_UNITS:
+      data[0] = (gl_es2_boolean)((c->polygon_offset_units_ == 0.f) ? GL_ES2_FALSE : GL_ES2_TRUE);
+      break;
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -2574,7 +2582,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
     case GL_ES2_STENCIL_BACK_PASS_DEPTH_FAIL:
       data[0] = (float)stencil_op_paso_to_gl(c->stencil_back_zfail_);
       break;
-
+    case GL_ES2_POLYGON_OFFSET_FACTOR:
+      data[0] = c->polygon_offset_factor_;
+      break;
+    case GL_ES2_POLYGON_OFFSET_UNITS:
+      data[0] = c->polygon_offset_units_;
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2663,7 +2676,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
     case GL_ES2_STENCIL_BACK_PASS_DEPTH_FAIL:
       data[0] = (gl_es2_int)stencil_op_paso_to_gl(c->stencil_back_zfail_);
       break;
-
+    case GL_ES2_POLYGON_OFFSET_FACTOR:
+      data[0] = (gl_es2_int)c->polygon_offset_factor_;
+      break;
+    case GL_ES2_POLYGON_OFFSET_UNITS:
+      data[0] = (gl_es2_int)c->polygon_offset_units_;
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -2837,6 +2855,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(PixelStorei)(g
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(PolygonOffset)(gl_es2_float factor, gl_es2_float units) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  c->polygon_offset_factor_ = factor;
+  c->polygon_offset_units_ = units;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReadPixels)(gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height, gl_es2_enum format, gl_es2_enum type, void *pixels) {

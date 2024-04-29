@@ -2302,6 +2302,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
                                       blend_func_t dst_rgb_fn, blend_func_t dst_alpha_fn,
                                       uint8_t constant_red, uint8_t constant_grn, uint8_t constant_blu, uint8_t constant_alpha,
+                                      float offset_factor, float offset_units,
                                       primitive_assembly_mode_t mode, 
                                       size_t num_elements,
                                       primitive_assembly_index_type_t index_type,
@@ -2340,6 +2341,10 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
   }
 
   pa->index_at_ = indices ? 0 : arrayed_starting_index;
+
+  /* Convert polygon offset values to 8-bit fixed point */
+  int32_t offset_factor_f8 = (int32_t)(offset_factor * 256.f);
+  int32_t offset_units_f8 = (int32_t)(offset_units * 256.f);
 
   // XXX: Configure pipeline to handle points, lines or triangles, depending on what mode is.
 
@@ -2499,7 +2504,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                                             sx1, sy1, sz1,
                                                             sx2, sy2, sz2,
                                                             RASTERIZER_BOTH,
-                                                            0, 0))) {
+                                                            offset_factor_f8, offset_units_f8))) {
                     /* Run over all attributes to be filled in (including gl_FragCoord come to think of it),
                      * and fill out their coordinates. gl_FragCoord is special here as it's the only "attribute"
                      * that is not perspectively correct, but passed in raw form, prior to any division. */

@@ -610,6 +610,9 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
 
   c->blend_color_red_ = c->blend_color_grn_ = c->blend_color_blu_ = c->blend_color_alpha_ = 0;
 
+  c->polygon_offset_factor_ = 0.f;
+  c->polygon_offset_units_ = 0.f;
+
   c->is_stencil_test_enabled_ = 0;
   c->is_polygon_offset_fill_enabled_ = 0;
 

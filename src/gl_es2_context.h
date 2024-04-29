@@ -387,6 +387,10 @@ struct gl_es2_context {
   uint8_t blend_color_blu_;
   uint8_t blend_color_alpha_;
 
+  /* glPolygonOffset(), glGet(GL_POLYGON_OFFSET_FACTOR/GL_POLYGON_OFFSET_UNITS) */
+  float polygon_offset_factor_;
+  float polygon_offset_units_;
+
   /* Is stencil testing and writing enabled? glEnable/glDisable(GL_STENCIL_TEST) */
   int is_stencil_test_enabled_:1;
 
