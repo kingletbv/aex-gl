@@ -687,23 +687,26 @@ struct sampler_2d *split_execution_chains_to_sampler_tex_chains(struct sl_execut
     delta = chain_column[row];
 
     struct sampler_2d *s2d = sampler_column[row];
-    uint8_t *restrict tex_chain_column = s2d->tex_exec_;
 
-    if (s2d->last_row_ != SL_EXEC_NO_CHAIN) {
-      tex_chain_column[s2d->last_row_] = row - s2d->last_row_;
-      s2d->last_row_ = row;
-    }
-    else {
-      s2d->runtime_rows_ = row;
-      s2d->last_row_ = row;
-      if (samplers) {
-        s2d->runtime_active_sampler_chain_ = samplers->runtime_active_sampler_chain_;
-        samplers->runtime_active_sampler_chain_ = s2d;
+    if (s2d) {
+      uint8_t *restrict tex_chain_column = s2d->tex_exec_;
+
+      if (s2d->last_row_ != SL_EXEC_NO_CHAIN) {
+        tex_chain_column[s2d->last_row_] = row - s2d->last_row_;
+        s2d->last_row_ = row;
       }
       else {
-        s2d->runtime_active_sampler_chain_ = s2d;
+        s2d->runtime_rows_ = row;
+        s2d->last_row_ = row;
+        if (samplers) {
+          s2d->runtime_active_sampler_chain_ = samplers->runtime_active_sampler_chain_;
+          samplers->runtime_active_sampler_chain_ = s2d;
+        }
+        else {
+          s2d->runtime_active_sampler_chain_ = s2d;
+        }
+        samplers = s2d;
       }
-      samplers = s2d;
     }
 
     row += delta;

@@ -62,7 +62,11 @@ int sl_uniform_table_max_name_length(struct sl_uniform_table *ut, size_t *pmax_n
 /* Total number of locations, *pnum_locations will receive the first "non" location */
 int sl_uniform_table_num_locations(struct sl_uniform_table *ut, size_t *pnum_locations);
 
-int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, size_t offset, size_t *pnum_slab_bytes_consumed, struct sl_reg_alloc *ra);
+int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, size_t offset, 
+                                     size_t *pnum_slab_bytes_consumed, struct sl_reg_alloc *ra,
+                                     size_t loading_table_size,
+                                     void **sampler_2D_uniform_loading_table,
+                                     void **sampler_Cube_uniform_loading_table);
 
 #ifdef __cplusplus
 } /* extern "C" */

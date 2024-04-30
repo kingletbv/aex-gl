@@ -84,8 +84,15 @@ void sl_program_cleanup(struct sl_program *prog);
 void sl_program_attach_shader(struct sl_program *prog, struct sl_shader *sh);
 void sl_program_detach_shader(struct sl_program *prog, struct sl_shader *sh);
 
-int sl_program_load_uniform_for_execution(struct sl_program *prog, struct sl_uniform *u);
-int sl_program_load_uniforms_for_execution(struct sl_program *prog);
+int sl_program_load_uniform_for_execution(struct sl_program *prog, struct sl_uniform *u,
+                                          size_t loading_table_size,
+                                          void **sampler_2D_uniform_loading_table,
+                                          void **sampler_Cube_uniform_loading_table);
+
+int sl_program_load_uniforms_for_execution(struct sl_program *prog,
+                                           size_t loading_table_size,
+                                           void **sampler_2D_uniform_loading_table,
+                                           void **sampler_Cube_uniform_loading_table);
 
 int sl_program_link(struct sl_program *prog);
 

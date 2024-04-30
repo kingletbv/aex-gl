@@ -179,12 +179,12 @@ static int get_tex_target(gl_es2_enum target, struct gl_es2_texture *tex, struct
       tex = tu->texture_cube_map_;
       if (tex->kind_ != gl_es2_texture_cube_map) break;
       switch (target) {
-        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: s2d = &tex->texture_cube_map_positive_x_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: s2d = &tex->texture_cube_map_negative_x_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: s2d = &tex->texture_cube_map_positive_y_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: s2d = &tex->texture_cube_map_negative_y_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: s2d = &tex->texture_cube_map_positive_z_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: s2d = &tex->texture_cube_map_negative_z_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_x]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_x]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_y]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_y]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_z]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_z]; break;
       }
       break;
     default:
@@ -1476,12 +1476,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D
     }
     else if (tex->kind_ == gl_es2_texture_cube_map) {
       switch (c->framebuffer_->color_attachment0_.cube_map_face_) {
-        case gl_es2_cube_map_positive_x: src = &tex->texture_cube_map_positive_x_; break;
-        case gl_es2_cube_map_negative_x: src = &tex->texture_cube_map_negative_x_; break;
-        case gl_es2_cube_map_positive_y: src = &tex->texture_cube_map_positive_y_; break;
-        case gl_es2_cube_map_negative_y: src = &tex->texture_cube_map_negative_y_; break;
-        case gl_es2_cube_map_positive_z: src = &tex->texture_cube_map_positive_z_; break;
-        case gl_es2_cube_map_negative_z: src = &tex->texture_cube_map_negative_z_; break;
+        case gl_es2_cube_map_positive_x: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_x]; break;
+        case gl_es2_cube_map_negative_x: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_x]; break;
+        case gl_es2_cube_map_positive_y: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_y]; break;
+        case gl_es2_cube_map_negative_y: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_y]; break;
+        case gl_es2_cube_map_positive_z: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_z]; break;
+        case gl_es2_cube_map_negative_z: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_z]; break;
       }
     }
     if (!src) {
@@ -1586,12 +1586,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImag
         return;
       }
       switch (target) {
-        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: s2d = &tex->texture_cube_map_positive_x_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: s2d = &tex->texture_cube_map_negative_x_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: s2d = &tex->texture_cube_map_positive_y_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: s2d = &tex->texture_cube_map_negative_y_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: s2d = &tex->texture_cube_map_positive_z_; break;
-        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: s2d = &tex->texture_cube_map_negative_z_; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_x]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_x]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_y]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_y]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_z]; break;
+        case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: s2d = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_z]; break;
       }
       break;
     default:
@@ -1637,12 +1637,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImag
     }
     else if (tex->kind_ == gl_es2_texture_cube_map) {
       switch (c->framebuffer_->color_attachment0_.cube_map_face_) {
-        case gl_es2_cube_map_positive_x: src = &tex->texture_cube_map_positive_x_; break;
-        case gl_es2_cube_map_negative_x: src = &tex->texture_cube_map_negative_x_; break;
-        case gl_es2_cube_map_positive_y: src = &tex->texture_cube_map_positive_y_; break;
-        case gl_es2_cube_map_negative_y: src = &tex->texture_cube_map_negative_y_; break;
-        case gl_es2_cube_map_positive_z: src = &tex->texture_cube_map_positive_z_; break;
-        case gl_es2_cube_map_negative_z: src = &tex->texture_cube_map_negative_z_; break;
+        case gl_es2_cube_map_positive_x: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_x]; break;
+        case gl_es2_cube_map_negative_x: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_x]; break;
+        case gl_es2_cube_map_positive_y: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_y]; break;
+        case gl_es2_cube_map_negative_y: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_y]; break;
+        case gl_es2_cube_map_positive_z: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_z]; break;
+        case gl_es2_cube_map_negative_z: src = &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_z]; break;
       }
     }
     if (!src) {
@@ -2254,6 +2254,13 @@ static void perform_draw(primitive_assembly_mode_t mode,
     dst_rgb_fn = BF_ZERO;
     dst_alpha_fn = BF_ZERO;
   }
+
+  size_t n;
+  for (n = 0; n < GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS; ++n) {
+    c->sampler_2D_uniform_loading_table_[n] = &c->active_texture_units_[n].texture_2d_->texture_2d_;
+    c->sampler_Cube_uniform_loading_table_[n] = c->active_texture_units_[n].texture_cube_map_->texture_cube_maps_;
+  }
+  sl_program_load_uniforms_for_execution(prog, GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS, c->sampler_2D_uniform_loading_table_, c->sampler_Cube_uniform_loading_table_);
 
   primitive_assembly_draw_elements(&prog->pa_, &c->attribs_, prog->vertex_shader_, &prog->ar_, &prog->cs_, &c->ras_, 
                                    &prog->fragbuf_, prog->fragment_shader_,
@@ -3602,7 +3609,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParamete
       break;
     case GL_ES2_TEXTURE_CUBE_MAP:
       tex = c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_;
-      s2d = &tex->texture_cube_map_positive_x_;
+      s2d = tex->texture_cube_maps_;
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -3661,7 +3668,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParamete
       break;
     case GL_ES2_TEXTURE_CUBE_MAP:
       tex = c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_;
-      s2d = &tex->texture_cube_map_positive_x_;
+      s2d = tex->texture_cube_maps_;
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -3710,9 +3717,255 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParamete
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformfv)(gl_es2_uint program, gl_es2_int location, gl_es2_float *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_float:*params = (gl_es2_float)*(float *)mem; break;
+    case slrak_int:  *params = (gl_es2_float)*(int64_t *)mem; break;
+    case slrak_bool: *params = (gl_es2_float)(!!*(uint8_t *)mem); break;
+    case slrak_vec2: {
+      params[0] = (gl_es2_float)((float *)mem)[0];
+      params[1] = (gl_es2_float)((float *)mem)[1];
+      break;
+    }
+    case slrak_vec3: {
+      params[0] = (gl_es2_float)((float *)mem)[0];
+      params[1] = (gl_es2_float)((float *)mem)[1];
+      params[2] = (gl_es2_float)((float *)mem)[2];
+      break;
+    }
+    case slrak_vec4: {
+      params[0] = (gl_es2_float)((float *)mem)[0];
+      params[1] = (gl_es2_float)((float *)mem)[1];
+      params[2] = (gl_es2_float)((float *)mem)[2];
+      params[3] = (gl_es2_float)((float *)mem)[3];
+      break;
+    }
+    case slrak_bvec2: {
+      params[0] = (gl_es2_float)!!((uint8_t *)mem)[0];
+      params[1] = (gl_es2_float)!!((uint8_t *)mem)[1];
+      break;
+    }
+    case slrak_bvec3: {
+      params[0] = (gl_es2_float)!!((uint8_t *)mem)[0];
+      params[1] = (gl_es2_float)!!((uint8_t *)mem)[1];
+      params[2] = (gl_es2_float)!!((uint8_t *)mem)[2];
+      break;
+    }
+    case slrak_bvec4: {
+      params[0] = (gl_es2_float)!!((uint8_t *)mem)[0];
+      params[1] = (gl_es2_float)!!((uint8_t *)mem)[1];
+      params[2] = (gl_es2_float)!!((uint8_t *)mem)[2];
+      params[3] = (gl_es2_float)!!((uint8_t *)mem)[3];
+      break;
+    }
+    case slrak_ivec2: {
+      params[0] = (gl_es2_float)((int64_t *)mem)[0];
+      params[1] = (gl_es2_float)((int64_t *)mem)[1];
+      break;
+    }
+    case slrak_ivec3: {
+      params[0] = (gl_es2_float)((int64_t *)mem)[0];
+      params[1] = (gl_es2_float)((int64_t *)mem)[1];
+      params[2] = (gl_es2_float)((int64_t *)mem)[2];
+      break;
+    }
+    case slrak_ivec4: {
+      params[0] = (gl_es2_float)((int64_t *)mem)[0];
+      params[1] = (gl_es2_float)((int64_t *)mem)[1];
+      params[2] = (gl_es2_float)((int64_t *)mem)[2];
+      params[3] = (gl_es2_float)((int64_t *)mem)[3];
+      break;
+    }
+    case slrak_mat2: {
+      int n;
+      for (n = 0; n < 4; ++n) {
+        params[n] = (gl_es2_float)((float *)mem)[n];
+      }
+      break;
+    }
+    case slrak_mat3: {
+      int n;
+      for (n = 0; n < 9; ++n) {
+        params[n] = (gl_es2_float)((float *)mem)[n];
+      }
+      break;
+    }
+    case slrak_mat4: {
+      int n;
+      for (n = 0; n < 16; ++n) {
+        params[n] = (gl_es2_float)((float *)mem)[n];
+      }
+      break;
+    }
+    case slrak_sampler2D: {
+      *params = (gl_es2_float)*(int32_t *)mem; 
+      break;
+    }
+    case slrak_samplerCube: {
+      *params = (gl_es2_float)*(int32_t *)mem;
+      break;
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformiv)(gl_es2_uint program, gl_es2_int location, gl_es2_int *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_float:*params = (gl_es2_int)*(float *)mem; break;
+    case slrak_int:  *params = (gl_es2_int)*(int64_t *)mem; break;
+    case slrak_bool: *params = (gl_es2_int)(!!*(uint8_t *)mem); break;
+    case slrak_vec2: {
+      params[0] = (gl_es2_int)((float *)mem)[0];
+      params[1] = (gl_es2_int)((float *)mem)[1];
+      break;
+    }
+    case slrak_vec3: {
+      params[0] = (gl_es2_int)((float *)mem)[0];
+      params[1] = (gl_es2_int)((float *)mem)[1];
+      params[2] = (gl_es2_int)((float *)mem)[2];
+      break;
+    }
+    case slrak_vec4: {
+      params[0] = (gl_es2_int)((float *)mem)[0];
+      params[1] = (gl_es2_int)((float *)mem)[1];
+      params[2] = (gl_es2_int)((float *)mem)[2];
+      params[3] = (gl_es2_int)((float *)mem)[3];
+      break;
+    }
+    case slrak_bvec2: {
+      params[0] = (gl_es2_int)!!((uint8_t *)mem)[0];
+      params[1] = (gl_es2_int)!!((uint8_t *)mem)[1];
+      break;
+    }
+    case slrak_bvec3: {
+      params[0] = (gl_es2_int)!!((uint8_t *)mem)[0];
+      params[1] = (gl_es2_int)!!((uint8_t *)mem)[1];
+      params[2] = (gl_es2_int)!!((uint8_t *)mem)[2];
+      break;
+    }
+    case slrak_bvec4: {
+      params[0] = (gl_es2_int)!!((uint8_t *)mem)[0];
+      params[1] = (gl_es2_int)!!((uint8_t *)mem)[1];
+      params[2] = (gl_es2_int)!!((uint8_t *)mem)[2];
+      params[3] = (gl_es2_int)!!((uint8_t *)mem)[3];
+      break;
+    }
+    case slrak_ivec2: {
+      params[0] = (gl_es2_int)((int64_t *)mem)[0];
+      params[1] = (gl_es2_int)((int64_t *)mem)[1];
+      break;
+    }
+    case slrak_ivec3: {
+      params[0] = (gl_es2_int)((int64_t *)mem)[0];
+      params[1] = (gl_es2_int)((int64_t *)mem)[1];
+      params[2] = (gl_es2_int)((int64_t *)mem)[2];
+      break;
+    }
+    case slrak_ivec4: {
+      params[0] = (gl_es2_int)((int64_t *)mem)[0];
+      params[1] = (gl_es2_int)((int64_t *)mem)[1];
+      params[2] = (gl_es2_int)((int64_t *)mem)[2];
+      params[3] = (gl_es2_int)((int64_t *)mem)[3];
+      break;
+    }
+    case slrak_mat2: {
+      int n;
+      for (n = 0; n < 4; ++n) {
+        params[n] = (gl_es2_int)((float *)mem)[n];
+      }
+      break;
+    }
+    case slrak_mat3: {
+      int n;
+      for (n = 0; n < 9; ++n) {
+        params[n] = (gl_es2_int)((float *)mem)[n];
+      }
+      break;
+    }
+    case slrak_mat4: {
+      int n;
+      for (n = 0; n < 16; ++n) {
+        params[n] = (gl_es2_int)((float *)mem)[n];
+      }
+      break;
+    }
+    case slrak_sampler2D: {
+      *params = (gl_es2_int)*(int32_t *)mem; 
+      break;
+    }
+    case slrak_samplerCube: {
+      *params = (gl_es2_int)*(int32_t *)mem;
+      break;
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformLocation)(gl_es2_uint program, const gl_es2_char *name) {

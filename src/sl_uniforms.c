@@ -226,8 +226,8 @@ static int sl_uniform_get_reg_alloc_slab_size(struct sl_reg_alloc *ra, size_t *r
         break;
       case slrak_sampler2D:
       case slrak_samplerCube:
-        *ra_size = sizeof(void *);
-        *ra_alignment_req = sizeof(void *);
+        *ra_size = sizeof(int32_t);
+        *ra_alignment_req = sizeof(int32_t);
         break;
       default:
         return SL_ERR_INTERNAL;
@@ -765,7 +765,10 @@ static void sl_uniform_load_voidp(size_t num, void **dst, void *val) {
   }
 }
 
-int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, size_t offset, size_t *pnum_slab_bytes_consumed, struct sl_reg_alloc *ra) {
+int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, size_t offset, size_t *pnum_slab_bytes_consumed, struct sl_reg_alloc *ra,
+                                     size_t loading_table_size,
+                                     void **sampler_2D_uniform_loading_table,
+                                     void **sampler_Cube_uniform_loading_table) {
   int r;
   if (ra->kind_ == slrak_array) {
     size_t n;
@@ -773,7 +776,7 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
     size_t original_offset = offset;
     for (n = 0; n < ra->v_.array_.num_elements_; ++n) {
       size_t num_bytes_consumed;
-      r = sl_uniform_load_ra_for_execution(exec, base_mem, offset, &num_bytes_consumed, ra->v_.array_.head_);
+      r = sl_uniform_load_ra_for_execution(exec, base_mem, offset, &num_bytes_consumed, ra->v_.array_.head_, loading_table_size, sampler_2D_uniform_loading_table, sampler_Cube_uniform_loading_table);
       if (r) return r;
       offset += num_bytes_consumed;
     }
@@ -800,7 +803,7 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
         return SL_ERR_OVERFLOW;
       }
       size_t num_bytes_consumed_for_field;
-      r = sl_uniform_load_ra_for_execution(exec, base_mem, field_offset_from_base, &num_bytes_consumed_for_field, ra->v_.comp_.fields_ + n);
+      r = sl_uniform_load_ra_for_execution(exec, base_mem, field_offset_from_base, &num_bytes_consumed_for_field, ra->v_.comp_.fields_ + n, loading_table_size, sampler_2D_uniform_loading_table, sampler_Cube_uniform_loading_table);
       if (r) return r;
 
       if (max_field_alignment < field_alignment) max_field_alignment = field_alignment;
@@ -880,18 +883,30 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
         }
         *pnum_slab_bytes_consumed = offset - original_offset + num_components * sizeof(int64_t);
         break;
-      case slrak_sampler2D:
+      case slrak_sampler2D: {
         /* Align offset to void* */
         offset = (offset + sizeof(void*) - 1) & ~(sizeof(void*) - 1);
-        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_2D_regs_[ra->v_.regs_[0]], *(void **)(((char *)base_mem) + offset));
+        uint32_t loading_offset = *(uint32_t *)(((char *)base_mem) + offset);
+        void *sampler_2d_ptr = NULL;
+        if (loading_offset < loading_table_size) {
+          sampler_2d_ptr = sampler_2D_uniform_loading_table[loading_offset];
+        }
+        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_2D_regs_[ra->v_.regs_[0]], sampler_2d_ptr);
         *pnum_slab_bytes_consumed = offset - original_offset + sizeof(void *);
         break;
-      case slrak_samplerCube:
+      }
+      case slrak_samplerCube: {
         /* Align offset to void* */
         offset = (offset + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
-        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_cube_regs_[ra->v_.regs_[0]], *(void **)(((char *)base_mem) + offset));
+        uint32_t loading_offset = *(uint32_t *)(((char *)base_mem) + offset);
+        void *sampler_cube_ptr = NULL;
+        if (loading_offset < loading_table_size) {
+          sampler_cube_ptr = sampler_Cube_uniform_loading_table[loading_offset];
+        }
+        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_cube_regs_[ra->v_.regs_[0]], sampler_cube_ptr);
         *pnum_slab_bytes_consumed = offset - original_offset + sizeof(void *);
         break;
+      }
       default:
         return SL_ERR_INVALID_ARG;
     }

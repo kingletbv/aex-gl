@@ -182,6 +182,15 @@ struct gl_es2_renderbuffer {
   void *bitmap_;
 };
 
+enum gl_es2_texture_cube_map {
+  gl_es2_texture_cube_map_positive_x = 0,
+  gl_es2_texture_cube_map_negative_x = 1,
+  gl_es2_texture_cube_map_positive_y = 2,
+  gl_es2_texture_cube_map_negative_y = 3,
+  gl_es2_texture_cube_map_positive_z = 4,
+  gl_es2_texture_cube_map_negative_z = 5
+};
+
 struct gl_es2_texture {
   struct named_object no_;
 
@@ -190,12 +199,7 @@ struct gl_es2_texture {
   struct gl_es2_framebuffer_attachment *first_framebuffer_attached_to_;
 
   struct sampler_2d texture_2d_;
-  struct sampler_2d texture_cube_map_positive_x_;
-  struct sampler_2d texture_cube_map_negative_x_;
-  struct sampler_2d texture_cube_map_positive_y_;
-  struct sampler_2d texture_cube_map_negative_y_;
-  struct sampler_2d texture_cube_map_positive_z_;
-  struct sampler_2d texture_cube_map_negative_z_;
+  struct sampler_2d texture_cube_maps_[6];
 };
 
 struct gl_es2_texture_unit {
@@ -289,6 +293,8 @@ struct gl_es2_context {
   /* Currently active texture unit, starts out as 0 */
   size_t current_active_texture_unit_;
   struct gl_es2_texture_unit active_texture_units_[GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS];
+  void *sampler_2D_uniform_loading_table_[GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS];
+  void *sampler_Cube_uniform_loading_table_[GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS];
 
   /* glBindBuffer(GL_ARRAY_BUFFER); NULL means use client memory */
   struct gl_es2_buffer *array_buffer_;

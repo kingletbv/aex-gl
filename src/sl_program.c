@@ -414,7 +414,10 @@ int sl_program_link(struct sl_program *prog) {
   return 0;
 }
 
-int sl_program_load_uniform_for_execution(struct sl_program *prog, struct sl_uniform *u) {
+int sl_program_load_uniform_for_execution(struct sl_program *prog, struct sl_uniform *u,
+                                          size_t loading_table_size,
+                                          void **sampler_2D_uniform_loading_table,
+                                          void **sampler_Cube_uniform_loading_table) {
   struct { struct sl_variable *v_;
            struct sl_shader *s_;
   } vs[] = {
@@ -426,13 +429,17 @@ int sl_program_load_uniform_for_execution(struct sl_program *prog, struct sl_uni
   for (n = 0; n < (sizeof(vs) / sizeof(*vs)); ++n) {
     size_t num_bytes_consumed;
     if (!vs[n].s_ || !vs[n].v_) continue;
-    r = sl_uniform_load_ra_for_execution(&vs[n].s_->exec_, u->slab_, 0, &num_bytes_consumed, &vs[n].v_->reg_alloc_);
+    r = sl_uniform_load_ra_for_execution(&vs[n].s_->exec_, u->slab_, 0, &num_bytes_consumed, &vs[n].v_->reg_alloc_,
+                                         loading_table_size, sampler_2D_uniform_loading_table, sampler_Cube_uniform_loading_table);
     if (r) return r;
   }
   return 0;
 }
 
-int sl_program_load_uniforms_for_execution(struct sl_program *prog) {
+int sl_program_load_uniforms_for_execution(struct sl_program *prog,
+                                           size_t loading_table_size,
+                                           void **sampler_2D_uniform_loading_table,
+                                           void **sampler_Cube_uniform_loading_table) {
   int r;
   struct sl_uniform *u;
   u = prog->uniforms_.uniforms_;
@@ -440,7 +447,7 @@ int sl_program_load_uniforms_for_execution(struct sl_program *prog) {
     do {
       u = u->chain_;
 
-      r = sl_program_load_uniform_for_execution(prog, u);
+      r = sl_program_load_uniform_for_execution(prog, u, loading_table_size, sampler_2D_uniform_loading_table, sampler_Cube_uniform_loading_table);
       if (r) return r;
 
     } while (u != prog->uniforms_.uniforms_);

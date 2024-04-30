@@ -5012,7 +5012,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed to locate uniform (%d): %s\n", r, sl_err_str(r));
     if (r) goto exit_cleanup;
   }
-  void **tex_mem;
+  uint32_t *tex_mem;
   sl_reg_alloc_kind_t ra_loc_type;
   char name_buf[129];
   size_t name_buf_len = sizeof(name_buf) - 1;
@@ -5023,9 +5023,14 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed to get uniform location info (%d): %s\n", r, sl_err_str(r));
     if (r) goto exit_cleanup;
   }
-  *tex_mem = (void *)&tex_smiley;
-
-  sl_program_load_uniforms_for_execution(&program);
+  *tex_mem = 1;
+  (void *)&tex_smiley;
+  void *sampler_2d_loading_table[] = { NULL, &tex_smiley };
+  void *sampler_cube_loading_table[] = { NULL, NULL };
+  
+  sl_program_load_uniforms_for_execution(&program, 
+                                         sizeof(sampler_2d_loading_table)/sizeof(*sampler_2d_loading_table), 
+                                         sampler_2d_loading_table, sampler_cube_loading_table);
 
   primitive_assembly_draw_elements(&program.pa_, &as, program.vertex_shader_, &program.ar_, &program.cs_, &ras, &program.fragbuf_, program.fragment_shader_,
                                    vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,

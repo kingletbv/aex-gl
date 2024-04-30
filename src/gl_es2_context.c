@@ -430,12 +430,10 @@ void gl_es2_texture_init(struct gl_es2_texture *tex) {
   tex->kind_ = gl_es2_texture_invalid;
   tex->first_framebuffer_attached_to_ = NULL;
   sampler_2d_init(&tex->texture_2d_);
-  sampler_2d_init(&tex->texture_cube_map_positive_x_);
-  sampler_2d_init(&tex->texture_cube_map_negative_x_);
-  sampler_2d_init(&tex->texture_cube_map_positive_y_);
-  sampler_2d_init(&tex->texture_cube_map_negative_y_);
-  sampler_2d_init(&tex->texture_cube_map_positive_z_);
-  sampler_2d_init(&tex->texture_cube_map_negative_z_);
+  size_t n;
+  for (n = 0; n < 6; ++n) {
+    sampler_2d_init(&tex->texture_cube_maps_[n]);
+  }
 }
 
 void gl_es2_texture_cleanup(struct gl_es2_texture *tex) {
@@ -443,34 +441,32 @@ void gl_es2_texture_cleanup(struct gl_es2_texture *tex) {
     gl_es2_framebuffer_attachment_detach(tex->first_framebuffer_attached_to_);
   }
   sampler_2d_cleanup(&tex->texture_2d_);
-  sampler_2d_cleanup(&tex->texture_cube_map_positive_x_);
-  sampler_2d_cleanup(&tex->texture_cube_map_negative_x_);
-  sampler_2d_cleanup(&tex->texture_cube_map_positive_y_);
-  sampler_2d_cleanup(&tex->texture_cube_map_negative_y_);
-  sampler_2d_cleanup(&tex->texture_cube_map_positive_z_);
-  sampler_2d_cleanup(&tex->texture_cube_map_negative_z_);
+  size_t n;
+  for (n = 0; n < 6; ++n) {
+    sampler_2d_cleanup(&tex->texture_cube_maps_[n]);
+  }
 }
 
 struct sampler_2d *gl_es2_texture_get_sampler_2d_for_cube_map_face(struct gl_es2_texture *tex, enum gl_es2_cube_map_face cube_map_face) {
   switch (cube_map_face) {
-    case gl_es2_cube_map_positive_x: return &tex->texture_cube_map_positive_x_;
-    case gl_es2_cube_map_negative_x: return &tex->texture_cube_map_negative_x_;
-    case gl_es2_cube_map_positive_y: return &tex->texture_cube_map_positive_y_;
-    case gl_es2_cube_map_negative_y: return &tex->texture_cube_map_negative_y_;
-    case gl_es2_cube_map_positive_z: return &tex->texture_cube_map_positive_z_;
-    case gl_es2_cube_map_negative_z: return &tex->texture_cube_map_negative_z_;
+    case gl_es2_cube_map_positive_x: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_x];
+    case gl_es2_cube_map_negative_x: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_x];
+    case gl_es2_cube_map_positive_y: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_y];
+    case gl_es2_cube_map_negative_y: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_y];
+    case gl_es2_cube_map_positive_z: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_z];
+    case gl_es2_cube_map_negative_z: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_z];
   }
   return NULL;
 }
 
 struct sampler_2d *gl_es2_texture_get_sampler_2d_for_gl_es2_cube_map_face(struct gl_es2_texture *tex, int cube_map_face) {
   switch (cube_map_face) {
-    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: return &tex->texture_cube_map_positive_x_;
-    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: return &tex->texture_cube_map_negative_x_;
-    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: return &tex->texture_cube_map_positive_y_;
-    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: return &tex->texture_cube_map_negative_y_;
-    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: return &tex->texture_cube_map_positive_z_;
-    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: return &tex->texture_cube_map_negative_z_;
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_x];
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_x];
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_y];
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_y];
+    case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_positive_z];
+    case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_z];
   }
   return NULL;
 }
@@ -549,6 +545,10 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   for (n = 0; n < c->num_active_texture_units_; ++n) {
     c->active_texture_units_[n].texture_2d_ = NULL;
     c->active_texture_units_[n].texture_cube_map_ = NULL;
+  }
+  for (n = 0; n < c->num_active_texture_units_; ++n) {
+    c->sampler_2D_uniform_loading_table_[n] = NULL;
+    c->sampler_Cube_uniform_loading_table_[n] = NULL;
   }
 
   c->array_buffer_ = NULL;
