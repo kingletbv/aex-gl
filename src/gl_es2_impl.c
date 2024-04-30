@@ -3260,10 +3260,28 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramiv)(
       *params = (gl_es2_int)max_name_length;
       break;
     }
+    case GL_ES2_INFO_LOG_LENGTH: {
+      *params = 0; /* if no program log, 0 is returned .. */
+      if (prog->program_.log_.gl_info_log_size_) {
+        /* .. otherwise the size of the log plus a null terminator is returned (this is different from GetProgramInfoLog) */
+        *params = (gl_es2_int)(1 + prog->program_.log_.gl_info_log_size_);
+      }
+      break;
+    }
   }
 }
 
-GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramInfoLog)(gl_es2_uint program, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_char *infoLog) {
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramInfoLog)(gl_es2_uint program, gl_es2_sizei bufsize, gl_es2_sizei *length, gl_es2_char *infoLog) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  size_t slength = 0;
+  sl_info_log_get_log(&prog->program_.log_, bufsize, &slength, (char *)infoLog);
+  if (length) *length = (gl_es2_sizei)slength;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetRenderbufferParameteriv)(gl_es2_enum target, gl_es2_enum pname, gl_es2_int *params) {

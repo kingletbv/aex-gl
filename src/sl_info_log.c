@@ -28,6 +28,11 @@
 #include <stdarg.h>
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
 #ifndef SL_INFO_LOG_H_INCLUDED
 #define SL_INFO_LOG_H_INCLUDED
 #include "sl_info_log.h"
@@ -108,6 +113,18 @@ void sl_info_log_init(struct sl_info_log *log) {
 void sl_info_log_cleanup(struct sl_info_log *log) {
   dx_diags_cleanup(&log->dx_);
   if (log->gl_info_log_) free(log->gl_info_log_);
+}
+
+void sl_info_log_get_log(struct sl_info_log *log, size_t bufsize, size_t *length_used, char *buf) {
+  size_t amount_to_copy = log->gl_info_log_size_;
+  if (!bufsize) return;
+  bufsize -= 1; /* remove space for null terminator */
+  if (bufsize < amount_to_copy) {
+    amount_to_copy = bufsize;
+  }
+  memcpy(buf, log->gl_info_log_, amount_to_copy);
+  buf[amount_to_copy] = '\0'; /* noticed how above we removed one space for a null terminator, here we use it again. */
+  if (length_used) *length_used = amount_to_copy;
 }
 
 void sl_info_log_clear(struct sl_info_log *log) {

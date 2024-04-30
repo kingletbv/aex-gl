@@ -34,6 +34,7 @@ struct sl_info_log {
 
 void sl_info_log_init(struct sl_info_log *log);
 void sl_info_log_cleanup(struct sl_info_log *log);
+void sl_info_log_get_log(struct sl_info_log *log, size_t bufsize, size_t *length_used, char *buf);
 void sl_info_log_clear(struct sl_info_log *log);
 
 #ifdef __cplusplus

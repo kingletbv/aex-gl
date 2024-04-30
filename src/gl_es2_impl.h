@@ -187,6 +187,7 @@ extern "C" {
 #define GL_ES2_ACTIVE_ATTRIBUTE_MAX_LENGTH 0x8B8A
 #define GL_ES2_ACTIVE_UNIFORMS             0x8B86
 #define GL_ES2_ACTIVE_UNIFORM_MAX_LENGTH   0x8B87
+#define GL_ES2_INFO_LOG_LENGTH             0x8B84
 
 #define GL_ES2_FRONT          0x0404
 #define GL_ES2_BACK           0x0405
