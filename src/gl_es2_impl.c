@@ -3009,6 +3009,99 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebufferAttachmentParameteriv)(gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum pname, gl_es2_int *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (target != GL_ES2_FRAMEBUFFER) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  if (!c->framebuffer_) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  struct gl_es2_framebuffer_attachment *fa = NULL;
+  switch (attachment) {
+    case GL_ES2_COLOR_ATTACHMENT0:
+      fa = &c->framebuffer_->color_attachment0_;
+      break;
+    case GL_ES2_DEPTH_ATTACHMENT:
+      fa = &c->framebuffer_->depth_attachment_;
+      break;
+    case GL_ES2_STENCIL_ATTACHMENT:
+      fa = &c->framebuffer_->stencil_attachment_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+  
+  switch (pname) {
+    case GL_ES2_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
+      switch (fa->kind_) {
+        case gl_es2_faot_none:
+          *params = GL_ES2_NONE;
+          return;
+        case gl_es2_faot_renderbuffer:
+          *params = GL_ES2_RENDERBUFFER;
+          return;
+        case gl_es2_faot_texture:
+          *params = GL_ES2_TEXTURE;
+          return;
+      }
+    case GL_ES2_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
+      switch (fa->kind_) {
+        case gl_es2_faot_none:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+        case gl_es2_faot_renderbuffer:
+          *params = (gl_es2_int)fa->v_.rb_->no_.name_;
+          return;
+        case gl_es2_faot_texture:
+          *params = (gl_es2_int)fa->v_.tex_->no_.name_;
+          return;
+      }
+    case GL_ES2_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
+      switch (fa->kind_) {
+        case gl_es2_faot_none:
+        case gl_es2_faot_renderbuffer:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+        case gl_es2_faot_texture:
+          *params = (gl_es2_int)fa->level_;
+          return;
+      }
+    case GL_ES2_FRAMEBUFFER_ATTACHMENT_CUBE_MAP_FACE:
+      switch (fa->kind_) {
+        case gl_es2_faot_none:
+        case gl_es2_faot_renderbuffer:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+        case gl_es2_faot_texture:
+          switch (fa->cube_map_face_) {
+            case gl_es2_cube_map_positive_x:
+              *params = GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X;
+              break;
+            case gl_es2_cube_map_negative_x:
+              *params = GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X;
+              break;
+            case gl_es2_cube_map_positive_y:
+              *params = GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y;
+              break;
+            case gl_es2_cube_map_negative_y:
+              *params = GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+              break;
+            case gl_es2_cube_map_positive_z:
+              *params = GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z;
+              break;
+            case gl_es2_cube_map_negative_z:
+              *params = GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+              break;
+          }
+          return;
+      }
+
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(gl_es2_enum pname, gl_es2_int *data) {
