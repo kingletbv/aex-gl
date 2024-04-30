@@ -72,6 +72,8 @@ struct sl_program {
 
   struct sl_uniform_table uniforms_;
 
+  int gl_last_link_status_:1;
+
   struct sl_info_log log_;
 
 };

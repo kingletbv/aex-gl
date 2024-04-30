@@ -2747,6 +2747,31 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttachedSha
 }
 
 GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttribLocation)(gl_es2_uint program, const gl_es2_char *name) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return -1;
+  }
+
+  if (!prog->program_.gl_last_link_status_) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return -1;
+  }
+
+  if (!c->allow_internals_ && !memcmp(name, "gl_", 3)) {
+    /* Not a name we are allowed to find */
+    return -1;
+  }
+
+  struct attrib_binding *ab = abt_find(&prog->program_.abt_, name, strlen(name));
+
+  if (!ab) {
+    /* Not a name we could find */
+    return -1;
+  }
+
   return GL_ES2_INVALID_OPERATION;
 }
 

@@ -74,6 +74,7 @@ void sl_program_init(struct sl_program *prog) {
   abt_init(&prog->abt_);
   attrib_routing_init(&prog->ar_);
   sl_uniform_table_init(&prog->uniforms_);
+  prog->gl_last_link_status_ = 0;
 }
 
 void sl_program_cleanup(struct sl_program *prog) {
@@ -179,6 +180,8 @@ void sl_program_detach_shader(struct sl_program *prog, struct sl_shader *sh) {
 
 int sl_program_link(struct sl_program *prog) {
   int r;
+
+  prog->gl_last_link_status_ = 0;
 
   if (!prog) return SL_ERR_INVALID_ARG;
   if (!prog->vertex_shader_) return SL_ERR_INVALID_ARG;
@@ -405,6 +408,8 @@ int sl_program_link(struct sl_program *prog) {
 
   /* Done with allocator for attribute indices, clean up */
   ref_range_allocator_cleanup(&rra);
+
+  prog->gl_last_link_status_ = 1;
 
   return 0;
 }
