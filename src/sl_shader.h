@@ -65,7 +65,8 @@ struct sl_shader {
    */
   struct sl_program *programs_;
 
-  /* Sourcecode for the shader */
+  /* Sourcecode for the shader
+   * note: source_length_ excludes null terminator. */
   size_t source_length_;
   char *source_;
 
@@ -77,7 +78,6 @@ struct sl_shader {
 
   /* GL specific bits */
   uint32_t gl_shader_object_name_;
-  int gl_delete_status_:1;
   int gl_last_compile_status_:1;
 
   /* Info log for shader compilation */

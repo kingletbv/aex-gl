@@ -28,6 +28,16 @@
 #include <math.h>
 #endif
 
+#ifndef LIMITS_H_INCLUDED
+#define LIMITS_H_INCLUDED
+#include <limits.h>
+#endif
+
+#ifndef FLOAT_H_INCLUDED
+#define FLOAT_H_INCLUDED
+#include <float.h>
+#endif
+
 #ifndef GL_ES2_IMPL_H_INCLUDED
 #define GL_ES2_IMPL_H_INCLUDED
 #include "gl_es2_impl.h"
@@ -3470,15 +3480,99 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetRenderbuffe
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderiv)(gl_es2_uint shader, gl_es2_enum pname, gl_es2_int *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t shad_name = (uintptr_t)shader;
+  struct gl_es2_shader *shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
+  if (!shad) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  switch (pname) {
+    case GL_ES2_SHADER_TYPE:
+      *params = (gl_es2_int)shad->type_;
+      break;
+    case GL_ES2_DELETE_STATUS:
+      *params = shad->flagged_for_deletion_ ? GL_ES2_TRUE : GL_ES2_FALSE;
+      break;
+    case GL_ES2_COMPILE_STATUS:
+      *params = shad->shader_.gl_last_compile_status_ ? GL_ES2_TRUE : GL_ES2_FALSE;
+      break;
+    case GL_ES2_INFO_LOG_LENGTH:
+      *params = 0; /* if no shader log, 0 is returned .. */
+      if (shad->shader_.gl_info_log_.gl_info_log_size_) {
+        /* .. otherwise the size of the log plus a null terminator is returned (this is different from GetShaderInfoLog) */
+        *params = (gl_es2_int)(1 + shad->shader_.gl_info_log_.gl_info_log_size_);
+      }
+      break;
+    case GL_ES2_SHADER_SOURCE_LENGTH:
+      *params = (gl_es2_int)shad->shader_.source_length_;
+      break;
+  }
 }
 
-GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderInfoLog)(gl_es2_uint shader, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_char *infoLog) {
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderInfoLog)(gl_es2_uint shader, gl_es2_sizei bufsize, gl_es2_sizei *length, gl_es2_char *infoLog) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t shad_name = (uintptr_t)shader;
+  struct gl_es2_shader *shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
+  if (!shad) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  size_t slength = 0;
+  sl_info_log_get_log(&shad->shader_.gl_info_log_, bufsize, &slength, (char *)infoLog);
+  if (length) *length = (gl_es2_sizei)slength;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderPrecisionFormat)(gl_es2_enum shadertype, gl_es2_enum precisiontype, gl_es2_int *range, gl_es2_int *precision) {
+  if ((shadertype != GL_ES2_VERTEX_SHADER) && (shadertype != GL_ES2_FRAGMENT_SHADER)) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  switch (precisiontype) {
+    case GL_ES2_LOW_FLOAT:
+    case GL_ES2_MEDIUM_FLOAT:
+    case GL_ES2_HIGH_FLOAT:
+      /* Filling in with the example 32 bit float from the spec.. */
+      range[0] = 127;
+      range[1] = 127;
+      *precision = 0;
+      break;
+    case GL_ES2_LOW_INT:
+    case GL_ES2_MEDIUM_INT:
+    case GL_ES2_HIGH_INT:
+      /* Expanding the spec to 64 bit numbers.. */
+      range[0] = 63;
+      range[1] = 62;
+      *precision = 0;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
-GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderSource)(gl_es2_uint shader, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_char *source) {
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderSource)(gl_es2_uint shader, gl_es2_sizei bufsize, gl_es2_sizei *length, gl_es2_char *source) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t shad_name = (uintptr_t)shader;
+  struct gl_es2_shader *shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
+  if (!shad) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (bufsize > shad->shader_.source_length_) {
+    memcpy(source, shad->shader_.source_, shad->shader_.source_length_);
+    source[shad->shader_.source_length_] = '\0';
+    if (length) *length = (gl_es2_sizei)shad->shader_.source_length_;
+    return;
+  }
+  if (bufsize) {
+    memcpy(source, shad->shader_.source_, bufsize - 1);
+    source[bufsize - 1] = '\0';
+    if (length) *length = (gl_es2_sizei)(bufsize - 1);
+    return;
+  }
+  if (length) *length = 0;
+  return;
 }
 
 GL_ES2_DECL_SPEC const gl_es2_ubyte *GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetString)(gl_es2_enum name) {
