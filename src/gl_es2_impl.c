@@ -3586,15 +3586,127 @@ GL_ES2_DECL_SPEC const gl_es2_ubyte *GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID
     case GL_ES2_SHADING_LANGUAGE_VERSION:
       return "OpenGL ES GLSL ES 1.00 (Aex 0.01)";
     case GL_ES2_EXTENSIONS:
-      return "";
+      return "GL_OES_depth32";
   }
   return NULL;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParameterfv)(gl_es2_enum target, gl_es2_enum pname, gl_es2_float *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_texture *tex;
+  struct sampler_2d *s2d = NULL;
+  switch (target) {
+    case GL_ES2_TEXTURE_2D:
+      tex = c->active_texture_units_[c->current_active_texture_unit_].texture_2d_;
+      s2d = &tex->texture_2d_;
+      break;
+    case GL_ES2_TEXTURE_CUBE_MAP:
+      tex = c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_;
+      s2d = &tex->texture_cube_map_positive_x_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  switch (pname) {
+    case GL_ES2_TEXTURE_MAG_FILTER:
+      switch (s2d->mag_filter_) {
+        case s2d_nearest:                *params = (gl_es2_float)GL_ES2_NEAREST; break;
+        case s2d_linear:                 *params = (gl_es2_float)GL_ES2_LINEAR; break;
+        case s2d_nearest_mipmap_nearest: *params = (gl_es2_float)GL_ES2_NEAREST_MIPMAP_NEAREST; break;
+        case s2d_nearest_mipmap_linear:  *params = (gl_es2_float)GL_ES2_LINEAR_MIPMAP_NEAREST; break;
+        case s2d_linear_mipmap_nearest:  *params = (gl_es2_float)GL_ES2_NEAREST_MIPMAP_LINEAR; break;
+        case s2d_linear_mipmap_linear:   *params = (gl_es2_float)GL_ES2_LINEAR_MIPMAP_LINEAR; break;
+      }
+      break;
+    case GL_ES2_TEXTURE_MIN_FILTER:
+      switch (s2d->min_filter_) {
+        case s2d_nearest:                *params = (gl_es2_float)GL_ES2_NEAREST; break;
+        case s2d_linear:                 *params = (gl_es2_float)GL_ES2_LINEAR; break;
+        case s2d_nearest_mipmap_nearest: *params = (gl_es2_float)GL_ES2_NEAREST_MIPMAP_NEAREST; break;
+        case s2d_nearest_mipmap_linear:  *params = (gl_es2_float)GL_ES2_LINEAR_MIPMAP_NEAREST; break;
+        case s2d_linear_mipmap_nearest:  *params = (gl_es2_float)GL_ES2_NEAREST_MIPMAP_LINEAR; break;
+        case s2d_linear_mipmap_linear:   *params = (gl_es2_float)GL_ES2_LINEAR_MIPMAP_LINEAR; break;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_S:
+      switch (s2d->wrap_s_) {
+        case s2d_clamp_to_edge:   *params = (gl_es2_float)GL_ES2_CLAMP_TO_EDGE; break;
+        case s2d_repeat:          *params = (gl_es2_float)GL_ES2_REPEAT; break;
+        case s2d_mirrored_repeat: *params = (gl_es2_float)GL_ES2_MIRRORED_REPEAT; break;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_T:
+      switch (s2d->wrap_t_) {
+        case s2d_clamp_to_edge:   *params = (gl_es2_float)GL_ES2_CLAMP_TO_EDGE; break;
+        case s2d_repeat:          *params = (gl_es2_float)GL_ES2_REPEAT; break;
+        case s2d_mirrored_repeat: *params = (gl_es2_float)GL_ES2_MIRRORED_REPEAT; break;
+      }
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParameteriv)(gl_es2_enum target, gl_es2_enum pname, gl_es2_int *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_texture *tex;
+  struct sampler_2d *s2d = NULL;
+  switch (target) {
+    case GL_ES2_TEXTURE_2D:
+      tex = c->active_texture_units_[c->current_active_texture_unit_].texture_2d_;
+      s2d = &tex->texture_2d_;
+      break;
+    case GL_ES2_TEXTURE_CUBE_MAP:
+      tex = c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_;
+      s2d = &tex->texture_cube_map_positive_x_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  switch (pname) {
+    case GL_ES2_TEXTURE_MAG_FILTER:
+      switch (s2d->mag_filter_) {
+        case s2d_nearest:                *params = (gl_es2_int)GL_ES2_NEAREST; break;
+        case s2d_linear:                 *params = (gl_es2_int)GL_ES2_LINEAR; break;
+        case s2d_nearest_mipmap_nearest: *params = (gl_es2_int)GL_ES2_NEAREST_MIPMAP_NEAREST; break;
+        case s2d_nearest_mipmap_linear:  *params = (gl_es2_int)GL_ES2_LINEAR_MIPMAP_NEAREST; break;
+        case s2d_linear_mipmap_nearest:  *params = (gl_es2_int)GL_ES2_NEAREST_MIPMAP_LINEAR; break;
+        case s2d_linear_mipmap_linear:   *params = (gl_es2_int)GL_ES2_LINEAR_MIPMAP_LINEAR; break;
+      }
+      break;
+    case GL_ES2_TEXTURE_MIN_FILTER:
+      switch (s2d->min_filter_) {
+        case s2d_nearest:                *params = (gl_es2_int)GL_ES2_NEAREST; break;
+        case s2d_linear:                 *params = (gl_es2_int)GL_ES2_LINEAR; break;
+        case s2d_nearest_mipmap_nearest: *params = (gl_es2_int)GL_ES2_NEAREST_MIPMAP_NEAREST; break;
+        case s2d_nearest_mipmap_linear:  *params = (gl_es2_int)GL_ES2_LINEAR_MIPMAP_NEAREST; break;
+        case s2d_linear_mipmap_nearest:  *params = (gl_es2_int)GL_ES2_NEAREST_MIPMAP_LINEAR; break;
+        case s2d_linear_mipmap_linear:   *params = (gl_es2_int)GL_ES2_LINEAR_MIPMAP_LINEAR; break;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_S:
+      switch (s2d->wrap_s_) {
+        case s2d_clamp_to_edge:   *params = (gl_es2_int)GL_ES2_CLAMP_TO_EDGE; break;
+        case s2d_repeat:          *params = (gl_es2_int)GL_ES2_REPEAT; break;
+        case s2d_mirrored_repeat: *params = (gl_es2_int)GL_ES2_MIRRORED_REPEAT; break;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_T:
+      switch (s2d->wrap_t_) {
+        case s2d_clamp_to_edge:   *params = (gl_es2_int)GL_ES2_CLAMP_TO_EDGE; break;
+        case s2d_repeat:          *params = (gl_es2_int)GL_ES2_REPEAT; break;
+        case s2d_mirrored_repeat: *params = (gl_es2_int)GL_ES2_MIRRORED_REPEAT; break;
+      }
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformfv)(gl_es2_uint program, gl_es2_int location, gl_es2_float *params) {
