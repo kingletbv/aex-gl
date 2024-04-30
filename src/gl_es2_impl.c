@@ -3970,10 +3970,28 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformiv)(
 
 GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformLocation)(gl_es2_uint program, const gl_es2_char *name) {
   struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return -1;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return -1;
+  }
   if (!c->allow_internals_ && !memcmp(name, "gl_", 3)) {
     return -1;
   }
-  return -1;
+  int r;
+  size_t location = SIZE_MAX;
+  r = sl_uniform_get_named_location(&prog->program_.uniforms_, name, &location);
+  if (r == SL_ERR_INVALID_ARG) {
+    /* No corresponding uniform was found. */
+    return -1;
+  }
+  return (gl_es2_int)location;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttribfv)(gl_es2_uint index, gl_es2_enum pname, gl_es2_float *params) {

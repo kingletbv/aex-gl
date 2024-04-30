@@ -416,9 +416,9 @@ int sl_uniform_get_location_info(struct sl_uniform_table *ut, size_t location, v
   return SL_ERR_INVALID_ARG;
 }
 
-static int sl_uniform_get_ra_named_location(struct sl_reg_alloc *ra, char *name, size_t *plocation) {
+static int sl_uniform_get_ra_named_location(struct sl_reg_alloc *ra, const char *name, size_t *plocation) {
   int r;
-  char *cp = name;
+  const char *cp = name;
   if (ra->kind_ == slrak_array) {
     /* Next char up should be [, followed by non-zero digits, followed by ].
      * Alternatively, this is a final array element, and name should be '\0' -- however -- in
@@ -443,7 +443,7 @@ static int sl_uniform_get_ra_named_location(struct sl_reg_alloc *ra, char *name,
         /* Let's roll a manual atoi() so we know when it overflows and always fit the type size */
         size_t index = (size_t)((*cp) - '0');
 
-        char *start_of_digits = cp;
+        const char *start_of_digits = cp;
         cp++;
         while (((*cp) >= '0') && ((*cp) <= '9')) {
           if ((SIZE_MAX / 10) < index) {
@@ -460,7 +460,7 @@ static int sl_uniform_get_ra_named_location(struct sl_reg_alloc *ra, char *name,
           }
           cp++;
         }
-        char *end_of_digits = cp;
+        const char *end_of_digits = cp;
         if ((*cp) != ']') {
           return SL_ERR_INVALID_ARG;
         }
@@ -501,7 +501,7 @@ static int sl_uniform_get_ra_named_location(struct sl_reg_alloc *ra, char *name,
     }
     cp++;
     /* Next expecting an identifier representing the field */
-    char *end_ident;
+    const char *end_ident;
     end_ident = cp;
     if ((((*end_ident) >= 'a') && ((*end_ident) <= 'z')) ||
         (((*end_ident) >= 'A') && ((*end_ident) <= 'Z')) ||
@@ -568,9 +568,9 @@ static int sl_uniform_get_ra_named_location(struct sl_reg_alloc *ra, char *name,
   }
 }
 
-int sl_uniform_get_named_location(struct sl_uniform_table *ut, char *name, size_t *plocation) {
+int sl_uniform_get_named_location(struct sl_uniform_table *ut, const char *name, size_t *plocation) {
   int r;
-  char *end_ident;
+  const char *end_ident;
   end_ident = name;
   if ((((*end_ident) >= 'a') && ((*end_ident) <= 'z')) ||
       (((*end_ident) >= 'A') && ((*end_ident) <= 'Z')) ||

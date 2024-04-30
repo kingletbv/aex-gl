@@ -53,7 +53,7 @@ void sl_uniform_table_cleanup(struct sl_uniform_table *ut);
 
 int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform **pp_uniform, struct sl_variable *vertex_side, struct sl_variable *fragment_side);
 
-int sl_uniform_get_named_location(struct sl_uniform_table *ut, char *name, size_t *plocation);
+int sl_uniform_get_named_location(struct sl_uniform_table *ut, const char *name, size_t *plocation);
 int sl_uniform_get_location_info(struct sl_uniform_table *ut, size_t location, void **pp_slab_memory, sl_reg_alloc_kind_t *plocation_type, size_t *pname_length, char *name_buf, size_t *pfinal_array_size, size_t *pentry_in_final_array);
 
 /* Maximum possible length of a uniform location name, including a null terminator. */
