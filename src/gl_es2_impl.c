@@ -3214,7 +3214,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramiv)(
     }
     case GL_ES2_VALIDATE_STATUS: {
       /* XXX: IMPLEMENT THIS */
-
+      return;
     }
     case GL_ES2_INFO_LOG_LENGTH: {
       *params = 0; /* if no program log, 0 is returned .. */
@@ -3304,6 +3304,169 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramInfo
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetRenderbufferParameteriv)(gl_es2_enum target, gl_es2_enum pname, gl_es2_int *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (target != GL_ES2_RENDERBUFFER) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  struct gl_es2_renderbuffer *rb = c->renderbuffer_;
+  if (!rb) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  switch (pname) {
+    case GL_ES2_RENDERBUFFER_WIDTH:
+      *params = (gl_es2_int)rb->width_;
+      return;
+    case GL_ES2_RENDERBUFFER_HEIGHT:
+      *params = (gl_es2_int)rb->height_;
+      return;
+    case GL_ES2_RENDERBUFFER_INTERNAL_FORMAT:
+      switch (rb->format_) {
+        case gl_es2_renderbuffer_format_none:
+          *params = GL_ES2_RGBA4;
+          break;
+          /* "An implementation may vary its allocation of internal component resolution based on any glRenderbufferStorage parameter" */
+        case gl_es2_renderbuffer_format_rgba32:
+          *params = (gl_es2_int)GL_ES2_RGBA8;
+          break;
+        case gl_es2_renderbuffer_format_depth16:
+          *params = (gl_es2_int)GL_ES2_DEPTH_COMPONENT16;
+          break;
+        case gl_es2_renderbuffer_format_depth32:
+          *params = (gl_es2_int)GL_ES2_DEPTH_COMPONENT32; /* note: not in OpenGL ES 2.0 ; but it's what we use internally. */
+          break;
+        case gl_es2_renderbuffer_format_stencil16:
+          *params = (gl_es2_int)GL_ES2_STENCIL_INDEX16;
+          break;
+      }
+    case GL_ES2_RENDERBUFFER_RED_SIZE: {
+      switch (rb->format_) {
+        case gl_es2_renderbuffer_format_none:
+          /* default: GL_ES2_RGBA4 */
+          *params = 4;
+          break;
+        case gl_es2_renderbuffer_format_rgba32:
+          *params = 8;
+          break;
+        case gl_es2_renderbuffer_format_depth16:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_depth32:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_stencil16:
+          *params = 0;
+          break;
+      }
+      break;
+    }
+    case GL_ES2_RENDERBUFFER_GREEN_SIZE: {
+      switch (rb->format_) {
+        case gl_es2_renderbuffer_format_none:
+          /* default: GL_ES2_RGBA4 */
+          *params = 4;
+          break;
+        case gl_es2_renderbuffer_format_rgba32:
+          *params = 8;
+          break;
+        case gl_es2_renderbuffer_format_depth16:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_depth32:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_stencil16:
+          *params = 0;
+          break;
+      }
+      break;
+    }
+    case GL_ES2_RENDERBUFFER_BLUE_SIZE: {
+      switch (rb->format_) {
+        case gl_es2_renderbuffer_format_none:
+          /* default: GL_ES2_RGBA4 */
+          *params = 4;
+          break;
+        case gl_es2_renderbuffer_format_rgba32:
+          *params = 8;
+          break;
+        case gl_es2_renderbuffer_format_depth16:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_depth32:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_stencil16:
+          *params = 0;
+          break;
+      }
+      break;
+    }
+    case GL_ES2_RENDERBUFFER_ALPHA_SIZE: {
+      switch (rb->format_) {
+        case gl_es2_renderbuffer_format_none:
+          /* default: GL_ES2_RGBA4 */
+          *params = 4;
+          break;
+        case gl_es2_renderbuffer_format_rgba32:
+          *params = 8;
+          break;
+        case gl_es2_renderbuffer_format_depth16:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_depth32:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_stencil16:
+          *params = 0;
+          break;
+      }
+      break;
+    }
+    case GL_ES2_RENDERBUFFER_DEPTH_SIZE: {
+      switch (rb->format_) {
+        case gl_es2_renderbuffer_format_none:
+          /* default: GL_ES2_RGBA4 */
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_rgba32:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_depth16:
+          *params = 16;
+          break;
+        case gl_es2_renderbuffer_format_depth32:
+          *params = 32;
+          break;
+        case gl_es2_renderbuffer_format_stencil16:
+          *params = 0;
+          break;
+      }
+      break;
+    }
+    case GL_ES2_RENDERBUFFER_STENCIL_SIZE: {
+      switch (rb->format_) {
+        case gl_es2_renderbuffer_format_none:
+          /* default: GL_ES2_RGBA4 */
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_rgba32:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_depth16:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_depth32:
+          *params = 0;
+          break;
+        case gl_es2_renderbuffer_format_stencil16:
+          *params = 16;
+          break;
+      }
+      break;
+    }
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderiv)(gl_es2_uint shader, gl_es2_enum pname, gl_es2_int *params) {
