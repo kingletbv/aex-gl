@@ -3204,6 +3204,33 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramiv)(
     return;
   }
   switch (pname) {
+    case GL_ES2_DELETE_STATUS: {
+      *params = prog->flagged_for_deletion_ ? GL_ES2_TRUE : GL_ES2_FALSE;
+      return;
+    }
+    case GL_ES2_LINK_STATUS: {
+      *params = prog->program_.gl_last_link_status_ ? GL_ES2_TRUE : GL_ES2_FALSE;
+      return;
+    }
+    case GL_ES2_VALIDATE_STATUS: {
+      /* XXX: IMPLEMENT THIS */
+
+    }
+    case GL_ES2_INFO_LOG_LENGTH: {
+      *params = 0; /* if no program log, 0 is returned .. */
+      if (prog->program_.log_.gl_info_log_size_) {
+        /* .. otherwise the size of the log plus a null terminator is returned (this is different from GetProgramInfoLog) */
+        *params = (gl_es2_int)(1 + prog->program_.log_.gl_info_log_size_);
+      }
+      break;
+    }
+    case GL_ES2_ATTACHED_SHADERS: {
+      /* Number of attached shaders */
+      *params = 0;
+      if (prog->fragment_shader_.shader_) (*params)++;
+      if (prog->vertex_shader_.shader_) (*params)++;
+      break;
+    }
     case GL_ES2_ACTIVE_ATTRIBUTES: {
       *params = (gl_es2_int)prog->program_.abt_.num_attrib_bindings_;
       break;
@@ -3258,14 +3285,6 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramiv)(
         return;
       }
       *params = (gl_es2_int)max_name_length;
-      break;
-    }
-    case GL_ES2_INFO_LOG_LENGTH: {
-      *params = 0; /* if no program log, 0 is returned .. */
-      if (prog->program_.log_.gl_info_log_size_) {
-        /* .. otherwise the size of the log plus a null terminator is returned (this is different from GetProgramInfoLog) */
-        *params = (gl_es2_int)(1 + prog->program_.log_.gl_info_log_size_);
-      }
       break;
     }
   }
@@ -3730,6 +3749,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UseProgram)(gl
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ValidateProgram)(gl_es2_uint program) {
+  /* XXX: Don't forget GL_ES2_VALIDATE_STATUS on glGetProgramiv() */
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib1f)(gl_es2_uint index, gl_es2_float x) {

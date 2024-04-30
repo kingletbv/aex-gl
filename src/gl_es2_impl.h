@@ -188,6 +188,10 @@ extern "C" {
 #define GL_ES2_ACTIVE_UNIFORMS             0x8B86
 #define GL_ES2_ACTIVE_UNIFORM_MAX_LENGTH   0x8B87
 #define GL_ES2_INFO_LOG_LENGTH             0x8B84
+#define GL_ES2_DELETE_STATUS               0x8B80
+#define GL_ES2_LINK_STATUS                 0x8B82
+#define GL_ES2_VALIDATE_STATUS             0x8B83
+#define GL_ES2_ATTACHED_SHADERS            0x8B85
 
 #define GL_ES2_FRONT          0x0404
 #define GL_ES2_BACK           0x0405
