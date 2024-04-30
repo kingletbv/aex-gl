@@ -2868,6 +2868,37 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBufferParameteriv)(gl_es2_enum target, gl_es2_enum pname, gl_es2_int *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_buffer *buf;
+
+  switch (target) {
+    case GL_ES2_ARRAY_BUFFER:
+      buf = c->array_buffer_;
+      break;
+    case GL_ES2_ELEMENT_ARRAY_BUFFER:
+      buf = c->element_array_buffer_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  if (!buf) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (pname) {
+    case GL_ES2_BUFFER_SIZE:
+      *params = (gl_es2_int)buf->buf_.size_;
+      return;
+    case GL_ES2_BUFFER_USAGE:
+      *params = (gl_es2_int)buf->usage_;
+      return;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetError)(void) {

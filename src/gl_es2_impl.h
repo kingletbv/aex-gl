@@ -190,6 +190,9 @@ extern "C" {
 #define GL_ES2_BACK           0x0405
 #define GL_ES2_FRONT_AND_BACK 0x0408
 
+#define GL_ES2_BUFFER_SIZE  0x8764
+#define GL_ES2_BUFFER_USAGE 0x8765
+
 #define GL_ES2_CW  0x0900
 #define GL_ES2_CCW 0x0901
 
