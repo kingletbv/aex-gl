@@ -4170,6 +4170,23 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Hint)(gl_es2_enum target, gl_es2_enum mode) {
+  switch (target) {
+    case GL_ES2_GENERATE_MIPMAP_HINT:
+      switch (mode) {
+        case GL_ES2_FASTEST:
+        case GL_ES2_NICEST:
+        case GL_ES2_DONT_CARE:
+          /* Thank you for this valid hint. */
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsBuffer)(gl_es2_uint buffer) {

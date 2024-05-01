@@ -279,6 +279,11 @@ extern "C" {
 
 #define GL_ES2_VERTEX_ATTRIB_ARRAY_POINTER 0x8645
 
+#define GL_ES2_GENERATE_MIPMAP_HINT 0x8192
+#define GL_ES2_FASTEST              0x1101
+#define GL_ES2_NICEST               0x1102
+#define GL_ES2_DONT_CARE            0x1100
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02
