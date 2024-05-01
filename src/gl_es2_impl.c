@@ -3995,9 +3995,153 @@ GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUnifo
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttribfv)(gl_es2_uint index, gl_es2_enum pname, gl_es2_float *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  struct attrib *ab = c->attribs_.attribs_ + index;
+
+  switch (pname) {
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: {
+      if (!ab->buf_) {
+        *params = (float)0;
+        return;
+      }
+      /* All buffers are a struct data_buffer sitting as a "struct data_buffer buf_"
+       * field in an gl_es2_buffer structure; use that to revert from the buf_ to the
+       * gl_es2_buffer that contains it.
+       * NOTE: this is fragile and will implode if, for whatever reason, we stray
+       *       and start using data_buffer structs outside of a gl_es2_buffer. 
+       * NOTE2: If you have problems with it here, you're going to have problems with it at glGetVertexAttribiv!!*/
+      uintptr_t offset_to_buf_field = (uintptr_t)&(((struct gl_es2_buffer *)0)->buf_);
+      struct gl_es2_buffer *gl_buf = (struct gl_es2_buffer *)(((char *)ab->buf_) - offset_to_buf_field);
+
+      *params = (float)gl_buf->no_.name_;
+      break;
+    }
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_ENABLED:
+      *params = (float)(ab->enabled_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_SIZE:
+      *params = (float)(ab->size_);
+      break;
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_STRIDE:
+      *params = (float)(ab->stride_);
+      break;
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_TYPE:
+      switch (ab->data_type_) {
+        case ADT_BYTE:
+          *params = (float)GL_ES2_BYTE;
+          break;
+        case ADT_UNSIGNED_BYTE:
+          *params = (float)GL_ES2_UNSIGNED_BYTE;
+          break;
+        case ADT_SHORT:
+          *params = (float)GL_ES2_SHORT;
+          break;
+        case ADT_UNSIGNED_SHORT:
+          *params = (float)GL_ES2_UNSIGNED_SHORT;
+          break;
+        case ADT_INT:
+          *params = (float)GL_ES2_INT;
+          break;
+        case ADT_UNSIGNED_INT:
+          *params = (float)GL_ES2_UNSIGNED_INT;
+          break;
+        case ADT_FIXED:
+          *params = (float)GL_ES2_FIXED;
+          break;
+        case ADT_FLOAT:
+          *params = (float)GL_ES2_FLOAT;
+          break;
+      }
+      break;
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_NORMALIZED:
+      *params = (float)(ab->normalize_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_CURRENT_VERTEX_ATTRIB:
+      params[0] = ab->generic_values_[0];
+      params[1] = ab->generic_values_[1];
+      params[2] = ab->generic_values_[2];
+      params[3] = ab->generic_values_[3];
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttribiv)(gl_es2_uint index, gl_es2_enum pname, gl_es2_int *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  struct attrib *ab = c->attribs_.attribs_ + index;
+
+  switch (pname) {
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: {
+      if (!ab->buf_) {
+        *params = 0;
+        return;
+      }
+      /* All buffers are a struct data_buffer sitting as a "struct data_buffer buf_"
+       * field in an gl_es2_buffer structure; use that to revert from the buf_ to the
+       * gl_es2_buffer that contains it.
+       * NOTE: this is fragile and will implode if, for whatever reason, we stray
+       *       and start using data_buffer structs outside of a gl_es2_buffer.
+       * NOTE2: If you have problems with it here, you're going to have problems with it at glGetVertexAttribfv!!*/
+      uintptr_t offset_to_buf_field = (uintptr_t)&(((struct gl_es2_buffer *)0)->buf_);
+      struct gl_es2_buffer *gl_buf = (struct gl_es2_buffer *)(((char *)ab->buf_) - offset_to_buf_field);
+
+      *params = (gl_es2_int)gl_buf->no_.name_;
+      break;
+    }
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_ENABLED:
+      *params = (gl_es2_int)(ab->enabled_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_SIZE:
+      *params = (gl_es2_int)(ab->size_);
+      break;
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_STRIDE:
+      *params = (gl_es2_int)(ab->stride_);
+      break;
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_TYPE:
+      switch (ab->data_type_) {
+        case ADT_BYTE:
+          *params = GL_ES2_BYTE;
+          break;
+        case ADT_UNSIGNED_BYTE:
+          *params = GL_ES2_UNSIGNED_BYTE;
+          break;
+        case ADT_SHORT:
+          *params = GL_ES2_SHORT;
+          break;
+        case ADT_UNSIGNED_SHORT:
+          *params = GL_ES2_UNSIGNED_SHORT;
+          break;
+        case ADT_INT:
+          *params = GL_ES2_INT;
+          break;
+        case ADT_UNSIGNED_INT:
+          *params = GL_ES2_UNSIGNED_INT;
+          break;
+        case ADT_FIXED:
+          *params = GL_ES2_FIXED;
+          break;
+        case ADT_FLOAT:
+          *params = GL_ES2_FLOAT;
+          break;
+      }
+      break;
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_NORMALIZED:
+      *params = ab->normalize_ ? GL_ES2_TRUE : GL_ES2_FALSE;
+      break;
+    case GL_ES2_CURRENT_VERTEX_ATTRIB:
+      params[0] = (gl_es2_int)ab->generic_values_[0];
+      params[1] = (gl_es2_int)ab->generic_values_[1];
+      params[2] = (gl_es2_int)ab->generic_values_[2];
+      params[3] = (gl_es2_int)ab->generic_values_[3];
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttribPointerv)(gl_es2_uint index, gl_es2_enum pname, void **pointer) {
