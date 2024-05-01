@@ -277,6 +277,8 @@ extern "C" {
 #define GL_ES2_VERTEX_ATTRIB_ARRAY_NORMALIZED     0x886A
 #define GL_ES2_CURRENT_VERTEX_ATTRIB              0x8626
 
+#define GL_ES2_VERTEX_ATTRIB_ARRAY_POINTER 0x8645
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02

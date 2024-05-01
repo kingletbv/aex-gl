@@ -4066,6 +4066,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
       params[2] = ab->generic_values_[2];
       params[3] = ab->generic_values_[3];
       break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
   }
 }
 
@@ -4141,10 +4144,29 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
       params[2] = (gl_es2_int)ab->generic_values_[2];
       params[3] = (gl_es2_int)ab->generic_values_[3];
       break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
   }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttribPointerv)(gl_es2_uint index, gl_es2_enum pname, void **pointer) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  struct attrib *ab = c->attribs_.attribs_ + index;
+
+  switch (pname) {
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_POINTER:
+      *pointer = ab->ptr_;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Hint)(gl_es2_enum target, gl_es2_enum mode) {
