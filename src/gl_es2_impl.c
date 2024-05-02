@@ -2886,6 +2886,17 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
     case GL_ES2_POLYGON_OFFSET_UNITS:
       data[0] = (gl_es2_boolean)((c->polygon_offset_units_ == 0.f) ? GL_ES2_FALSE : GL_ES2_TRUE);
       break;
+    case GL_ES2_ALIASED_LINE_WIDTH_RANGE:
+      data[0] = (gl_es2_boolean)((GL_ES2_IMPL_MIN_LINE_WIDTH) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      data[1] = (gl_es2_boolean)((GL_ES2_IMPL_MAX_LINE_WIDTH) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_ALIASED_POINT_SIZE_RANGE:
+      data[0] = (gl_es2_boolean)((GL_ES2_IMPL_MIN_POINT_SIZE) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      data[1] = (gl_es2_boolean)((GL_ES2_IMPL_MAX_POINT_SIZE) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_LINE_WIDTH:
+      data[0] = (gl_es2_boolean)((c->line_width_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -3018,6 +3029,17 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
       break;
     case GL_ES2_POLYGON_OFFSET_UNITS:
       data[0] = c->polygon_offset_units_;
+      break;
+    case GL_ES2_ALIASED_LINE_WIDTH_RANGE:
+      data[0] = (float)GL_ES2_IMPL_MIN_LINE_WIDTH;
+      data[1] = (float)GL_ES2_IMPL_MAX_LINE_WIDTH;
+      break;
+    case GL_ES2_ALIASED_POINT_SIZE_RANGE:
+      data[0] = (float)GL_ES2_IMPL_MIN_POINT_SIZE;
+      data[1] = (float)GL_ES2_IMPL_MAX_POINT_SIZE;
+      break;
+    case GL_ES2_LINE_WIDTH:
+      data[0] = (float)c->line_width_;
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -3206,6 +3228,18 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
     case GL_ES2_POLYGON_OFFSET_UNITS:
       data[0] = (gl_es2_int)c->polygon_offset_units_;
       break;
+    case GL_ES2_ALIASED_LINE_WIDTH_RANGE:
+      data[0] = (gl_es2_int)GL_ES2_IMPL_MIN_LINE_WIDTH;
+      data[1] = (gl_es2_int)GL_ES2_IMPL_MAX_LINE_WIDTH;
+      break;
+    case GL_ES2_ALIASED_POINT_SIZE_RANGE:
+      data[0] = (gl_es2_int)GL_ES2_IMPL_MIN_POINT_SIZE;
+      data[1] = (gl_es2_int)GL_ES2_IMPL_MAX_POINT_SIZE;
+      break;
+    case GL_ES2_LINE_WIDTH:
+      data[0] = (gl_es2_int)c->line_width_;
+      break;
+
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -4284,6 +4318,8 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsTe
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(LineWidth)(gl_es2_float width) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  c->line_width_ = width;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(LinkProgram)(gl_es2_uint program) {

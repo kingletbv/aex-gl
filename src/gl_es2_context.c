@@ -613,6 +613,8 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->polygon_offset_factor_ = 0.f;
   c->polygon_offset_units_ = 0.f;
 
+  c->line_width_ = 1.f;
+
   c->is_stencil_test_enabled_ = 0;
   c->is_polygon_offset_fill_enabled_ = 0;
 

@@ -77,6 +77,14 @@
  * as per design document "Bits of precision needed to determine area of 2D triangle.docx" */
 #define GL_ES2_IMPL_MAX_VIEWPORT_DIMS 4194304
 
+/* glGet(GL_ALIASED_LINE_WIDTH_RANGE); can pick any line width you want, as long as it is 1 */
+#define GL_ES2_IMPL_MIN_LINE_WIDTH 1
+#define GL_ES2_IMPL_MAX_LINE_WIDTH 1
+
+/* glGet(GL_ALIASED_POINT_SIZE_RANGE) */
+#define GL_ES2_IMPL_MIN_POINT_SIZE 0
+#define GL_ES2_IMPL_MAX_POINT_SIZE 1024
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -396,6 +404,9 @@ struct gl_es2_context {
   /* glPolygonOffset(), glGet(GL_POLYGON_OFFSET_FACTOR/GL_POLYGON_OFFSET_UNITS) */
   float polygon_offset_factor_;
   float polygon_offset_units_;
+
+  /* glLineWidth(), glGet(GL_LINE_WIDTH), glGet(GL_ALIASED_LINE_WIDTH_RANGE) */
+  float line_width_;
 
   /* Is stencil testing and writing enabled? glEnable/glDisable(GL_STENCIL_TEST) */
   int is_stencil_test_enabled_:1;
