@@ -4572,13 +4572,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(RenderbufferSt
   }
 
   enum gl_es2_renderbuffer_format actual_format;
-#if 0
-    gl_es2_renderbuffer_format_none,
-    gl_es2_renderbuffer_format_rgba32,
-    gl_es2_renderbuffer_format_depth16,
-    gl_es2_renderbuffer_format_depth32,
-    gl_es2_renderbuffer_format_stencil16
-#endif
+
   switch (internalformat) {
     case GL_ES2_RGBA4:
     case GL_ES2_RGB565:
