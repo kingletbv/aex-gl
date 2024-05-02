@@ -184,10 +184,26 @@ int sl_program_link(struct sl_program *prog) {
   prog->gl_last_link_status_ = 0;
 
   if (!prog) return SL_ERR_INVALID_ARG;
-  if (!prog->vertex_shader_) return SL_ERR_INVALID_ARG;
-  if (!prog->vertex_shader_->gl_last_compile_status_) return SL_ERR_INVALID_ARG;
-  if (!prog->fragment_shader_) return SL_ERR_INVALID_ARG;
-  if (!prog->fragment_shader_->gl_last_compile_status_) return SL_ERR_INVALID_ARG;
+  int fail_invalid_arg = 0;
+  if (!prog->vertex_shader_) {
+    dx_error(&prog->log_.dx_, "Program has no vertex shader attached\n");
+    fail_invalid_arg = 1;
+  }
+  if (!prog->vertex_shader_->gl_last_compile_status_) {
+    dx_error(&prog->log_.dx_, "Program's vertex shader has not successfully been compiled\n");
+    fail_invalid_arg = 1;
+  }
+  if (!prog->fragment_shader_) {
+    dx_error(&prog->log_.dx_, "Program has no fragment shader attached\n");
+    fail_invalid_arg = 1;
+  }
+  if (!prog->fragment_shader_->gl_last_compile_status_) {
+    dx_error(&prog->log_.dx_, "Program's fragment shader has not successfully been compiled\n");
+    fail_invalid_arg = 1;
+  }
+  if (fail_invalid_arg) {
+    return SL_ERR_INVALID_ARG;
+  }
 
   struct ref_range_allocator rra;
   ref_range_allocator_init(&rra);
@@ -291,13 +307,13 @@ int sl_program_link(struct sl_program *prog) {
           if (vv_qualifiers & SL_TYPE_QUALIFIER_VARYING) {
             /* Have matching varying on the vertex shader side, and it is also a varying, route. */
             if (!sl_are_variables_compatible(vv, fv)) {
-              fprintf(stderr, "Incompatible types for \"%s\" varyings\n", vv->name_);
+              dx_error(&prog->log_.dx_, "Incompatible types for \"%s\" varyings", vv->name_);
               return SL_ERR_INVALID_ARG;
             }
             else {
               r = attrib_routing_add_variables(&prog->ar_, fv, vv);
               if (r) {
-                fprintf(stderr, "Failed adding \"%s\" varyings\n", vv->name_);
+                dx_error(&prog->log_.dx_, "Failed adding \"%s\" varyings", vv->name_);
                 return r;
               }
             }

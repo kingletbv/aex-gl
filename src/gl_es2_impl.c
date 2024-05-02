@@ -2903,6 +2903,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
     case GL_ES2_UNPACK_ALIGNMENT:
       data[0] = (gl_es2_boolean)((c->unpack_alignment_) ? GL_ES2_TRUE : GL_ES2_FALSE);
       break;
+    case GL_ES2_CURRENT_PROGRAM:
+      data[0] = (gl_es2_boolean)((c->current_program_ && c->current_program_->no_.name_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -3052,6 +3055,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
       break;
     case GL_ES2_UNPACK_ALIGNMENT:
       data[0] = (float)c->unpack_alignment_;
+      break;
+    case GL_ES2_CURRENT_PROGRAM:
+      data[0] = (float)(c->current_program_ ? c->current_program_->no_.name_ : 0);
       break;
 
     default:
@@ -3257,6 +3263,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
       break;
     case GL_ES2_UNPACK_ALIGNMENT:
       data[0] = (gl_es2_int)c->unpack_alignment_;
+      break;
+    case GL_ES2_CURRENT_PROGRAM:
+      data[0] = (gl_es2_int)(c->current_program_ ? c->current_program_->no_.name_ : 0);
       break;
 
     default:
@@ -4342,6 +4351,33 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(LineWidth)(gl_
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(LinkProgram)(gl_es2_uint program) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = NULL;
+  prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  prog->program_.gl_last_link_status_ = 0;
+
+  sl_info_log_clear(&prog->program_.log_);
+
+  int r;
+  r = sl_program_link(&prog->program_);
+  switch (r) {
+    case SL_ERR_INVALID_ARG:
+    case SL_ERR_INTERNAL:
+      dx_error(&prog->program_.log_.dx_, "An internal error occurred\n");
+      return;
+    case SL_ERR_NO_MEM:
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    case SL_ERR_OK:
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(PixelStorei)(gl_es2_enum pname, gl_es2_int param) {
