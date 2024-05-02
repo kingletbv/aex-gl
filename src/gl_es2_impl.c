@@ -2936,6 +2936,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
       break;
     case GL_ES2_SHADER_BINARY_FORMATS:
       break;
+    case GL_ES2_SHADER_COMPILER:
+      data[0] = (gl_es2_boolean)GL_ES2_TRUE;
+      break;
 
 
     default:
@@ -3119,6 +3122,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
       data[0] = 0.f;
       break;
     case GL_ES2_SHADER_BINARY_FORMATS:
+      break;
+    case GL_ES2_SHADER_COMPILER:
+      data[0] = (float)GL_ES2_TRUE;
       break;
 
     default:
@@ -3357,6 +3363,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
       data[0] = (gl_es2_int)0;
       break;
     case GL_ES2_SHADER_BINARY_FORMATS:
+      break;
+    case GL_ES2_SHADER_COMPILER:
+      data[0] = (gl_es2_int)GL_ES2_TRUE;
       break;
 
     default:
@@ -4741,6 +4750,39 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderBinary)(
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderSource)(gl_es2_uint shader, gl_es2_sizei count, const gl_es2_char *const *string, const gl_es2_int *length) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  uintptr_t shad_name = (uintptr_t)shader;
+  struct gl_es2_shader *shad = NULL;
+  shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
+  if (!shad) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  /* guarantee that sizeof(gl_es2_int) == sizeof(int), that is to say, that we can pass the array
+   * (poor man's compile time assert) */
+  char check_gl_es2_int_is_an_int[1 - 2 * !(sizeof(gl_es2_int) == sizeof(int))];
+  (void)check_gl_es2_int_is_an_int; /* dismiss unreferenced local variable */
+  r = sl_shader_set_source(&shad->shader_, count, (const char * const *)string, length);
+  switch (r) {
+    case SL_ERR_INVALID_ARG:
+    case SL_ERR_OVERFLOW:
+      set_gl_err(GL_ES2_INVALID_VALUE);
+      return;
+    case SL_ERR_INTERNAL:
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    case SL_ERR_NO_MEM:
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    case SL_ERR_OK:
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFunc)(gl_es2_enum func, gl_es2_int ref, gl_es2_uint mask) {

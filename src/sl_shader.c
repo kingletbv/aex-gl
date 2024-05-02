@@ -90,7 +90,7 @@ void sl_shader_set_type(struct sl_shader *sh, enum sl_shader_type typ) {
   sh->type_ = typ;
 }
 
-int sl_shader_set_source(struct sl_shader *sh, size_t num_strings, const char **string_ptrs, const int *lengths) {
+int sl_shader_set_source(struct sl_shader *sh, size_t num_strings, const char * const * string_ptrs, const int *lengths) {
   size_t total_length = 0;
   size_t n;
   for (n = 0; n < num_strings; ++n) {
