@@ -408,6 +408,10 @@ struct gl_es2_context {
   /* glLineWidth(), glGet(GL_LINE_WIDTH), glGet(GL_ALIASED_LINE_WIDTH_RANGE) */
   float line_width_;
 
+  /* glSampleCoverage(), glGet(GL_SAMPLE_COVERAGE_VALUE), glGet(GL_SAMPLE_COVERAGE_INVERT) */
+  float sample_coverage_value_;
+  int sample_coverage_invert_:1;
+
   /* Pack and unpack alignment. glPixelStorei(), glGet(GL_ES2_PACK_ALIGNMENT), glGet(GL_ES2_UNPACK_ALIGNMENT) */
   int pack_alignment_;
   int unpack_alignment_;

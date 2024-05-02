@@ -2906,6 +2906,31 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
     case GL_ES2_CURRENT_PROGRAM:
       data[0] = (gl_es2_boolean)((c->current_program_ && c->current_program_->no_.name_) ? GL_ES2_TRUE : GL_ES2_FALSE);
       break;
+    case GL_ES2_IMPLEMENTATION_COLOR_READ_FORMAT:
+      /* We support more, but this is one of them */
+      data[0] = (gl_es2_boolean)(GL_ES2_RGBA ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_IMPLEMENTATION_COLOR_READ_TYPE:
+      /* We support more, but this is one of them */
+      data[0] = (gl_es2_boolean)(GL_ES2_UNSIGNED_SHORT_5_5_5_1 ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_SAMPLE_COVERAGE_VALUE:
+      data[0] = (gl_es2_boolean)(c->sample_coverage_value_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_SAMPLE_COVERAGE_INVERT:
+      data[0] = (gl_es2_boolean)(c->sample_coverage_invert_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_SAMPLE_ALPHA_TO_COVERAGE:
+      data[0] = (gl_es2_boolean)(c->is_sample_alpha_to_coverage_enabled_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_SAMPLE_BUFFERS:
+      /* not supported as of yet */
+      data[0] = (gl_es2_boolean)GL_ES2_FALSE;
+      break;
+    case GL_ES2_SAMPLES:
+      /* not supported as of yet */
+      data[0] = (gl_es2_boolean)GL_ES2_FALSE;
+
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -3059,6 +3084,31 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
     case GL_ES2_CURRENT_PROGRAM:
       data[0] = (float)(c->current_program_ ? c->current_program_->no_.name_ : 0);
       break;
+    case GL_ES2_IMPLEMENTATION_COLOR_READ_FORMAT:
+      /* We support more, but this is one of them */
+      data[0] = (float)GL_ES2_RGBA;
+      break;
+    case GL_ES2_IMPLEMENTATION_COLOR_READ_TYPE:
+      /* We support more, but this is one of them */
+      data[0] = (float)GL_ES2_UNSIGNED_SHORT_5_5_5_1;
+      break;
+    case GL_ES2_SAMPLE_COVERAGE_VALUE:
+      data[0] = c->sample_coverage_value_;
+      break;
+    case GL_ES2_SAMPLE_COVERAGE_INVERT:
+      data[0] = (float)(c->sample_coverage_invert_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_SAMPLE_ALPHA_TO_COVERAGE:
+      data[0] = (float)(c->is_sample_alpha_to_coverage_enabled_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_SAMPLE_BUFFERS:
+      /* not supported as of yet */
+      data[0] = 0.f;
+      break;
+    case GL_ES2_SAMPLES:
+      /* not supported as of yet */
+      data[0] = 0.f;
+
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -3275,6 +3325,22 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
       /* We support more, but this is one of them */
       data[0] = (gl_es2_int)GL_ES2_UNSIGNED_SHORT_5_5_5_1;
       break;
+    case GL_ES2_SAMPLE_COVERAGE_VALUE:
+      data[0] = (gl_es2_int)c->sample_coverage_value_;
+      break;
+    case GL_ES2_SAMPLE_COVERAGE_INVERT:
+      data[0] = (gl_es2_int)(c->sample_coverage_invert_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_SAMPLE_ALPHA_TO_COVERAGE:
+      data[0] = (gl_es2_int)(c->is_sample_alpha_to_coverage_enabled_ ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_SAMPLE_BUFFERS:
+      /* not supported as of yet */
+      data[0] = (gl_es2_int)0;
+      break;
+    case GL_ES2_SAMPLES:
+      /* not supported as of yet */
+      data[0] = (gl_es2_int)0;
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -4606,6 +4672,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(RenderbufferSt
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(SampleCoverage)(gl_es2_float value, gl_es2_boolean invert) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (value < 0.f) value = 0.f;
+  if (value > 1.f) value = 1.f;
+  c->sample_coverage_value_ = value;
+  c->sample_coverage_invert_ = invert ? 1 : 0;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Scissor)(gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {
