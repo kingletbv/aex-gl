@@ -2828,6 +2828,10 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
       data[0] = (gl_es2_boolean)(GL_ES2_IMPL_MAX_VIEWPORT_DIMS ? GL_ES2_TRUE : GL_ES2_FALSE); break;
       data[1] = (gl_es2_boolean)(GL_ES2_IMPL_MAX_VIEWPORT_DIMS ? GL_ES2_TRUE : GL_ES2_FALSE); break;
       break;
+    case GL_ES2_MAX_TEXTURE_SIZE:
+    case GL_ES2_MAX_CUBE_MAP_TEXTURE_SIZE:
+      data[0] = (gl_es2_boolean)(GL_ES2_IMPL_MAX_VIEWPORT_DIMS ? GL_ES2_TRUE : GL_ES2_FALSE); break;
+      break;
     case GL_ES2_VIEWPORT:
       data[0] = (gl_es2_boolean)(c->vp_x_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
       data[1] = (gl_es2_boolean)(c->vp_y_ ? GL_ES2_TRUE : GL_ES2_FALSE); break;
@@ -3014,6 +3018,10 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
     case GL_ES2_MAX_VIEWPORT_DIMS:
       data[0] = (float)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
       data[1] = (float)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
+      break;
+    case GL_ES2_MAX_TEXTURE_SIZE:
+    case GL_ES2_MAX_CUBE_MAP_TEXTURE_SIZE:
+      data[0] = (float)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
       break;
     case GL_ES2_VIEWPORT:
       data[0] = (float)c->vp_x_;
@@ -3255,6 +3263,10 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
     case GL_ES2_MAX_VIEWPORT_DIMS:
       data[0] = (gl_es2_int)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
       data[1] = (gl_es2_int)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
+      break;
+    case GL_ES2_MAX_TEXTURE_SIZE:
+    case GL_ES2_MAX_CUBE_MAP_TEXTURE_SIZE:
+      data[0] = (gl_es2_int)GL_ES2_IMPL_MAX_VIEWPORT_DIMS;
       break;
     case GL_ES2_VIEWPORT:
       data[0] = (gl_es2_int)c->vp_x_;
@@ -4914,6 +4926,150 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilOpSepar
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_int internalformat, gl_es2_sizei width, gl_es2_sizei height, gl_es2_int border, gl_es2_enum format, gl_es2_enum type, const void *pixels) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  int r;
+  struct gl_es2_texture *tex = NULL;
+  struct sampler_2d *s2d = NULL;
+  if (!get_active_tex_target(target, &tex, &s2d)) {
+    /* error already set */
+    return;
+  }
+
+  if ((target == GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X) ||
+      (target == GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X) ||
+      (target == GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y) ||
+      (target == GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y) ||
+      (target == GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z) ||
+      (target == GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z)) {
+    if (height != width) {
+      /* one of the cube map targets and width & height are not equal */
+      set_gl_err(GL_ES2_INVALID_VALUE);
+      return;
+    }
+  }
+
+  if ((type == GL_ES2_UNSIGNED_SHORT_5_6_5) && (format != GL_ES2_RGB)) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  if (((type == GL_ES2_UNSIGNED_SHORT_4_4_4_4) ||
+       (type == GL_ES2_UNSIGNED_SHORT_5_5_5_1)) &&
+      (format != GL_ES2_RGBA)) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  if (internalformat != format) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  if ((width < 0) || (height < 0)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  if ((width >= GL_ES2_IMPL_MAX_VIEWPORT_DIMS) || (height >= GL_ES2_IMPL_MAX_VIEWPORT_DIMS)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  if (border != 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  enum s2d_tex_components internal_components;
+  enum blitter_format internal_blit_format;
+  switch (internalformat) {
+    case GL_ES2_ALPHA:
+      internal_components = s2d_alpha;
+      internal_blit_format = blit_format_alpha;
+      break;
+    case GL_ES2_LUMINANCE:
+      internal_components = s2d_luminance;
+      internal_blit_format = blit_format_luminance;
+      break;
+    case GL_ES2_LUMINANCE_ALPHA:
+      internal_components = s2d_luminance_alpha;
+      internal_blit_format = blit_format_luminance_alpha;
+      break;
+    case GL_ES2_RGB:
+      internal_components = s2d_rgb;
+      internal_blit_format = blit_format_rgb;
+      break;
+    case GL_ES2_RGBA:
+      internal_components = s2d_rgba;
+      internal_blit_format = blit_format_rgba;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  enum blitter_format src_blit_format;
+  size_t src_bytes_per_pixel;
+  switch (type) {
+    case GL_ES2_UNSIGNED_BYTE:
+      switch (format) {
+        case GL_ES2_ALPHA:
+          src_bytes_per_pixel = 1;
+          src_blit_format = blit_format_alpha;
+          break;
+        case GL_ES2_LUMINANCE:
+          src_bytes_per_pixel = 1;
+          src_blit_format = blit_format_luminance;
+          break;
+        case GL_ES2_LUMINANCE_ALPHA:
+          src_bytes_per_pixel = 2;
+          src_blit_format = blit_format_luminance_alpha;
+          break;
+        case GL_ES2_RGB:
+          src_bytes_per_pixel = 3;
+          src_blit_format = blit_format_rgb;
+          break;
+        case GL_ES2_RGBA:
+          src_bytes_per_pixel = 4;
+          src_blit_format = blit_format_rgba;
+          break;
+      }
+      break;
+    case GL_ES2_UNSIGNED_SHORT_5_6_5:
+      src_bytes_per_pixel = 2;
+      src_blit_format = blit_format_565;
+      break;
+    case GL_ES2_UNSIGNED_SHORT_4_4_4_4:
+      src_bytes_per_pixel = 2;
+      src_blit_format = blit_format_4444;
+      break;
+    case GL_ES2_UNSIGNED_SHORT_5_5_5_1:
+      src_bytes_per_pixel = 2;
+      src_blit_format = blit_format_5551;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  r = sampler_2d_set_storage(s2d, level, internal_components, width, height);
+  if (r == SL_ERR_INVALID_ARG) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  else if (r == SL_ERR_NO_MEM) {
+    set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    return;
+  }
+  else if (r != SL_ERR_OK) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  blitter_blit_format(s2d->mipmaps_[level].bitmap_, internal_blit_format, pixels, src_blit_format,
+                      s2d->mipmaps_[level].num_bytes_per_bitmap_row_, 0, 0,
+                      (src_bytes_per_pixel * width + c->unpack_alignment_ - 1) & ~(size_t)(c->unpack_alignment_ - 1),
+                      0, 0, width, height);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterf)(gl_es2_enum target, gl_es2_enum pname, gl_es2_float param) {
