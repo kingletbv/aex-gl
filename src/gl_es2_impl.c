@@ -5066,9 +5066,13 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl
     return;
   }
 
-  blitter_blit_format(s2d->mipmaps_[level].bitmap_, internal_blit_format, pixels, src_blit_format,
+  size_t src_stride = (src_bytes_per_pixel * width + c->unpack_alignment_ - 1) & ~(size_t)(c->unpack_alignment_ - 1);
+  /* Invert the stride so it goes down the bitmap, and not up */
+  size_t src_downwards_stride = (size_t)-(intptr_t)src_stride;
+
+  blitter_blit_format(s2d->mipmaps_[level].bitmap_, internal_blit_format, ((char *)pixels) + src_stride * (height - 1), src_blit_format,
                       s2d->mipmaps_[level].num_bytes_per_bitmap_row_, 0, 0,
-                      (src_bytes_per_pixel * width + c->unpack_alignment_ - 1) & ~(size_t)(c->unpack_alignment_ - 1),
+                      src_downwards_stride,
                       0, 0, width, height);
 }
 
