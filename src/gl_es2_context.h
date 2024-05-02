@@ -408,6 +408,10 @@ struct gl_es2_context {
   /* glLineWidth(), glGet(GL_LINE_WIDTH), glGet(GL_ALIASED_LINE_WIDTH_RANGE) */
   float line_width_;
 
+  /* Pack and unpack alignment. glPixelStorei(), glGet(GL_ES2_PACK_ALIGNMENT), glGet(GL_ES2_UNPACK_ALIGNMENT) */
+  int pack_alignment_;
+  int unpack_alignment_;
+
   /* Is stencil testing and writing enabled? glEnable/glDisable(GL_STENCIL_TEST) */
   int is_stencil_test_enabled_:1;
 

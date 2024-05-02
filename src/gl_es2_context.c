@@ -615,6 +615,9 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
 
   c->line_width_ = 1.f;
 
+  c->pack_alignment_ = 4;
+  c->unpack_alignment_ = 4;
+
   c->is_stencil_test_enabled_ = 0;
   c->is_polygon_offset_fill_enabled_ = 0;
 

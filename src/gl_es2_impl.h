@@ -288,6 +288,9 @@ extern "C" {
 #define GL_ES2_ALIASED_POINT_SIZE_RANGE 0x846D
 #define GL_ES2_LINE_WIDTH               0x0B21
 
+#define GL_ES2_PACK_ALIGNMENT   0x0D05
+#define GL_ES2_UNPACK_ALIGNMENT 0x0CF5
+
 #define GL_ES2_VENDOR                   0x1F00
 #define GL_ES2_RENDERER                 0x1F01
 #define GL_ES2_VERSION                  0x1F02

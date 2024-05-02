@@ -2897,6 +2897,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
     case GL_ES2_LINE_WIDTH:
       data[0] = (gl_es2_boolean)((c->line_width_) ? GL_ES2_TRUE : GL_ES2_FALSE);
       break;
+    case GL_ES2_PACK_ALIGNMENT:
+      data[0] = (gl_es2_boolean)((c->pack_alignment_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
+    case GL_ES2_UNPACK_ALIGNMENT:
+      data[0] = (gl_es2_boolean)((c->unpack_alignment_) ? GL_ES2_TRUE : GL_ES2_FALSE);
+      break;
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -3041,6 +3047,13 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
     case GL_ES2_LINE_WIDTH:
       data[0] = (float)c->line_width_;
       break;
+    case GL_ES2_PACK_ALIGNMENT:
+      data[0] = (float)c->pack_alignment_;
+      break;
+    case GL_ES2_UNPACK_ALIGNMENT:
+      data[0] = (float)c->unpack_alignment_;
+      break;
+
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
@@ -3238,6 +3251,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
       break;
     case GL_ES2_LINE_WIDTH:
       data[0] = (gl_es2_int)c->line_width_;
+      break;
+    case GL_ES2_PACK_ALIGNMENT:
+      data[0] = (gl_es2_int)c->pack_alignment_;
+      break;
+    case GL_ES2_UNPACK_ALIGNMENT:
+      data[0] = (gl_es2_int)c->unpack_alignment_;
       break;
 
     default:
@@ -4326,6 +4345,32 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(LinkProgram)(g
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(PixelStorei)(gl_es2_enum pname, gl_es2_int param) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  switch (param) {
+    case 1:
+    case 2:
+    case 4:
+    case 8:
+      /* valid value */
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_VALUE);
+      return;
+  }
+
+  switch (pname) {
+    case GL_ES2_PACK_ALIGNMENT:
+      c->pack_alignment_ = (int)param;
+      break;
+    case GL_ES2_UNPACK_ALIGNMENT:
+      c->unpack_alignment_ = (int)param;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(PolygonOffset)(gl_es2_float factor, gl_es2_float units) {
