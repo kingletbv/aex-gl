@@ -303,6 +303,9 @@ extern "C" {
 #define GL_ES2_SAMPLE_BUFFERS         0x80A8
 #define GL_ES2_SAMPLES                0x80A9
 
+#define GL_ES2_NUM_SHADER_BINARY_FORMATS 0x8DF9
+#define GL_ES2_SHADER_BINARY_FORMATS     0x8DF8
+
 #define GL_ES2_CURRENT_PROGRAM  0x8B8D
 
 #define GL_ES2_VENDOR                   0x1F00

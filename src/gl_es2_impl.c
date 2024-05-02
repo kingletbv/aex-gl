@@ -2930,6 +2930,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
     case GL_ES2_SAMPLES:
       /* not supported as of yet */
       data[0] = (gl_es2_boolean)GL_ES2_FALSE;
+      break;
+    case GL_ES2_NUM_SHADER_BINARY_FORMATS:
+      data[0] = (gl_es2_boolean)GL_ES2_FALSE;
+      break;
+    case GL_ES2_SHADER_BINARY_FORMATS:
+      break;
 
 
     default:
@@ -3108,7 +3114,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
     case GL_ES2_SAMPLES:
       /* not supported as of yet */
       data[0] = 0.f;
-
+      break;
+    case GL_ES2_NUM_SHADER_BINARY_FORMATS:
+      data[0] = 0.f;
+      break;
+    case GL_ES2_SHADER_BINARY_FORMATS:
+      break;
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -3341,6 +3352,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
     case GL_ES2_SAMPLES:
       /* not supported as of yet */
       data[0] = (gl_es2_int)0;
+      break;
+    case GL_ES2_NUM_SHADER_BINARY_FORMATS:
+      data[0] = (gl_es2_int)0;
+      break;
+    case GL_ES2_SHADER_BINARY_FORMATS:
+      break;
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -4719,6 +4736,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Scissor)(gl_es
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderBinary)(gl_es2_sizei count, const gl_es2_uint *shaders, gl_es2_enum binaryformat, const void *binary, gl_es2_sizei length) {
+  /* No shader binary support */
+  set_gl_err(GL_ES2_INVALID_OPERATION);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderSource)(gl_es2_uint shader, gl_es2_sizei count, const gl_es2_char *const *string, const gl_es2_int *length) {
