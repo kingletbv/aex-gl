@@ -4250,6 +4250,9 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsFr
 }
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsProgram)(gl_es2_uint program) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (!program) return GL_ES2_FALSE;
+  if (not_find(&c->program_not_, program)) return GL_ES2_TRUE;
   return GL_ES2_FALSE;
 }
 
@@ -4264,6 +4267,9 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsRe
 }
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsShader)(gl_es2_uint shader) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (!shader) return GL_ES2_FALSE;
+  if (not_find(&c->shader_not_, shader)) return GL_ES2_TRUE;
   return GL_ES2_FALSE;
 }
 
