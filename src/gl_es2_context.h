@@ -75,7 +75,7 @@
 
 /* glGet(GL_MAX_VIEWPORT_DIMS)
  * as per design document "Bits of precision needed to determine area of 2D triangle.docx" */
-#define GL_ES2_IMPL_MAX_VIEWPORT_DIMS 4194304
+#define GL_ES2_IMPL_MAX_VIEWPORT_DIMS (4194304-1)
 
 /* glGet(GL_ALIASED_LINE_WIDTH_RANGE); can pick any line width you want, as long as it is 1 */
 #define GL_ES2_IMPL_MIN_LINE_WIDTH 1
@@ -465,6 +465,7 @@ enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struc
 
 void gl_es2_renderbuffer_init(struct gl_es2_renderbuffer *rb);
 void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb);
+int gl_es2_renderbuffer_storage(struct gl_es2_renderbuffer *rb, enum gl_es2_renderbuffer_format format, uint32_t width, uint32_t height);
 
 void gl_es2_texture_init(struct gl_es2_texture *tex);
 void gl_es2_texture_cleanup(struct gl_es2_texture *tex);

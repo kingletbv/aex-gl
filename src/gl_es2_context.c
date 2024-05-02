@@ -424,7 +424,57 @@ void gl_es2_renderbuffer_cleanup(struct gl_es2_renderbuffer *rb) {
   while (rb->first_framebuffer_attached_to_) {
     gl_es2_framebuffer_attachment_detach(rb->first_framebuffer_attached_to_);
   }
+  if (rb->bitmap_) free(rb->bitmap_);
 }
+
+int gl_es2_renderbuffer_storage(struct gl_es2_renderbuffer *rb, enum gl_es2_renderbuffer_format format, uint32_t width, uint32_t height) {
+  size_t num_bytes_per_row;
+  size_t num_bytes_per_pixel;
+  switch (format) { 
+    case gl_es2_renderbuffer_format_rgba32:
+      num_bytes_per_pixel = 4;
+      break;
+    case gl_es2_renderbuffer_format_depth16:
+      num_bytes_per_pixel = 2;
+      break;
+    case gl_es2_renderbuffer_format_depth32:
+      num_bytes_per_pixel = 4;
+      break;
+    case gl_es2_renderbuffer_format_stencil16:
+      num_bytes_per_pixel = 2;
+      break;
+  }
+
+  /* align to 16 bytes */
+  if (width > (SIZE_MAX / num_bytes_per_pixel)) {
+    return SL_ERR_OVERFLOW;
+  }
+  num_bytes_per_row = num_bytes_per_pixel * width;
+
+  if (num_bytes_per_row > (SIZE_MAX - 16)) {
+    return SL_ERR_OVERFLOW;
+  }
+  num_bytes_per_row = (num_bytes_per_row + 15) & ~(size_t)15;
+
+  if (height > (SIZE_MAX / num_bytes_per_row)) {
+    return SL_ERR_OVERFLOW;
+  }
+
+  void *bmp = malloc(num_bytes_per_row * height);
+  if (!bmp) {
+    return SL_ERR_NO_MEM;
+  }
+
+  if (rb->bitmap_) free(rb->bitmap_);
+  rb->width_ = (int)width;
+  rb->height_ = (int)height;
+  rb->num_bytes_per_bitmap_row_ = num_bytes_per_row;
+  rb->bitmap_ = bmp;
+
+  return SL_ERR_OK;
+}
+
+
 
 void gl_es2_texture_init(struct gl_es2_texture *tex) {
   tex->kind_ = gl_es2_texture_invalid;

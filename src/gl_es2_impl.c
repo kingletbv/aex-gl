@@ -4551,6 +4551,64 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReleaseShaderC
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(RenderbufferStorage)(gl_es2_enum target, gl_es2_enum internalformat, gl_es2_sizei width, gl_es2_sizei height) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (target != GL_ES2_RENDERBUFFER) {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+  if (!c->renderbuffer_) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  if ((width < 0) || (height < 0)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  if ((width >= GL_ES2_IMPL_MAX_VIEWPORT_DIMS) || (height >= GL_ES2_IMPL_MAX_VIEWPORT_DIMS)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  enum gl_es2_renderbuffer_format actual_format;
+#if 0
+    gl_es2_renderbuffer_format_none,
+    gl_es2_renderbuffer_format_rgba32,
+    gl_es2_renderbuffer_format_depth16,
+    gl_es2_renderbuffer_format_depth32,
+    gl_es2_renderbuffer_format_stencil16
+#endif
+  switch (internalformat) {
+    case GL_ES2_RGBA4:
+    case GL_ES2_RGB565:
+    case GL_ES2_RGBA5_A1:
+      /* You can have any format you want, as long as it is RGBA32 */
+      actual_format = gl_es2_renderbuffer_format_rgba32;
+      break;
+    case GL_ES2_DEPTH_COMPONENT16:
+      actual_format = gl_es2_renderbuffer_format_depth16;
+      break;
+    case GL_ES2_DEPTH_COMPONENT24:
+    case GL_ES2_DEPTH_COMPONENT32:
+      actual_format = gl_es2_renderbuffer_format_depth32;
+      break;
+    case GL_ES2_STENCIL_INDEX8:
+      actual_format = gl_es2_renderbuffer_format_stencil16;
+      break;
+  }
+  int r;
+  r = gl_es2_renderbuffer_storage(c->renderbuffer_, actual_format, width, height);
+  switch (r) {
+    case SL_ERR_INVALID_ARG:
+    case SL_ERR_OVERFLOW:
+    case SL_ERR_INTERNAL:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    case SL_ERR_NO_MEM:
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(SampleCoverage)(gl_es2_float value, gl_es2_boolean invert) {
