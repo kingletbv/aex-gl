@@ -3267,6 +3267,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
     case GL_ES2_CURRENT_PROGRAM:
       data[0] = (gl_es2_int)(c->current_program_ ? c->current_program_->no_.name_ : 0);
       break;
+    case GL_ES2_IMPLEMENTATION_COLOR_READ_FORMAT:
+      /* We support more, but this is one of them */
+      data[0] = (gl_es2_int)GL_ES2_RGBA;
+      break;
+    case GL_ES2_IMPLEMENTATION_COLOR_READ_TYPE:
+      /* We support more, but this is one of them */
+      data[0] = (gl_es2_int)GL_ES2_UNSIGNED_SHORT_5_5_5_1;
+      break;
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -4416,6 +4424,126 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(PolygonOffset)
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReadPixels)(gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height, gl_es2_enum format, gl_es2_enum type, void *pixels) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  if (gl_es2_framebuffer_complete != gl_es2_framebuffer_check_completeness(c->framebuffer_)) {
+    set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+    return;
+  }
+
+  if ((width < 0) || (height < 0)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  if ((type == GL_ES2_UNSIGNED_SHORT_5_6_5) && (format != GL_ES2_RGB)) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  if (((type == GL_ES2_UNSIGNED_SHORT_4_4_4_4) ||
+       (type == GL_ES2_UNSIGNED_SHORT_5_5_5_1)) &&
+      (format != GL_ES2_RGBA)) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  size_t bytes_per_pixel = 0;
+  enum blitter_format blit_dst_format;
+  switch (type) {
+    case GL_ES2_UNSIGNED_BYTE:
+      switch (format) {
+        case GL_ES2_ALPHA:
+          bytes_per_pixel = 1;
+          blit_dst_format = blit_format_alpha;
+          break;
+        case GL_ES2_RGB:
+          bytes_per_pixel = 3;
+          blit_dst_format = blit_format_rgb;
+          break;
+        case GL_ES2_RGBA:
+          bytes_per_pixel = 4;
+          blit_dst_format = blit_format_rgba;
+          break;
+      }
+      break;
+    case GL_ES2_UNSIGNED_SHORT_5_6_5:
+      bytes_per_pixel = 2;
+      blit_dst_format = blit_format_565;
+      break;
+    case GL_ES2_UNSIGNED_SHORT_4_4_4_4:
+      bytes_per_pixel = 2;
+      blit_dst_format = blit_format_4444;
+      break;
+    case GL_ES2_UNSIGNED_SHORT_5_5_5_1:
+      bytes_per_pixel = 2;
+      blit_dst_format = blit_format_5551;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  size_t bytes_per_row = bytes_per_pixel * (size_t)width;
+  size_t dst_stride = (bytes_per_row + (size_t)c->pack_alignment_) & ~(((size_t)c->pack_alignment_) - 1);
+
+  void *fb_data = NULL;
+  size_t fb_stride = 0;
+
+  gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->color_attachment0_, &fb_data, &fb_stride);
+
+  int bottom_row = gl_es2_framebuffer_get_bitmap_row_num(c->framebuffer_, y);
+
+  /* framebuffer pointer to last row, stride negative (so increasing Y goes back in memory) */
+  void *fb_data_bottom_left = ((char *)fb_data) + ((size_t)(height - 1)) * fb_stride;
+  size_t fb_stride_going_up = (size_t)-(intptr_t)fb_stride; /* two's complement, this'll work, cast to prevent signed/unsigned warnings on - */
+
+  blitter_blit_format(pixels, blit_dst_format, fb_data_bottom_left, blit_format_rgba, dst_stride, 0, 0, fb_stride_going_up, x, bottom_row, width, height);
+
+  /* Check if we need to mask anything */
+  switch (format) {
+    case GL_ES2_ALPHA:
+      /* mask out RGB to zero */
+      switch (type) {
+        case GL_ES2_UNSIGNED_BYTE:
+          /* no need to mask, result was just alpha bytes */
+          break;
+        case GL_ES2_UNSIGNED_SHORT_5_6_5:
+          /* Set everything to 0; there is no alpha channel yet everything else is 0 */
+          blitter_blit_apply_mask16(pixels, dst_stride, 0xFFFF, 0x0000, 0, 0, width, height);
+          break;
+        case GL_ES2_UNSIGNED_SHORT_4_4_4_4:
+          /* Clear everything but the alpha channel */
+          blitter_blit_apply_mask16(pixels, dst_stride, 0xFFF0, 0x0000, 0, 0, width, height);
+          break;
+        case GL_ES2_UNSIGNED_SHORT_5_5_5_1:
+          /* Clear everything but the alpha bit */
+          blitter_blit_apply_mask16(pixels, dst_stride, 0xFFFE, 0x0000, 0, 0, width, height);
+          break;
+      }
+    case GL_ES2_RGB:
+      /* mask out alpha to zero */
+      switch (type) {
+        case GL_ES2_UNSIGNED_BYTE:
+          /* no need to mask, result was just RGB bytes, no alpha channel */
+          break;
+        case GL_ES2_UNSIGNED_SHORT_5_6_5:
+          /* Set alpha to 0; but there is no alpha so we're done */
+          break;
+        case GL_ES2_UNSIGNED_SHORT_4_4_4_4:
+          /* Clear alpha channel */
+          blitter_blit_apply_mask16(pixels, dst_stride, 0x000F, 0x0000, 0, 0, width, height);
+          break;
+        case GL_ES2_UNSIGNED_SHORT_5_5_5_1:
+          /* Clear the alpha bit */
+          blitter_blit_apply_mask16(pixels, dst_stride, 0x0001, 0x0000, 0, 0, width, height);
+          break;
+      }
+      break;
+    case GL_ES2_RGBA:
+      /* nothing to mask, keep all the bits */
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReleaseShaderCompiler)(void) {
