@@ -7043,27 +7043,99 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ValidateProgra
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib1f)(gl_es2_uint index, gl_es2_float x) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[index].generic_values_[0] = x;
+  c->attribs_.attribs_[index].generic_values_[1] = 0.f;
+  c->attribs_.attribs_[index].generic_values_[2] = 0.f;
+  c->attribs_.attribs_[index].generic_values_[3] = 1.f;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib1fv)(gl_es2_uint index, const gl_es2_float *v) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[index].generic_values_[0] = v[0];
+  c->attribs_.attribs_[index].generic_values_[1] = 0.f;
+  c->attribs_.attribs_[index].generic_values_[2] = 0.f;
+  c->attribs_.attribs_[index].generic_values_[3] = 1.f;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib2f)(gl_es2_uint index, gl_es2_float x, gl_es2_float y) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[index].generic_values_[0] = x;
+  c->attribs_.attribs_[index].generic_values_[1] = y;
+  c->attribs_.attribs_[index].generic_values_[2] = 0.f;
+  c->attribs_.attribs_[index].generic_values_[3] = 1.f;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib2fv)(gl_es2_uint index, const gl_es2_float *v) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[index].generic_values_[0] = v[0];
+  c->attribs_.attribs_[index].generic_values_[1] = v[1];
+  c->attribs_.attribs_[index].generic_values_[2] = 0.f;
+  c->attribs_.attribs_[index].generic_values_[3] = 1.f;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3f)(gl_es2_uint index, gl_es2_float x, gl_es2_float y, gl_es2_float z) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[index].generic_values_[0] = x;
+  c->attribs_.attribs_[index].generic_values_[1] = y;
+  c->attribs_.attribs_[index].generic_values_[2] = z;
+  c->attribs_.attribs_[index].generic_values_[3] = 1.f;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3fv)(gl_es2_uint index, const gl_es2_float *v) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[index].generic_values_[0] = v[0];
+  c->attribs_.attribs_[index].generic_values_[1] = v[1];
+  c->attribs_.attribs_[index].generic_values_[2] = v[2];
+  c->attribs_.attribs_[index].generic_values_[3] = 1.f;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4f)(gl_es2_uint index, gl_es2_float x, gl_es2_float y, gl_es2_float z, gl_es2_float w) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[index].generic_values_[0] = x;
+  c->attribs_.attribs_[index].generic_values_[1] = y;
+  c->attribs_.attribs_[index].generic_values_[2] = z;
+  c->attribs_.attribs_[index].generic_values_[3] = w;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4fv)(gl_es2_uint index, const gl_es2_float *v) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  c->attribs_.attribs_[index].generic_values_[0] = v[0];
+  c->attribs_.attribs_[index].generic_values_[1] = v[1];
+  c->attribs_.attribs_[index].generic_values_[2] = v[2];
+  c->attribs_.attribs_[index].generic_values_[3] = v[3];
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttribPointer)(gl_es2_uint index, gl_es2_int size, gl_es2_enum type, gl_es2_boolean normalized, gl_es2_sizei stride, const void *pointer) {
