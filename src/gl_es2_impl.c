@@ -5662,60 +5662,1361 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexSubImage2D)
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1f)(gl_es2_int location, gl_es2_float v0) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_float: *(float *)mem = v0; break;
+    case slrak_bool: *(uint8_t *)mem = (uint8_t)(v0 ? 0xFF : 0x00); break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1fv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_float: {
+      for (n = 0; n < num_entries; ++n) {
+        ((float *)mem)[n] = value[n];
+      }
+      break;
+    }
+    case slrak_bool: {
+      for (n = 0; n < num_entries; ++n) {
+        ((uint8_t *)mem)[n] = (uint8_t)(value[n] ? 0xFF : 0x00);
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1i)(gl_es2_int location, gl_es2_int v0) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_int: *(int64_t *)mem = v0; break;
+    case slrak_bool: *(uint8_t *)mem = (uint8_t)(v0 ? 0xFF : 0x00); break;
+    case slrak_sampler2D: *(uint32_t *)mem = (uint32_t)v0; break;
+    case slrak_samplerCube: *(uint32_t *)mem = (uint32_t)v0; break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1iv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_int: {
+      for (n = 0; n < num_entries; ++n) {
+        ((int64_t *)mem)[n] = (int64_t)value[n];
+      }
+      break;
+    }
+    case slrak_bool: {
+      for (n = 0; n < num_entries; ++n) {
+        ((uint8_t *)mem)[n] = (uint8_t)(value[n] ? 0xFF : 0x00);
+      }
+      break;
+    }
+    case slrak_sampler2D: 
+      for (n = 0; n < num_entries; ++n) {
+        ((uint32_t *)mem)[n] = (uint32_t)value[n];
+      }
+      break;
+
+    case slrak_samplerCube: 
+      for (n = 0; n < num_entries; ++n) {
+        ((uint32_t *)mem)[n] = (uint32_t)value[n];
+      }
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2f)(gl_es2_int location, gl_es2_float v0, gl_es2_float v1) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_vec2: 
+      ((float *)mem)[0] = v0;
+      ((float *)mem)[1] = v1;
+      break;
+    case slrak_bvec2: 
+      ((uint8_t *)mem)[0] = (uint8_t)(v0 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[1] = (uint8_t)(v1 ? 0xFF : 0x00);
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2fv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_vec2: {
+      for (n = 0; n < num_entries; ++n) {
+        ((float *)mem)[n * 2 + 0] = value[n * 2 + 0];
+        ((float *)mem)[n * 2 + 1] = value[n * 2 + 1];
+      }
+      break;
+    }
+    case slrak_bvec2: {
+      for (n = 0; n < num_entries; ++n) {
+        ((uint8_t *)mem)[n * 2 + 0] = (uint8_t)(value[n * 2 + 0] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 2 + 1] = (uint8_t)(value[n * 2 + 1] ? 0xFF : 0x00);
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2i)(gl_es2_int location, gl_es2_int v0, gl_es2_int v1) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_ivec2: 
+      ((int64_t *)mem)[0] = v0;
+      ((int64_t *)mem)[1] = v1;
+      break;
+    case slrak_bvec2: 
+      ((uint8_t *)mem)[0] = (uint8_t)(v0 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[1] = (uint8_t)(v1 ? 0xFF : 0x00);
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2iv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_ivec2: {
+      for (n = 0; n < num_entries; ++n) {
+        ((int64_t *)mem)[n * 2 + 0] = (int64_t)value[n * 2 + 0];
+        ((int64_t *)mem)[n * 2 + 1] = (int64_t)value[n * 2 + 1];
+      }
+      break;
+    }
+    case slrak_bvec2: {
+      for (n = 0; n < num_entries; ++n) {
+        ((uint8_t *)mem)[n * 2 + 0] = (uint8_t)(value[n * 2 + 0] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 2 + 1] = (uint8_t)(value[n * 2 + 1] ? 0xFF : 0x00);
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3f)(gl_es2_int location, gl_es2_float v0, gl_es2_float v1, gl_es2_float v2) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_vec3:
+      ((float *)mem)[0] = v0;
+      ((float *)mem)[1] = v1;
+      ((float *)mem)[2] = v2;
+      break;
+    case slrak_bvec3:
+      ((uint8_t *)mem)[0] = (uint8_t)(v0 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[1] = (uint8_t)(v1 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[2] = (uint8_t)(v2 ? 0xFF : 0x00);
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3fv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_vec3: {
+      for (n = 0; n < num_entries; ++n) {
+        ((float *)mem)[n * 3 + 0] = value[n * 3 + 0];
+        ((float *)mem)[n * 3 + 1] = value[n * 3 + 1];
+        ((float *)mem)[n * 3 + 2] = value[n * 3 + 2];
+      }
+      break;
+    }
+    case slrak_bvec3: {
+      for (n = 0; n < num_entries; ++n) {
+        ((uint8_t *)mem)[n * 3 + 0] = (uint8_t)(value[n * 3 + 0] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 3 + 1] = (uint8_t)(value[n * 3 + 1] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 3 + 2] = (uint8_t)(value[n * 3 + 2] ? 0xFF : 0x00);
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3i)(gl_es2_int location, gl_es2_int v0, gl_es2_int v1, gl_es2_int v2) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_ivec3: 
+      ((int64_t *)mem)[0] = v0;
+      ((int64_t *)mem)[1] = v1;
+      ((int64_t *)mem)[2] = v2;
+      break;
+    case slrak_bvec3: 
+      ((uint8_t *)mem)[0] = (uint8_t)(v0 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[1] = (uint8_t)(v1 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[2] = (uint8_t)(v2 ? 0xFF : 0x00);
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3iv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_ivec3: {
+      for (n = 0; n < num_entries; ++n) {
+        ((int64_t *)mem)[n * 3 + 0] = (int64_t)value[n * 3 + 0];
+        ((int64_t *)mem)[n * 3 + 1] = (int64_t)value[n * 3 + 1];
+        ((int64_t *)mem)[n * 3 + 2] = (int64_t)value[n * 3 + 2];
+      }
+      break;
+    }
+    case slrak_bvec3: {
+      for (n = 0; n < num_entries; ++n) {
+        ((uint8_t *)mem)[n * 3 + 0] = (uint8_t)(value[n * 3 + 0] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 3 + 1] = (uint8_t)(value[n * 3 + 1] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 3 + 2] = (uint8_t)(value[n * 3 + 2] ? 0xFF : 0x00);
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4f)(gl_es2_int location, gl_es2_float v0, gl_es2_float v1, gl_es2_float v2, gl_es2_float v3) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_vec4:
+      ((float *)mem)[0] = v0;
+      ((float *)mem)[1] = v1;
+      ((float *)mem)[2] = v2;
+      ((float *)mem)[3] = v3;
+      break;
+    case slrak_bvec4:
+      ((uint8_t *)mem)[0] = (uint8_t)(v0 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[1] = (uint8_t)(v1 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[2] = (uint8_t)(v2 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[3] = (uint8_t)(v3 ? 0xFF : 0x00);
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4fv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_vec4: {
+      for (n = 0; n < num_entries; ++n) {
+        ((float *)mem)[n * 4 + 0] = value[n * 4 + 0];
+        ((float *)mem)[n * 4 + 1] = value[n * 4 + 1];
+        ((float *)mem)[n * 4 + 2] = value[n * 4 + 2];
+        ((float *)mem)[n * 4 + 3] = value[n * 4 + 3];
+      }
+      break;
+    }
+    case slrak_bvec4: {
+      for (n = 0; n < num_entries; ++n) {
+        ((uint8_t *)mem)[n * 4 + 0] = (uint8_t)(value[n * 4 + 0] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 4 + 1] = (uint8_t)(value[n * 4 + 1] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 4 + 2] = (uint8_t)(value[n * 4 + 2] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 4 + 3] = (uint8_t)(value[n * 4 + 3] ? 0xFF : 0x00);
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4i)(gl_es2_int location, gl_es2_int v0, gl_es2_int v1, gl_es2_int v2, gl_es2_int v3) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_ivec4: 
+      ((int64_t *)mem)[0] = v0;
+      ((int64_t *)mem)[1] = v1;
+      ((int64_t *)mem)[2] = v2;
+      ((int64_t *)mem)[3] = v3;
+      break;
+    case slrak_bvec4: 
+      ((uint8_t *)mem)[0] = (uint8_t)(v0 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[1] = (uint8_t)(v1 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[2] = (uint8_t)(v2 ? 0xFF : 0x00);
+      ((uint8_t *)mem)[3] = (uint8_t)(v3 ? 0xFF : 0x00);
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4iv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_ivec4: {
+      for (n = 0; n < num_entries; ++n) {
+        ((int64_t *)mem)[n * 4 + 0] = (int64_t)value[n * 4 + 0];
+        ((int64_t *)mem)[n * 4 + 1] = (int64_t)value[n * 4 + 1];
+        ((int64_t *)mem)[n * 4 + 2] = (int64_t)value[n * 4 + 2];
+        ((int64_t *)mem)[n * 4 + 3] = (int64_t)value[n * 4 + 3];
+      }
+      break;
+    }
+    case slrak_bvec4: {
+      for (n = 0; n < num_entries; ++n) {
+        ((uint8_t *)mem)[n * 4 + 0] = (uint8_t)(value[n * 4 + 0] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 4 + 1] = (uint8_t)(value[n * 4 + 1] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 4 + 2] = (uint8_t)(value[n * 4 + 2] ? 0xFF : 0x00);
+        ((uint8_t *)mem)[n * 4 + 3] = (uint8_t)(value[n * 4 + 3] ? 0xFF : 0x00);
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix2fv)(gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (transpose) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_mat2: {
+      for (n = 0; n < num_entries; ++n) {
+        ((float *)mem)[n * 4 + 0] = value[n * 4 + 0];
+        ((float *)mem)[n * 4 + 1] = value[n * 4 + 1];
+        ((float *)mem)[n * 4 + 2] = value[n * 4 + 2];
+        ((float *)mem)[n * 4 + 3] = value[n * 4 + 3];
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix3fv)(gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (transpose) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_mat3: {
+      for (n = 0; n < num_entries; ++n) {
+        ((float *)mem)[n * 9 + 0] = value[n * 9 + 0];
+        ((float *)mem)[n * 9 + 1] = value[n * 9 + 1];
+        ((float *)mem)[n * 9 + 2] = value[n * 9 + 2];
+        ((float *)mem)[n * 9 + 3] = value[n * 9 + 3];
+        ((float *)mem)[n * 9 + 4] = value[n * 9 + 4];
+        ((float *)mem)[n * 9 + 5] = value[n * 9 + 5];
+        ((float *)mem)[n * 9 + 6] = value[n * 9 + 6];
+        ((float *)mem)[n * 9 + 7] = value[n * 9 + 7];
+        ((float *)mem)[n * 9 + 8] = value[n * 9 + 8];
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix4fv)(gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_program *prog = c->current_program_;
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (location == -1) {
+    /* silently ignore */
+    return;
+  }
+  if (count < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  if (transpose) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  size_t final_array_size = 0, entry_in_final_array = 0;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, &final_array_size, &entry_in_final_array);
+  size_t entries_remaining = final_array_size - entry_in_final_array;
+  size_t num_entries = (size_t)count;
+  size_t n;
+  if (entries_remaining < (size_t)count) {
+    /* This would overflow the array, or this is not an array; if not an array, report error,
+     * otherwise limit the range of what we'll copy. */
+    if (entries_remaining > 1) {
+      /* This is an array, copy what we can */
+      num_entries = entries_remaining;
+    }
+    else {
+      /* This is not an array, error out */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  if (r != SL_ERR_OK) {
+    if (r == SL_ERR_NO_MEM) {
+      set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      return;
+    }
+    else if (r == SL_ERR_INVALID_ARG) {
+      /* invalid location */
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+  if (!mem) {
+    /* Never got the mem ?? */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  switch (slrak) {
+    case slrak_mat3: {
+      for (n = 0; n < num_entries; ++n) {
+        ((float *)mem)[n * 16 + 0] = value[n * 16 + 0];
+        ((float *)mem)[n * 16 + 1] = value[n * 16 + 1];
+        ((float *)mem)[n * 16 + 2] = value[n * 16 + 2];
+        ((float *)mem)[n * 16 + 3] = value[n * 16 + 3];
+        ((float *)mem)[n * 16 + 4] = value[n * 16 + 4];
+        ((float *)mem)[n * 16 + 5] = value[n * 16 + 5];
+        ((float *)mem)[n * 16 + 6] = value[n * 16 + 6];
+        ((float *)mem)[n * 16 + 7] = value[n * 16 + 7];
+        ((float *)mem)[n * 16 + 8] = value[n * 16 + 8];
+        ((float *)mem)[n * 16 + 9] = value[n * 16 + 9];
+        ((float *)mem)[n * 16 + 10] = value[n * 16 + 10];
+        ((float *)mem)[n * 16 + 11] = value[n * 16 + 11];
+        ((float *)mem)[n * 16 + 12] = value[n * 16 + 12];
+        ((float *)mem)[n * 16 + 13] = value[n * 16 + 13];
+        ((float *)mem)[n * 16 + 14] = value[n * 16 + 14];
+        ((float *)mem)[n * 16 + 15] = value[n * 16 + 15];
+      }
+      break;
+    }
+    default:
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      break;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UseProgram)(gl_es2_uint program) {
