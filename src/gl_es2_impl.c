@@ -245,11 +245,12 @@ static enum gl_es2_cube_map_face tex_target_gl_to_cubemap_face(gl_es2_enum texta
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture) {
   struct gl_es2_context *c = gl_es2_ctx();
-  if (texture >= c->num_active_texture_units_) {
+  size_t texture_unit_index = (size_t)texture - GL_ES2_TEXTURE0;
+  if (texture_unit_index >= c->num_active_texture_units_) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     return;
   }
-  c->current_active_texture_unit_ = (size_t)texture;
+  c->current_active_texture_unit_ = texture_unit_index;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(AttachShader)(gl_es2_uint program, gl_es2_uint shader) {
@@ -2804,6 +2805,12 @@ GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttri
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(gl_es2_enum pname, gl_es2_boolean *data) {
   struct gl_es2_context *c = gl_es2_ctx();
   switch (pname) {
+    case GL_ES2_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
+      *data = GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS ? GL_ES2_TRUE : GL_ES2_FALSE;
+      break;
+    case GL_ES2_ACTIVE_TEXTURE:
+      *data = (GL_ES2_TEXTURE0 + c->current_active_texture_unit_) ? GL_ES2_TRUE : GL_ES2_FALSE;
+      break;
     case GL_ES2_MAX_VERTEX_ATTRIBS:
       *data = (!GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS) ? GL_ES2_FALSE : GL_ES2_TRUE;
       break;
@@ -2995,6 +3002,12 @@ GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetErro
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_es2_enum pname, gl_es2_float *data) {
   struct gl_es2_context *c = gl_es2_ctx();
   switch (pname) {
+    case GL_ES2_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
+      *data = (float)GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS;
+      break;
+    case GL_ES2_ACTIVE_TEXTURE:
+      *data = (gl_es2_float)(GL_ES2_TEXTURE0 + c->current_active_texture_unit_);
+      break;
     case GL_ES2_MAX_VERTEX_ATTRIBS:
       *data = (float)GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS;
       break;
@@ -3240,6 +3253,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(gl_es2_enum pname, gl_es2_int *data) {
   struct gl_es2_context *c = gl_es2_ctx();
   switch (pname) {
+    case GL_ES2_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
+      *data = GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS;
+      break;
+    case GL_ES2_ACTIVE_TEXTURE:
+      *data = (gl_es2_int)(GL_ES2_TEXTURE0 + c->current_active_texture_unit_);
+      break;
     case GL_ES2_MAX_VERTEX_ATTRIBS:
       *data = GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS;
       break;

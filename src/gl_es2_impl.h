@@ -55,6 +55,10 @@ extern "C" {
 #define GL_ES2_TEXTURE      0x1702
 #define GL_ES2_NONE         0
 
+#define GL_ES2_TEXTURE0                         0x84C0
+#define GL_ES2_ACTIVE_TEXTURE                   0x84E0
+#define GL_ES2_MAX_COMBINED_TEXTURE_IMAGE_UNITS 0x8B4D
+
 #define GL_ES2_COLOR_ATTACHMENT0   0x8CE0
 #define GL_ES2_DEPTH_ATTACHMENT    0x8D00
 #define GL_ES2_STENCIL_ATTACHMENT  0x8D20
