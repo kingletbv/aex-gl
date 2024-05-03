@@ -7139,6 +7139,80 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4f
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttribPointer)(gl_es2_uint index, gl_es2_int size, gl_es2_enum type, gl_es2_boolean normalized, gl_es2_sizei stride, const void *pointer) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (index > c->attribs_.num_attribs_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  struct attrib *attr = c->attribs_.attribs_ + index;
+  int new_size;
+  switch (size) {
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      new_size = (int)size;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_VALUE);
+      return;
+  }
+
+  attrib_data_type_t new_type;
+  size_t natural_stride = 0;
+  switch (type) {
+    case GL_ES2_BYTE:           
+      new_type = ADT_BYTE; 
+      natural_stride = 1;
+      break;
+    case GL_ES2_UNSIGNED_BYTE:  
+      new_type = ADT_UNSIGNED_BYTE; 
+      natural_stride = 1;
+      break;
+    case GL_ES2_SHORT:          
+      new_type = ADT_SHORT; 
+      natural_stride = 2;
+      break;
+    case GL_ES2_UNSIGNED_SHORT: 
+      new_type = ADT_UNSIGNED_SHORT; 
+      natural_stride = 2;
+      break;
+    case GL_ES2_FIXED:          
+      new_type = ADT_FIXED; 
+      natural_stride = 4;
+      break;
+    case GL_ES2_FLOAT:          
+      new_type = ADT_FLOAT; 
+      natural_stride = 4;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  if (stride < 0) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  size_t new_stride = (size_t)stride;
+  if (!new_stride) new_stride = natural_stride;
+
+  if (c->array_buffer_) {
+    /* Bind array buffer */
+    attr->buf_ = &c->array_buffer_->buf_;
+  }
+  else {
+    /* Clear any array buffer binding */
+    attr->buf_ = NULL;
+  }
+
+  attr->size_ = new_size;
+  attr->data_type_ = new_type;
+  attr->normalize_ = normalized ? 1 : 0;
+  attr->stride_ = new_stride;
+  attr->ptr_ = (void *)pointer;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Viewport)(gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {
