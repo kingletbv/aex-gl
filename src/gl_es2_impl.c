@@ -5088,7 +5088,145 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteri)
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteriv)(gl_es2_enum target, gl_es2_enum pname, const gl_es2_int *params) {
 }
 
-GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexSubImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_int xoffset, gl_es2_int yoffset, gl_es2_sizei width, gl_es2_sizei height, gl_es2_enum format, gl_es2_enum type, const void *pixels) {
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexSubImage2D)(gl_es2_enum target, gl_es2_int level, 
+                                                                                 gl_es2_int x, gl_es2_int y, 
+                                                                                 gl_es2_sizei width, gl_es2_sizei height, 
+                                                                                 gl_es2_enum format, gl_es2_enum type, const void *pixels) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  struct gl_es2_texture *tex = NULL;
+  struct sampler_2d *s2d = NULL;
+  if (!get_active_tex_target(target, &tex, &s2d)) {
+    /* error already set */
+    return;
+  }
+
+  if ((level < 0) || (level >= SAMPLER_2D_MAX_NUM_MIPMAPS)) {
+    /* level is not in range */
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  if (level >= s2d->num_maps_) {
+    /* Level texture array has not yet been defined */
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  if ((x < 0) || (y < 0)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  if ((width < 0) || (height < 0)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  if (((x + width) > s2d->mipmaps_[level].width_) ||
+      ((y + height) > s2d->mipmaps_[level].height_)) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  switch (format) {
+    case GL_ES2_ALPHA:
+    case GL_ES2_LUMINANCE:
+    case GL_ES2_LUMINANCE_ALPHA:
+    case GL_ES2_RGB:
+    case GL_ES2_RGBA:
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  if ((type == GL_ES2_UNSIGNED_SHORT_5_6_5) && (format != GL_ES2_RGB)) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  if (((type == GL_ES2_UNSIGNED_SHORT_4_4_4_4) ||
+       (type == GL_ES2_UNSIGNED_SHORT_5_5_5_1)) &&
+      (format != GL_ES2_RGBA)) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  enum blitter_format src_blit_format;
+  size_t src_bytes_per_pixel;
+  switch (type) {
+    case GL_ES2_UNSIGNED_BYTE:
+      switch (format) {
+        case GL_ES2_ALPHA:
+          src_bytes_per_pixel = 1;
+          src_blit_format = blit_format_alpha;
+          break;
+        case GL_ES2_LUMINANCE:
+          src_bytes_per_pixel = 1;
+          src_blit_format = blit_format_luminance;
+          break;
+        case GL_ES2_LUMINANCE_ALPHA:
+          src_bytes_per_pixel = 2;
+          src_blit_format = blit_format_luminance_alpha;
+          break;
+        case GL_ES2_RGB:
+          src_bytes_per_pixel = 3;
+          src_blit_format = blit_format_rgb;
+          break;
+        case GL_ES2_RGBA:
+          src_bytes_per_pixel = 4;
+          src_blit_format = blit_format_rgba;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_UNSIGNED_SHORT_5_6_5:
+      src_bytes_per_pixel = 2;
+      src_blit_format = blit_format_565;
+      break;
+    case GL_ES2_UNSIGNED_SHORT_4_4_4_4:
+      src_bytes_per_pixel = 2;
+      src_blit_format = blit_format_4444;
+      break;
+    case GL_ES2_UNSIGNED_SHORT_5_5_5_1:
+      src_bytes_per_pixel = 2;
+      src_blit_format = blit_format_5551;
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
+
+  enum blitter_format texture_blit_format;
+  switch (s2d->mipmaps_[level].components_) {
+    case s2d_alpha:
+      texture_blit_format = blit_format_alpha;
+      break;
+    case s2d_luminance:
+      texture_blit_format = blit_format_luminance;
+      break;
+    case s2d_luminance_alpha:
+      texture_blit_format = blit_format_luminance_alpha;
+      break;
+    case s2d_rgb:
+      texture_blit_format = blit_format_rgb;
+      break;
+    case s2d_rgba:
+      texture_blit_format = blit_format_rgba;
+      break;
+  }
+
+  size_t src_stride = (src_bytes_per_pixel * width + c->unpack_alignment_ - 1) & ~(size_t)(c->unpack_alignment_ - 1);
+  /* Invert the stride so it goes down the bitmap, and not up */
+  size_t src_downwards_stride = (size_t)-(intptr_t)src_stride;
+  char *src_top_left = ((char *)pixels) + src_stride * (height - 1);
+
+  blitter_blit_format(s2d->mipmaps_[level].bitmap_, texture_blit_format, src_top_left, src_blit_format,
+                      s2d->mipmaps_[level].num_bytes_per_bitmap_row_, x, y,
+                      src_downwards_stride,
+                      0, 0, width, height);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1f)(gl_es2_int location, gl_es2_float v0) {
