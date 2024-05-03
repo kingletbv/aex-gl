@@ -5077,15 +5077,447 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterf)(gl_es2_enum target, gl_es2_enum pname, gl_es2_float param) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  size_t num_s2ds = 0;
+  struct sampler_2d *s2ds = NULL;
+
+  if (target == GL_ES2_TEXTURE_2D) {
+    if (c->active_texture_units_[c->current_active_texture_unit_].texture_2d_) {
+      s2ds = &c->active_texture_units_[c->current_active_texture_unit_].texture_2d_->texture_2d_;
+      num_s2ds = 1;
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  else if (target == GL_ES2_TEXTURE_CUBE_MAP) {
+    if (c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_) {
+      s2ds = c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_->texture_cube_maps_;
+      num_s2ds = 6;
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  else {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  size_t n;
+  switch (pname) {
+    case GL_ES2_TEXTURE_MIN_FILTER:
+      switch ((int)param) {
+        case GL_ES2_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest;
+          break;
+        case GL_ES2_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear;
+          break;
+        case GL_ES2_NEAREST_MIPMAP_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest_mipmap_nearest;
+          break;
+        case GL_ES2_LINEAR_MIPMAP_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear_mipmap_nearest;
+          break;
+        case GL_ES2_NEAREST_MIPMAP_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest_mipmap_linear;
+          break;
+        case GL_ES2_LINEAR_MIPMAP_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear_mipmap_linear;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_MAG_FILTER:
+      switch ((int)param) {
+        case GL_ES2_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].mag_filter_ = s2d_nearest;
+          break;
+        case GL_ES2_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].mag_filter_ = s2d_linear;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_S:
+      switch ((int)param) {
+        case GL_ES2_CLAMP_TO_EDGE:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_clamp_to_edge;
+          break;
+        case GL_ES2_MIRRORED_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_mirrored_repeat;
+          break;
+        case GL_ES2_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_repeat;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_T:
+      switch ((int)param) {
+        case GL_ES2_CLAMP_TO_EDGE:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_clamp_to_edge;
+          break;
+        case GL_ES2_MIRRORED_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_mirrored_repeat;
+          break;
+        case GL_ES2_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_repeat;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterfv)(gl_es2_enum target, gl_es2_enum pname, const gl_es2_float *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (!params) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  size_t num_s2ds = 0;
+  struct sampler_2d *s2ds = NULL;
+
+  if (target == GL_ES2_TEXTURE_2D) {
+    if (c->active_texture_units_[c->current_active_texture_unit_].texture_2d_) {
+      s2ds = &c->active_texture_units_[c->current_active_texture_unit_].texture_2d_->texture_2d_;
+      num_s2ds = 1;
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  else if (target == GL_ES2_TEXTURE_CUBE_MAP) {
+    if (c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_) {
+      s2ds = c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_->texture_cube_maps_;
+      num_s2ds = 6;
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  else {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  size_t n;
+  switch (pname) {
+    case GL_ES2_TEXTURE_MIN_FILTER:
+      switch ((int)params[0]) {
+        case GL_ES2_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest;
+          break;
+        case GL_ES2_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear;
+          break;
+        case GL_ES2_NEAREST_MIPMAP_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest_mipmap_nearest;
+          break;
+        case GL_ES2_LINEAR_MIPMAP_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear_mipmap_nearest;
+          break;
+        case GL_ES2_NEAREST_MIPMAP_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest_mipmap_linear;
+          break;
+        case GL_ES2_LINEAR_MIPMAP_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear_mipmap_linear;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_MAG_FILTER:
+      switch ((int)params[0]) {
+        case GL_ES2_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].mag_filter_ = s2d_nearest;
+          break;
+        case GL_ES2_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].mag_filter_ = s2d_linear;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_S:
+      switch ((int)params[0]) {
+        case GL_ES2_CLAMP_TO_EDGE:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_clamp_to_edge;
+          break;
+        case GL_ES2_MIRRORED_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_mirrored_repeat;
+          break;
+        case GL_ES2_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_repeat;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_T:
+      switch ((int)params[0]) {
+        case GL_ES2_CLAMP_TO_EDGE:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_clamp_to_edge;
+          break;
+        case GL_ES2_MIRRORED_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_mirrored_repeat;
+          break;
+        case GL_ES2_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_repeat;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteri)(gl_es2_enum target, gl_es2_enum pname, gl_es2_int param) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  size_t num_s2ds = 0;
+  struct sampler_2d *s2ds = NULL;
+
+  if (target == GL_ES2_TEXTURE_2D) {
+    if (c->active_texture_units_[c->current_active_texture_unit_].texture_2d_) {
+      s2ds = &c->active_texture_units_[c->current_active_texture_unit_].texture_2d_->texture_2d_;
+      num_s2ds = 1;
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  else if (target == GL_ES2_TEXTURE_CUBE_MAP) {
+    if (c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_) {
+      s2ds = c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_->texture_cube_maps_;
+      num_s2ds = 6;
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  else {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  size_t n;
+  switch (pname) {
+    case GL_ES2_TEXTURE_MIN_FILTER:
+      switch (param) {
+        case GL_ES2_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest;
+          break;
+        case GL_ES2_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear;
+          break;
+        case GL_ES2_NEAREST_MIPMAP_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest_mipmap_nearest;
+          break;
+        case GL_ES2_LINEAR_MIPMAP_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear_mipmap_nearest;
+          break;
+        case GL_ES2_NEAREST_MIPMAP_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest_mipmap_linear;
+          break;
+        case GL_ES2_LINEAR_MIPMAP_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear_mipmap_linear;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_MAG_FILTER:
+      switch (param) {
+        case GL_ES2_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].mag_filter_ = s2d_nearest;
+          break;
+        case GL_ES2_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].mag_filter_ = s2d_linear;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_S:
+      switch (param) {
+        case GL_ES2_CLAMP_TO_EDGE:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_clamp_to_edge;
+          break;
+        case GL_ES2_MIRRORED_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_mirrored_repeat;
+          break;
+        case GL_ES2_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_repeat;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_T:
+      switch (param) {
+        case GL_ES2_CLAMP_TO_EDGE:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_clamp_to_edge;
+          break;
+        case GL_ES2_MIRRORED_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_mirrored_repeat;
+          break;
+        case GL_ES2_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_repeat;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteriv)(gl_es2_enum target, gl_es2_enum pname, const gl_es2_int *params) {
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (!params) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    return;
+  }
+
+  size_t num_s2ds = 0;
+  struct sampler_2d *s2ds = NULL;
+
+  if (target == GL_ES2_TEXTURE_2D) {
+    if (c->active_texture_units_[c->current_active_texture_unit_].texture_2d_) {
+      s2ds = &c->active_texture_units_[c->current_active_texture_unit_].texture_2d_->texture_2d_;
+      num_s2ds = 1;
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  else if (target == GL_ES2_TEXTURE_CUBE_MAP) {
+    if (c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_) {
+      s2ds = c->active_texture_units_[c->current_active_texture_unit_].texture_cube_map_->texture_cube_maps_;
+      num_s2ds = 6;
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      return;
+    }
+  }
+  else {
+    set_gl_err(GL_ES2_INVALID_ENUM);
+    return;
+  }
+
+  size_t n;
+  switch (pname) {
+    case GL_ES2_TEXTURE_MIN_FILTER:
+      switch (params[0]) {
+        case GL_ES2_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest;
+          break;
+        case GL_ES2_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear;
+          break;
+        case GL_ES2_NEAREST_MIPMAP_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest_mipmap_nearest;
+          break;
+        case GL_ES2_LINEAR_MIPMAP_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear_mipmap_nearest;
+          break;
+        case GL_ES2_NEAREST_MIPMAP_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_nearest_mipmap_linear;
+          break;
+        case GL_ES2_LINEAR_MIPMAP_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].min_filter_ = s2d_linear_mipmap_linear;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_MAG_FILTER:
+      switch (params[0]) {
+        case GL_ES2_NEAREST:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].mag_filter_ = s2d_nearest;
+          break;
+        case GL_ES2_LINEAR:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].mag_filter_ = s2d_linear;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_S:
+      switch (params[0]) {
+        case GL_ES2_CLAMP_TO_EDGE:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_clamp_to_edge;
+          break;
+        case GL_ES2_MIRRORED_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_mirrored_repeat;
+          break;
+        case GL_ES2_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_s_ = s2d_repeat;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    case GL_ES2_TEXTURE_WRAP_T:
+      switch (params[0]) {
+        case GL_ES2_CLAMP_TO_EDGE:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_clamp_to_edge;
+          break;
+        case GL_ES2_MIRRORED_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_mirrored_repeat;
+          break;
+        case GL_ES2_REPEAT:
+          for (n = 0; n < num_s2ds; ++n) s2ds[n].wrap_t_ = s2d_repeat;
+          break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          return;
+      }
+      break;
+    default:
+      set_gl_err(GL_ES2_INVALID_ENUM);
+      return;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexSubImage2D)(gl_es2_enum target, gl_es2_int level, 
