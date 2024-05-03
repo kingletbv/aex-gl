@@ -7011,7 +7011,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix4
   }
 
   switch (slrak) {
-    case slrak_mat3: {
+    case slrak_mat4: {
       for (n = 0; n < num_entries; ++n) {
         ((float *)mem)[n * 16 + 0] = value[n * 16 + 0];
         ((float *)mem)[n * 16 + 1] = value[n * 16 + 1];
