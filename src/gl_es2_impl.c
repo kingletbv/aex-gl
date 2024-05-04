@@ -477,35 +477,48 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindTexture)(g
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
-  int r;
-  int is_allocated = ref_range_get_ref_at(&c->texture_rra_, tex_name);
-  if (!is_allocated) {
-    /* Caller hasn't reserved this but is just taking the name, which is fine, allocate it */
-    r = ref_range_mark_range_allocated(&c->texture_rra_, tex_name, tex_name + 1);
-    if (r) {
+  struct gl_es2_texture *tex = NULL;
+  if (!tex_name) {
+    /* Bind to default texture */
+    switch (target) {
+      case GL_ES2_TEXTURE_2D:
+        tex = &c->active_texture_units_[c->current_active_texture_unit_].default_texture_2d_;
+        break;
+      case GL_ES2_TEXTURE_CUBE_MAP:
+        tex = &c->active_texture_units_[c->current_active_texture_unit_].default_cube_map_;
+        break;
+    }
+  }
+  else {
+    int r;
+    int is_allocated = ref_range_get_ref_at(&c->texture_rra_, tex_name);
+    if (!is_allocated) {
+      /* Caller hasn't reserved this but is just taking the name, which is fine, allocate it */
+      r = ref_range_mark_range_allocated(&c->texture_rra_, tex_name, tex_name + 1);
+      if (r) {
+        set_gl_err(GL_ES2_OUT_OF_MEMORY);
+        return;
+      }
+    }
+    r = not_find_or_insert(&c->texture_not_, tex_name, sizeof(struct gl_es2_texture), (struct named_object **)&tex);
+    if (r == NOT_NOMEM) {
       set_gl_err(GL_ES2_OUT_OF_MEMORY);
       return;
     }
-  }
-  struct gl_es2_texture *tex = NULL;
-  r = not_find_or_insert(&c->texture_not_, tex_name, sizeof(struct gl_es2_texture), (struct named_object **)&tex);
-  if (r == NOT_NOMEM) {
-    set_gl_err(GL_ES2_OUT_OF_MEMORY);
-    return;
-  }
-  else if (r == NOT_DUPLICATE) {
-    /* Common path if is_allocated, strange path we'll just run with if not */
-  }
-  else if (r == NOT_OK) {
-    /* Newly created texture */
-    gl_es2_texture_init(tex);
-    switch (target) {
-      case GL_ES2_TEXTURE_2D:
-        tex->kind_ = gl_es2_texture_2d;
-        break;
-      case GL_ES2_TEXTURE_CUBE_MAP:
-        tex->kind_ = gl_es2_texture_cube_map;
-        break;
+    else if (r == NOT_DUPLICATE) {
+      /* Common path if is_allocated, strange path we'll just run with if not */
+    }
+    else if (r == NOT_OK) {
+      /* Newly created texture */
+      gl_es2_texture_init(tex);
+      switch (target) {
+        case GL_ES2_TEXTURE_2D:
+          tex->kind_ = gl_es2_texture_2d;
+          break;
+        case GL_ES2_TEXTURE_CUBE_MAP:
+          tex->kind_ = gl_es2_texture_cube_map;
+          break;
+      }
     }
   }
   switch (target) {

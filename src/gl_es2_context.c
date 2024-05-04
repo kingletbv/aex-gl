@@ -474,8 +474,6 @@ int gl_es2_renderbuffer_storage(struct gl_es2_renderbuffer *rb, enum gl_es2_rend
   return SL_ERR_OK;
 }
 
-
-
 void gl_es2_texture_init(struct gl_es2_texture *tex) {
   tex->kind_ = gl_es2_texture_invalid;
   tex->first_framebuffer_attached_to_ = NULL;
@@ -495,6 +493,7 @@ void gl_es2_texture_cleanup(struct gl_es2_texture *tex) {
   for (n = 0; n < 6; ++n) {
     sampler_2d_cleanup(&tex->texture_cube_maps_[n]);
   }
+  named_object_cleanup(&tex->no_);
 }
 
 struct sampler_2d *gl_es2_texture_get_sampler_2d_for_cube_map_face(struct gl_es2_texture *tex, enum gl_es2_cube_map_face cube_map_face) {
@@ -519,6 +518,24 @@ struct sampler_2d *gl_es2_texture_get_sampler_2d_for_gl_es2_cube_map_face(struct
     case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: return &tex->texture_cube_maps_[gl_es2_texture_cube_map_negative_z];
   }
   return NULL;
+}
+
+void gl_es2_texture_unit_init(struct gl_es2_texture_unit *tex_unit) {
+  gl_es2_texture_init(&tex_unit->default_texture_2d_);
+  gl_es2_texture_init(&tex_unit->default_cube_map_);
+  tex_unit->texture_2d_ = &tex_unit->default_texture_2d_;
+  tex_unit->texture_cube_map_ = &tex_unit->default_cube_map_;
+
+  /* Reset the default objects; this also ensures their name is 0 */
+  named_object_init(&tex_unit->default_texture_2d_);
+  named_object_init(&tex_unit->default_cube_map_);
+  tex_unit->default_texture_2d_.kind_ = gl_es2_texture_2d;
+  tex_unit->default_cube_map_.kind_ = gl_es2_texture_cube_map;
+}
+
+void gl_es2_texture_unit_cleanup(struct gl_es2_texture_unit *tex_unit) {
+  gl_es2_texture_cleanup(&tex_unit->default_texture_2d_);
+  gl_es2_texture_cleanup(&tex_unit->default_cube_map_);
 }
 
 void gl_es2_buffer_init(struct gl_es2_buffer *buf) {
@@ -593,8 +610,7 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
   c->current_active_texture_unit_ = 0;
   size_t n;
   for (n = 0; n < c->num_active_texture_units_; ++n) {
-    c->active_texture_units_[n].texture_2d_ = NULL;
-    c->active_texture_units_[n].texture_cube_map_ = NULL;
+    gl_es2_texture_unit_init(c->active_texture_units_ + n);
   }
   for (n = 0; n < c->num_active_texture_units_; ++n) {
     c->sampler_2D_uniform_loading_table_[n] = NULL;
@@ -726,6 +742,11 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
     not_remove(&c->shader_not_, &shad->no_);
     gl_es2_shader_cleanup(shad);
     free(shad);
+  }
+
+  size_t n;
+  for (n = 0; n < c->num_active_texture_units_; ++n) {
+    gl_es2_texture_unit_init(c->active_texture_units_ + n);
   }
 
   attrib_set_cleanup(&c->attribs_);

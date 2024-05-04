@@ -213,6 +213,11 @@ struct gl_es2_texture {
 struct gl_es2_texture_unit {
   struct gl_es2_texture *texture_2d_;       /* glBindTexture() target == GL_TEXTURE_2D */
   struct gl_es2_texture *texture_cube_map_; /* glBindTexture() target == GL_TEXTURE_CUBE_MAP */
+
+  /* Default textures, set at the initial state and can be set again by binding to 0.
+   * The default texture is unique to the texture unit. */
+  struct gl_es2_texture default_texture_2d_; /* glBindTexture() target == GL_TEXTURE_2D, name == 0 */
+  struct gl_es2_texture default_cube_map_;   /* glBindTexture() target == GL_TEXTURE_CUBE_MAP, name == 0 */
 };
 
 struct gl_es2_buffer {

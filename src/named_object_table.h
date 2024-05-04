@@ -46,6 +46,18 @@ struct named_object_table {
   struct named_object *seq_;
 };
 
+/* Careful with this: in normal operation, not_find_or_insert() will allocate the object
+ * of size named_object_size() and invoke named_object_init() on it, after which it'll
+ * place the object in the tree. The caller is then expected to initialize the remainder
+ * of the object. However, if the caller were to also call named_object_init(), it would
+ * corrupt the datastructure by resetting parts of it! The use-case for calling it yourself
+ * are when the object you're initializing will never go into a named_object_table and
+ * you'd like to initialize it to clean values; that's probably not something you'll encounter
+ * often.
+ * In summary: don't call this for objects in a named_object_table. */
+void named_object_init(struct named_object *no);
+void named_object_cleanup(struct named_object *no);
+
 void not_init(struct named_object_table *not);
 void not_cleanup(struct named_object_table *not);
 
