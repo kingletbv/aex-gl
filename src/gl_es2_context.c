@@ -527,8 +527,8 @@ void gl_es2_texture_unit_init(struct gl_es2_texture_unit *tex_unit) {
   tex_unit->texture_cube_map_ = &tex_unit->default_cube_map_;
 
   /* Reset the default objects; this also ensures their name is 0 */
-  named_object_init(&tex_unit->default_texture_2d_);
-  named_object_init(&tex_unit->default_cube_map_);
+  named_object_init(&tex_unit->default_texture_2d_.no_);
+  named_object_init(&tex_unit->default_cube_map_.no_);
   tex_unit->default_texture_2d_.kind_ = gl_es2_texture_2d;
   tex_unit->default_cube_map_.kind_ = gl_es2_texture_cube_map;
 }
@@ -746,7 +746,7 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
 
   size_t n;
   for (n = 0; n < c->num_active_texture_units_; ++n) {
-    gl_es2_texture_unit_init(c->active_texture_units_ + n);
+    gl_es2_texture_unit_cleanup(c->active_texture_units_ + n);
   }
 
   attrib_set_cleanup(&c->attribs_);
