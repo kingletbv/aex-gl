@@ -802,26 +802,37 @@ void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *
     return;
   }
 
-  uint32_t norm_scissor_left, norm_scissor_top, norm_scissor_right, norm_scissor_bottom;
-  norm_scissor_left = (c->scissor_left_ >= 0) ? (uint32_t)c->scissor_left_: 0;
-  if (c->scissor_bottom_counted_from_bottom_ <= (int32_t)screen_height) {
-    norm_scissor_bottom = (c->scissor_bottom_counted_from_bottom_  >= 0) ? (screen_height - c->scissor_bottom_counted_from_bottom_) : screen_height;
+  int32_t norm_scissor_left, norm_scissor_top, norm_scissor_right, norm_scissor_bottom;
+  norm_scissor_left = c->scissor_left_;
+  norm_scissor_right = c->scissor_left_ + c->scissor_width_;
+  if (norm_scissor_right < norm_scissor_left) {
+    /* Overflow, clamp to max, we'll get to screen later */
+    norm_scissor_right = INT_MAX;
   }
-  else {
-    norm_scissor_bottom = 0;
+  norm_scissor_bottom = c->scissor_bottom_counted_from_bottom_;
+  norm_scissor_top = c->scissor_bottom_counted_from_bottom_ + c->scissor_height_;
+  if (norm_scissor_top < norm_scissor_bottom) {
+    /* overflow */
+    norm_scissor_top = INT_MAX;
   }
-  if ((c->scissor_bottom_counted_from_bottom_ + c->scissor_height_) <= (int32_t)screen_height) {
-    norm_scissor_top = ((c->scissor_bottom_counted_from_bottom_ + c->scissor_height_) >= 0) ? (screen_height - (c->scissor_bottom_counted_from_bottom_ + c->scissor_height_)) : screen_height;
-  }
-  else {
-    norm_scissor_top = 0;
-  }
-  norm_scissor_right = ((c->scissor_left_ + c->scissor_width_) >= 0) ? (uint32_t)(c->scissor_left_ + c->scissor_width_) : 0;
 
+  /* Now clamp to screen region */
+  if (norm_scissor_left < 0) norm_scissor_left = 0;
+  else if (norm_scissor_left > screen_width) norm_scissor_left = screen_width;
+  if (norm_scissor_right < 0) norm_scissor_right = 0;
+  else if (norm_scissor_right > screen_width) norm_scissor_right = screen_width;
+  if (norm_scissor_bottom < 0) norm_scissor_bottom = 0;
+  else if (norm_scissor_bottom > screen_height) norm_scissor_bottom = screen_height;
+  if (norm_scissor_top < 0) norm_scissor_top = 0;
+  else if (norm_scissor_top > screen_height) norm_scissor_top = screen_height;
+  
+  /* Now write back and, as we do so, flip the Y axis
+   * Note that this is about pixel corner coordinates, and not pixel rows, as such, we want 
+   * a bottom of "screen_height" to translate to a flipped Y axis of 0. */
   *left = norm_scissor_left;
-  *top = norm_scissor_top;
+  *top = screen_height - norm_scissor_top;
   *right = norm_scissor_right;
-  *bottom = norm_scissor_bottom;
+  *bottom = screen_height - norm_scissor_bottom;
 }
 
 static void gl_es2_at_exit_cleanup(void) {
