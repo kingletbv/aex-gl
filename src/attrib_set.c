@@ -120,5 +120,6 @@ int attrib_alloc_fixed_num_attribs(struct attrib_set *as, size_t num_attribs) {
   for (n = as->num_attribs_; n < num_attribs; ++n) {
     attrib_set_attrib_init(&as->attribs_[n], NULL);
   }
+  as->num_attribs_ = num_attribs;
   return 0;
 }
