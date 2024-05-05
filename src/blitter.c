@@ -1094,7 +1094,8 @@ void blitter_blit_apply_mask8(void *bitmap, size_t stride, uint8_t mask, uint8_t
 
   size_t x64 = x/8;
   size_t width64 = (right_edge_inclusive/8) - x64;
-  blitter_blit_apply_mask_fast64(bitmap, stride, y, x/8, width64, height, lmask, imask, rmask, value);
+  size_t stride64 = stride / 8;
+  blitter_blit_apply_mask_fast64(bitmap, stride64, y, x/8, width64, height, lmask, imask, rmask, value);
 }
 
 static void lsl192(uint64_t *r0, uint64_t *r1, uint64_t *r2, uint64_t l0, uint64_t l1, uint64_t l2, int shift_left) {
@@ -1283,7 +1284,8 @@ void blitter_blit_apply_mask3x8(void *bitmap, size_t stride,
   size_t x192 = x/24;
   size_t width192 = ((right_edge_inclusive*3)/24) - x192;
   size_t x64 = x192*3;
-  blitter_blit_apply_mask_fast192(bitmap, stride, y, x64, width192, height,
+  size_t stride64 = stride / 8;
+  blitter_blit_apply_mask_fast192(bitmap, stride64, y, x64, width192, height,
                                   lmask0, lmask1, lmask2,
                                   imask0, imask1, imask2,
                                   rmask0, rmask1, rmask2,
@@ -1380,7 +1382,8 @@ void blitter_blit_apply_mask4x8(void *bitmap, size_t stride,
 
   size_t x64 = x/2;
   size_t width64 = (right_edge_inclusive/2) - x64;
-  blitter_blit_apply_mask_fast64(bitmap, stride, y, x64, width64, height,
+  size_t stride64 = stride / 8;
+  blitter_blit_apply_mask_fast64(bitmap, stride64, y, x64, width64, height,
                                   lmask, imask, rmask, value);
 }
 
@@ -1441,7 +1444,8 @@ void blitter_blit_apply_mask16(void *bitmap, size_t stride, uint16_t mask, uint1
 
   size_t x64 = x/4;
   size_t width64 = (right_edge_inclusive/4) - x64;
-  blitter_blit_apply_mask_fast64(bitmap, stride, y, x64, width64, height,
+  size_t stride64 = stride / 8;
+  blitter_blit_apply_mask_fast64(bitmap, stride64, y, x64, width64, height,
                                   lmask, imask, rmask, ivalue);
 }
 
@@ -1504,7 +1508,8 @@ void blitter_blit_apply_mask32(void *bitmap, size_t stride, uint32_t mask, uint3
 
   size_t x64 = x/2;
   size_t width64 = (right_edge_inclusive/2) - x64;
-  blitter_blit_apply_mask_fast64(bitmap, stride, y, x64, width64, height,
+  size_t stride64 = stride / 8;
+  blitter_blit_apply_mask_fast64(bitmap, stride64, y, x64, width64, height,
                                   lmask, imask, rmask, value);
 }
 
