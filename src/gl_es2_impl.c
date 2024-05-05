@@ -7127,7 +7127,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib2f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib2fv)(gl_es2_uint index, const gl_es2_float *v) {
   struct gl_es2_context *c = gl_es2_ctx();
-  if (index >= c->attribs_.num_attribs_) {
+  if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
@@ -7139,7 +7139,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib2f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3f)(gl_es2_uint index, gl_es2_float x, gl_es2_float y, gl_es2_float z) {
   struct gl_es2_context *c = gl_es2_ctx();
-  if (index >= c->attribs_.num_attribs_) {
+  if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
@@ -7151,7 +7151,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3fv)(gl_es2_uint index, const gl_es2_float *v) {
   struct gl_es2_context *c = gl_es2_ctx();
-  if (index >= c->attribs_.num_attribs_) {
+  if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
@@ -7163,7 +7163,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4f)(gl_es2_uint index, gl_es2_float x, gl_es2_float y, gl_es2_float z, gl_es2_float w) {
   struct gl_es2_context *c = gl_es2_ctx();
-  if (index >= c->attribs_.num_attribs_) {
+  if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
@@ -7175,7 +7175,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4fv)(gl_es2_uint index, const gl_es2_float *v) {
   struct gl_es2_context *c = gl_es2_ctx();
-  if (index >= c->attribs_.num_attribs_) {
+  if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
@@ -7244,7 +7244,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttribPo
   }
 
   size_t new_stride = (size_t)stride;
-  if (!new_stride) new_stride = natural_stride;
+  if (!new_stride) new_stride = natural_stride * new_size;
 
   if (c->array_buffer_) {
     /* Bind array buffer */
