@@ -603,6 +603,10 @@ void gl_es2_ctx_init(struct gl_es2_context *c) {
 
   rasterizer_init(&c->ras_);
 
+  gl_es2_renderbuffer_init(&c->default_color_attachment_);
+  gl_es2_renderbuffer_init(&c->default_depth_attachment_);
+  gl_es2_renderbuffer_init(&c->default_stencil_attachment_);
+
   c->framebuffer_ = NULL;
   c->renderbuffer_ = NULL;
 
@@ -752,6 +756,10 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
   attrib_set_cleanup(&c->attribs_);
 
   rasterizer_cleanup(&c->ras_);
+
+  gl_es2_renderbuffer_cleanup(&c->default_color_attachment_);
+  gl_es2_renderbuffer_cleanup(&c->default_depth_attachment_);
+  gl_es2_renderbuffer_cleanup(&c->default_stencil_attachment_);
 }
 
 static int gl_es2_ctx_complete_initialization(struct gl_es2_context *c) {
@@ -806,6 +814,7 @@ void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *
 static void gl_es2_at_exit_cleanup(void) {
   if (g_ctx_is_initialized_) {
     gl_es2_ctx_cleanup(&g_ctx_);
+    g_ctx_is_initialized_ = 0;
   }
 }
 
@@ -848,3 +857,88 @@ int gl_es2_initialize_context(void) {
   }
   return SL_ERR_OK;
 }
+
+GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(int num_rgba_bits,
+                                                                               int num_stencil_bits,
+                                                                               int num_depth_bits,
+                                                                               int width, int height) {
+  int r;
+  if (num_rgba_bits != 32) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  if ((num_stencil_bits != 0) && 
+      (num_stencil_bits != 16)) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  if ((num_depth_bits != 0) &&
+      (num_depth_bits != 16) &&
+      (num_depth_bits != 32)) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  if ((width < 0) || (height < 0)) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  if ((width > GL_ES2_IMPL_MAX_VIEWPORT_DIMS) || (height > GL_ES2_IMPL_MAX_VIEWPORT_DIMS)) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  r = gl_es2_initialize_context();
+  if (r) return r;
+
+  struct gl_es2_context *c = &g_ctx_;
+
+  struct gl_es2_framebuffer *fb = NULL;
+  r = not_find_or_insert(&c->framebuffer_not_, 0 /* name */, sizeof(struct gl_es2_framebuffer), (struct named_object **)&fb);
+  if (r == NOT_NOMEM) {
+    gl_es2_at_exit_cleanup();
+    return SL_ERR_NO_MEM;
+  }
+  else if (r == NOT_DUPLICATE) {
+    /* Common path if is_allocated, strange path we'll just run with if not */
+    c->framebuffer_ = fb;
+  }
+  else if (r == NOT_OK) {
+    /* Newly created framebuffer */
+    gl_es2_framebuffer_init(fb);
+    c->framebuffer_ = fb;
+  }
+
+  /* Initialize RGBA storage */
+  r = gl_es2_renderbuffer_storage(&c->default_color_attachment_, gl_es2_renderbuffer_format_rgba32, width, height);
+  if (r) {
+    gl_es2_at_exit_cleanup();
+    return r;
+  }
+  gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->color_attachment0_, &c->default_color_attachment_);
+
+  if (num_stencil_bits == 16) {
+    r = gl_es2_renderbuffer_storage(&c->default_stencil_attachment_, gl_es2_renderbuffer_format_stencil16, width, height);
+    if (r) {
+      gl_es2_at_exit_cleanup();
+      return r;
+    }
+    gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->stencil_attachment_, &c->default_stencil_attachment_);
+  }
+
+  if (num_depth_bits) {
+    enum gl_es2_renderbuffer_format depth_format = gl_es2_renderbuffer_format_none;
+    switch (num_depth_bits) {
+      case 16: depth_format = gl_es2_renderbuffer_format_depth16; break;
+      case 32: depth_format = gl_es2_renderbuffer_format_depth32; break;
+        /* note: validation already handled above. */
+    }
+    r = gl_es2_renderbuffer_storage(&c->default_depth_attachment_, depth_format, width, height);
+    if (r) {
+      gl_es2_at_exit_cleanup();
+      return r;
+    }
+    gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->depth_attachment_, &c->default_depth_attachment_);
+  }
+
+  return SL_ERR_OK;
+}
+

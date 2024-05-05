@@ -397,7 +397,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindFramebuffe
     set_gl_err(GL_ES2_INVALID_VALUE);
     return;
   }
-  int r;;
+  /* Note that framebuffer 0, the default, is an actual framebuffer with name 0 */
+  int r;
   int is_allocated = ref_range_get_ref_at(&c->framebuffer_rra_, fb_name);
   if (!is_allocated) {
     /* Caller hasn't reserved this but is just taking the name, which is fine, allocate it */
@@ -432,6 +433,10 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuff
     return;
   }
   uintptr_t rb_name = (uintptr_t)renderbuffer;
+  if (!rb_name) {
+    c->renderbuffer_ = NULL;
+    return;
+  }
   if (rb_name == UINTPTR_MAX) {
     /* invalid number because we cannot make a range rb_name to rb_name+1. */
     set_gl_err(GL_ES2_INVALID_VALUE);
@@ -3175,6 +3180,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
   }
 
   if (!c->framebuffer_) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    return;
+  }
+
+  if (c->framebuffer_->no_.name_ == 0) {
+    /* When the default framebuffer is bound, you're not allowed to do this
+     * (The default renderbuffers don't exist in the namespace of the user created
+     *  renderbuffers, so there are no good values to return.) */
     set_gl_err(GL_ES2_INVALID_OPERATION);
     return;
   }

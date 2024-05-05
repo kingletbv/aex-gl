@@ -292,6 +292,10 @@ struct gl_es2_context {
 
   struct rasterizer ras_;
 
+  struct gl_es2_renderbuffer default_color_attachment_;
+  struct gl_es2_renderbuffer default_depth_attachment_;
+  struct gl_es2_renderbuffer default_stencil_attachment_;
+
   /* currently bound targets */
 
   /* glBindFramebuffer(GL_FRAMEBUFFER) */
