@@ -4434,6 +4434,11 @@ int main(int argc, char **argv) {
 #define OUTPUT_HEIGHT 1080
 
   static uint8_t rgba32[OUTPUT_WIDTH * OUTPUT_HEIGHT * 4];
+
+  /* Set this to 1 if rgba32 is flipped vertically (the a positive Y going up the bitmap instead
+   * of down.) Serialization to a bitmap will then flip it for us. */
+  int rgba32_is_flipped_y = 0;
+
   int row, col;
   /* Background is a purple-to-pink'ish gradient */
   for (row = 0; row < OUTPUT_HEIGHT; row++) {
@@ -5156,7 +5161,6 @@ exit_cleanup:
   glScissor(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
   glDisable(GL_SCISSOR_TEST);
 
-
   /* Build vertex and fragment shaders */
   GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 
@@ -5241,6 +5245,8 @@ exit_cleanup:
     }
   }
 
+  glUseProgram(program);
+
   GLint attrib_vgl_Position = glGetAttribLocation(program, "vgl_Position");
   GLint attrib_v_color = glGetAttribLocation(program, "v_color");
   GLint attrib_v_st = glGetAttribLocation(program, "v_st");
@@ -5248,7 +5254,7 @@ exit_cleanup:
   /* Going for XYZ, will lean on W being implied 1.
    * Trying to get 1.f on the z-buf, but this is likely going to be difficult to fit
    * in a float. */
-  uint32_t max_z = 0xFFFF;
+  uint32_t max_z = 0xFFFFFFFF;
   float verts[] = {
     -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 1. * 2.f / (double)(max_z)), 9.f,
     -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f), 9.f,
@@ -5292,9 +5298,95 @@ exit_cleanup:
                         v_st);                /* pointer */
 
 
-  glReadPixels(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, rgba32);
+  uint32_t indices[] = {
+    0, 1, 2,
+    2, 1, 3
+  };
 
-  GLenum errcode = glGetError();
+  GLenum errcode;
+
+  static unsigned char smiley[256*256*3];
+  size_t n;
+  size_t smiley_row, smiley_column;
+  for (smiley_row = 0; smiley_row < 256; ++smiley_row) {
+    for (smiley_column = 0; smiley_column < 256; ++smiley_column) {
+      size_t source_index = smiley_row * 256 + smiley_column;
+      size_t target_index = (256 - smiley_row - 1) * 256 * 3 + smiley_column * 3;
+      smiley[target_index + 0] = g_smiley_256x256_luminance_data_[source_index];
+      smiley[target_index + 1] = g_smiley_256x256_luminance_data_[source_index];
+      smiley[target_index + 2] = g_smiley_256x256_luminance_data_[source_index];
+    }
+  }
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, smiley);
+
+  /* Go in, and modify each of the higher mipmap levels to color cycle, this will help us know
+   * if mipmapping is working, and reason about what map we're on */
+  uint8_t color_cycle[] = {
+    0xFF, 0x00, 0x00, // Red
+    0xFF, 0xFF, 0x00, // Yellow
+    0x00, 0xFF, 0x00, // Green
+    0x00, 0xFF, 0xFF, // Cyan
+    0x00, 0x00, 0xFF, // Blue
+    0xFF, 0x00, 0xFF  // Magenta
+  };
+  size_t num_colors_in_cycle = sizeof(color_cycle) / 3;
+
+  /* mipmap_smiley will receive a color shading, the smiley[] bitmap
+   * itself will not (otherwise we'll be filtering that color shading
+   * which won't have the desired effect.) */
+  static unsigned char mipmap_smiley[256*256*3];
+
+  int level;
+  for (level = 1; level < 9; ++level) {
+    size_t smiley_dst_width, smiley_dst_height;
+    size_t smiley_src_width, smiley_src_height;
+    smiley_src_width = 256 >> (level - 1);
+    smiley_src_height = 256 >> (level - 1);
+    smiley_dst_width = smiley_src_width / 2;
+    smiley_dst_height = smiley_src_height / 2;
+
+    size_t smiley_src_stride = (smiley_src_width * 3 + 4 - 1) & ~(4 - 1);
+    size_t smiley_dst_stride = (smiley_dst_width * 3 + 4 - 1) & ~(4 - 1);
+
+    for (smiley_row = 0; smiley_row < smiley_dst_height; ++smiley_row) {
+      for (smiley_column = 0; smiley_column < smiley_dst_width; ++smiley_column) {
+        unsigned char *dst = smiley + smiley_row * smiley_dst_stride + 3 * smiley_column;
+        unsigned char *dst_shaded = mipmap_smiley + smiley_row * smiley_dst_stride + 3 * smiley_column;
+        unsigned char *src_tl = smiley + smiley_row * 2 * smiley_src_stride + 3 * 2 * smiley_column;
+        unsigned char *src_tr = src_tl + 3;
+        unsigned char *src_bl = src_tl + smiley_src_stride;
+        unsigned char *src_br = src_bl + 3;
+        size_t component;
+        for (component = 0; component < 3; ++component) {
+          unsigned char result = (unsigned char)((((uint32_t)src_tl[component])
+                                                  + ((uint32_t)src_tr[component])
+                                                  + ((uint32_t)src_bl[component])
+                                                  + ((uint32_t)src_br[component])) / 4);
+          unsigned char color_cycle_component = color_cycle[((level - 1) % num_colors_in_cycle) * 3 + component];
+          dst[component] = result;
+          dst_shaded[component] = result + ((((uint32_t)(0xFF - result)) * color_cycle_component) >> 8);
+        }
+      }
+    }
+    glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, (GLsizei)smiley_dst_width, (GLsizei)smiley_dst_height, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, mipmap_smiley);
+
+  }
+  //glGenerateMipmap(GL_TEXTURE_2D);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, indices);
+
+  glReadPixels(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, rgba32);
+  
+  /* glReadPixels returns out pixels with the Y upside down (positive Y goes up, memory layout
+   * starts at the bottom-most row and works its way up. */
+  rgba32_is_flipped_y = 1;
+
+  errcode = glGetError();
   if (errcode != GL_NO_ERROR) {
     const char *errmsg = "Unknown error!";
     switch (errcode) {
@@ -5336,7 +5428,13 @@ exit_cleanup:
     exit_ret = EXIT_FAILURE;
     return exit_ret;
   }
-  write_rgba_bmp(fp, rgba32, OUTPUT_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH * 4);
+  if (!rgba32_is_flipped_y) {
+    write_rgba_bmp(fp, rgba32, OUTPUT_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH * 4);
+  }
+  else /* (rgba32_is_flipped_y) */ {
+    size_t stride = OUTPUT_WIDTH * 4;
+    write_rgba_bmp(fp, rgba32 + stride * (OUTPUT_HEIGHT - 1), OUTPUT_WIDTH, OUTPUT_HEIGHT, (size_t)-(intptr_t)stride);
+  }
   fclose(fp);
 
   return exit_ret;
