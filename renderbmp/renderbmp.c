@@ -133,6 +133,19 @@
 #include "smiley.h"
 #endif
 
+#ifndef GL_ES2_IMPL_H_INCLUDED
+#define GL_ES2_IMPL_H_INCLUDED
+#include "gl_es2_impl.h"
+#endif
+
+#ifndef GLES2_GL2_H_INCLUDED
+#define GLES2_GL2_H_INCLUDED
+#define GL_GLES_PROTOTYPES 0  /* we will define the prototypes as static function pointers by including gl_es2_aex_func_map.c */
+#include <GLES2/gl2.h>
+#endif
+
+#include "gl_es2_aex_func_map.c"
+
 int test(void) {
   int r = 0;
 
@@ -4370,6 +4383,44 @@ void tri10_no_subpixels_topleft_sampled(uint8_t *rgba, size_t stride,
         num_samples, samples);
 }
 
+int print_shader_log(FILE *fp, GLuint shader) {
+  GLint log_length = 0;
+  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
+  char *buf = malloc(log_length + 1);
+  if (!buf) {
+    fprintf(fp, "Failed to allocate memory for log\n");
+    return -1;
+  }
+  buf[0] = '\0';
+  GLsizei log_size = (GLsizei)log_length + 1;
+  GLsizei actual_log_length = 0;
+  glGetShaderInfoLog(shader, log_size, &actual_log_length, (GLchar *)buf);
+  buf[actual_log_length] = '\0';
+  fprintf(fp, "%s\n", buf);
+  free(buf);
+
+  return 0;
+}
+
+int print_program_log(FILE *fp, GLuint program) {
+  GLint log_length = 0;
+  glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
+  char *buf = malloc(log_length + 1);
+  if (!buf) {
+    fprintf(fp, "Failed to allocate memory for log\n");
+    return -1;
+  }
+  buf[0] = '\0';
+  GLsizei log_size = (GLsizei)log_length + 1;
+  GLsizei actual_log_length = 0;
+  glGetProgramInfoLog(program, log_size, &actual_log_length, (GLchar *)buf);
+  buf[actual_log_length] = '\0';
+  fprintf(fp, "%s\n", buf);
+  free(buf);
+
+  return 0;
+}
+
 
 int main(int argc, char **argv) {
   int exit_ret = EXIT_FAILURE;
@@ -4732,7 +4783,7 @@ int main(int argc, char **argv) {
     }
     fragbuf.num_rows_ = 0;
   }
-#elif 1
+#elif 0
   struct attrib_set as;
   struct rasterizer ras;
   struct sl_shader vertex_shader;
@@ -5066,6 +5117,201 @@ exit_cleanup:
   sl_shader_cleanup(&vertex_shader);
   rasterizer_cleanup(&ras);
   attrib_set_cleanup(&as);
+
+#elif 1
+  
+  r = aex_gl_es2_context_init(32, 16, 32, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+  if (r) {
+    fprintf(stderr, "Failed aex_gl_es2_context_init(): %s\n", sl_err_str(r));
+    return EXIT_FAILURE;
+  }
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+
+  /* Recreate the gradient background we had on our original bitmap, however, given
+   * as we're using OpenGL ES2 this time around, we cannot directly set pixels to
+   * our desired colors (there is no "glWritePixels"). Instead, use glClear with 
+   * a scissor-rect. */
+  {
+    int row;
+    /* Background is a purple-to-pink'ish gradient */
+    for (row = 0; row < OUTPUT_HEIGHT; row++) {
+      uint8_t rgba[4];
+      rgba[0] = (row * 256) / (2 * OUTPUT_HEIGHT);
+      rgba[1] = 0;
+      rgba[2] = (row * 256) / (4 * OUTPUT_HEIGHT) + 64;
+      rgba[3] = 255;
+
+      glClearColor(rgba[0] / 255.f, 
+                   rgba[1] / 255.f, 
+                   rgba[2] / 255.f,
+                   rgba[3] / 255.f);
+      glScissor(0, OUTPUT_HEIGHT - row - 1, OUTPUT_WIDTH, 1);
+      glEnable(GL_SCISSOR_TEST);
+      glClear(GL_COLOR_BUFFER_BIT);
+    }
+  }
+
+  glScissor(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+  glDisable(GL_SCISSOR_TEST);
+
+
+  /* Build vertex and fragment shaders */
+  GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+
+  const char *vsrc =
+    "attribute vec4 vgl_Position;\n"
+    "attribute vec4 v_color;\n"
+    "attribute vec2 v_st;\n"
+    "varying vec2 vertex_st;\n"
+    "varying vec4 vertex_color;\n"
+    "const float half_pi = 3.14159265358979/2.;\n"
+    "const float f_one = sin(half_pi);\n"
+    "void main() {\n"
+    "  vertex_color = v_color;\n"
+    "  vertex_st = v_st;\n"
+    "  gl_Position = vgl_Position;\n"
+    "  gl_Position.x *= gl_Position.w;\n"
+    "  gl_Position.y *= gl_Position.w;\n"
+    "}\n";
+  GLint vsrc_len = (int)strlen(vsrc);
+  glShaderSource(vertex_shader, 1, &vsrc, &vsrc_len);
+
+  glCompileShader(vertex_shader);
+
+  GLint vcompile_status = 0;
+  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &vcompile_status);
+
+  if (vcompile_status == GL_FALSE) {
+    fprintf(stderr, "Failed to compile vertex shader. Diagnostics:\n");
+    if (print_shader_log(stderr, vertex_shader)) {
+      /* Failure printing log */
+      return EXIT_FAILURE;
+    }
+  }
+
+  GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+
+  const char *fsrc = 
+    "varying vec4 vertex_color;\n"
+    "varying vec2 vertex_st;\n"
+    "uniform sampler2D tex;\n"
+    "void main() {\n"
+    "  int x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
+    "  int even_x = (x / 2) * 2;\n"
+    //"  if ((x - even_x) == 1) discard;\n"
+    "  int checker = int(10.f * vertex_st.x) + int(10.f * vertex_st.y);\n"
+    "  int checker_even = (checker / 2) * 2;\n"
+    "  float checker_flag = float(checker - checker_even);\n"
+    "  vec4 tsmiley = texture2D(tex, vertex_st);\n"
+    "  gl_FragColor = vec4(tsmiley.xyz, 1.);\n"
+    "}\n";
+  GLint fsrc_len = (int)strlen(fsrc);
+  glShaderSource(fragment_shader, 1, &fsrc, &fsrc_len);
+
+  glCompileShader(fragment_shader);
+
+  GLint fcompile_status = 0;
+  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fcompile_status);
+
+  if (fcompile_status == GL_FALSE) {
+    fprintf(stderr, "Failed to compile fragment shader. Diagnostics:\n");
+    if (print_shader_log(stderr, fragment_shader)) {
+      /* Failure printing log */
+      return EXIT_FAILURE;
+    }
+  }
+
+  GLuint program = glCreateProgram();
+
+  glAttachShader(program, vertex_shader);
+  glAttachShader(program, fragment_shader);
+
+  glLinkProgram(program);
+
+  GLint plink_status = 0;
+  glGetProgramiv(program, GL_LINK_STATUS, &plink_status);
+
+  if (plink_status == GL_FALSE) {
+    fprintf(stderr, "Failed to link program. Diagnostics:\n");
+    if (print_program_log(stderr, program)) {
+      /* Failure printing log */
+      return EXIT_FAILURE;
+    }
+  }
+
+  GLint attrib_vgl_Position = glGetAttribLocation(program, "vgl_Position");
+  GLint attrib_v_color = glGetAttribLocation(program, "v_color");
+  GLint attrib_v_st = glGetAttribLocation(program, "v_st");
+
+  /* Going for XYZ, will lean on W being implied 1.
+   * Trying to get 1.f on the z-buf, but this is likely going to be difficult to fit
+   * in a float. */
+  uint32_t max_z = 0xFFFF;
+  float verts[] = {
+    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), (float)(-1.f + 1. * 2.f / (double)(max_z)), 9.f,
+    -1.f + 2.f * (128.f/256.f), 1.f - 2.f *  (16.f/256.f), (float)(-1.f), 9.f,
+    -1.f + 2.f *  (16.f/256.f), 1.f - 2.f * (248/256.f), (float)(-1.f), 1.f,
+    -1.f + 2.f * (136.f/256.f), 1.f - 2.f * (256/256.f), (float)(-1.f), 1.f
+  };
+  glEnableVertexAttribArray(attrib_vgl_Position);
+  glVertexAttribPointer(attrib_vgl_Position,  /* index */
+                        4,                    /* size (number of components) */
+                        GL_FLOAT,             /* type */
+                        0,                    /* normalized */
+                        0,                    /* stride (0 = adjacent in memory) */
+                        verts);               /* pointer */
+
+  float v_colors[] = {
+    1.f, 0.f, 0.f, 1.f,
+    0.f, 1.f, 0.f, 1.f,
+    0.f, 0.f, 1.f, 1.f,
+    1.f, 0.f, 1.f, 1.f,
+  };
+  glEnableVertexAttribArray(attrib_v_color);
+  glVertexAttribPointer(attrib_v_color,       /* index */
+                        4,                    /* size (number of components) */
+                        GL_FLOAT,             /* type */
+                        0,                    /* normalized */
+                        0,                    /* stride (0 = adjacent in memory) */
+                        v_colors);            /* pointer */
+
+  float v_st[] = {
+    0.f, 0.f,
+    10.f, 0.f,
+    0.f, 10.f,
+    10.f, 10.f
+  };
+  glEnableVertexAttribArray(attrib_v_st);
+  glVertexAttribPointer(attrib_v_st,          /* index */
+                        2,                    /* size (number of components) */
+                        GL_FLOAT,             /* type */
+                        0,                    /* normalized */
+                        0,                    /* stride (0 = adjacent in memory) */
+                        v_st);                /* pointer */
+
+
+  glReadPixels(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, rgba32);
+
+  GLenum errcode = glGetError();
+  if (errcode != GL_NO_ERROR) {
+    const char *errmsg = "Unknown error!";
+    switch (errcode) {
+      case GL_NO_ERROR: errmsg = "No error"; break;
+      case GL_INVALID_ENUM: errmsg = "Invalid enum"; break;
+      case GL_INVALID_VALUE: errmsg = "Invalid value"; break;
+      case GL_INVALID_OPERATION: errmsg = "Invalid operation"; break;
+      case GL_OUT_OF_MEMORY: errmsg = "Out of memory"; break;
+      case GL_INVALID_FRAMEBUFFER_OPERATION: errmsg = "Invalid framebuffer operation"; break;
+    }
+    fprintf(stderr, "GL error: %s\n", errmsg);
+    exit_ret = EXIT_FAILURE;
+  }
+  else {
+    fprintf(stdout, "No errors.\n");
+    exit_ret = EXIT_SUCCESS;
+  }
 
 #endif
   
