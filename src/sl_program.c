@@ -189,7 +189,7 @@ int sl_program_link(struct sl_program *prog) {
     dx_error(&prog->log_.dx_, "Program has no vertex shader attached\n");
     fail_invalid_arg = 1;
   }
-  if (!prog->vertex_shader_->gl_last_compile_status_) {
+  else if (!prog->vertex_shader_->gl_last_compile_status_) {
     dx_error(&prog->log_.dx_, "Program's vertex shader has not successfully been compiled\n");
     fail_invalid_arg = 1;
   }
@@ -197,7 +197,7 @@ int sl_program_link(struct sl_program *prog) {
     dx_error(&prog->log_.dx_, "Program has no fragment shader attached\n");
     fail_invalid_arg = 1;
   }
-  if (!prog->fragment_shader_->gl_last_compile_status_) {
+  else if (!prog->fragment_shader_->gl_last_compile_status_) {
     dx_error(&prog->log_.dx_, "Program's fragment shader has not successfully been compiled\n");
     fail_invalid_arg = 1;
   }
