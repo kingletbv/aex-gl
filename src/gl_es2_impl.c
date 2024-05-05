@@ -4634,7 +4634,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReadPixels)(gl
   }
 
   size_t bytes_per_row = bytes_per_pixel * (size_t)width;
-  size_t dst_stride = (bytes_per_row + (size_t)c->pack_alignment_) & ~(((size_t)c->pack_alignment_) - 1);
+  size_t dst_stride = (bytes_per_row + (size_t)c->pack_alignment_ - 1) & ~(((size_t)c->pack_alignment_) - 1);
 
   void *fb_data = NULL;
   size_t fb_stride = 0;
@@ -4647,7 +4647,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReadPixels)(gl
   void *fb_data_bottom_left = ((char *)fb_data) + ((size_t)(height - 1)) * fb_stride;
   size_t fb_stride_going_up = (size_t)-(intptr_t)fb_stride; /* two's complement, this'll work, cast to prevent signed/unsigned warnings on - */
 
-  blitter_blit_format(pixels, blit_dst_format, fb_data_bottom_left, blit_format_rgba, dst_stride, 0, 0, fb_stride_going_up, x, bottom_row, width, height);
+  blitter_blit_format(pixels, blit_dst_format, fb_data_bottom_left, blit_format_rgba, dst_stride, 0, 0, fb_stride_going_up, x, y, width, height);
 
   /* Check if we need to mask anything */
   switch (format) {
