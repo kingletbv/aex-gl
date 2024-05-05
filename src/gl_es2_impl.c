@@ -4526,6 +4526,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(LinkProgram)(g
   r = sl_program_link(&prog->program_);
   switch (r) {
     case SL_ERR_INVALID_ARG:
+      /* Some link failure ; however that's not something we set an error for. */
+      break;
     case SL_ERR_INTERNAL:
       dx_error(&prog->program_.log_.dx_, "An internal error occurred\n");
       return;
