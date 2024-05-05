@@ -466,6 +466,7 @@ int gl_es2_renderbuffer_storage(struct gl_es2_renderbuffer *rb, enum gl_es2_rend
   }
 
   if (rb->bitmap_) free(rb->bitmap_);
+  rb->format_ = format;
   rb->width_ = (int)width;
   rb->height_ = (int)height;
   rb->num_bytes_per_bitmap_row_ = num_bytes_per_row;
@@ -842,7 +843,7 @@ int gl_es2_initialize_context(void) {
     gl_es2_ctx_init(&g_ctx_);
 
     /* Complete initialization with may-fail allocations */
-    if (!gl_es2_ctx_complete_initialization(&g_ctx_)) {
+    if (SL_ERR_NO_MEM == gl_es2_ctx_complete_initialization(&g_ctx_)) {
       /* Failed allocations.
        * NOTE: Unlike the above, here we cleanup and return 
        *       the -1; reason is that we can now expect the
