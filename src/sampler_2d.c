@@ -135,6 +135,8 @@ static void sampler_2d_update_completeness(struct sampler_2d *s2d) {
       s2d->is_complete_ = 1;
       return;
     }
+    s2d->is_complete_ = 0;
+    return;
   }
   else if ((s2d->min_filter_ == s2d_nearest_mipmap_nearest) ||
            (s2d->min_filter_ == s2d_nearest_mipmap_linear) ||
@@ -179,6 +181,9 @@ static void sampler_2d_update_completeness(struct sampler_2d *s2d) {
         return;
       }
     }
+
+    s2d->is_complete_ = 1;
+    return;
   }
 }
 
@@ -1169,6 +1174,8 @@ int sampler_2d_set_storage(struct sampler_2d *s2d, int level, enum s2d_tex_compo
   lvl->repeat_mask_s_ = isolate_msb((uint32_t)width) - 1;
   lvl->repeat_mask_t_ = isolate_msb((uint32_t)height) - 1;
 
+  sampler_2d_update_completeness(s2d);
+
   return SL_ERR_OK;
 }
 
@@ -1220,6 +1227,7 @@ int sampler_2d_generate_mipmaps(struct sampler_2d *s2d) {
   if (s2d->num_maps_ == 0) {
     return SL_ERR_INVALID_ARG;
   }
+  s2d->is_complete_ = 0;
   /* Reset the number of mipmaps to 1 (keep the level 0 mipmap),
    * and then generate each as we go */
   size_t n;
@@ -1313,6 +1321,9 @@ int sampler_2d_generate_mipmaps(struct sampler_2d *s2d) {
 
     level++;
   }
+
+  sampler_2d_update_completeness(s2d);
+
   return SL_ERR_OK;
 }
 
