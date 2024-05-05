@@ -323,6 +323,63 @@ int sl_program_link(struct sl_program *prog) {
     } while (fv != prog->fragment_shader_->cu_.global_frame_.variables_);
   }
 
+  /* Run through all variables in both the shaders, check if they are uniforms.
+   * If they are, we need to add these uniforms to the program's uniform table
+   * so the front-end can set them. */
+  v = prog->vertex_shader_->cu_.global_frame_.variables_;
+  if (v) {
+    do {
+      v = v->chain_;
+
+      int qualifiers = sl_type_qualifiers(v->type_);
+      if (qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
+        /* Locate the fragment_shader equivalent (the uniform might appear in both shaders..) */
+        struct sl_variable *fv = sl_compilation_unit_find_variable(&prog->fragment_shader_->cu_, v->name_);
+
+        if (fv) {
+          int fv_qualifiers = sl_type_qualifiers(fv->type_);
+          if (!(fv_qualifiers & SL_TYPE_QUALIFIER_UNIFORM)) {
+            /* Fragment shader variable of the same name is not a uniform, discard. */
+            fv = NULL;
+          }
+        }
+        struct sl_uniform *new_uniform = NULL;
+        r = sl_uniform_table_add_uniform(&prog->uniforms_, &new_uniform, v, fv);
+        if (r) return r;
+      }
+    } while (v != prog->vertex_shader_->cu_.global_frame_.variables_);
+  }
+
+  /* We just added all uniforms in the vertex shader, and if there was an identical uniform
+   * in the fragment shader, they're both linked up to the same uniform.
+   * What remains is to add the uniforms that are in the fragment shader but do not appear
+   * in the vertex shader */
+  fv = prog->fragment_shader_->cu_.global_frame_.variables_;
+  if (fv) {
+    do {
+      fv = fv->chain_;
+
+      int qualifiers = sl_type_qualifiers(fv->type_);
+      if (qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
+        /* Locate the vertex_shader equivalent */
+        struct sl_variable *v = sl_compilation_unit_find_variable(&prog->vertex_shader_->cu_, fv->name_);
+        if (v) {
+          int v_qualifiers = sl_type_qualifiers(v->type_);
+          if (v_qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
+            /* Fragment shader uniform was already added as a uniform as part of the vertex shader, discard
+             * it from consideration here. */
+            continue;
+          }
+        }
+        /* Fragment shader uniform has no vertex shader counterpart and still needs to be added as uniform. */
+        struct sl_uniform *new_uniform = NULL;
+        r = sl_uniform_table_add_uniform(&prog->uniforms_, &new_uniform, NULL, fv);
+        if (r) return r;
+      }
+    } while (fv != prog->fragment_shader_->cu_.global_frame_.variables_);
+  }
+
+
   /* We now allocate the various buffers that do not rely on the user-defined attributes. */
   if (primitive_assembly_alloc_buffers(&prog->pa_) ||
       clipping_stage_alloc_varyings(&prog->cs_, prog->ar_.num_attribs_routed_) ||
@@ -330,6 +387,13 @@ int sl_program_link(struct sl_program *prog) {
     dx_no_memory(&prog->log_.dx_);
     return SL_ERR_NO_MEM;
   }
+
+  /* Allocate register banks */
+  r = sl_exec_prep(&prog->vertex_shader_->exec_, &prog->vertex_shader_->cu_);
+  r = r ? r : sl_exec_allocate_registers_by_slab(&prog->vertex_shader_->exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
+  r = r ? r : sl_exec_prep(&prog->fragment_shader_->exec_, &prog->fragment_shader_->cu_);
+  r = r ? r : sl_exec_allocate_registers_by_slab(&prog->fragment_shader_->exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
+  if (r) return r;
 
   /* All attribute variables have a corresponding attrib_binding in prog->abt_, furthermore,
    * they all have an appropriately configured active_index_.
