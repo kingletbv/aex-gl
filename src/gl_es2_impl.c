@@ -2579,6 +2579,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenerateMipmap
       case SL_ERR_NO_MEM:
         set_gl_err(GL_ES2_OUT_OF_MEMORY);
         return;
+      case SL_ERR_OK:
+        break;
       default:
         set_gl_err(GL_ES2_INVALID_OPERATION);
         return;
