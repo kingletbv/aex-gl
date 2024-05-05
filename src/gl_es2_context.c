@@ -891,6 +891,11 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
 
   struct gl_es2_context *c = &g_ctx_;
 
+  c->vp_x_ = 0;
+  c->vp_y_ = 0;
+  c->vp_width_ = width;
+  c->vp_height_ = height;
+
   struct gl_es2_framebuffer *fb = NULL;
   r = not_find_or_insert(&c->framebuffer_not_, 0 /* name */, sizeof(struct gl_es2_framebuffer), (struct named_object **)&fb);
   if (r == NOT_NOMEM) {
