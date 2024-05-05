@@ -396,6 +396,8 @@ void gl_es2_program_shader_attachment_attach(struct gl_es2_program_shader_attach
     psa->next_ = psa->prev_ = psa;
     shad->first_program_attached_to_ = psa;
   }
+  /* Wire up the backend implementation as well */
+  sl_program_attach_shader(&psa->program_->program_, &shad->shader_);
 }
 
 
@@ -743,7 +745,7 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
 
   ref_range_allocator_cleanup(&c->shader_rra_);
   while (c->shader_not_.seq_) {
-    struct gl_es2_shader *shad = (struct gl_es2_shader *)c->program_not_.seq_;
+    struct gl_es2_shader *shad = (struct gl_es2_shader *)c->shader_not_.seq_;
     not_remove(&c->shader_not_, &shad->no_);
     gl_es2_shader_cleanup(shad);
     free(shad);
@@ -768,7 +770,17 @@ static int gl_es2_ctx_complete_initialization(struct gl_es2_context *c) {
     c->current_error_ = GL_ES2_OUT_OF_MEMORY;
     return SL_ERR_NO_MEM;
   }
-  return SL_ERR_OK;
+
+  /* Reserve 0 names to avoid allocation code cheerfully returning it */
+  int r = SL_ERR_OK;
+  r = r ? r : ref_range_mark_range_allocated(&c->framebuffer_rra_, 0, 1);
+  r = r ? r : ref_range_mark_range_allocated(&c->renderbuffer_rra_, 0, 1);
+  r = r ? r : ref_range_mark_range_allocated(&c->texture_rra_, 0, 1);
+  r = r ? r : ref_range_mark_range_allocated(&c->buffer_rra_, 0, 1);
+  r = r ? r : ref_range_mark_range_allocated(&c->program_rra_, 0, 1);
+  r = r ? r : ref_range_mark_range_allocated(&c->shader_rra_, 0, 1);
+
+  return r;
 }
 
 void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *left, uint32_t *top, uint32_t *right, uint32_t *bottom) {
