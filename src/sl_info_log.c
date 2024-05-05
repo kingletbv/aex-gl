@@ -74,7 +74,7 @@ static int sl_info_log_dx_vprintf(void *log_ptr, const char *fmt, va_list args) 
   }
   vsnprintf(log->gl_info_log_ + log->gl_info_log_size_, mem_needed, fmt, args);
   /* point the end *at* the null terminator, so we'll overwrite it when we write another line */
-  log->gl_info_log_size_ = mem_needed - 1;
+  log->gl_info_log_size_ = size_needed - 1;
 
   return 0;
 }
