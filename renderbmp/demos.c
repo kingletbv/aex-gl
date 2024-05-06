@@ -23,7 +23,6 @@
 
 #include "demos.h"
 #include "smiley.h"
-#include "gl_es2_impl.h"
 #include "opengl_es2_headers.h"
 
 int print_shader_log(FILE *fp, GLuint shader) {
@@ -222,6 +221,8 @@ int run_demos(void) {
   int output_width;
   int output_height;
 
+  glGetError(); /* clear any prior errors */
+
   output_width = 1920;
   output_height = 1080;
 
@@ -233,7 +234,6 @@ int run_demos(void) {
 
   GLuint fb;
   glGenFramebuffers(1, &fb);
-
   GLuint color_buffer, depth_buffer;
   glGenRenderbuffers(1, &color_buffer);
   glGenRenderbuffers(1, &depth_buffer);
@@ -287,7 +287,11 @@ int run_demos(void) {
     }
   }
 
+#ifdef USE_STANDARD_NON_AEX_GL_HEADERS
+  FILE *fp = fopen("jig\\test.bmp", "wb"); // relative to project file.
+#else
   FILE *fp = fopen("..\\jig\\test.bmp", "wb"); // relative to project file.
+#endif
   if (!fp) {
     perror("fopen");
     exit_ret = -1;
