@@ -15,11 +15,7 @@
 #ifndef DEMOS_H
 #define DEMOS_H
 
-#ifndef GLES2_GL2_H_INCLUDED
-#define GLES2_GL2_H_INCLUDED
-#define GL_GLES_PROTOTYPES 0  /* we will define the prototypes as static function pointers by including gl_es2_aex_func_map.c */
-#include <GLES2/gl2.h>
-#endif
+#include "opengl_es2_headers.h"
 
 #ifdef __cplusplus
 extern "C" {
