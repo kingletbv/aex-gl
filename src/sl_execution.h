@@ -177,6 +177,10 @@ struct sl_execution {
 
   size_t num_sampler_cube_regs_;
   void ***sampler_cube_regs_;
+
+  /* Temporary runtime register values used by texture mappers */
+  float sampler_2d_projected_s_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
+  float sampler_2d_projected_t_[SL_EXEC_CHAIN_MAX_NUM_ROWS];
 };
 
 struct sl_exec_call_graph_results {

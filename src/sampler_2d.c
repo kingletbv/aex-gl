@@ -722,21 +722,21 @@ struct sampler_2d *split_execution_chains_to_sampler_tex_chains(struct sl_execut
   return samplers;
 }
 
-void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
-  uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict red_column = FLOAT_REG_PTR(x, 0);
-  float *restrict green_column = FLOAT_REG_PTR(x, 1);
-  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
-  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
-  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
-  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void texture_2D_lookup_impl(struct sampler_2d *sampler_chain,
+                            float * restrict red_column,
+                            float * restrict green_column,
+                            float * restrict blue_column,
+                            float * restrict alpha_column,
+                            float * restrict coord_column_s,
+                            float * restrict coord_column_t) {
   uint32_t row;
-  struct sampler_2d *samplers;
-  samplers = split_execution_chains_to_sampler_tex_chains(exec, exec_chain, SAMPLER_2D_REG_PTR(x->children_[0], 0));
-
   struct sampler_2d *s2d;
-  s2d = samplers;
+  s2d = sampler_chain;
   if (s2d) {
     do {
       s2d = s2d->runtime_active_sampler_chain_;
@@ -1038,9 +1038,6 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
           uint8_t delta;
           if (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
             do {
-              const float *restrict r_s = coord_column_s + row;
-              const float *restrict r_t = coord_column_t + row;
-
               int frag_idx;
               for (frag_idx = 0; frag_idx < 8; ++frag_idx) {
                 red_column[row + frag_idx] = 0.f;
@@ -1057,9 +1054,6 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
           }
           else if (!(row & 3) && (((chain = *(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101)) {
             do {
-              const float *restrict r_s = coord_column_s + row;
-              const float *restrict r_t = coord_column_t + row;
-
               int frag_idx;
               for (frag_idx = 0; frag_idx < 4; ++frag_idx) {
                 red_column[row + frag_idx] = 0.f;
@@ -1075,14 +1069,6 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
           }
           else {
             do {
-              /* Stubbornly persist in reaching across rows, even if the square of fragmens is not
-               * in the same execution chain (e.g. there is some stippling or such going on in the
-               * fragment shader) - so even if that's the case, the interpolation of S and T is
-               * still very likely a good basis for mip-mapping. Note that the GLSL spec is
-               * "undefined" as to what happens here; just try and do something reasonable. */
-              const float *restrict r_s = coord_column_s + row;
-              const float *restrict r_t = coord_column_t + row;
-
               red_column[row] = 0.f;
               green_column[row] = 0.f;
               blue_column[row] = 0.f;
@@ -1099,23 +1085,657 @@ void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct
 
       s2d->runtime_rows_ = SL_EXEC_NO_CHAIN;
       s2d->last_row_ = SL_EXEC_NO_CHAIN;
-    } while (s2d != samplers);
+    } while (s2d != sampler_chain);
   }
 }
 
+
+void texture_2D_bias_lookup_impl(struct sampler_2d *sampler_chain,
+                                 float * restrict red_column,
+                                 float * restrict green_column,
+                                 float * restrict blue_column,
+                                 float * restrict alpha_column,
+                                 float * restrict coord_column_s,
+                                 float * restrict coord_column_t,
+                                 float * restrict bias_column) {
+  uint32_t row;
+  struct sampler_2d *s2d;
+  s2d = sampler_chain;
+  if (s2d) {
+    do {
+      s2d = s2d->runtime_active_sampler_chain_;
+
+      uint8_t *restrict tex_chain_column = s2d->tex_exec_;
+
+      /* terminate each sampler's row chain (strictly speaking we could check for arriving at last_row_ but
+       * this makes it consistent with the rest of the code. */
+      tex_chain_column[s2d->last_row_] = 0;
+
+      if (s2d->is_complete_) {
+        /* Check if we need to find mipmaps.. */
+        int locate_log2_mipmaps = 0;
+        switch (s2d->min_filter_) {
+          case   s2d_nearest:                
+          case   s2d_linear:
+            /* Switch-over between filtering minification and magnification requires distinguishing between
+             * the two */
+            locate_log2_mipmaps = s2d->mag_filter_ != s2d->min_filter_; break;
+          case   s2d_nearest_mipmap_nearest: locate_log2_mipmaps = 1; break;
+          case   s2d_nearest_mipmap_linear:  locate_log2_mipmaps = 1; break;
+          case   s2d_linear_mipmap_nearest:  locate_log2_mipmaps = 1; break;
+          case   s2d_linear_mipmap_linear:   locate_log2_mipmaps = 1; break;
+        }
+
+        if (locate_log2_mipmaps) {
+          /* Fragment rows are ordered per square of 4 fragments, repeating 
+           * every 4 fragments. Top-Left %00, Top-Right %01, Bottom-Left %10, Bottom-Right %11
+           * Fragments outside the primitive (triangle) to be generated but inside a square
+           * with at least one other fragment that is inside the triangle, *ARE* still generated
+           * (a separate masking register is generated to ensure these fragments do not generate
+           * output down the line.)
+           * Because fragments are always generated in fours, we can reach across the rows using
+           * the bit pattern above to find the differentials based on the appropriate neighbouring
+           * pixels. */
+          row = s2d->runtime_rows_;
+          float l0_width = (float)s2d->mipmaps_[0].width_;
+          float l0_height = (float)s2d->mipmaps_[0].height_;
+          for (;;) {
+            uint64_t chain;
+            uint8_t delta;
+            if (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+              do {
+                const float *restrict r_s = coord_column_s + row;
+                const float *restrict r_t = coord_column_t + row;
+                const float *restrict r_bias = bias_column + row;
+
+                /* Top-Left dsdx = Top-Right dsdx = Top-Right S - Top-Left S
+                  * 01 45
+                  * 23 67 */
+                float fdsdx01 = (r_s[1] - r_s[0]) * l0_width;
+                /* Bottom-Left dsdx = Bottom-Right dsdx = Bottom-Right S - Bottom-Left S */
+                float fdsdx23 = (r_s[3] - r_s[2]) * l0_width;
+
+                /* Follow the same pattern for the next 4 fragments .. */
+                float fdsdx45 = (r_s[5] - r_s[4]) * l0_width;
+                float fdsdx67 = (r_s[7] - r_s[6]) * l0_width;
+
+                /* Follow the same pattern for T */
+                float fdtdx01 = (r_t[1] - r_t[0]) * l0_height;
+                float fdtdx23 = (r_t[3] - r_t[2]) * l0_height;
+                float fdtdx45 = (r_t[5] - r_t[4]) * l0_height;
+                float fdtdx67 = (r_t[7] - r_t[6]) * l0_height;
+
+                /* Follow the same pattern for S and T over dy
+                  * 01 45
+                  * 23 67 */
+                float fdsdy02 = (r_s[2] - r_s[0]) * l0_width;
+                float fdsdy13 = (r_s[3] - r_s[1]) * l0_width;
+                float fdsdy46 = (r_s[6] - r_s[4]) * l0_width;
+                float fdsdy57 = (r_s[7] - r_s[5]) * l0_width;
+
+                float fdtdy02 = (r_t[2] - r_t[0]) * l0_height;
+                float fdtdy13 = (r_t[3] - r_t[1]) * l0_height;
+                float fdtdy46 = (r_t[6] - r_t[4]) * l0_height;
+                float fdtdy57 = (r_t[7] - r_t[5]) * l0_height;
+
+                float dstdx_squared_len_01 = fdsdx01 * fdsdx01 + fdtdx01 * fdtdx01;
+                float dstdx_squared_len_23 = fdsdx23 * fdsdx23 + fdtdx23 * fdtdx23;
+                float dstdx_squared_len_45 = fdsdx45 * fdsdx45 + fdtdx45 * fdtdx45;
+                float dstdx_squared_len_67 = fdsdx67 * fdsdx67 + fdtdx67 * fdtdx67;
+
+                float dstdy_squared_len_02 = fdsdy02 * fdsdy02 + fdtdy02 * fdtdy02;
+                float dstdy_squared_len_13 = fdsdy13 * fdsdy13 + fdtdy13 * fdtdy13;
+                float dstdy_squared_len_46 = fdsdy46 * fdsdy46 + fdtdy46 * fdtdy46;
+                float dstdy_squared_len_57 = fdsdy57 * fdsdy57 + fdtdy57 * fdtdy57;
+
+  #define S2D_DMS_MAX(a,b) (((a)>=(b)) ? (a) : (b))
+                float dmax_squared_len_0 = S2D_DMS_MAX(dstdx_squared_len_01, dstdy_squared_len_02);
+                float dmax_squared_len_1 = S2D_DMS_MAX(dstdx_squared_len_01, dstdy_squared_len_13);
+                float dmax_squared_len_2 = S2D_DMS_MAX(dstdx_squared_len_23, dstdy_squared_len_02);
+                float dmax_squared_len_3 = S2D_DMS_MAX(dstdx_squared_len_23, dstdy_squared_len_13);
+                float dmax_squared_len_4 = S2D_DMS_MAX(dstdx_squared_len_45, dstdy_squared_len_46);
+                float dmax_squared_len_5 = S2D_DMS_MAX(dstdx_squared_len_45, dstdy_squared_len_57);
+                float dmax_squared_len_6 = S2D_DMS_MAX(dstdx_squared_len_67, dstdy_squared_len_46);
+                float dmax_squared_len_7 = S2D_DMS_MAX(dstdx_squared_len_67, dstdy_squared_len_57);
+  #undef S2D_DMS_MAX
+
+                /* Divide the log2 by 2 so we effectively square-root the 
+                 * dmax_squared prior to taking the log2. (e.g. log2(sqrt()) == 0.5 * log2()) */
+                float l2[] = {
+                  log2f(dmax_squared_len_0) * 0.5f + r_bias[0],
+                  log2f(dmax_squared_len_1) * 0.5f + r_bias[1],
+                  log2f(dmax_squared_len_2) * 0.5f + r_bias[2],
+                  log2f(dmax_squared_len_3) * 0.5f + r_bias[3],
+                  log2f(dmax_squared_len_4) * 0.5f + r_bias[4],
+                  log2f(dmax_squared_len_5) * 0.5f + r_bias[5],
+                  log2f(dmax_squared_len_6) * 0.5f + r_bias[6],
+                  log2f(dmax_squared_len_7) * 0.5f + r_bias[7]
+                };
+
+                int frag_idx;
+                for (frag_idx = 0; frag_idx < (sizeof(l2)/sizeof(*l2)); ++frag_idx) {
+                  float rgba[4];
+                  texture2D(rgba, s2d, r_s[frag_idx], r_t[frag_idx], l2[frag_idx]);
+                  red_column[row + frag_idx] = rgba[0];
+                  green_column[row + frag_idx] = rgba[1];
+                  blue_column[row + frag_idx] = rgba[2];
+                  alpha_column[row + frag_idx] = rgba[3];
+                }
+
+                delta = (chain & 0xFF00000000000000) >> 56;
+
+                if (!delta) break;
+                row += 7 + delta;
+              } while (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+            }
+            else if (!(row & 3) && (((chain = *(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+              do {
+                const float *restrict r_s = coord_column_s + row;
+                const float *restrict r_t = coord_column_t + row;
+                const float *restrict r_bias = bias_column + row;
+
+                /* Top-Left dsdx = Top-Right dsdx = Top-Right S - Top-Left S
+                 * 01 
+                 * 23 */
+                float fdsdx01 = (r_s[1] - r_s[0]) * l0_width;
+                /* Bottom-Left dsdx = Bottom-Right dsdx = Bottom-Right S - Bottom-Left S */
+                float fdsdx23 = (r_s[3] - r_s[2]) * l0_width;
+
+                /* Follow the same pattern for T */
+                float fdtdx01 = (r_t[1] - r_t[0]) * l0_height;
+                float fdtdx23 = (r_t[3] - r_t[2]) * l0_height;
+
+                /* Follow the same pattern for S and T over dy
+                 * 01 
+                 * 23 */
+                float fdsdy02 = (r_s[2] - r_s[0]) * l0_width;
+                float fdsdy13 = (r_s[3] - r_s[1]) * l0_width;
+
+                float fdtdy02 = (r_t[2] - r_t[0]) * l0_height;
+                float fdtdy13 = (r_t[3] - r_t[1]) * l0_height;
+
+                float dstdx_squared_len_01 = fdsdx01 * fdsdx01 + fdtdx01 * fdtdx01;
+                float dstdx_squared_len_23 = fdsdx23 * fdsdx23 + fdtdx23 * fdtdx23;
+
+                float dstdy_squared_len_02 = fdsdy02 * fdsdy02 + fdtdy02 * fdtdy02;
+                float dstdy_squared_len_13 = fdsdy13 * fdsdy13 + fdtdy13 * fdtdy13;
+
+  #define S2D_DMS_MAX(a,b) (((a)>=(b)) ? (a) : (b))
+                float dmax_squared_len_0 = S2D_DMS_MAX(dstdx_squared_len_01, dstdy_squared_len_02);
+                float dmax_squared_len_1 = S2D_DMS_MAX(dstdx_squared_len_01, dstdy_squared_len_13);
+                float dmax_squared_len_2 = S2D_DMS_MAX(dstdx_squared_len_23, dstdy_squared_len_02);
+                float dmax_squared_len_3 = S2D_DMS_MAX(dstdx_squared_len_23, dstdy_squared_len_13);
+  #undef S2D_DMS_MAX
+
+                /* Divide the log2 by 2 so we effectively square-root the
+                 * dmax_squared prior to taking the log2. (e.g. log2(sqrt()) == 0.5 * log2()) */
+                float l2[] = {
+                  log2f(dmax_squared_len_0) * 0.5f + r_bias[0],
+                  log2f(dmax_squared_len_1) * 0.5f + r_bias[1],
+                  log2f(dmax_squared_len_2) * 0.5f + r_bias[2],
+                  log2f(dmax_squared_len_3) * 0.5f + r_bias[3],
+                };
+
+                int frag_idx;
+                for (frag_idx = 0; frag_idx < (sizeof(l2)/sizeof(*l2)); ++frag_idx) {
+                  float rgba[4];
+                  texture2D(rgba, s2d, r_s[frag_idx], r_t[frag_idx], l2[frag_idx]);
+                  red_column[row + frag_idx] = rgba[0];
+                  green_column[row + frag_idx] = rgba[1];
+                  blue_column[row + frag_idx] = rgba[2];
+                  alpha_column[row + frag_idx] = rgba[3];
+                }
+
+                delta = (chain & 0xFF000000) >> 24;
+                if (!delta) break;
+                row += 3 + delta;
+              } while (!(row & 3) && ((chain = (*(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101));
+            }
+            else {
+              do {
+                /* Stubbornly persist in reaching across rows, even if the square of fragmens is not
+                 * in the same execution chain (e.g. there is some stippling or such going on in the
+                 * fragment shader) - so even if that's the case, the interpolation of S and T is
+                 * still very likely a good basis for mip-mapping. Note that the GLSL spec is 
+                 * "undefined" as to what happens here; just try and do something reasonable. */
+                const float *restrict r_s = coord_column_s + row;
+                const float *restrict r_t = coord_column_t + row;
+                const float *restrict r_bias = bias_column + row;
+                float fdsdx = (r_s[row | 1] - r_s[row & ~1]) * l0_width;
+                float fdtdx = (r_t[row | 1] - r_t[row & ~1]) * l0_height;
+                float fdsdy = (r_s[row | 2] - r_s[row & ~2]) * l0_width;
+                float fdtdy = (r_t[row | 2] - r_t[row & ~2]) * l0_height;
+                float fdstdx_squared_len = fdsdx * fdsdx + fdtdx * fdtdx;
+                float fdstdy_squared_len = fdsdy * fdsdy + fdtdy * fdtdy;
+                float dmax_squared_len = (fdstdx_squared_len > fdstdy_squared_len) ? fdstdx_squared_len : fdstdy_squared_len;
+                float lg2 = log2f(dmax_squared_len) * 0.5f + r_bias[row];
+
+                float rgba[4];
+                texture2D(rgba, s2d, r_s[0], r_t[0], lg2);
+                red_column[row] = rgba[0];
+                green_column[row] = rgba[1];
+                blue_column[row] = rgba[2];
+                alpha_column[row] = rgba[3];
+
+                delta = tex_chain_column[row];
+                if (!delta) break;
+                row += delta;
+              } while (row & 3);
+            }
+            if (!delta) break;
+          }
+        } /* end of if (locate_log2_mipmaps) */
+        else /* if lg2 not needed */ {
+          row = s2d->runtime_rows_;
+          for (;;) {
+            uint64_t chain;
+            uint8_t delta;
+            if (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+              do {
+                const float *restrict r_s = coord_column_s + row;
+                const float *restrict r_t = coord_column_t + row;
+
+                int frag_idx;
+                for (frag_idx = 0; frag_idx < 8; ++frag_idx) {
+                  float rgba[4];
+                  texture2D(rgba, s2d, r_s[frag_idx], r_t[frag_idx], 0.f);
+                  red_column[row + frag_idx] = rgba[0];
+                  green_column[row + frag_idx] = rgba[1];
+                  blue_column[row + frag_idx] = rgba[2];
+                  alpha_column[row + frag_idx] = rgba[3];
+                }
+
+                delta = (chain & 0xFF00000000000000) >> 56;
+
+                if (!delta) break;
+                row += 7 + delta;
+              } while (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+            }
+            else if (!(row & 3) && (((chain = *(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+              do {
+                const float *restrict r_s = coord_column_s + row;
+                const float *restrict r_t = coord_column_t + row;
+
+                int frag_idx;
+                for (frag_idx = 0; frag_idx < 4; ++frag_idx) {
+                  float rgba[4];
+                  texture2D(rgba, s2d, r_s[frag_idx], r_t[frag_idx], 0.f);
+                  red_column[row + frag_idx] = rgba[0];
+                  green_column[row + frag_idx] = rgba[1];
+                  blue_column[row + frag_idx] = rgba[2];
+                  alpha_column[row + frag_idx] = rgba[3];
+                }
+
+                delta = (chain & 0xFF000000) >> 24;
+                if (!delta) break;
+                row += 3 + delta;
+              } while (!(row & 3) && ((chain = (*(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101));
+            }
+            else {
+              do {
+                /* Stubbornly persist in reaching across rows, even if the square of fragmens is not
+                 * in the same execution chain (e.g. there is some stippling or such going on in the
+                 * fragment shader) - so even if that's the case, the interpolation of S and T is
+                 * still very likely a good basis for mip-mapping. Note that the GLSL spec is
+                 * "undefined" as to what happens here; just try and do something reasonable. */
+                const float *restrict r_s = coord_column_s + row;
+                const float *restrict r_t = coord_column_t + row;
+
+                float rgba[4];
+                texture2D(rgba, s2d, r_s[0], r_t[0], 0.f);
+                red_column[row] = rgba[0];
+                green_column[row] = rgba[1];
+                blue_column[row] = rgba[2];
+                alpha_column[row] = rgba[3];
+
+                delta = tex_chain_column[row];
+                if (!delta) break;
+                row += delta;
+              } while (row & 3);
+            }
+            if (!delta) break;
+          }
+        }
+      }
+      else {
+        /* Texture is not complete, function must return (0,0,0,1) */
+        row = s2d->runtime_rows_;
+        for (;;) {
+          uint64_t chain;
+          uint8_t delta;
+          if (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+            do {
+              int frag_idx;
+              for (frag_idx = 0; frag_idx < 8; ++frag_idx) {
+                red_column[row + frag_idx] = 0.f;
+                green_column[row + frag_idx] = 0.f;
+                blue_column[row + frag_idx] = 0.f;
+                alpha_column[row + frag_idx] = 1.f;
+              }
+
+              delta = (chain & 0xFF00000000000000) >> 56;
+
+              if (!delta) break;
+              row += 7 + delta;
+            } while (!(row & 7) && (((chain = *(uint64_t *)(tex_chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+          }
+          else if (!(row & 3) && (((chain = *(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+            do {
+              int frag_idx;
+              for (frag_idx = 0; frag_idx < 4; ++frag_idx) {
+                red_column[row + frag_idx] = 0.f;
+                green_column[row + frag_idx] = 0.f;
+                blue_column[row + frag_idx] = 0.f;
+                alpha_column[row + frag_idx] = 1.f;
+              }
+
+              delta = (chain & 0xFF000000) >> 24;
+              if (!delta) break;
+              row += 3 + delta;
+            } while (!(row & 3) && ((chain = (*(uint32_t *)(tex_chain_column + row)) & 0xFFFFFF) == 0x010101));
+          }
+          else {
+            do {
+              red_column[row] = 0.f;
+              green_column[row] = 0.f;
+              blue_column[row] = 0.f;
+              alpha_column[row] = 1.f;
+
+              delta = tex_chain_column[row];
+              if (!delta) break;
+              row += delta;
+            } while (row & 3);
+          }
+          if (!delta) break;
+        }
+      }
+
+      s2d->runtime_rows_ = SL_EXEC_NO_CHAIN;
+      s2d->last_row_ = SL_EXEC_NO_CHAIN;
+    } while (s2d != sampler_chain);
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void builtin_texture2D_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_sampler_tex_chains(exec, exec_chain, SAMPLER_2D_REG_PTR(x->children_[0], 0));
+
+  texture_2D_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, coord_column_s, coord_column_t);
+}
+
 void builtin_texture2D_bias_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict bias_column = FLOAT_REG_PTR(x->children_[2], 0);
+
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_sampler_tex_chains(exec, exec_chain, SAMPLER_2D_REG_PTR(x->children_[0], 0));
+
+  texture_2D_bias_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, coord_column_s, coord_column_t, bias_column);
 }
 
 void builtin_texture2DProj_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict proj_column = FLOAT_REG_PTR(x->children_[1], 2);
+  float *restrict projected_s = exec->sampler_2d_projected_s_;
+  float *restrict projected_t = exec->sampler_2d_projected_t_;
+
+  uint32_t row = exec_chain;
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        int frag_idx;
+        for (frag_idx = 0; frag_idx < 8; ++frag_idx) {
+          projected_s[row + frag_idx] = coord_column_s[row + frag_idx] / proj_column[row + frag_idx];
+          projected_t[row + frag_idx] = coord_column_t[row + frag_idx] / proj_column[row + frag_idx];
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        int frag_idx;
+        for (frag_idx = 0; frag_idx < 4; ++frag_idx) {
+          projected_s[row + frag_idx] = coord_column_s[row + frag_idx] / proj_column[row + frag_idx];
+          projected_t[row + frag_idx] = coord_column_t[row + frag_idx] / proj_column[row + frag_idx];
+        }
+
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        projected_s[row] = coord_column_s[row] / proj_column[row];
+        projected_t[row] = coord_column_t[row] / proj_column[row];
+
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+
+
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_sampler_tex_chains(exec, exec_chain, SAMPLER_2D_REG_PTR(x->children_[0], 0));
+
+  texture_2D_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, projected_s, projected_t);
 }
 
 void builtin_texture2DProj_v3_bias_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict proj_column = FLOAT_REG_PTR(x->children_[1], 2);
+  float *restrict bias_column = FLOAT_REG_PTR(x->children_[2], 0);
+  float *restrict projected_s = exec->sampler_2d_projected_s_;
+  float *restrict projected_t = exec->sampler_2d_projected_t_;
+
+  uint32_t row = exec_chain;
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        int frag_idx;
+        for (frag_idx = 0; frag_idx < 8; ++frag_idx) {
+          projected_s[row + frag_idx] = coord_column_s[row + frag_idx] / proj_column[row + frag_idx];
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        int frag_idx;
+        for (frag_idx = 0; frag_idx < 4; ++frag_idx) {
+          projected_s[row + frag_idx] = coord_column_s[row + frag_idx] / proj_column[row + frag_idx];
+        }
+
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        projected_s[row] = coord_column_s[row] / proj_column[row];
+
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+
+
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_sampler_tex_chains(exec, exec_chain, SAMPLER_2D_REG_PTR(x->children_[0], 0));
+
+  texture_2D_bias_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, projected_s, projected_t, bias_column);
 }
 
 void builtin_texture2DProj_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict proj_column = FLOAT_REG_PTR(x->children_[1], 3);
+  float *restrict projected_s = exec->sampler_2d_projected_s_;
+  float *restrict projected_t = exec->sampler_2d_projected_t_;
+
+  uint32_t row = exec_chain;
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        int frag_idx;
+        for (frag_idx = 0; frag_idx < 8; ++frag_idx) {
+          projected_s[row + frag_idx] = coord_column_s[row + frag_idx] / proj_column[row + frag_idx];
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        int frag_idx;
+        for (frag_idx = 0; frag_idx < 4; ++frag_idx) {
+          projected_s[row + frag_idx] = coord_column_s[row + frag_idx] / proj_column[row + frag_idx];
+        }
+
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        projected_s[row] = coord_column_s[row] / proj_column[row];
+
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+
+
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_sampler_tex_chains(exec, exec_chain, SAMPLER_2D_REG_PTR(x->children_[0], 0));
+
+  texture_2D_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, projected_s, projected_t);
 }
 
 void builtin_texture2DProj_v4_bias_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict proj_column = FLOAT_REG_PTR(x->children_[1], 3);
+  float *restrict bias_column = FLOAT_REG_PTR(x->children_[2], 0);
+  float *restrict projected_s = exec->sampler_2d_projected_s_;
+  float *restrict projected_t = exec->sampler_2d_projected_t_;
+
+  uint32_t row = exec_chain;
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        int frag_idx;
+        for (frag_idx = 0; frag_idx < 8; ++frag_idx) {
+          projected_s[row + frag_idx] = coord_column_s[row + frag_idx] / proj_column[row + frag_idx];
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        int frag_idx;
+        for (frag_idx = 0; frag_idx < 4; ++frag_idx) {
+          projected_s[row + frag_idx] = coord_column_s[row + frag_idx] / proj_column[row + frag_idx];
+        }
+
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        projected_s[row] = coord_column_s[row] / proj_column[row];
+
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+
+
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_sampler_tex_chains(exec, exec_chain, SAMPLER_2D_REG_PTR(x->children_[0], 0));
+
+  texture_2D_bias_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, projected_s, projected_t, bias_column);
 }
 
 void builtin_texture2DLod_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
