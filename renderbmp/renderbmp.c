@@ -13,38 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef STDIO_H_INCLUDED
-#define STDIO_H_INCLUDED
 #include <stdio.h>
-#endif
-
-#ifndef STDLIB_H_INCLUDED
-#define STDLIB_H_INCLUDED
 #include <stdlib.h>
-#endif
 
-#ifndef SL_DEFS_H_INCLUDED
-#define SL_DEFS_H_INCLUDED
 #include "sl_defs.h"
-#endif
-
-#ifndef GL_ES2_IMPL_H_INCLUDED
-#define GL_ES2_IMPL_H_INCLUDED
 #include "gl_es2_impl.h"
-#endif
-
-#ifndef DEMOS_H_INCLUDED
-#define DEMOS_H_INCLUDED
 #include "demos.h"
-#endif
+
+#define OUTPUT_WIDTH 1920
+#define OUTPUT_HEIGHT 1080
 
 int main(int argc, char **argv) {
   int exit_ret = EXIT_FAILURE;
 
   int r = 0;
-
-#define OUTPUT_WIDTH 1920
-#define OUTPUT_HEIGHT 1080
 
   r = aex_gl_es2_context_init(32, 16, 32, OUTPUT_WIDTH, OUTPUT_HEIGHT);
   if (r) {
