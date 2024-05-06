@@ -49,11 +49,6 @@ static int sl_info_log_dx_vprintf(void *log_ptr, const char *fmt, va_list args) 
   size_t mem_needed = 0; /* including NULL terminator */
 
   va_list cargs;
-  // XXX: For now we'll also output to stderr for ease of debugging.
-  // XXX: DELETE THIS
-  va_copy(cargs, args);
-  vfprintf(stderr, fmt, cargs);
-  va_end(cargs);
 
   va_copy(cargs, args);
 #ifdef _MSC_VER
