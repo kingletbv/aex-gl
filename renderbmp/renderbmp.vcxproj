@@ -25,6 +25,7 @@
     <ClCompile Include="smiley.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="opengl_es2_headers.h" />
     <ClInclude Include="smiley.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -8,5 +8,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="smiley.h" />
+    <ClInclude Include="opengl_es2_headers.h" />
   </ItemGroup>
 </Project>

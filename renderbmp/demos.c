@@ -63,13 +63,10 @@
 #include "gl_es2_impl.h"
 #endif
 
-#ifndef GLES2_GL2_H_INCLUDED
-#define GLES2_GL2_H_INCLUDED
-#define GL_GLES_PROTOTYPES 0  /* we will define the prototypes as static function pointers by including gl_es2_aex_func_map.c */
-#include <GLES2/gl2.h>
+#ifndef OPENGL_ES2_HEADERS_H_INCLUDED
+#define OPENGL_ES2_HEADERS_H_INCLUDED
+#include "opengl_es2_headers.h"
 #endif
-
-#include "gl_es2_aex_func_map.c"
 
 int print_shader_log(FILE *fp, GLuint shader) {
   GLint log_length = 0;

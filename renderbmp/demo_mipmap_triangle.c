@@ -25,12 +25,7 @@
 #include "smiley.h"
 #include "gl_es2_impl.h"
 
-/* we will define the prototypes as static function pointers 
- * by including gl_es2_aex_func_map.c */
-#define GL_GLES_PROTOTYPES 0
-#include <GLES2/gl2.h>
-
-#include "gl_es2_aex_func_map.c"
+#include "opengl_es2_headers.h"
 
 int demo_mipmap_triangle(int output_width, int output_height) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
