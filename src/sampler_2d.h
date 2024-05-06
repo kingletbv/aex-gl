@@ -116,6 +116,10 @@ void builtin_texture2DLod_v2_runtime(struct sl_execution *exec, int exec_chain, 
 void builtin_texture2DProjLod_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_texture2DProjLod_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 
+void builtin_textureCube_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_textureCube_v3_bias_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_textureCubeLod_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

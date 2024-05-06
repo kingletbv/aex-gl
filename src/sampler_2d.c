@@ -682,6 +682,139 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
   }
 }
 
+struct sampler_2d *split_execution_chains_to_cubemap_sampler_tex_chains(struct sl_execution *exec, int exec_chain, 
+                                                                        void *restrict *restrict cubemap_sampler_column,
+                                                                        float *restrict coord_column_s,
+                                                                        float *restrict coord_column_t,
+                                                                        float *restrict coord_column_r,
+                                                                        float *restrict flat_s_column,
+                                                                        float *restrict flat_t_column) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  uint32_t row = exec_chain;
+  struct sampler_2d *samplers = NULL;
+
+  /* Split the rows to each sampler, we want to evaluate all rows such that the sampler is held
+   * constant. */
+  uint8_t delta;
+  do {
+    delta = chain_column[row];
+
+    /* Each pointer in the cubemap_sampler_column points to the first element of an array of 6
+     * sampler_2d's, one for each face of the cube. */
+    struct sampler_2d *s2d = cubemap_sampler_column[row];
+
+    float s, t, r;
+    float abs_s, abs_t, abs_r;
+    s = coord_column_s[row];
+    t = coord_column_t[row];
+    r = coord_column_r[row];
+    abs_s = fabsf(s);
+    abs_t = fabsf(t);
+    abs_r = fabsf(r);
+    float sc, tc, ma;
+    /* Find dominant, prefer X over Y, Y over Z in case of equality */
+    if (abs_s >= abs_t) {
+      if (abs_s >= abs_r) {
+        /* s (X) dominant */
+        if (s >= 0.f) {
+          /* +x */
+          s2d = s2d + 0;
+          sc = -r;
+          tc = -t;
+          ma = s;
+        }
+        else {
+          /* -x */
+          s2d = s2d + 1;
+          sc = r;
+          tc = -t;
+          ma = -s;
+        }
+      }
+      else {
+        /* r (Z) dominant */
+        if (r >= 0.f) {
+          /* +z */
+          s2d = s2d + 4;
+          sc = s;
+          tc = -t;
+          ma = r;
+        }
+        else {
+          /* -z */
+          s2d = s2d + 5;
+          sc = -s;
+          tc = -t;
+          ma = -r;
+        }
+      }
+    }
+    else if (abs_t >= abs_r) {
+      /* t (Y) dominant */
+      if (t >= 0.f) {
+        /* +y */
+        s2d = s2d + 2;
+        sc = s;
+        tc = r;
+        ma = t;
+      }
+      else {
+        /* -y */
+        s2d = s2d + 3;
+        sc = s;
+        tc = -r;
+        ma = -t;
+      }
+    }
+    else {
+      /* r (Z) dominant */
+      if (r >= 0.f) {
+        /* +z */
+        s2d = s2d + 4;
+        sc = s;
+        tc = -t;
+        ma = r;
+      }
+      else {
+        /* -z */
+        s2d = s2d + 5;
+        sc = -s;
+        tc = -t;
+        ma = -r;
+      }
+    }
+    if (ma) {
+      flat_s_column[row] = .5f * (sc/ma + 1.f);
+      flat_t_column[row] = .5f * (tc/ma + 1.f);
+    }
+
+    if (s2d) {
+      uint8_t *restrict tex_chain_column = s2d->tex_exec_;
+
+      if (s2d->last_row_ != SL_EXEC_NO_CHAIN) {
+        tex_chain_column[s2d->last_row_] = row - s2d->last_row_;
+        s2d->last_row_ = row;
+      }
+      else {
+        s2d->runtime_rows_ = row;
+        s2d->last_row_ = row;
+        if (samplers) {
+          s2d->runtime_active_sampler_chain_ = samplers->runtime_active_sampler_chain_;
+          samplers->runtime_active_sampler_chain_ = s2d;
+        }
+        else {
+          s2d->runtime_active_sampler_chain_ = s2d;
+        }
+        samplers = s2d;
+      }
+    }
+
+    row += delta;
+  } while (delta);
+
+  return samplers;
+}
+
 struct sampler_2d *split_execution_chains_to_sampler_tex_chains(struct sl_execution *exec, int exec_chain, void * restrict * restrict sampler_column) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
   uint32_t row = exec_chain;
@@ -2133,6 +2266,72 @@ void builtin_texture2DProjLod_v4_runtime(struct sl_execution *exec, int exec_cha
 
   struct sampler_2d *samplers;
   samplers = split_execution_chains_to_sampler_tex_chains(exec, exec_chain, SAMPLER_2D_REG_PTR(x->children_[0], 0));
+
+  texture_2D_lod_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, projected_s, projected_t, lod_column);
+}
+
+
+void builtin_textureCube_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict coord_column_r = FLOAT_REG_PTR(x->children_[1], 2);
+  float *restrict projected_s = exec->sampler_2d_projected_s_;
+  float *restrict projected_t = exec->sampler_2d_projected_t_;
+
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_cubemap_sampler_tex_chains(exec, exec_chain,
+                                                                  SAMPLER_2D_REG_PTR(x->children_[0], 0),
+                                                                  coord_column_s, coord_column_t, coord_column_r,
+                                                                  projected_s, projected_t);
+
+  texture_2D_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, projected_s, projected_t);
+}
+
+void builtin_textureCube_v3_bias_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict coord_column_r = FLOAT_REG_PTR(x->children_[1], 2);
+  float *restrict bias_column = FLOAT_REG_PTR(x->children_[2], 0);
+  float *restrict projected_s = exec->sampler_2d_projected_s_;
+  float *restrict projected_t = exec->sampler_2d_projected_t_;
+
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_cubemap_sampler_tex_chains(exec, exec_chain,
+                                                                  SAMPLER_2D_REG_PTR(x->children_[0], 0),
+                                                                  coord_column_s, coord_column_t, coord_column_r,
+                                                                  projected_s, projected_t);
+
+  texture_2D_bias_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, projected_s, projected_t, bias_column);
+}
+
+void builtin_textureCubeLod_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict red_column = FLOAT_REG_PTR(x, 0);
+  float *restrict green_column = FLOAT_REG_PTR(x, 1);
+  float *restrict blue_column = FLOAT_REG_PTR(x, 2);
+  float *restrict alpha_column = FLOAT_REG_PTR(x, 3);
+  float *restrict coord_column_s = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict coord_column_t = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict coord_column_r = FLOAT_REG_PTR(x->children_[1], 2);
+  float *restrict lod_column = FLOAT_REG_PTR(x->children_[2], 0);
+  float *restrict projected_s = exec->sampler_2d_projected_s_;
+  float *restrict projected_t = exec->sampler_2d_projected_t_;
+
+  struct sampler_2d *samplers;
+  samplers = split_execution_chains_to_cubemap_sampler_tex_chains(exec, exec_chain,
+                                                                  SAMPLER_2D_REG_PTR(x->children_[0], 0),
+                                                                  coord_column_s, coord_column_t, coord_column_r,
+                                                                  projected_s, projected_t);
 
   texture_2D_lod_lookup_impl(samplers, red_column, green_column, blue_column, alpha_column, projected_s, projected_t, lod_column);
 }

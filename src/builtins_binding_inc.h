@@ -303,7 +303,7 @@ xx("vec4 texture2DLod(sampler2D sampler, vec2 coord, float lod);",     builtin_t
 xx("vec4 texture2DProjLod(sampler2D sampler, vec3 coord, float lod);", builtin_texture2DProjLod_v3_runtime, NULL)
 xx("vec4 texture2DProjLod(sampler2D sampler, vec4 coord, float lod);", builtin_texture2DProjLod_v4_runtime, NULL)
 
-xx("vec4 textureCube(samplerCube sampler, vec3 coord);", builtin_not_implemented_runtime, NULL)
-xx("vec4 textureCube(samplerCube sampler, vec3 coord, float bias);", builtin_not_implemented_runtime, NULL)
-xx("vec4 textureCubeLod(samplerCube sampler, vec3 coord, float lod);", builtin_not_implemented_runtime, NULL)
+xx("vec4 textureCube(samplerCube sampler, vec3 coord);", builtin_textureCube_v3_runtime, NULL)
+xx("vec4 textureCube(samplerCube sampler, vec3 coord, float bias);", builtin_textureCube_v3_bias_runtime, NULL)
+xx("vec4 textureCubeLod(samplerCube sampler, vec3 coord, float lod);", builtin_textureCubeLod_v3_runtime, NULL)
 
