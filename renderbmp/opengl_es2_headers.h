@@ -25,6 +25,8 @@
 #include <GLES2/gl2.h>
 #endif
 #else
+#include "gl_es2_impl.h"
+
 #ifndef GLES2_GL2_H_INCLUDED
 #define GLES2_GL2_H_INCLUDED
 #define GL_GLES_PROTOTYPES 0  /* we will define the prototypes as static function pointers by including gl_es2_aex_func_map.c */
