@@ -186,10 +186,10 @@ int demo_mipmap_triangle(int output_width, int output_height) {
                         v_colors);            /* pointer */
 
   float v_st[] = {
-    0.f, 0.f,
-    10.f, 0.f,
     0.f, 10.f,
-    10.f, 10.f
+    10.f, 10.f,
+    0.f, 0.f,
+    10.f, 0.f
   };
   glEnableVertexAttribArray(attrib_v_st);
   glVertexAttribPointer(attrib_v_st,          /* index */
