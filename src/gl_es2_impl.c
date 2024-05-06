@@ -4727,6 +4727,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(RenderbufferSt
   enum gl_es2_renderbuffer_format actual_format;
 
   switch (internalformat) {
+    case GL_ES2_RGBA8:
     case GL_ES2_RGBA4:
     case GL_ES2_RGB565:
     case GL_ES2_RGBA5_A1:
