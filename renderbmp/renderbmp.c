@@ -5408,9 +5408,19 @@ exit_cleanup:
 #endif
   
   /* Superimpose faint grid effect */
+  size_t grid_stride = OUTPUT_WIDTH * 4;
+  uint8_t *grid_rgba = rgba32;
+  if (rgba32_is_flipped_y) {
+    /* We want to apply the grip from the top down to the bottom,
+     * if the top is the last row of the bitmap, we need to account
+     * for that, flip our access to the bitmap. */
+    grid_rgba = rgba32 + (OUTPUT_HEIGHT - 1) * grid_stride;
+    grid_stride = (size_t)-(intptr_t)grid_stride;
+  }
+
   for (row = 0; row < OUTPUT_HEIGHT; row++) {
     for (col = 0; col < OUTPUT_WIDTH; col++) {
-      uint8_t *rgba = rgba32 + row * OUTPUT_WIDTH * 4 + col * 4;
+      uint8_t *rgba = grid_rgba + row * grid_stride + col * 4;
       if (row % 16 == 0 || col % 16 == 0) {
 #define BRT ((uint32_t)0x40)
 #define COMP_MIN(a, b) ((a) < (b) ? (a) : (b))
