@@ -33,7 +33,7 @@ void write_rgba_bmp(FILE *fp, uint8_t *rgba32, int width, int height, size_t str
 
 int check_for_and_print_gl_err(FILE *fp);
 
-int run_demos(int output_width, int output_height);
+int run_demos();
 
 int demo_mipmap_triangle(int output_width, int output_height);
 

@@ -5284,7 +5284,7 @@ exit_cleanup:
     return EXIT_FAILURE;
   }
 
-  if (run_demos(OUTPUT_WIDTH, OUTPUT_HEIGHT)) {
+  if (run_demos()) {
     exit_ret = EXIT_FAILURE;
   }
   else {

@@ -261,15 +261,40 @@ int check_for_and_print_gl_err(FILE *fp) {
   return 1; /* had an error */
 }
 
-int run_demos(int output_width, int output_height) {
+int run_demos(void) {
   int exit_ret = 0;
   int rgba32_is_flipped_y = 0;
+  int output_width;
+  int output_height;
+
+  output_width = 1920;
+  output_height = 1080;
 
   uint8_t *rgba32 = (uint8_t *)malloc(output_width * output_height * 4);
   if (!rgba32) {
     fprintf(stderr, "No memory for bitmap\n");
     return -1;
   }
+
+  GLuint fb;
+  glGenFramebuffers(1, &fb);
+
+  GLuint color_buffer, depth_buffer;
+  glGenRenderbuffers(1, &color_buffer);
+  glGenRenderbuffers(1, &depth_buffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, color_buffer);
+#ifndef GL_RGBA8
+#define GL_RGBA8    0x8058
+#endif
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, output_width, output_height);
+  glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, output_width, output_height);
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, fb);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color_buffer);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
+
+  glViewport(0, 0, output_width, output_height);
 
   exit_ret = demo_mipmap_triangle(output_width, output_height);
 
@@ -321,6 +346,11 @@ int run_demos(int output_width, int output_height) {
     write_rgba_bmp(fp, rgba32 + stride * (output_height - 1), output_width, output_height, (size_t)-(intptr_t)stride);
   }
   fclose(fp);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDeleteFramebuffers(1, &fb);
+  glDeleteRenderbuffers(1, &color_buffer);
+  glDeleteRenderbuffers(1, &depth_buffer);
 
   return exit_ret;
 }
