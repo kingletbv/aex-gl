@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="demos.c" />
+    <ClCompile Include="demo_mipmap_triangle.c" />
     <ClCompile Include="renderbmp.c" />
     <ClCompile Include="smiley.c" />
   </ItemGroup>

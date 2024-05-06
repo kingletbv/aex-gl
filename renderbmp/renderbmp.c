@@ -146,6 +146,11 @@
 
 #include "gl_es2_aex_func_map.c"
 
+#ifndef DEMOS_H_INCLUDED
+#define DEMOS_H_INCLUDED
+#include "demos.h"
+#endif
+
 int test(void) {
   int r = 0;
 
@@ -390,142 +395,6 @@ int test(void) {
   return r;
 }
 
-size_t fpack(FILE *fp, const char *format, ...) {
-  va_list args;
-  uint8_t val_8;
-  uint16_t val_16;
-  uint32_t val_32;
-  uint64_t val_64;
-  uint8_t buffer[8];
-  size_t len = 0;
-
-  va_start(args, format);
-
-  while (*format) {
-    switch (*format++) {
-      case 'b':
-      case 'B':
-        val_8 = (uint8_t)(va_arg(args, unsigned int));
-        if (!fwrite(&val_8, 1, 1, fp)) {
-          return len;
-        }
-        len += 1;
-        break;
-      case 'w':
-        val_16 = (uint16_t)va_arg(args, unsigned int);
-        buffer[0] = (char)(val_16 & 0xFF);
-        buffer[1] = (char)((val_16 >> 8) & 0xFF);
-        if (!fwrite(buffer, 2, 1, fp)) {
-          return len;
-        }
-        len += 2;
-        break;
-      case 'W':
-        val_16 = (uint16_t)va_arg(args, unsigned int);
-        buffer[0] = (char)((val_16 >> 8) & 0xFF);
-        buffer[1] = (char)(val_16 & 0xFF);
-        if (!fwrite(buffer, 2, 1, fp)) {
-          return len;
-        }
-        len += 2;
-        break;
-      case 'd':
-        val_32 = va_arg(args, uint32_t);
-        buffer[0] = (char)(val_32 & 0xFF);
-        buffer[1] = (char)((val_32 >> 8) & 0xFF);
-        buffer[2] = (char)((val_32 >> 16) & 0xFF);
-        buffer[3] = (char)((val_32 >> 24) & 0xFF);
-        if (!fwrite(buffer, 4, 1, fp)) {
-          return len;
-        }
-        len += 4;
-        break;
-      case 'D':
-        val_32 = va_arg(args, uint32_t);
-        buffer[0] = (char)((val_32 >> 24) & 0xFF);
-        buffer[1] = (char)((val_32 >> 16) & 0xFF);
-        buffer[2] = (char)((val_32 >> 8) & 0xFF);
-        buffer[3] = (char)(val_32 & 0xFF);
-        if (!fwrite(buffer, 4, 1, fp)) {
-          return len;
-        }
-        len += 4;
-        break;
-      case 'q':
-        val_64 = va_arg(args, uint64_t);
-        buffer[0] = (char)(val_64 & 0xFF);
-        buffer[1] = (char)((val_64 >> 8) & 0xFF);
-        buffer[2] = (char)((val_64 >> 16) & 0xFF);
-        buffer[3] = (char)((val_64 >> 24) & 0xFF);
-        buffer[4] = (char)((val_64 >> 32) & 0xFF);
-        buffer[5] = (char)((val_64 >> 40) & 0xFF);
-        buffer[6] = (char)((val_64 >> 48) & 0xFF);
-        buffer[7] = (char)((val_64 >> 56) & 0xFF);
-        if (!fwrite(buffer, 8, 1, fp)) {
-          return len;
-        }
-        len += 8;
-        break;
-      case 'Q':
-        val_64 = va_arg(args, uint64_t);
-        buffer[0] = (char)((val_64 >> 56) & 0xFF);
-        buffer[1] = (char)((val_64 >> 48) & 0xFF);
-        buffer[2] = (char)((val_64 >> 40) & 0xFF);
-        buffer[3] = (char)((val_64 >> 32) & 0xFF);
-        buffer[4] = (char)((val_64 >> 24) & 0xFF);
-        buffer[5] = (char)((val_64 >> 16) & 0xFF);
-        buffer[6] = (char)((val_64 >> 8) & 0xFF);
-        buffer[7] = (char)(val_64 & 0xFF);
-        if (!fwrite(buffer, 8, 1, fp)) {
-          return len;
-        }
-        len += 8;
-        break;
-
-      default:
-        /* Unknown format specifier */
-        errno = EINVAL;
-        return len;
-    }
-  }
-  return len;
-}
-
-void write_rgba_bmp(FILE *fp, uint8_t *rgba32, int width, int height, size_t stride) {
-  /* Write the BMP file header */
-
-  /* signature */
-  fwrite("BM", 2, 1, fp);
-  
-  /* file size */
-  fpack(fp, "d", 14 + 40 + (4 * width * height));
-  fpack(fp, "ww", 0, 0);  /* reserved fields */
-  fpack(fp, "d", 14 + 40); /* offset to pixel data */
-
-  /* Write the bitmap info header */
-  fpack(fp, "d", 40); /* size of bitmap info header (ergo its version) */
-  fpack(fp, "dd", width, height);
-  fpack(fp, "ww", 1, 32); /* 1 plane, 32 bits per pixel */
-  fpack(fp, "d", 0); /* BI_RGB: no compression */
-  fpack(fp, "d", 0); /* size of image data, can be zero if no compression */
-  fpack(fp, "dddd", 
-        0,  /* horizontal pixels per meter */ 
-        0,  /* vertical pixels per meter*/
-        0,  /* number of colors in palette, none for BI_RGB */
-        0); /* number of "important" colors, all of em, not palette based. */
-
-  /* Write the pixel data; start with bottom row and work our way up. */
-  size_t row;
-  row = ((size_t)height) - 1;
-  do {
-    size_t col;
-    for (col = 0; col < width; col++) {
-      uint8_t *rgba = rgba32 + row * stride + col * 4;
-      fpack(fp, "bbbb", rgba[2], rgba[1], rgba[0], rgba[3]);
-    }
-  } while (row--);
-
-}
 
 void tri(uint8_t *rgba, size_t stride, 
          uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
@@ -4383,44 +4252,6 @@ void tri10_no_subpixels_topleft_sampled(uint8_t *rgba, size_t stride,
         num_samples, samples);
 }
 
-int print_shader_log(FILE *fp, GLuint shader) {
-  GLint log_length = 0;
-  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
-  char *buf = malloc(log_length + 1);
-  if (!buf) {
-    fprintf(fp, "Failed to allocate memory for log\n");
-    return -1;
-  }
-  buf[0] = '\0';
-  GLsizei log_size = (GLsizei)log_length + 1;
-  GLsizei actual_log_length = 0;
-  glGetShaderInfoLog(shader, log_size, &actual_log_length, (GLchar *)buf);
-  buf[actual_log_length] = '\0';
-  fprintf(fp, "%s\n", buf);
-  free(buf);
-
-  return 0;
-}
-
-int print_program_log(FILE *fp, GLuint program) {
-  GLint log_length = 0;
-  glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
-  char *buf = malloc(log_length + 1);
-  if (!buf) {
-    fprintf(fp, "Failed to allocate memory for log\n");
-    return -1;
-  }
-  buf[0] = '\0';
-  GLsizei log_size = (GLsizei)log_length + 1;
-  GLsizei actual_log_length = 0;
-  glGetProgramInfoLog(program, log_size, &actual_log_length, (GLchar *)buf);
-  buf[actual_log_length] = '\0';
-  fprintf(fp, "%s\n", buf);
-  free(buf);
-
-  return 0;
-}
-
 
 int main(int argc, char **argv) {
   int exit_ret = EXIT_FAILURE;
@@ -4496,6 +4327,7 @@ int main(int argc, char **argv) {
 #endif
     last_col = col;
   }
+#if 0 /* running any demos from the renderbmp.c file = 1, or calling to demos.c = 0 */
 #if 0
   tri3_no_subpixels(rgba32, 256*4,
                     0, 0, 256, 256, /* scissor rect */
@@ -5133,7 +4965,6 @@ exit_cleanup:
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-
   /* Recreate the gradient background we had on our original bitmap, however, given
    * as we're using OpenGL ES2 this time around, we cannot directly set pixels to
    * our desired colors (there is no "glWritePixels"). Instead, use glClear with 
@@ -5306,7 +5137,7 @@ exit_cleanup:
   GLenum errcode;
 
   static unsigned char smiley[256*256*3];
-  size_t n;
+
   size_t smiley_row, smiley_column;
   for (smiley_row = 0; smiley_row < 256; ++smiley_row) {
     for (smiley_column = 0; smiley_column < 256; ++smiley_column) {
@@ -5404,7 +5235,6 @@ exit_cleanup:
     fprintf(stdout, "No errors.\n");
     exit_ret = EXIT_SUCCESS;
   }
-
 #endif
   
   /* Superimpose faint grid effect */
@@ -5446,6 +5276,21 @@ exit_cleanup:
     write_rgba_bmp(fp, rgba32 + stride * (OUTPUT_HEIGHT - 1), OUTPUT_WIDTH, OUTPUT_HEIGHT, (size_t)-(intptr_t)stride);
   }
   fclose(fp);
+
+#elif 1
+  r = aex_gl_es2_context_init(32, 16, 32, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+  if (r) {
+    fprintf(stderr, "Failed aex_gl_es2_context_init(): %s\n", sl_err_str(r));
+    return EXIT_FAILURE;
+  }
+
+  if (run_demos(OUTPUT_WIDTH, OUTPUT_HEIGHT)) {
+    exit_ret = EXIT_FAILURE;
+  }
+  else {
+    exit_ret = EXIT_SUCCESS;
+  }
+#endif
 
   return exit_ret;
 }

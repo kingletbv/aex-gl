@@ -3,6 +3,8 @@
   <ItemGroup>
     <ClCompile Include="renderbmp.c" />
     <ClCompile Include="smiley.c" />
+    <ClCompile Include="demo_mipmap_triangle.c" />
+    <ClCompile Include="demos.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="smiley.h" />
