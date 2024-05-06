@@ -13,61 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef STDIO_H_INCLUDED
-#define STDIO_H_INCLUDED
 #include <stdio.h>
-#endif
-
-#ifndef STDLIB_H_INCLUDED
-#define STDLIB_H_INCLUDED
 #include <stdlib.h>
-#endif
-
-#ifndef STDINT_H_INCLUDED
-#define STDINT_H_INCLUDED
 #include <stdint.h>
-#endif
-
-#ifndef STRING_H_INCLUDED
-#define STRING_H_INCLUDED
 #include <string.h>
-#endif
-
-#ifndef STDARG_H_INCLUDED
-#define STDARG_H_INCLUDED
 #include <stdarg.h>
-#endif
-
-#ifndef ERRNO_H_INCLUDED
-#define ERRNO_H_INCLUDED
 #include <errno.h>
-#endif
-
-#ifndef INTTYPES_H_INCLUDED
-#define INTTYPES_H_INCLUDED
 #include <inttypes.h>
-#endif
 
-#ifndef DEMOS_H_INCLUDED
-#define DEMOS_H_INCLUDED
 #include "demos.h"
-#endif
-
-#ifndef SMILEY_H_INCLUDED
-#define SMILEY_H_INCLUDED
 #include "smiley.h"
-#endif
-
-#ifndef GL_ES2_IMPL_H_INCLUDED
-#define GL_ES2_IMPL_H_INCLUDED
 #include "gl_es2_impl.h"
-#endif
 
-#ifndef GLES2_GL2_H_INCLUDED
-#define GLES2_GL2_H_INCLUDED
-#define GL_GLES_PROTOTYPES 0  /* we will define the prototypes as static function pointers by including gl_es2_aex_func_map.c */
+/* we will define the prototypes as static function pointers 
+ * by including gl_es2_aex_func_map.c */
+#define GL_GLES_PROTOTYPES 0
 #include <GLES2/gl2.h>
-#endif
 
 #include "gl_es2_aex_func_map.c"
 
