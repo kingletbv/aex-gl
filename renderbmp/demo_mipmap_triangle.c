@@ -23,12 +23,11 @@
 
 #include "demos.h"
 #include "smiley.h"
-#include "gl_es2_impl.h"
 
 #include "opengl_es2_headers.h"
 
 int demo_mipmap_triangle(int output_width, int output_height) {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   /* Recreate the gradient background we had on our original bitmap, however, given
    * as we're using OpenGL ES2 this time around, we cannot directly set pixels to
@@ -102,7 +101,7 @@ int demo_mipmap_triangle(int output_width, int output_height) {
     "  int x = int(gl_FragCoord.x) + int(gl_FragCoord.y);\n"
     "  int even_x = (x / 2) * 2;\n"
     //"  if ((x - even_x) == 1) discard;\n"
-    "  int checker = int(10.f * vertex_st.x) + int(10.f * vertex_st.y);\n"
+    "  int checker = int(10. * vertex_st.x) + int(10. * vertex_st.y);\n"
     "  int checker_even = (checker / 2) * 2;\n"
     "  float checker_flag = float(checker - checker_even);\n"
     "  vec4 tsmiley = texture2D(tex, vertex_st);\n"
@@ -267,6 +266,7 @@ int demo_mipmap_triangle(int output_width, int output_height) {
                  GL_UNSIGNED_BYTE, mipmap_smiley);
 
   }
+
   //glGenerateMipmap(GL_TEXTURE_2D);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -274,6 +274,6 @@ int demo_mipmap_triangle(int output_width, int output_height) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
   glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, indices);
-
+  
   return 0;
 }
