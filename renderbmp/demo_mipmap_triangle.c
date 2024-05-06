@@ -99,6 +99,7 @@ int demo_mipmap_triangle(int output_width, int output_height) {
   GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
   const char *fsrc = 
+    "precision highp float;\n"
     "varying vec4 vertex_color;\n"
     "varying vec2 vertex_st;\n"
     "uniform sampler2D tex;\n"
