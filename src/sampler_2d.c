@@ -287,7 +287,8 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
           break;
         }
       }
-      uint32_t tex_t = (uint32_t)(tm * s2dm->height_) & s2dm->repeat_mask_t_;
+      /* Flip Y axis as we do this */
+      uint32_t tex_t = s2dm->height_ - ((uint32_t)(tm * s2dm->height_) & s2dm->repeat_mask_t_) - 1;
 
       /* Load texel at tex_s and tex_t */
       switch (s2dm->components_) {
@@ -487,7 +488,8 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
         }
       }
 
-      uint32_t tex_t_fp8 = ((uint32_t)(tm * s2dm->height_ * 256.f)) - 128;
+      /* Flip Y axis as we do this */
+      uint32_t tex_t_fp8 = ((uint32_t)((1.f - tm) * s2dm->height_ * 256.f)) - 128;
       uint32_t tex_t0 = (tex_t_fp8 >> 8) & s2dm->repeat_mask_s_;
       uint32_t tex_t1 = (tex_t0 + 1) & s2dm->repeat_mask_t_;
       uint32_t tex_t1_fract = tex_t_fp8 & 255;
