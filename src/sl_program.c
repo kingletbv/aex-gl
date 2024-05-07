@@ -381,7 +381,7 @@ int sl_program_link(struct sl_program *prog) {
 
 
   /* We now allocate the various buffers that do not rely on the user-defined attributes. */
-  if (primitive_assembly_alloc_buffers(&prog->pa_) ||
+  if (primitive_assembly_init_fixed_columns(&prog->pa_) ||
       clipping_stage_alloc_varyings(&prog->cs_, prog->ar_.num_attribs_routed_) ||
       fragment_buffer_alloc_buffers(&prog->fragbuf_)) {
     dx_no_memory(&prog->log_.dx_);
@@ -455,10 +455,7 @@ int sl_program_link(struct sl_program *prog) {
               size_t component_index;
               for (component_index = 0; component_index < num_components; ++component_index) {
                 int column_index;
-                /* We're adding a column for primitive assembly to reflect fetching this attribute. Note however, that this
-                 * data will flow straight into the register (in sl_execution) and does not pass through the buffers inside
-                 * the primitive_assembly, those buffers are fixed and were already allocated before at 
-                 * primitive_assembly_alloc_buffers() above. */
+                /* We're adding a column for primitive assembly to reflect fetching this attribute. */
                 column_index = primitive_assembly_add_column(&prog->pa_, PACT_ATTRIBUTE, PADT_FLOAT, (int)(ab->active_index_ + attrib_index), (int)component_index, v->reg_alloc_.v_.regs_[component_index + num_components * attrib_index]);
                 if (column_index < 0) {
                   dx_no_memory(&prog->log_.dx_);

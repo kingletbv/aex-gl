@@ -131,14 +131,6 @@ struct primitive_assembly {
   /* Current number of rows, maximum is PRIMITIVE_ASSEMBLY_MAX_ROWS */
   size_t num_rows_;
 
-  /* Memory allocated for the rows */
-  void *slab_;
-
-  /* Array of pointers into the slab_ to the start of the column data.
-   * Each array has PRIMITIVE_ASSEMBLY_MAX_ROWS allocated, how many of
-   * those are in use is determined by num_rows_. */
-  void **column_data_;
-
   /* Array of num_cols_ column descriptions */
   size_t num_cols_;
   size_t num_cols_allocated_;
@@ -155,7 +147,7 @@ struct primitive_assembly {
 
 /* Initializes the primitive assembly but does not allocate the memory, to
  * complete the initialization, call primitive_assembly_init_fixed_columns, to allocate
- * the actual memory (after finalizing all columns needed), call primitive_assembly_alloc_buffers. */
+ * the actual memory (after finalizing all columns needed), call primitive_assembly_init_fixed_columns. */
 void primitive_assembly_init(struct primitive_assembly *pa);
 
 int primitive_assembly_init_fixed_columns(struct primitive_assembly *pa);
@@ -165,8 +157,6 @@ int primitive_assembly_add_column(struct primitive_assembly *pa,
                                   int attrib_index,
                                   int attrib_element_index,
                                   int target_register);
-
-int primitive_assembly_alloc_buffers(struct primitive_assembly *pa);
 
 void primitive_assembly_cleanup(struct primitive_assembly *pa);
 
