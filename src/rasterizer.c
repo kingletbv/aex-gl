@@ -1401,7 +1401,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     }
     if (fragbf->num_rows_) {
       rasterizer->resume_at_ = __LINE__ + 2;
-      return 1;
+      return orientation;
       case __LINE__: ;
     }
     rasterizer->resume_at_ = 0;
