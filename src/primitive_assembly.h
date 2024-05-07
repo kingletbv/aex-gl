@@ -42,25 +42,6 @@ typedef enum primitive_assembly_data_type {
   PADT_INT32
 } primitive_assembly_data_type_t;
 
-#define PAC_IDX_EXECUTION_CHAIN 0
-#define PAC_IDX_POSITION_X 1
-#define PAC_IDX_POSITION_Y 2
-#define PAC_IDX_POSITION_Z 3
-#define PAC_IDX_POSITION_W 4
-#define PAC_IDX_POINT_SIZE 5
-#define PAC_IDX_NUM_FIXED_IDX 6
-
-typedef enum primitive_assembly_column_type {
-  PACT_EXECUTION_CHAIN,
-  PACT_POSITION_X,
-  PACT_POSITION_Y,
-  PACT_POSITION_Z,
-  PACT_POSITION_W,
-  PACT_POINT_SIZE,
-  PACT_ATTRIBUTE,
-  PACT_VARYING
-} primitive_assembly_column_type_t;
-
 typedef enum primitive_assembly_mode {
   PAM_POINTS,
   PAM_LINES,
@@ -111,9 +92,6 @@ typedef enum primitive_assembly_zbuf_func {
 } primitive_assembly_zbuf_func_t;
 
 struct primitive_assembly_column_descriptor {
-  /* Type of the primitive assembly column */
-  primitive_assembly_column_type_t col_type_;
-
   /* Datatype of the primitive assembly column */
   primitive_assembly_data_type_t data_type_;
 
@@ -145,14 +123,11 @@ struct primitive_assembly {
   int continue_at_;
 };
 
-/* Initializes the primitive assembly but does not allocate the memory, to
- * complete the initialization, call primitive_assembly_init_fixed_columns, to allocate
- * the actual memory (after finalizing all columns needed), call primitive_assembly_init_fixed_columns. */
 void primitive_assembly_init(struct primitive_assembly *pa);
 
-int primitive_assembly_init_fixed_columns(struct primitive_assembly *pa);
+void primitive_assembly_reset(struct primitive_assembly *pa);
+
 int primitive_assembly_add_column(struct primitive_assembly *pa,
-                                  primitive_assembly_column_type_t col_type,
                                   primitive_assembly_data_type_t data_type,
                                   int attrib_index,
                                   int attrib_element_index,

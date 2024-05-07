@@ -381,8 +381,7 @@ int sl_program_link(struct sl_program *prog) {
 
 
   /* We now allocate the various buffers that do not rely on the user-defined attributes. */
-  if (primitive_assembly_init_fixed_columns(&prog->pa_) ||
-      clipping_stage_alloc_varyings(&prog->cs_, prog->ar_.num_attribs_routed_) ||
+  if (clipping_stage_alloc_varyings(&prog->cs_, prog->ar_.num_attribs_routed_) ||
       fragment_buffer_alloc_buffers(&prog->fragbuf_)) {
     dx_no_memory(&prog->log_.dx_);
     return SL_ERR_NO_MEM;
@@ -394,6 +393,9 @@ int sl_program_link(struct sl_program *prog) {
   r = r ? r : sl_exec_prep(&prog->fragment_shader_->exec_, &prog->fragment_shader_->cu_);
   r = r ? r : sl_exec_allocate_registers_by_slab(&prog->fragment_shader_->exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
   if (r) return r;
+
+  /* Reset primitive assembly as we'll be (re)building the columns */
+  primitive_assembly_reset(&prog->pa_);
 
   /* All attribute variables have a corresponding attrib_binding in prog->abt_, furthermore,
    * they all have an appropriately configured active_index_.
@@ -456,7 +458,7 @@ int sl_program_link(struct sl_program *prog) {
               for (component_index = 0; component_index < num_components; ++component_index) {
                 int column_index;
                 /* We're adding a column for primitive assembly to reflect fetching this attribute. */
-                column_index = primitive_assembly_add_column(&prog->pa_, PACT_ATTRIBUTE, PADT_FLOAT, (int)(ab->active_index_ + attrib_index), (int)component_index, v->reg_alloc_.v_.regs_[component_index + num_components * attrib_index]);
+                column_index = primitive_assembly_add_column(&prog->pa_, PADT_FLOAT, (int)(ab->active_index_ + attrib_index), (int)component_index, v->reg_alloc_.v_.regs_[component_index + num_components * attrib_index]);
                 if (column_index < 0) {
                   dx_no_memory(&prog->log_.dx_);
                 }
