@@ -196,12 +196,12 @@ xx("float distance(vec2 p0, vec2 p1);", builtin_distance_v2v2_runtime, builtin_d
 xx("float distance(vec3 p0, vec3 p1);", builtin_distance_v3v3_runtime, builtin_distance_v3v3_eval)
 xx("float distance(vec4 p0, vec4 p1);", builtin_distance_v4v4_runtime, builtin_distance_v4v4_eval)
 
-xx("float dot(float x, float y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("float dot(vec2 x, vec2 y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("float dot(vec3 x, vec3 y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("float dot(vec4 x, vec4 y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("float dot(float x, float y);", builtin_dot_ff_runtime, builtin_dot_ff_eval)
+xx("float dot(vec2 x, vec2 y);", builtin_dot_v2v2_runtime, builtin_dot_v2v2_eval)
+xx("float dot(vec3 x, vec3 y);", builtin_dot_v3v3_runtime, builtin_dot_v3v3_eval)
+xx("float dot(vec4 x, vec4 y);", builtin_dot_v4v4_runtime, builtin_dot_v4v4_eval)
 
-xx("vec3 cross(vec3 x, vec3 y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("vec3 cross(vec3 x, vec3 y);", builtin_cross_v3v3_runtime, builtin_cross_v3v3_eval)
 
 xx("float normalize(float x);", builtin_not_implemented_runtime, builtin_not_implemented_eval) /* yah .... */
 xx("vec2 normalize(vec2 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
