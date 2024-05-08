@@ -411,6 +411,13 @@ void builtin_refract_v2v2f_eval(struct sl_type_base *tb, const struct sl_expr *x
 void builtin_refract_v3v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_refract_v4v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
+void builtin_matrixCompMult_m2m2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_matrixCompMult_m3m3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_matrixCompMult_m4m4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_matrixCompMult_m2m2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_matrixCompMult_m3m3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_matrixCompMult_m4m4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

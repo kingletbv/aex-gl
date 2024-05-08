@@ -224,9 +224,9 @@ xx("vec3 refract(vec3 I, vec3 N, float eta);", builtin_refract_v3v3f_runtime, bu
 xx("vec4 refract(vec4 I, vec4 N, float eta);", builtin_refract_v4v4f_runtime, builtin_refract_v4v4f_eval)
 
 /* Matrix Functions */
-xx("mat2 matrixCompMult(mat2 x, mat2 y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("mat3 matrixCompMult(mat3 x, mat3 y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("mat4 matrixCompMult(mat4 x, mat4 y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("mat2 matrixCompMult(mat2 x, mat2 y);", builtin_matrixCompMult_m2m2_runtime, builtin_matrixCompMult_m2m2_eval)
+xx("mat3 matrixCompMult(mat3 x, mat3 y);", builtin_matrixCompMult_m3m3_runtime, builtin_matrixCompMult_m3m3_eval)
+xx("mat4 matrixCompMult(mat4 x, mat4 y);", builtin_matrixCompMult_m4m4_runtime, builtin_matrixCompMult_m4m4_eval)
 
 /* Vector Relational Functions */
 xx("bvec2 lessThan(vec2 x, vec2 y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)

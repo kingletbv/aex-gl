@@ -7776,3 +7776,110 @@ void builtin_refract_v4v4f_eval(struct sl_type_base *tb, const struct sl_expr *x
                               opdeta.v_.f_ * opdI.v_.v_[3] - (opdeta.v_.f_ * dot_n_i + sqrtf(k)) * opdN.v_.v_[3]);
   }
 }
+
+static void builtin_matrixCompMult_mNmN_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x, size_t N) {
+  size_t component_index;
+
+  for (component_index = 0; component_index < N; ++component_index) {
+    uint8_t *restrict chain_column = exec->exec_chain_reg_;
+    float *restrict result_column = FLOAT_REG_PTR(x, component_index);
+    float *restrict first_opd_column = FLOAT_REG_PTR(x->children_[0], component_index);
+    float *restrict second_opd_column = FLOAT_REG_PTR(x->children_[1], component_index);
+    uint8_t row = exec_chain;
+
+    for (;;) {
+      uint64_t chain;
+      uint8_t delta;
+
+      if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+        do {
+          float *restrict result = result_column + row;
+          const float *first_opd = first_opd_column + row;
+          const float *second_opd = second_opd_column + row;
+          int n;
+          /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+          for (n = 0; n < 8; n++) {
+            result[n] = first_opd[n] * second_opd[n];
+          }
+
+          delta = (chain & 0xFF00000000000000) >> 56;
+          if (!delta) break;
+          row += 7 + delta;
+        } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+      }
+      else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+        do {
+          float *restrict result = result_column + row;
+          const float *first_opd = first_opd_column + row;
+          const float *second_opd = second_opd_column + row;
+          int n;
+          /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+          for (n = 0; n < 4; n++) {
+            result[n] = first_opd[n] * second_opd[n];
+          }
+          delta = (chain & 0xFF000000) >> 24;
+          if (!delta) break;
+          row += 3 + delta;
+        } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      }
+      else {
+        do {
+          /* Not trying to evoke auto-vectorization, just get it done. */
+          result_column[row] = first_opd_column[row] * second_opd_column[row];
+
+          delta = chain_column[row];
+          if (!delta) break;
+          row += delta;
+        } while (row & 3);
+      }
+      if (!delta) break;
+    }
+  }
+}
+
+void builtin_matrixCompMult_m2m2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  builtin_matrixCompMult_mNmN_runtime(exec, exec_chain, x, 4);
+}
+
+
+void builtin_matrixCompMult_m3m3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  builtin_matrixCompMult_mNmN_runtime(exec, exec_chain, x, 9);
+}
+
+void builtin_matrixCompMult_m4m4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  builtin_matrixCompMult_mNmN_runtime(exec, exec_chain, x, 16);
+}
+
+static void builtin_matrixCompMult_mNmN_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r, sl_expr_temp_kind_t kind, size_t N) {
+  struct sl_expr_temp first_opd, second_opd;
+  sl_expr_temp_init(&first_opd, NULL);
+  sl_expr_temp_init(&second_opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &first_opd)) {
+    sl_expr_temp_cleanup(&first_opd);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &second_opd)) {
+    sl_expr_temp_cleanup(&first_opd);
+    sl_expr_temp_cleanup(&second_opd);
+    return;
+  }
+  sl_expr_temp_init_void(r);
+  r->kind_ = kind;
+  size_t component_index;
+  for (component_index = 0; component_index < N; ++component_index) {
+    r->v_.m_[component_index] = first_opd.v_.m_[component_index] * second_opd.v_.m_[component_index];
+  }
+}
+
+void builtin_matrixCompMult_m2m2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  builtin_matrixCompMult_mNmN_eval(tb, x, r, sletk_mat2, 4);
+}
+
+void builtin_matrixCompMult_m3m3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  builtin_matrixCompMult_mNmN_eval(tb, x, r, sletk_mat3, 9);
+}
+
+void builtin_matrixCompMult_m4m4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  builtin_matrixCompMult_mNmN_eval(tb, x, r, sletk_mat4, 16);
+}
+
