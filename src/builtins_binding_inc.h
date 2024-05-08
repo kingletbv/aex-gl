@@ -213,10 +213,10 @@ xx("vec2 faceforward(vec2 N, vec2 I, vec2 Nref);", builtin_faceforward_v2v2v2_ru
 xx("vec3 faceforward(vec3 N, vec3 I, vec3 Nref);", builtin_faceforward_v3v3v3_runtime, builtin_faceforward_v3v3v3_eval)
 xx("vec4 faceforward(vec4 N, vec4 I, vec4 Nref);", builtin_faceforward_v4v4v4_runtime, builtin_faceforward_v4v4v4_eval)
 
-xx("float reflect(float I, float N);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec2 reflect(vec2 I, vec2 N);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec3 reflect(vec3 I, vec3 N);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 reflect(vec4 I, vec4 N);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("float reflect(float I, float N);", builtin_reflect_ff_runtime, builtin_reflect_ff_eval)
+xx("vec2 reflect(vec2 I, vec2 N);", builtin_reflect_v2v2_runtime, builtin_reflect_v2v2_eval)
+xx("vec3 reflect(vec3 I, vec3 N);", builtin_reflect_v3v3_runtime, builtin_reflect_v3v3_eval)
+xx("vec4 reflect(vec4 I, vec4 N);", builtin_reflect_v4v4_runtime, builtin_reflect_v4v4_eval)
 
 xx("float refract(float I, float N, float eta);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
 xx("vec2 refract(vec2 I, vec2 N, float eta);", builtin_not_implemented_runtime, builtin_not_implemented_eval)

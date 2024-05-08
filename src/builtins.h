@@ -393,6 +393,15 @@ void builtin_faceforward_v2v2v2_eval(struct sl_type_base *tb, const struct sl_ex
 void builtin_faceforward_v3v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_faceforward_v4v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
+void builtin_reflect_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_reflect_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_reflect_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_reflect_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_reflect_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_reflect_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_reflect_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_reflect_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
