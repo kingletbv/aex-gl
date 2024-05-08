@@ -375,6 +375,15 @@ void builtin_dot_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, str
 void builtin_cross_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_cross_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
+void builtin_normalize_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_normalize_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_normalize_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_normalize_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_normalize_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_normalize_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_normalize_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_normalize_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
 
 #ifdef __cplusplus
 } /* extern "C" */

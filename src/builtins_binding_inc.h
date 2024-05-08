@@ -203,10 +203,10 @@ xx("float dot(vec4 x, vec4 y);", builtin_dot_v4v4_runtime, builtin_dot_v4v4_eval
 
 xx("vec3 cross(vec3 x, vec3 y);", builtin_cross_v3v3_runtime, builtin_cross_v3v3_eval)
 
-xx("float normalize(float x);", builtin_not_implemented_runtime, builtin_not_implemented_eval) /* yah .... */
-xx("vec2 normalize(vec2 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec3 normalize(vec3 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 normalize(vec4 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("float normalize(float x);", builtin_normalize_f_runtime, builtin_normalize_f_eval) /* yah .... */
+xx("vec2 normalize(vec2 x);", builtin_normalize_v2_runtime, builtin_normalize_v2_eval)
+xx("vec3 normalize(vec3 x);", builtin_normalize_v3_runtime, builtin_normalize_v3_eval)
+xx("vec4 normalize(vec4 x);", builtin_normalize_v4_runtime, builtin_normalize_v4_eval)
 
 xx("float faceforward(float N, float I, float Nref);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
 xx("vec2 faceforward(vec2 N, vec2 I, vec2 Nref);", builtin_not_implemented_runtime, builtin_not_implemented_eval)

@@ -6147,3 +6147,279 @@ void builtin_cross_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, s
                             opd0.v_.v_[2] * opd1.v_.v_[0] - opd0.v_.v_[0] * opd1.v_.v_[2],
                             opd0.v_.v_[0] * opd1.v_.v_[1] - opd0.v_.v_[1] * opd1.v_.v_[0]);
 }
+
+void builtin_normalize_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+#define UNOP_SNIPPET_OPERATOR(opd) (opd < 0.f) ? -1.f : 1.f
+#define UNOP_SNIPPET_TYPE float
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+}
+
+void builtin_normalize_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_x_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_y_column = FLOAT_REG_PTR(x, 1);
+  float *restrict x_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict y_column = FLOAT_REG_PTR(x->children_[0], 1);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result_x = result_x_column + row;
+        float *restrict result_y = result_y_column + row;
+        const float *restrict x = x_column + row;
+        const float *restrict y = y_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          float len = sqrtf(x[n] * x[n] + y[n] * y[n]);
+          result_x[n] = x[n] / len;
+          result_y[n] = y[n] / len;
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result_x = result_x_column + row;
+        float *restrict result_y = result_y_column + row;
+        const float *restrict x = x_column + row;
+        const float *restrict y = y_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          float len = sqrtf(x[n] * x[n] + y[n] * y[n]);
+          result_x[n] = x[n] / len;
+          result_y[n] = y[n] / len;
+        }
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        float len = sqrtf(x_column[row] * x_column[row] + y_column[row] * y_column[row]);
+        result_x_column[row] = x_column[row] / len;
+        result_y_column[row] = y_column[row] / len;
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_normalize_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_x_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_y_column = FLOAT_REG_PTR(x, 1);
+  float *restrict result_z_column = FLOAT_REG_PTR(x, 2);
+  float *restrict x_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict y_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict z_column = FLOAT_REG_PTR(x->children_[0], 2);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result_x = result_x_column + row;
+        float *restrict result_y = result_y_column + row;
+        float *restrict result_z = result_z_column + row;
+        const float *restrict x = x_column + row;
+        const float *restrict y = y_column + row;
+        const float *restrict z = z_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          float len = sqrtf(x[n] * x[n] + y[n] * y[n] + z[n] * z[n]);
+          result_x[n] = x[n] / len;
+          result_y[n] = y[n] / len;
+          result_z[n] = z[n] / len;
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result_x = result_x_column + row;
+        float *restrict result_y = result_y_column + row;
+        float *restrict result_z = result_z_column + row;
+        const float *restrict x = x_column + row;
+        const float *restrict y = y_column + row;
+        const float *restrict z = z_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          float len = sqrtf(x[n] * x[n] + y[n] * y[n] + z[n] * z[n]);
+          result_x[n] = x[n] / len;
+          result_y[n] = y[n] / len;
+          result_z[n] = z[n] / len;
+        }
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        float len = sqrtf(x_column[row] * x_column[row] + y_column[row] * y_column[row] + z_column[row] * z_column[row]);
+        result_x_column[row] = x_column[row] / len;
+        result_y_column[row] = y_column[row] / len;
+        result_z_column[row] = z_column[row] / len;
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_normalize_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_x_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_y_column = FLOAT_REG_PTR(x, 1);
+  float *restrict result_z_column = FLOAT_REG_PTR(x, 2);
+  float *restrict result_w_column = FLOAT_REG_PTR(x, 3);
+  float *restrict x_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict y_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict z_column = FLOAT_REG_PTR(x->children_[0], 2);
+  float *restrict w_column = FLOAT_REG_PTR(x->children_[0], 3);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result_x = result_x_column + row;
+        float *restrict result_y = result_y_column + row;
+        float *restrict result_z = result_z_column + row;
+        float *restrict result_w = result_w_column + row;
+        const float *restrict x = x_column + row;
+        const float *restrict y = y_column + row;
+        const float *restrict z = z_column + row;
+        const float *restrict w = w_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          float len = sqrtf(x[n] * x[n] + y[n] * y[n] + z[n] * z[n] + w[n] * w[n]);
+          result_x[n] = x[n] / len;
+          result_y[n] = y[n] / len;
+          result_z[n] = z[n] / len;
+          result_w[n] = w[n] / len;
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result_x = result_x_column + row;
+        float *restrict result_y = result_y_column + row;
+        float *restrict result_z = result_z_column + row;
+        float *restrict result_w = result_w_column + row;
+        const float *restrict x = x_column + row;
+        const float *restrict y = y_column + row;
+        const float *restrict z = z_column + row;
+        const float *restrict w = w_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          float len = sqrtf(x[n] * x[n] + y[n] * y[n] + z[n] * z[n] + w[n] * w[n]);
+          result_x[n] = x[n] / len;
+          result_y[n] = y[n] / len;
+          result_z[n] = z[n] / len;
+          result_w[n] = w[n] / len;
+        }
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        float len = sqrtf(x_column[row] * x_column[row] + y_column[row] * y_column[row] + z_column[row] * z_column[row] + w_column[row] * w_column[row]);
+        result_x_column[row] = x_column[row] / len;
+        result_y_column[row] = y_column[row] / len;
+        result_z_column[row] = z_column[row] / len;
+        result_w_column[row] = w_column[row] / len;
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_normalize_f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  sl_expr_temp_init_float(r, (opd.v_.f_ < 0.f) ? -1.f : 1.f);
+}
+
+void builtin_normalize_v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  float len = sqrtf(opd.v_.v_[0] * opd.v_.v_[0] + opd.v_.v_[1] * opd.v_.v_[1]);
+  sl_expr_temp_init_vec2(r, opd.v_.v_[0] / len, opd.v_.v_[1] / len);
+}
+
+void builtin_normalize_v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  float len = sqrtf(opd.v_.v_[0] * opd.v_.v_[0] + opd.v_.v_[1] * opd.v_.v_[1] + opd.v_.v_[2] * opd.v_.v_[2]);
+  sl_expr_temp_init_vec3(r, opd.v_.v_[0] / len, opd.v_.v_[1] / len, opd.v_.v_[2] / len);
+}
+
+void builtin_normalize_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd;
+  sl_expr_temp_init(&opd, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd)) {
+    sl_expr_temp_cleanup(&opd);
+    return;
+  }
+  float len = sqrtf(opd.v_.v_[0] * opd.v_.v_[0] + opd.v_.v_[1] * opd.v_.v_[1] + opd.v_.v_[2] * opd.v_.v_[2] + opd.v_.v_[3] * opd.v_.v_[3]);
+  sl_expr_temp_init_vec4(r, opd.v_.v_[0] / len, opd.v_.v_[1] / len, opd.v_.v_[2] / len, opd.v_.v_[3] / len);
+}
+
