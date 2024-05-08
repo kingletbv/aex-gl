@@ -5912,8 +5912,8 @@ void builtin_distance_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x
     sl_expr_temp_cleanup(&opd1);
     return;
   }
-  sl_expr_temp_init_float(r, sqrtf(opd0.v_.v_[0] - opd1.v_.v_[0]) * (opd0.v_.v_[0] - opd1.v_.v_[0]) 
-                                + (opd0.v_.v_[1] - opd1.v_.v_[1]) * (opd0.v_.v_[1] - opd1.v_.v_[1]));
+  sl_expr_temp_init_float(r, sqrtf((opd0.v_.v_[0] - opd1.v_.v_[0]) * (opd0.v_.v_[0] - opd1.v_.v_[0]) 
+                                 + (opd0.v_.v_[1] - opd1.v_.v_[1]) * (opd0.v_.v_[1] - opd1.v_.v_[1])));
 }
 
 void builtin_distance_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
@@ -5929,9 +5929,9 @@ void builtin_distance_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x
     sl_expr_temp_cleanup(&opd1);
     return;
   }
-  sl_expr_temp_init_float(r, sqrtf(opd0.v_.v_[0] - opd1.v_.v_[0]) * (opd0.v_.v_[0] - opd1.v_.v_[0]) 
-                                + (opd0.v_.v_[1] - opd1.v_.v_[1]) * (opd0.v_.v_[1] - opd1.v_.v_[1])
-                                + (opd0.v_.v_[2] - opd1.v_.v_[2]) * (opd0.v_.v_[2] - opd1.v_.v_[2]));
+  sl_expr_temp_init_float(r, sqrtf((opd0.v_.v_[0] - opd1.v_.v_[0]) * (opd0.v_.v_[0] - opd1.v_.v_[0]) 
+                                 + (opd0.v_.v_[1] - opd1.v_.v_[1]) * (opd0.v_.v_[1] - opd1.v_.v_[1])
+                                 + (opd0.v_.v_[2] - opd1.v_.v_[2]) * (opd0.v_.v_[2] - opd1.v_.v_[2])));
 }
 
 void builtin_distance_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
@@ -5947,9 +5947,9 @@ void builtin_distance_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x
     sl_expr_temp_cleanup(&opd1);
     return;
   }
-  sl_expr_temp_init_float(r, sqrtf(opd0.v_.v_[0] - opd1.v_.v_[0]) * (opd0.v_.v_[0] - opd1.v_.v_[0]) 
-                                + (opd0.v_.v_[1] - opd1.v_.v_[1]) * (opd0.v_.v_[1] - opd1.v_.v_[1])
-                                + (opd0.v_.v_[2] - opd1.v_.v_[2]) * (opd0.v_.v_[2] - opd1.v_.v_[2])
-                                + (opd0.v_.v_[3] - opd1.v_.v_[3]) * (opd0.v_.v_[3] - opd1.v_.v_[3]));
+  sl_expr_temp_init_float(r, sqrtf((opd0.v_.v_[0] - opd1.v_.v_[0]) * (opd0.v_.v_[0] - opd1.v_.v_[0]) 
+                                 + (opd0.v_.v_[1] - opd1.v_.v_[1]) * (opd0.v_.v_[1] - opd1.v_.v_[1])
+                                 + (opd0.v_.v_[2] - opd1.v_.v_[2]) * (opd0.v_.v_[2] - opd1.v_.v_[2])
+                                 + (opd0.v_.v_[3] - opd1.v_.v_[3]) * (opd0.v_.v_[3] - opd1.v_.v_[3])));
 }
 
