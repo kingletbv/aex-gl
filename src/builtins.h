@@ -411,12 +411,71 @@ void builtin_refract_v2v2f_eval(struct sl_type_base *tb, const struct sl_expr *x
 void builtin_refract_v3v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_refract_v4v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
+/* Matrix Functions */
 void builtin_matrixCompMult_m2m2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_matrixCompMult_m3m3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_matrixCompMult_m4m4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_matrixCompMult_m2m2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_matrixCompMult_m3m3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_matrixCompMult_m4m4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+/* Vector Relational functions */
+void builtin_lessThan_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThan_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThan_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThan_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_lessThan_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_lessThan_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_lessThan_iv2iv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThan_iv3iv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThan_iv4iv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThan_iv2iv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_lessThan_iv3iv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_lessThan_iv4iv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_lessThanEqual_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThanEqual_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThanEqual_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThanEqual_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_lessThanEqual_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_lessThanEqual_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_lessThanEqual_iv2iv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThanEqual_iv3iv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThanEqual_iv4iv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_lessThanEqual_iv2iv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_lessThanEqual_iv3iv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_lessThanEqual_iv4iv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_greaterThan_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThan_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThan_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThan_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_greaterThan_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_greaterThan_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_greaterThan_iv2iv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThan_iv3iv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThan_iv4iv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThan_iv2iv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_greaterThan_iv3iv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_greaterThan_iv4iv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_greaterThanEqual_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThanEqual_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThanEqual_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThanEqual_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_greaterThanEqual_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_greaterThanEqual_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_greaterThanEqual_iv2iv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThanEqual_iv3iv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThanEqual_iv4iv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_greaterThanEqual_iv2iv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_greaterThanEqual_iv3iv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_greaterThanEqual_iv4iv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
 
 #ifdef __cplusplus
 } /* extern "C" */
