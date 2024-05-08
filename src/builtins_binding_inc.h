@@ -186,10 +186,10 @@ xx("vec3 smoothstep(float a, float b, vec3 x);", builtin_smoothstep_ffv3_runtime
 xx("vec4 smoothstep(float a, float b, vec4 x);", builtin_smoothstep_ffv4_runtime, builtin_smoothstep_ffv4_eval)
 
 /* Geometric Functions */
-xx("float length(float x);", builtin_not_implemented_runtime, builtin_not_implemented_eval) /* yah ... */
-xx("float length(vec2 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("float length(vec3 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("float length(vec4 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("float length(float x);", builtin_length_f_runtime, builtin_length_f_eval) /* yah ... */
+xx("float length(vec2 x);", builtin_length_v2_runtime, builtin_length_v2_eval)
+xx("float length(vec3 x);", builtin_length_v3_runtime, builtin_length_v3_eval)
+xx("float length(vec4 x);", builtin_length_v4_runtime, builtin_length_v4_eval)
 
 xx("float distance(float p0, float p1);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
 xx("float distance(vec2 p0, vec2 p1);", builtin_not_implemented_runtime, builtin_not_implemented_eval)

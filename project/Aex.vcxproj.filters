@@ -124,6 +124,7 @@
     <ClInclude Include="..\src\gl_es2_context.h" />
     <ClInclude Include="..\src\named_object_table.h" />
     <ClInclude Include="..\src\data_buffer.h" />
+    <ClInclude Include="..\src\sl_quadop_snippet_inc.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
