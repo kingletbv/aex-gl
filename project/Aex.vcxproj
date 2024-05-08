@@ -351,9 +351,11 @@
     <ClInclude Include="..\src\sl_expr_temp.h" />
     <ClInclude Include="..\src\sl_frame.h" />
     <ClInclude Include="..\src\sl_info_log.h" />
+    <ClInclude Include="..\src\sl_octonop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_program.h" />
     <ClInclude Include="..\src\sl_quadop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_reg_alloc.h" />
+    <ClInclude Include="..\src\sl_senop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_shader.h" />
     <ClInclude Include="..\src\sl_stmt.h" />
     <ClInclude Include="..\src\sl_ternop_snippet_inc.h" />

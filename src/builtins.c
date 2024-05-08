@@ -5815,3 +5815,141 @@ void builtin_length_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, st
   sl_expr_temp_init_float(r, sqrtf(opd.v_.v_[0] * opd.v_.v_[0] + opd.v_.v_[1] * opd.v_.v_[1] + opd.v_.v_[2] * opd.v_.v_[2] + opd.v_.v_[3] * opd.v_.v_[3]));
 }
 
+void builtin_distance_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
+  uint8_t row = exec_chain;
+
+#define BINOP_SNIPPET_OPERATOR(x, y) fabsf(x - y)
+#define BINOP_SNIPPET_TYPE float
+#include "sl_binop_snippet_inc.h"
+#undef BINOP_SNIPPET_OPERATOR
+#undef BINOP_SNIPPET_TYPE
+}
+
+void builtin_distance_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict third_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict fourth_column = FLOAT_REG_PTR(x->children_[1], 1);
+  uint8_t row = exec_chain;
+
+#define QUADOP_SNIPPET_OPERATOR(x0, y0, x1, y1) sqrtf((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1))
+#define QUADOP_SNIPPET_TYPE float
+#include "sl_quadop_snippet_inc.h"
+#undef QUADOP_SNIPPET_OPERATOR
+#undef QUADOP_SNIPPET_TYPE
+}
+
+void builtin_distance_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict third_column = FLOAT_REG_PTR(x->children_[0], 2);
+  float *restrict fourth_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict fifth_column = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict sixth_column = FLOAT_REG_PTR(x->children_[1], 2);
+  uint8_t row = exec_chain;
+
+#define SENOP_SNIPPET_OPERATOR(x0, y0, z0, x1, y1, z1) sqrtf((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1) + (z0 - z1) * (z0 - z1))
+#define SENOP_SNIPPET_TYPE float
+#include "sl_senop_snippet_inc.h"
+#undef SENOP_SNIPPET_OPERATOR
+#undef SENOP_SNIPPET_TYPE
+}
+
+void builtin_distance_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict third_column = FLOAT_REG_PTR(x->children_[0], 2);
+  float *restrict fourth_column = FLOAT_REG_PTR(x->children_[0], 3);
+  float *restrict fifth_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict sixth_column = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict seventh_column = FLOAT_REG_PTR(x->children_[1], 2);
+  float *restrict eighth_column = FLOAT_REG_PTR(x->children_[1], 3);
+  uint8_t row = exec_chain;
+
+#define OCTONOP_SNIPPET_OPERATOR(x0, y0, z0, w0, x1, y1, z1, w1) sqrtf((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1) + (z0 - z1) * (z0 - z1) + (w0 - w1) * (w0 - w1))
+#define OCTONOP_SNIPPET_TYPE float
+#include "sl_octonop_snippet_inc.h"
+#undef OCTONOP_SNIPPET_OPERATOR
+#undef OCTONOP_SNIPPET_TYPE
+}
+
+void builtin_distance_ff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_float(r, fabsf(opd0.v_.f_ - opd1.v_.f_));
+}
+
+void builtin_distance_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_float(r, sqrtf(opd0.v_.v_[0] - opd1.v_.v_[0]) * (opd0.v_.v_[0] - opd1.v_.v_[0]) 
+                                + (opd0.v_.v_[1] - opd1.v_.v_[1]) * (opd0.v_.v_[1] - opd1.v_.v_[1]));
+}
+
+void builtin_distance_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_float(r, sqrtf(opd0.v_.v_[0] - opd1.v_.v_[0]) * (opd0.v_.v_[0] - opd1.v_.v_[0]) 
+                                + (opd0.v_.v_[1] - opd1.v_.v_[1]) * (opd0.v_.v_[1] - opd1.v_.v_[1])
+                                + (opd0.v_.v_[2] - opd1.v_.v_[2]) * (opd0.v_.v_[2] - opd1.v_.v_[2]));
+}
+
+void builtin_distance_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opd0, opd1;
+  sl_expr_temp_init(&opd0, NULL);
+  sl_expr_temp_init(&opd1, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opd0)) {
+    sl_expr_temp_cleanup(&opd0);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opd1)) {
+    sl_expr_temp_cleanup(&opd0);
+    sl_expr_temp_cleanup(&opd1);
+    return;
+  }
+  sl_expr_temp_init_float(r, sqrtf(opd0.v_.v_[0] - opd1.v_.v_[0]) * (opd0.v_.v_[0] - opd1.v_.v_[0]) 
+                                + (opd0.v_.v_[1] - opd1.v_.v_[1]) * (opd0.v_.v_[1] - opd1.v_.v_[1])
+                                + (opd0.v_.v_[2] - opd1.v_.v_[2]) * (opd0.v_.v_[2] - opd1.v_.v_[2])
+                                + (opd0.v_.v_[3] - opd1.v_.v_[3]) * (opd0.v_.v_[3] - opd1.v_.v_[3]));
+}
+
