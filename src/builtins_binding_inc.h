@@ -218,10 +218,10 @@ xx("vec2 reflect(vec2 I, vec2 N);", builtin_reflect_v2v2_runtime, builtin_reflec
 xx("vec3 reflect(vec3 I, vec3 N);", builtin_reflect_v3v3_runtime, builtin_reflect_v3v3_eval)
 xx("vec4 reflect(vec4 I, vec4 N);", builtin_reflect_v4v4_runtime, builtin_reflect_v4v4_eval)
 
-xx("float refract(float I, float N, float eta);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec2 refract(vec2 I, vec2 N, float eta);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec3 refract(vec3 I, vec3 N, float eta);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("vec4 refract(vec4 I, vec4 N, float eta);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("float refract(float I, float N, float eta);", builtin_refract_fff_runtime, builtin_refract_fff_eval)
+xx("vec2 refract(vec2 I, vec2 N, float eta);", builtin_refract_v2v2f_runtime, builtin_refract_v2v2f_eval)
+xx("vec3 refract(vec3 I, vec3 N, float eta);", builtin_refract_v3v3f_runtime, builtin_refract_v3v3f_eval)
+xx("vec4 refract(vec4 I, vec4 N, float eta);", builtin_refract_v4v4f_runtime, builtin_refract_v4v4f_eval)
 
 /* Matrix Functions */
 xx("mat2 matrixCompMult(mat2 x, mat2 y);", builtin_not_implemented_runtime, builtin_not_implemented_eval)

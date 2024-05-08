@@ -402,6 +402,15 @@ void builtin_reflect_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x,
 void builtin_reflect_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_reflect_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
+void builtin_refract_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_refract_v2v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_refract_v3v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_refract_v4v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_refract_fff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_refract_v2v2f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_refract_v3v3f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_refract_v4v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
