@@ -514,6 +514,26 @@ void builtin_notEqual_bv2bv2_eval(struct sl_type_base *tb, const struct sl_expr 
 void builtin_notEqual_bv3bv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_notEqual_bv4bv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
+void builtin_any_bv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_any_bv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_any_bv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_any_bv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_any_bv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_any_bv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_all_bv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_all_bv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_all_bv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_all_bv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_all_bv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_all_bv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_not_bv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_not_bv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_not_bv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_not_bv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_not_bv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_not_bv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
 #ifdef __cplusplus
 } /* extern "C" */

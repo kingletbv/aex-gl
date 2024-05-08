@@ -277,17 +277,17 @@ xx("bvec2 notEqual(bvec2 x, bvec2 y);", builtin_notEqual_bv2bv2_runtime, builtin
 xx("bvec3 notEqual(bvec3 x, bvec3 y);", builtin_notEqual_bv3bv3_runtime, builtin_notEqual_bv3bv3_eval)
 xx("bvec4 notEqual(bvec4 x, bvec4 y);", builtin_notEqual_bv4bv4_runtime, builtin_notEqual_bv4bv4_eval)
 
-xx("bool any(bvec2 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("bool any(bvec3 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("bool any(bvec4 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("bool any(bvec2 x);", builtin_any_bv2_runtime, builtin_any_bv2_eval)
+xx("bool any(bvec3 x);", builtin_any_bv3_runtime, builtin_any_bv3_eval)
+xx("bool any(bvec4 x);", builtin_any_bv4_runtime, builtin_any_bv4_eval)
 
-xx("bool all(bvec2 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("bool all(bvec3 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("bool all(bvec4 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("bool all(bvec2 x);", builtin_all_bv2_runtime, builtin_all_bv2_eval)
+xx("bool all(bvec3 x);", builtin_all_bv3_runtime, builtin_all_bv3_eval)
+xx("bool all(bvec4 x);", builtin_all_bv4_runtime, builtin_all_bv4_eval)
 
-xx("bvec2 not(bvec2 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("bvec3 not(bvec3 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
-xx("bvec4 not(bvec4 x);", builtin_not_implemented_runtime, builtin_not_implemented_eval)
+xx("bvec2 not(bvec2 x);", builtin_not_bv2_runtime, builtin_not_bv2_eval)
+xx("bvec3 not(bvec3 x);", builtin_not_bv3_runtime, builtin_not_bv3_eval)
+xx("bvec4 not(bvec4 x);", builtin_not_bv4_runtime, builtin_not_bv4_eval)
 
 /* Texture Lookup Functions */
 xx("vec4 texture2D(sampler2D sampler, vec2 coord);",                   builtin_texture2D_runtime, NULL)
