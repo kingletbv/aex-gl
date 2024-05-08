@@ -6423,3 +6423,442 @@ void builtin_normalize_v4_eval(struct sl_type_base *tb, const struct sl_expr *x,
   sl_expr_temp_init_vec4(r, opd.v_.v_[0] / len, opd.v_.v_[1] / len, opd.v_.v_[2] / len, opd.v_.v_[3] / len);
 }
 
+void builtin_faceforward_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict N_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict I_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict Nref_column = FLOAT_REG_PTR(x->children_[2], 0);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict N = N_column + row;
+        const float *restrict I = I_column + row;
+        const float *restrict Nref = Nref_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          float dot_nref_i = Nref[n] * I[n];
+          result[n] = (dot_nref_i < 0) ? N[n] : -N[n];
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict N = N_column + row;
+        const float *restrict I = I_column + row;
+        const float *restrict Nref = Nref_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          float dot_nref_i = Nref[n] * I[n];
+          result[n] = (dot_nref_i < 0) ? N[n] : -N[n];
+        }
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        float dot_nref_i = Nref_column[row] * I_column[row];
+        result_column[row] = (dot_nref_i < 0) ? N_column[row] : -N_column[row];
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_faceforward_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
+  float *restrict Nx_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict Ny_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict Ix_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict Iy_column = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict Nrefx_column = FLOAT_REG_PTR(x->children_[2], 0);
+  float *restrict Nrefy_column = FLOAT_REG_PTR(x->children_[2], 1);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result_x = resultx_column + row;
+        float *restrict result_y = resulty_column + row;
+        const float *restrict N_x = Nx_column + row;
+        const float *restrict N_y = Ny_column + row;
+        const float *restrict I_x = Ix_column + row;
+        const float *restrict I_y = Iy_column + row;
+        const float *restrict Nref_x = Nrefx_column + row;
+        const float *restrict Nref_y = Nrefy_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          float dot_nref_i = Nref_x[n] * I_x[n] + Nref_y[n] * I_y[n];
+          result_x[n] = (dot_nref_i < 0) ? N_x[n] : -N_x[n];
+          result_y[n] = (dot_nref_i < 0) ? N_y[n] : -N_y[n];
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result_x = resultx_column + row;
+        float *restrict result_y = resulty_column + row;
+        const float *restrict N_x = Nx_column + row;
+        const float *restrict N_y = Ny_column + row;
+        const float *restrict I_x = Ix_column + row;
+        const float *restrict I_y = Iy_column + row;
+        const float *restrict Nref_x = Nrefx_column + row;
+        const float *restrict Nref_y = Nrefy_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          float dot_nref_i = Nref_x[n] * I_x[n] + Nref_y[n] * I_y[n];
+          result_x[n] = (dot_nref_i < 0) ? N_x[n] : -N_x[n];
+          result_y[n] = (dot_nref_i < 0) ? N_y[n] : -N_y[n];
+        }
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        float dot_nref_i = Nrefx_column[row] * Ix_column[row] + Nrefy_column[row] * Iy_column[row];
+        resultx_column[row] = (dot_nref_i < 0) ? Nx_column[row] : -Nx_column[row];
+        resulty_column[row] = (dot_nref_i < 0) ? Ny_column[row] : -Ny_column[row];
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_faceforward_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
+  float *restrict resultz_column = FLOAT_REG_PTR(x, 2);
+  float *restrict Nx_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict Ny_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict Nz_column = FLOAT_REG_PTR(x->children_[0], 2);
+  float *restrict Ix_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict Iy_column = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict Iz_column = FLOAT_REG_PTR(x->children_[1], 2);
+  float *restrict Nrefx_column = FLOAT_REG_PTR(x->children_[2], 0);
+  float *restrict Nrefy_column = FLOAT_REG_PTR(x->children_[2], 1);
+  float *restrict Nrefz_column = FLOAT_REG_PTR(x->children_[2], 2);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result_x = resultx_column + row;
+        float *restrict result_y = resulty_column + row;
+        float *restrict result_z = resultz_column + row;
+        const float *restrict N_x = Nx_column + row;
+        const float *restrict N_y = Ny_column + row;
+        const float *restrict N_z = Nz_column + row;
+        const float *restrict I_x = Ix_column + row;
+        const float *restrict I_y = Iy_column + row;
+        const float *restrict I_z = Iz_column + row;
+        const float *restrict Nref_x = Nrefx_column + row;
+        const float *restrict Nref_y = Nrefy_column + row;
+        const float *restrict Nref_z = Nrefz_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          float dot_nref_i = Nref_x[n] * I_x[n] + Nref_y[n] * I_y[n] + Nref_z[n] * I_z[n];
+          result_x[n] = (dot_nref_i < 0) ? N_x[n] : -N_x[n];
+          result_y[n] = (dot_nref_i < 0) ? N_y[n] : -N_y[n];
+          result_z[n] = (dot_nref_i < 0) ? N_z[n] : -N_z[n];
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result_x = resultx_column + row;
+        float *restrict result_y = resulty_column + row;
+        float *restrict result_z = resultz_column + row;
+        const float *restrict N_x = Nx_column + row;
+        const float *restrict N_y = Ny_column + row;
+        const float *restrict N_z = Nz_column + row;
+        const float *restrict I_x = Ix_column + row;
+        const float *restrict I_y = Iy_column + row;
+        const float *restrict I_z = Iz_column + row;
+        const float *restrict Nref_x = Nrefx_column + row;
+        const float *restrict Nref_y = Nrefy_column + row;
+        const float *restrict Nref_z = Nrefz_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          float dot_nref_i = Nref_x[n] * I_x[n] + Nref_y[n] * I_y[n] + Nref_z[n] * I_z[n];
+          result_x[n] = (dot_nref_i < 0) ? N_x[n] : -N_x[n];
+          result_y[n] = (dot_nref_i < 0) ? N_y[n] : -N_y[n];
+          result_z[n] = (dot_nref_i < 0) ? N_z[n] : -N_z[n];
+        }
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        float dot_nref_i = Nrefx_column[row] * Ix_column[row] + Nrefy_column[row] * Iy_column[row] + Nrefz_column[row] * Iz_column[row];
+        resultx_column[row] = (dot_nref_i < 0) ? Nx_column[row] : -Nx_column[row];
+        resulty_column[row] = (dot_nref_i < 0) ? Ny_column[row] : -Ny_column[row];
+        resultz_column[row] = (dot_nref_i < 0) ? Nz_column[row] : -Nz_column[row];
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_faceforward_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
+  float *restrict resultz_column = FLOAT_REG_PTR(x, 2);
+  float *restrict resultw_column = FLOAT_REG_PTR(x, 3);
+  float *restrict Nx_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict Ny_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict Nz_column = FLOAT_REG_PTR(x->children_[0], 2);
+  float *restrict Nw_column = FLOAT_REG_PTR(x->children_[0], 3);
+  float *restrict Ix_column = FLOAT_REG_PTR(x->children_[1], 0);
+  float *restrict Iy_column = FLOAT_REG_PTR(x->children_[1], 1);
+  float *restrict Iz_column = FLOAT_REG_PTR(x->children_[1], 2);
+  float *restrict Iw_column = FLOAT_REG_PTR(x->children_[1], 3);
+  float *restrict Nrefx_column = FLOAT_REG_PTR(x->children_[2], 0);
+  float *restrict Nrefy_column = FLOAT_REG_PTR(x->children_[2], 1);
+  float *restrict Nrefz_column = FLOAT_REG_PTR(x->children_[2], 2);
+  float *restrict Nrefw_column = FLOAT_REG_PTR(x->children_[2], 3);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result_x = resultx_column + row;
+        float *restrict result_y = resulty_column + row;
+        float *restrict result_z = resultz_column + row;
+        float *restrict result_w = resultz_column + row;
+        const float *restrict N_x = Nx_column + row;
+        const float *restrict N_y = Ny_column + row;
+        const float *restrict N_z = Nz_column + row;
+        const float *restrict N_w = Nz_column + row;
+        const float *restrict I_x = Ix_column + row;
+        const float *restrict I_y = Iy_column + row;
+        const float *restrict I_z = Iz_column + row;
+        const float *restrict I_w = Iz_column + row;
+        const float *restrict Nref_x = Nrefx_column + row;
+        const float *restrict Nref_y = Nrefy_column + row;
+        const float *restrict Nref_z = Nrefz_column + row;
+        const float *restrict Nref_w = Nrefz_column + row;
+        int n;
+        /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+        for (n = 0; n < 8; n++) {
+          float dot_nref_i = Nref_x[n] * I_x[n] + Nref_y[n] * I_y[n] + Nref_z[n] * I_z[n] + Nref_w[n] * I_w[n];
+          result_x[n] = (dot_nref_i < 0) ? N_x[n] : -N_x[n];
+          result_y[n] = (dot_nref_i < 0) ? N_y[n] : -N_y[n];
+          result_z[n] = (dot_nref_i < 0) ? N_z[n] : -N_z[n];
+          result_w[n] = (dot_nref_i < 0) ? N_w[n] : -N_w[n];
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result_x = resultx_column + row;
+        float *restrict result_y = resulty_column + row;
+        float *restrict result_z = resultz_column + row;
+        float *restrict result_w = resultz_column + row;
+        const float *restrict N_x = Nx_column + row;
+        const float *restrict N_y = Ny_column + row;
+        const float *restrict N_z = Nz_column + row;
+        const float *restrict N_w = Nz_column + row;
+        const float *restrict I_x = Ix_column + row;
+        const float *restrict I_y = Iy_column + row;
+        const float *restrict I_z = Iz_column + row;
+        const float *restrict I_w = Iz_column + row;
+        const float *restrict Nref_x = Nrefx_column + row;
+        const float *restrict Nref_y = Nrefy_column + row;
+        const float *restrict Nref_z = Nrefz_column + row;
+        const float *restrict Nref_w = Nrefz_column + row;
+        int n;
+        /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+        for (n = 0; n < 4; n++) {
+          float dot_nref_i = Nref_x[n] * I_x[n] + Nref_y[n] * I_y[n] + Nref_z[n] * I_z[n] + Nref_w[n] * I_w[n];
+          result_x[n] = (dot_nref_i < 0) ? N_x[n] : -N_x[n];
+          result_y[n] = (dot_nref_i < 0) ? N_y[n] : -N_y[n];
+          result_z[n] = (dot_nref_i < 0) ? N_z[n] : -N_z[n];
+          result_w[n] = (dot_nref_i < 0) ? N_w[n] : -N_w[n];
+        }
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        float dot_nref_i = Nrefx_column[row] * Ix_column[row] + Nrefy_column[row] * Iy_column[row] + Nrefz_column[row] * Iz_column[row] + Nrefw_column[row] * Iw_column[row];
+        resultx_column[row] = (dot_nref_i < 0) ? Nx_column[row] : -Nx_column[row];
+        resulty_column[row] = (dot_nref_i < 0) ? Ny_column[row] : -Ny_column[row];
+        resultz_column[row] = (dot_nref_i < 0) ? Nz_column[row] : -Nz_column[row];
+        resultw_column[row] = (dot_nref_i < 0) ? Nw_column[row] : -Nw_column[row];
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_faceforward_fff_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opdN, opdI, opdNref;
+  sl_expr_temp_init(&opdN, NULL);
+  sl_expr_temp_init(&opdI, NULL);
+  sl_expr_temp_init(&opdNref, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opdN)) {
+    sl_expr_temp_cleanup(&opdN);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opdI)) {
+    sl_expr_temp_cleanup(&opdN);
+    sl_expr_temp_cleanup(&opdI);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opdNref)) {
+    sl_expr_temp_cleanup(&opdN);
+    sl_expr_temp_cleanup(&opdI);
+    sl_expr_temp_cleanup(&opdNref);
+    return;
+  }
+  float dot_nref_i =  opdNref.v_.f_ * opdI.v_.f_;
+  
+  sl_expr_temp_init_float(r, (dot_nref_i < 0) ? opdN.v_.f_ : -opdN.v_.f_);
+}
+
+void builtin_faceforward_v2v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opdN, opdI, opdNref;
+  sl_expr_temp_init(&opdN, NULL);
+  sl_expr_temp_init(&opdI, NULL);
+  sl_expr_temp_init(&opdNref, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opdN)) {
+    sl_expr_temp_cleanup(&opdN);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opdI)) {
+    sl_expr_temp_cleanup(&opdN);
+    sl_expr_temp_cleanup(&opdI);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opdNref)) {
+    sl_expr_temp_cleanup(&opdN);
+    sl_expr_temp_cleanup(&opdI);
+    sl_expr_temp_cleanup(&opdNref);
+    return;
+  }
+  float dot_nref_i = opdNref.v_.v_[0] * opdI.v_.v_[0] + opdNref.v_.v_[1] * opdI.v_.v_[1];
+
+  sl_expr_temp_init_vec2(r, (dot_nref_i < 0) ? opdN.v_.v_[0] : -opdN.v_.v_[0],
+                            (dot_nref_i < 0) ? opdN.v_.v_[1] : -opdN.v_.v_[1]);
+}
+
+void builtin_faceforward_v3v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opdN, opdI, opdNref;
+  sl_expr_temp_init(&opdN, NULL);
+  sl_expr_temp_init(&opdI, NULL);
+  sl_expr_temp_init(&opdNref, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opdN)) {
+    sl_expr_temp_cleanup(&opdN);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opdI)) {
+    sl_expr_temp_cleanup(&opdN);
+    sl_expr_temp_cleanup(&opdI);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opdNref)) {
+    sl_expr_temp_cleanup(&opdN);
+    sl_expr_temp_cleanup(&opdI);
+    sl_expr_temp_cleanup(&opdNref);
+    return;
+  }
+  float dot_nref_i = opdNref.v_.v_[0] * opdI.v_.v_[0] + opdNref.v_.v_[1] * opdI.v_.v_[1] + opdNref.v_.v_[2] * opdI.v_.v_[2];
+
+  sl_expr_temp_init_vec3(r, (dot_nref_i < 0) ? opdN.v_.v_[0] : -opdN.v_.v_[0],
+                            (dot_nref_i < 0) ? opdN.v_.v_[1] : -opdN.v_.v_[1],
+                            (dot_nref_i < 0) ? opdN.v_.v_[2] : -opdN.v_.v_[2]);
+}
+
+void builtin_faceforward_v4v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r) {
+  struct sl_expr_temp opdN, opdI, opdNref;
+  sl_expr_temp_init(&opdN, NULL);
+  sl_expr_temp_init(&opdI, NULL);
+  sl_expr_temp_init(&opdNref, NULL);
+  if (sl_expr_eval(tb, x->children_[0], &opdN)) {
+    sl_expr_temp_cleanup(&opdN);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[1], &opdI)) {
+    sl_expr_temp_cleanup(&opdN);
+    sl_expr_temp_cleanup(&opdI);
+    return;
+  }
+  if (sl_expr_eval(tb, x->children_[2], &opdNref)) {
+    sl_expr_temp_cleanup(&opdN);
+    sl_expr_temp_cleanup(&opdI);
+    sl_expr_temp_cleanup(&opdNref);
+    return;
+  }
+  float dot_nref_i = opdNref.v_.v_[0] * opdI.v_.v_[0] + opdNref.v_.v_[1] * opdI.v_.v_[1] + opdNref.v_.v_[2] * opdI.v_.v_[2] + opdNref.v_.v_[3] * opdI.v_.v_[3];
+
+  sl_expr_temp_init_vec4(r, (dot_nref_i < 0) ? opdN.v_.v_[0] : -opdN.v_.v_[0],
+                            (dot_nref_i < 0) ? opdN.v_.v_[1] : -opdN.v_.v_[1],
+                            (dot_nref_i < 0) ? opdN.v_.v_[2] : -opdN.v_.v_[2],
+                            (dot_nref_i < 0) ? opdN.v_.v_[3] : -opdN.v_.v_[3]);
+}
