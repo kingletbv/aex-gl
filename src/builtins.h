@@ -476,6 +476,44 @@ void builtin_greaterThanEqual_iv2iv2_eval(struct sl_type_base *tb, const struct 
 void builtin_greaterThanEqual_iv3iv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_greaterThanEqual_iv4iv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
+void builtin_equal_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_equal_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_equal_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_equal_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_equal_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_equal_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_equal_iv2iv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_equal_iv3iv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_equal_iv4iv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_equal_iv2iv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_equal_iv3iv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_equal_iv4iv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_equal_bv2bv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_equal_bv3bv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_equal_bv4bv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_equal_bv2bv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_equal_bv3bv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_equal_bv4bv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
+void builtin_notEqual_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_notEqual_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_notEqual_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_notEqual_v2v2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_notEqual_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_notEqual_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_notEqual_iv2iv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_notEqual_iv3iv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_notEqual_iv4iv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_notEqual_iv2iv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_notEqual_iv3iv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_notEqual_iv4iv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_notEqual_bv2bv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_notEqual_bv3bv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_notEqual_bv4bv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_notEqual_bv2bv2_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_notEqual_bv3bv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+void builtin_notEqual_bv4bv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+
 
 #ifdef __cplusplus
 } /* extern "C" */
