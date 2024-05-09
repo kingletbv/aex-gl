@@ -907,7 +907,7 @@ int primitive_assembly_gather_attribs(struct primitive_assembly *pa, struct attr
   if (num_rows > pa->num_vertex_indices_) {
     num_rows = pa->num_vertex_indices_;
   }
-  if (!num_rows) return 0;
+  if (!num_rows) return !!pa->num_rows_;
   for (col = 0; col < pa->num_cols_; ++col) {
     struct primitive_assembly_column_descriptor *pacd = pa->column_descriptors_ + col;
     if (pacd->register_ == SL_REG_NONE) {
