@@ -545,6 +545,11 @@ void builtin_dFdy_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 void builtin_dFdy_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_dFdy_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 
+void builtin_fwidth_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_fwidth_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_fwidth_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_fwidth_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
 
 
 #ifdef __cplusplus

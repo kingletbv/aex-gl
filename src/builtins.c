@@ -11249,3 +11249,519 @@ void builtin_dFdy_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
   }
 }
 
+void builtin_fwidth_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict opd = opd_column + row;
+        int n;
+        /* Fragment rows are ordered per square of 4 fragments, repeating
+         * every 4 fragments. Top-Left %00, Top-Right %01, Bottom-Left %10, Bottom-Right %11.
+         * Even if, in such a square, some fragments might be outside the primitive being rasterized, it
+         * is still generated, and the fragment shader is executed (but masked, so it won't generate
+         * output.) */
+        for (n = 0; n < 8; n++) {
+          float Fv_dx = opd[n | 1];
+          float Fvx = opd[n & ~1];
+          float Fv_dy = opd[n | 2];
+          float Fvy = opd[n & ~2];
+          float dFdx = Fv_dx - Fvx;
+          float dFdy = Fv_dy - Fvy;
+
+          result[n] = fabsf(dFdx) + fabsf(dFdy);
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const float *restrict opd = opd_column + row;
+        int n;
+
+        for (n = 0; n < 4; n++) {
+          float Fv_dx = opd[n | 1];
+          float Fvx = opd[n & ~1];
+          float Fv_dy = opd[n | 2];
+          float Fvy = opd[n & ~2];
+          float dFdx = Fv_dx - Fvx;
+          float dFdy = Fv_dy - Fvy;
+
+          result[n] = fabsf(dFdx) + fabsf(dFdy);
+        }
+
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* We get here then in the square of fragments, not all four fragments have followed the
+         * same execution path, with only some arriving at the dFdx, and others going elsewhere.
+         * We will still execute as if they all arrived at the dFdx and rely on the undefined
+         * results producing at least *something* that can be reasoned about. */
+        float Fv_dx = opd_column[row | 1];
+        float Fvx = opd_column[row & ~1];
+        float Fv_dy = opd_column[row | 2];
+        float Fvy = opd_column[row & ~2];
+        float dFdx = Fv_dx - Fvx;
+        float dFdy = Fv_dy - Fvy;
+        result_column[row] = fabsf(dFdx) + fabsf(dFdy);
+
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_fwidth_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
+  float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result0 = result0_column + row;
+        float *restrict result1 = result1_column + row;
+        const float *restrict opd0 = opd0_column + row;
+        const float *restrict opd1 = opd1_column + row;
+        int n;
+        /* Fragment rows are ordered per square of 4 fragments, repeating
+         * every 4 fragments. Top-Left %00, Top-Right %01, Bottom-Left %10, Bottom-Right %11.
+         * Even if, in such a square, some fragments might be outside the primitive being rasterized, it
+         * is still generated, and the fragment shader is executed (but masked, so it won't generate
+         * output.) */
+        for (n = 0; n < 8; n++) {
+          float Fv_dx_0 = opd0[n | 1];
+          float Fvx_0 = opd0[n & ~1];
+          float Fv_dy_0 = opd0[n | 2];
+          float Fvy_0 = opd0[n & ~2];
+          float dFdx_0 = Fv_dx_0 - Fvx_0;
+          float dFdy_0 = Fv_dy_0 - Fvy_0;
+
+          result0[n] = fabsf(dFdx_0) + fabsf(dFdy_0);
+
+          float Fv_dx_1 = opd1[n | 1];
+          float Fvx_1 = opd1[n & ~1];
+          float Fv_dy_1 = opd1[n | 2];
+          float Fvy_1 = opd1[n & ~2];
+          float dFdx_1 = Fv_dx_1 - Fvx_1;
+          float dFdy_1 = Fv_dy_1 - Fvy_1;
+
+          result1[n] = fabsf(dFdx_1) + fabsf(dFdy_1);
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result0 = result0_column + row;
+        float *restrict result1 = result1_column + row;
+        const float *restrict opd0 = opd0_column + row;
+        const float *restrict opd1 = opd1_column + row;
+        int n;
+
+        for (n = 0; n < 4; n++) {
+          float Fv_dx_0 = opd0[n | 1];
+          float Fvx_0 = opd0[n & ~1];
+          float Fv_dy_0 = opd0[n | 2];
+          float Fvy_0 = opd0[n & ~2];
+          float dFdx_0 = Fv_dx_0 - Fvx_0;
+          float dFdy_0 = Fv_dy_0 - Fvy_0;
+
+          result0[n] = fabsf(dFdx_0) + fabsf(dFdy_0);
+
+          float Fv_dx_1 = opd1[n | 1];
+          float Fvx_1 = opd1[n & ~1];
+          float Fv_dy_1 = opd1[n | 2];
+          float Fvy_1 = opd1[n & ~2];
+          float dFdx_1 = Fv_dx_1 - Fvx_1;
+          float dFdy_1 = Fv_dy_1 - Fvy_1;
+
+          result1[n] = fabsf(dFdx_1) + fabsf(dFdy_1);
+        }
+
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* We get here then in the square of fragments, not all four fragments have followed the
+         * same execution path, with only some arriving at the dFdx, and others going elsewhere.
+         * We will still execute as if they all arrived at the dFdx and rely on the undefined
+         * results producing at least *something* that can be reasoned about. */
+        float Fv_dx_0 = opd0_column[row | 1];
+        float Fvx_0 = opd0_column[row & ~1];
+        float Fv_dy_0 = opd0_column[row | 2];
+        float Fvy_0 = opd0_column[row & ~2];
+        float dFdx_0 = Fv_dx_0 - Fvx_0;
+        float dFdy_0 = Fv_dy_0 - Fvy_0;
+        result0_column[row] = fabsf(dFdx_0) + fabsf(dFdy_0);
+
+        float Fv_dx_1 = opd1_column[row | 1];
+        float Fvx_1 = opd1_column[row & ~1];
+        float Fv_dy_1 = opd1_column[row | 2];
+        float Fvy_1 = opd1_column[row & ~2];
+        float dFdx_1 = Fv_dx_1 - Fvx_1;
+        float dFdy_1 = Fv_dy_1 - Fvy_1;
+        result1_column[row] = fabsf(dFdx_1) + fabsf(dFdy_1);
+
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_fwidth_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
+  float *restrict result2_column = FLOAT_REG_PTR(x, 2);
+  float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict opd2_column = FLOAT_REG_PTR(x->children_[0], 2);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result0 = result0_column + row;
+        float *restrict result1 = result1_column + row;
+        float *restrict result2 = result2_column + row;
+        const float *restrict opd0 = opd0_column + row;
+        const float *restrict opd1 = opd1_column + row;
+        const float *restrict opd2 = opd2_column + row;
+        int n;
+        /* Fragment rows are ordered per square of 4 fragments, repeating
+         * every 4 fragments. Top-Left %00, Top-Right %01, Bottom-Left %10, Bottom-Right %11.
+         * Even if, in such a square, some fragments might be outside the primitive being rasterized, it
+         * is still generated, and the fragment shader is executed (but masked, so it won't generate
+         * output.) */
+        for (n = 0; n < 8; n++) {
+          float Fv_dx_0 = opd0[n | 1];
+          float Fvx_0 = opd0[n & ~1];
+          float Fv_dy_0 = opd0[n | 2];
+          float Fvy_0 = opd0[n & ~2];
+          float dFdx_0 = Fv_dx_0 - Fvx_0;
+          float dFdy_0 = Fv_dy_0 - Fvy_0;
+
+          result0[n] = fabsf(dFdx_0) + fabsf(dFdy_0);
+
+          float Fv_dx_1 = opd1[n | 1];
+          float Fvx_1 = opd1[n & ~1];
+          float Fv_dy_1 = opd1[n | 2];
+          float Fvy_1 = opd1[n & ~2];
+          float dFdx_1 = Fv_dx_1 - Fvx_1;
+          float dFdy_1 = Fv_dy_1 - Fvy_1;
+
+          result1[n] = fabsf(dFdx_1) + fabsf(dFdy_1);
+
+          float Fv_dx_2 = opd2[n | 1];
+          float Fvx_2 = opd2[n & ~1];
+          float Fv_dy_2 = opd2[n | 2];
+          float Fvy_2 = opd2[n & ~2];
+          float dFdx_2 = Fv_dx_2 - Fvx_2;
+          float dFdy_2 = Fv_dy_2 - Fvy_2;
+
+          result2[n] = fabsf(dFdx_2) + fabsf(dFdy_2);
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result0 = result0_column + row;
+        float *restrict result1 = result1_column + row;
+        float *restrict result2 = result2_column + row;
+        const float *restrict opd0 = opd0_column + row;
+        const float *restrict opd1 = opd1_column + row;
+        const float *restrict opd2 = opd2_column + row;
+        int n;
+
+        for (n = 0; n < 4; n++) {
+          float Fv_dx_0 = opd0[n | 1];
+          float Fvx_0 = opd0[n & ~1];
+          float Fv_dy_0 = opd0[n | 2];
+          float Fvy_0 = opd0[n & ~2];
+          float dFdx_0 = Fv_dx_0 - Fvx_0;
+          float dFdy_0 = Fv_dy_0 - Fvy_0;
+
+          result0[n] = fabsf(dFdx_0) + fabsf(dFdy_0);
+
+          float Fv_dx_1 = opd1[n | 1];
+          float Fvx_1 = opd1[n & ~1];
+          float Fv_dy_1 = opd1[n | 2];
+          float Fvy_1 = opd1[n & ~2];
+          float dFdx_1 = Fv_dx_1 - Fvx_1;
+          float dFdy_1 = Fv_dy_1 - Fvy_1;
+
+          result1[n] = fabsf(dFdx_1) + fabsf(dFdy_1);
+
+          float Fv_dx_2 = opd2[n | 1];
+          float Fvx_2 = opd2[n & ~1];
+          float Fv_dy_2 = opd2[n | 2];
+          float Fvy_2 = opd2[n & ~2];
+          float dFdx_2 = Fv_dx_2 - Fvx_2;
+          float dFdy_2 = Fv_dy_2 - Fvy_2;
+
+          result2[n] = fabsf(dFdx_2) + fabsf(dFdy_2);
+        }
+
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* We get here then in the square of fragments, not all four fragments have followed the
+         * same execution path, with only some arriving at the dFdx, and others going elsewhere.
+         * We will still execute as if they all arrived at the dFdx and rely on the undefined
+         * results producing at least *something* that can be reasoned about. */
+        float Fv_dx_0 = opd0_column[row | 1];
+        float Fvx_0 = opd0_column[row & ~1];
+        float Fv_dy_0 = opd0_column[row | 2];
+        float Fvy_0 = opd0_column[row & ~2];
+        float dFdx_0 = Fv_dx_0 - Fvx_0;
+        float dFdy_0 = Fv_dy_0 - Fvy_0;
+        result0_column[row] = fabsf(dFdx_0) + fabsf(dFdy_0);
+
+        float Fv_dx_1 = opd1_column[row | 1];
+        float Fvx_1 = opd1_column[row & ~1];
+        float Fv_dy_1 = opd1_column[row | 2];
+        float Fvy_1 = opd1_column[row & ~2];
+        float dFdx_1 = Fv_dx_1 - Fvx_1;
+        float dFdy_1 = Fv_dy_1 - Fvy_1;
+        result1_column[row] = fabsf(dFdx_1) + fabsf(dFdy_1);
+
+        float Fv_dx_2 = opd2_column[row | 1];
+        float Fvx_2 = opd2_column[row & ~1];
+        float Fv_dy_2 = opd2_column[row | 2];
+        float Fvy_2 = opd2_column[row & ~2];
+        float dFdx_2 = Fv_dx_2 - Fvx_2;
+        float dFdy_2 = Fv_dy_2 - Fvy_2;
+        result2_column[row] = fabsf(dFdx_2) + fabsf(dFdy_2);
+
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+
+void builtin_fwidth_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  uint8_t *restrict chain_column = exec->exec_chain_reg_;
+  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
+  float *restrict result2_column = FLOAT_REG_PTR(x, 2);
+  float *restrict result3_column = FLOAT_REG_PTR(x, 3);
+  float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
+  float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
+  float *restrict opd2_column = FLOAT_REG_PTR(x->children_[0], 2);
+  float *restrict opd3_column = FLOAT_REG_PTR(x->children_[0], 3);
+  uint8_t row = exec_chain;
+
+  for (;;) {
+    uint64_t chain;
+    uint8_t delta;
+
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result0 = result0_column + row;
+        float *restrict result1 = result1_column + row;
+        float *restrict result2 = result2_column + row;
+        float *restrict result3 = result3_column + row;
+        const float *restrict opd0 = opd0_column + row;
+        const float *restrict opd1 = opd1_column + row;
+        const float *restrict opd2 = opd2_column + row;
+        const float *restrict opd3 = opd3_column + row;
+        int n;
+        /* Fragment rows are ordered per square of 4 fragments, repeating
+         * every 4 fragments. Top-Left %00, Top-Right %01, Bottom-Left %10, Bottom-Right %11.
+         * Even if, in such a square, some fragments might be outside the primitive being rasterized, it
+         * is still generated, and the fragment shader is executed (but masked, so it won't generate
+         * output.) */
+        for (n = 0; n < 8; n++) {
+          float Fv_dx_0 = opd0[n | 1];
+          float Fvx_0 = opd0[n & ~1];
+          float Fv_dy_0 = opd0[n | 2];
+          float Fvy_0 = opd0[n & ~2];
+          float dFdx_0 = Fv_dx_0 - Fvx_0;
+          float dFdy_0 = Fv_dy_0 - Fvy_0;
+
+          result0[n] = fabsf(dFdx_0) + fabsf(dFdy_0);
+
+          float Fv_dx_1 = opd1[n | 1];
+          float Fvx_1 = opd1[n & ~1];
+          float Fv_dy_1 = opd1[n | 2];
+          float Fvy_1 = opd1[n & ~2];
+          float dFdx_1 = Fv_dx_1 - Fvx_1;
+          float dFdy_1 = Fv_dy_1 - Fvy_1;
+
+          result1[n] = fabsf(dFdx_1) + fabsf(dFdy_1);
+
+          float Fv_dx_2 = opd2[n | 1];
+          float Fvx_2 = opd2[n & ~1];
+          float Fv_dy_2 = opd2[n | 2];
+          float Fvy_2 = opd2[n & ~2];
+          float dFdx_2 = Fv_dx_2 - Fvx_2;
+          float dFdy_2 = Fv_dy_2 - Fvy_2;
+
+          result2[n] = fabsf(dFdx_2) + fabsf(dFdy_2);
+
+          float Fv_dx_3 = opd3[n | 1];
+          float Fvx_3 = opd3[n & ~1];
+          float Fv_dy_3 = opd3[n | 2];
+          float Fvy_3 = opd3[n & ~2];
+          float dFdx_3 = Fv_dx_3 - Fvx_3;
+          float dFdy_3 = Fv_dy_3 - Fvy_3;
+
+          result3[n] = fabsf(dFdx_3) + fabsf(dFdy_3);
+        }
+
+        delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) break;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result0 = result0_column + row;
+        float *restrict result1 = result1_column + row;
+        float *restrict result2 = result2_column + row;
+        float *restrict result3 = result3_column + row;
+        const float *restrict opd0 = opd0_column + row;
+        const float *restrict opd1 = opd1_column + row;
+        const float *restrict opd2 = opd2_column + row;
+        const float *restrict opd3 = opd3_column + row;
+        int n;
+
+        for (n = 0; n < 4; n++) {
+          float Fv_dx_0 = opd0[n | 1];
+          float Fvx_0 = opd0[n & ~1];
+          float Fv_dy_0 = opd0[n | 2];
+          float Fvy_0 = opd0[n & ~2];
+          float dFdx_0 = Fv_dx_0 - Fvx_0;
+          float dFdy_0 = Fv_dy_0 - Fvy_0;
+
+          result0[n] = fabsf(dFdx_0) + fabsf(dFdy_0);
+
+          float Fv_dx_1 = opd1[n | 1];
+          float Fvx_1 = opd1[n & ~1];
+          float Fv_dy_1 = opd1[n | 2];
+          float Fvy_1 = opd1[n & ~2];
+          float dFdx_1 = Fv_dx_1 - Fvx_1;
+          float dFdy_1 = Fv_dy_1 - Fvy_1;
+
+          result1[n] = fabsf(dFdx_1) + fabsf(dFdy_1);
+
+          float Fv_dx_2 = opd2[n | 1];
+          float Fvx_2 = opd2[n & ~1];
+          float Fv_dy_2 = opd2[n | 2];
+          float Fvy_2 = opd2[n & ~2];
+          float dFdx_2 = Fv_dx_2 - Fvx_2;
+          float dFdy_2 = Fv_dy_2 - Fvy_2;
+
+          result2[n] = fabsf(dFdx_2) + fabsf(dFdy_2);
+
+          float Fv_dx_3 = opd3[n | 1];
+          float Fvx_3 = opd3[n & ~1];
+          float Fv_dy_3 = opd3[n | 2];
+          float Fvy_3 = opd3[n & ~2];
+          float dFdx_3 = Fv_dx_3 - Fvx_3;
+          float dFdy_3 = Fv_dy_3 - Fvy_3;
+
+          result3[n] = fabsf(dFdx_3) + fabsf(dFdy_3);
+        }
+
+        delta = (chain & 0xFF000000) >> 24;
+        if (!delta) break;
+        row += 3 + delta;
+      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* We get here then in the square of fragments, not all four fragments have followed the
+         * same execution path, with only some arriving at the dFdx, and others going elsewhere.
+         * We will still execute as if they all arrived at the dFdx and rely on the undefined
+         * results producing at least *something* that can be reasoned about. */
+        float Fv_dx_0 = opd0_column[row | 1];
+        float Fvx_0 = opd0_column[row & ~1];
+        float Fv_dy_0 = opd0_column[row | 2];
+        float Fvy_0 = opd0_column[row & ~2];
+        float dFdx_0 = Fv_dx_0 - Fvx_0;
+        float dFdy_0 = Fv_dy_0 - Fvy_0;
+        result0_column[row] = fabsf(dFdx_0) + fabsf(dFdy_0);
+
+        float Fv_dx_1 = opd1_column[row | 1];
+        float Fvx_1 = opd1_column[row & ~1];
+        float Fv_dy_1 = opd1_column[row | 2];
+        float Fvy_1 = opd1_column[row & ~2];
+        float dFdx_1 = Fv_dx_1 - Fvx_1;
+        float dFdy_1 = Fv_dy_1 - Fvy_1;
+        result1_column[row] = fabsf(dFdx_1) + fabsf(dFdy_1);
+
+        float Fv_dx_2 = opd2_column[row | 1];
+        float Fvx_2 = opd2_column[row & ~1];
+        float Fv_dy_2 = opd2_column[row | 2];
+        float Fvy_2 = opd2_column[row & ~2];
+        float dFdx_2 = Fv_dx_2 - Fvx_2;
+        float dFdy_2 = Fv_dy_2 - Fvy_2;
+        result2_column[row] = fabsf(dFdx_2) + fabsf(dFdy_2);
+
+        float Fv_dx_3 = opd3_column[row | 1];
+        float Fvx_3 = opd3_column[row & ~1];
+        float Fv_dy_3 = opd3_column[row | 2];
+        float Fvy_3 = opd3_column[row & ~2];
+        float dFdx_3 = Fv_dx_3 - Fvx_3;
+        float dFdy_3 = Fv_dy_3 - Fvy_3;
+        result3_column[row] = fabsf(dFdx_3) + fabsf(dFdy_3);
+
+        delta = chain_column[row];
+        if (!delta) break;
+        row += delta;
+      } while (row & 3);
+    }
+    if (!delta) break;
+  }
+}
+

@@ -303,8 +303,8 @@ xx("vec4 texture2DLod(sampler2D sampler, vec2 coord, float lod);",     builtin_t
 xx("vec4 texture2DProjLod(sampler2D sampler, vec3 coord, float lod);", builtin_texture2DProjLod_v3_runtime, NULL)
 xx("vec4 texture2DProjLod(sampler2D sampler, vec4 coord, float lod);", builtin_texture2DProjLod_v4_runtime, NULL)
 
-xx("vec4 textureCube(samplerCube sampler, vec3 coord);", builtin_textureCube_v3_runtime, NULL)
-xx("vec4 textureCube(samplerCube sampler, vec3 coord, float bias);", builtin_textureCube_v3_bias_runtime, NULL)
+xx("vec4 textureCube(samplerCube sampler, vec3 coord);",               builtin_textureCube_v3_runtime, NULL)
+xx("vec4 textureCube(samplerCube sampler, vec3 coord, float bias);",   builtin_textureCube_v3_bias_runtime, NULL)
 xx("vec4 textureCubeLod(samplerCube sampler, vec3 coord, float lod);", builtin_textureCubeLod_v3_runtime, NULL)
 
 /* Fragment Processing functions */
@@ -318,3 +318,7 @@ xx("vec2 dFdy(vec2 p);", builtin_dFdy_v2_runtime, NULL)
 xx("vec3 dFdy(vec3 p);", builtin_dFdy_v3_runtime, NULL)
 xx("vec4 dFdy(vec4 p);", builtin_dFdy_v4_runtime, NULL)
 
+xx("float fwidth(float p);", builtin_fwidth_f_runtime, NULL)
+xx("vec2 fwidth(vec2 p);", builtin_fwidth_v2_runtime, NULL)
+xx("vec3 fwidth(vec3 p);", builtin_fwidth_v3_runtime, NULL)
+xx("vec4 fwidth(vec4 p);", builtin_fwidth_v4_runtime, NULL)
