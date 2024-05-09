@@ -535,6 +535,18 @@ void builtin_not_bv2_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 void builtin_not_bv3_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 void builtin_not_bv4_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
 
+void builtin_dFdx_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_dFdx_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_dFdx_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_dFdx_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
+void builtin_dFdy_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_dFdy_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_dFdy_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+void builtin_dFdy_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

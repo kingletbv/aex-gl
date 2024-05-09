@@ -307,3 +307,14 @@ xx("vec4 textureCube(samplerCube sampler, vec3 coord);", builtin_textureCube_v3_
 xx("vec4 textureCube(samplerCube sampler, vec3 coord, float bias);", builtin_textureCube_v3_bias_runtime, NULL)
 xx("vec4 textureCubeLod(samplerCube sampler, vec3 coord, float lod);", builtin_textureCubeLod_v3_runtime, NULL)
 
+/* Fragment Processing functions */
+xx("float dFdx(float p);", builtin_dFdx_f_runtime, NULL)
+xx("vec2 dFdx(vec2 p);", builtin_dFdx_v2_runtime, NULL)
+xx("vec3 dFdx(vec3 p);", builtin_dFdx_v3_runtime, NULL)
+xx("vec4 dFdx(vec4 p);", builtin_dFdx_v4_runtime, NULL)
+
+xx("float dFdy(float p);", builtin_dFdy_f_runtime, NULL)
+xx("vec2 dFdy(vec2 p);", builtin_dFdy_v2_runtime, NULL)
+xx("vec3 dFdy(vec3 p);", builtin_dFdy_v3_runtime, NULL)
+xx("vec4 dFdy(vec4 p);", builtin_dFdy_v4_runtime, NULL)
+
