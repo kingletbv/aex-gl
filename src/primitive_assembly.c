@@ -112,6 +112,7 @@ void primitive_assembly_init(struct primitive_assembly *pa) {
   memset(pa->vertex_indices_, 0, sizeof(pa->vertex_indices_));
   pa->index_at_ = 0;
   pa->continue_at_ = 0;
+  pa->continue_from_fragments_ = 0;
 }
 
 
@@ -2615,3 +2616,1689 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
     }
   } while (r == 1);
 }
+
+
+int primitive_assembly_process_primitives(struct primitive_assembly *pa,
+                                          struct attrib_set *as,
+                                          struct sl_shader *vertex_shader,
+                                          struct attrib_routing *ar,
+                                          struct clipping_stage *cs,
+                                          struct rasterizer *ras,
+                                          struct fragment_buffer *fragbuf,
+                                          struct sl_shader *fragment_shader,
+                                          int32_t vp_x,
+                                          int32_t vp_y, 
+                                          uint32_t vp_width,
+                                          uint32_t vp_height,
+                                          float depth_range_near,
+                                          float depth_range_far,
+                                          uint32_t screen_width,
+                                          uint32_t screen_height,
+                                          int32_t scissor_left, int32_t scissor_bottom_counted_from_bottom,
+                                          int32_t scissor_width, int32_t scissor_height,
+                                          uint32_t max_z,
+                                          uint8_t *rgba, size_t rgba_stride,
+                                          uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
+                                          uint8_t *stencil_buf, size_t stencil_stride, size_t stencil_step,
+                                          int enable_stencil_test, 
+                                          uint32_t stencil_cw_mask,
+                                          primitive_assembly_stencil_func_t stencil_cw_func, uint32_t stencil_cw_func_ref, uint32_t stencil_cw_func_mask,
+                                          primitive_assembly_stencil_op_t stencil_cw_sfail, 
+                                          primitive_assembly_stencil_op_t stencil_cw_zfail, 
+                                          primitive_assembly_stencil_op_t stencil_cw_zpass,
+                                          uint32_t stencil_ccw_mask,
+                                          primitive_assembly_stencil_func_t stencil_ccw_func, uint32_t stencil_ccw_func_ref, uint32_t stencil_ccw_func_mask,
+                                          primitive_assembly_stencil_op_t stencil_ccw_sfail, 
+                                          primitive_assembly_stencil_op_t stencil_ccw_zfail, 
+                                          primitive_assembly_stencil_op_t stencil_ccw_zpass,
+                                          int enable_zbuf_test,
+                                          primitive_assembly_zbuf_func_t zbuf_func,
+                                          int enable_zbuf_write,
+                                          int enable_red, int enable_green, int enable_blue, int enable_alpha,
+                                          blend_eq_t rgb_eq, blend_eq_t alpha_eq,
+                                          blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
+                                          blend_func_t dst_rgb_fn, blend_func_t dst_alpha_fn,
+                                          uint8_t constant_red, uint8_t constant_grn, uint8_t constant_blu, uint8_t constant_alpha,
+                                          float offset_factor, float offset_units,
+                                          primitive_assembly_mode_t mode, 
+                                          size_t num_elements,
+                                          primitive_assembly_index_type_t index_type,
+                                          size_t arrayed_starting_index,
+                                          const void *indices) {
+  int r;
+  struct sl_variable *vgl_Position;
+  struct sl_function *vmain;
+  struct sl_variable *fgl_FragCoord;
+
+  float *v0, *v1, *v2;
+  int32_t offset_factor_f8;
+  int32_t offset_units_f8;
+
+  int32_t sx0, sy0, sz0, sx1, sy1, sz1, sx2, sy2, sz2;
+
+  uint32_t norm_scissor_left, norm_scissor_top, norm_scissor_right, norm_scissor_bottom;
+  size_t pa_row_index;
+  size_t clip_tri_idx;
+  size_t prior_num_rows_in_fragbuf;
+
+  if (pa->continue_from_fragments_) {
+    vgl_Position = pa->vgl_Position_;
+    vmain = pa->vmain_;
+    fgl_FragCoord = pa->fgl_FragCoord_;
+    v0 = pa->v0_;
+    v1 = pa->v1_;
+    v2 = pa->v2_;
+    offset_factor_f8 = pa->offset_factor_f8_;
+    offset_units_f8 = pa->offset_units_f8_;
+    sx0 = pa->sx0_;
+    sy0 = pa->sy0_;
+    sz0 = pa->sz0_;
+    sx1 = pa->sx1_;
+    sy1 = pa->sy1_;
+    sz1 = pa->sz1_;
+    sx2 = pa->sx2_;
+    sy2 = pa->sy2_;
+    sz2 = pa->sz2_;
+    norm_scissor_left = pa->norm_scissor_left_;
+    norm_scissor_top = pa->norm_scissor_top_;
+    norm_scissor_right = pa->norm_scissor_right_;
+    norm_scissor_bottom = pa->norm_scissor_bottom_;
+    pa_row_index = pa->pa_row_index_;
+    clip_tri_idx = pa->clip_tri_index_;
+    prior_num_rows_in_fragbuf = pa->prior_num_rows_in_fragbuf_;
+    switch (pa->continue_from_fragments_) {
+      case 1:
+        goto continue_from_fragments;
+      case 2:
+        goto continue_from_tail_end;
+    }
+    
+  }
+
+  vgl_Position = sl_compilation_unit_find_variable(&vertex_shader->cu_, "gl_Position");
+  vmain = sl_compilation_unit_find_function(&vertex_shader->cu_, "main");
+  fgl_FragCoord = sl_compilation_unit_find_variable(&fragment_shader->cu_, "gl_FragCoord");
+
+  /* Normalize scissor rect from "bottom-left positive-y is up" coordinate system to 
+   * "top-left positive-y is down" coordinate system that rasterizer expects.
+   * Clamp to the actual screen while doing so. */
+  norm_scissor_left = (scissor_left >= 0) ? (uint32_t)scissor_left : 0;
+  if (scissor_bottom_counted_from_bottom <= (int32_t)screen_height) {
+    norm_scissor_bottom = (scissor_bottom_counted_from_bottom >= 0) ? (screen_height - scissor_bottom_counted_from_bottom) : screen_height;
+  }
+  else {
+    norm_scissor_bottom = 0;
+  }
+  if ((scissor_bottom_counted_from_bottom + scissor_height) <= (int32_t)screen_height) {
+    norm_scissor_top = ((scissor_bottom_counted_from_bottom + scissor_height) >= 0) ? (screen_height - (scissor_bottom_counted_from_bottom + scissor_height)) : screen_height;
+  }
+  else {
+    norm_scissor_top = 0;
+  }
+  norm_scissor_right = ((scissor_left + scissor_width) >= 0) ? (uint32_t)(scissor_left + scissor_width) : 0;
+
+  if ((norm_scissor_left >= norm_scissor_right) || (norm_scissor_top >= norm_scissor_bottom)) {
+    /* scissor rect holding no space; no pixel can be emitted, draw call is no-op. */
+    return 0;
+  }
+
+  pa->index_at_ = indices ? 0 : arrayed_starting_index;
+
+  /* Convert polygon offset values to 8-bit fixed point */
+  offset_factor_f8 = (int32_t)(offset_factor * 256.f);
+  offset_units_f8 = (int32_t)(offset_units * 256.f);
+
+  // XXX: Configure pipeline to handle points, lines or triangles, depending on what mode is.
+
+  for (;;) {
+    if (indices) {
+      switch (index_type) {
+        case PAIT_UNSIGNED_BYTE:
+          r = primitive_assembly_elements_u8(pa, as, mode, indices, num_elements);
+          break;
+        case PAIT_UNSIGNED_SHORT:
+          r = primitive_assembly_elements_u16(pa, as, mode, indices, num_elements);
+          break;
+        case PAIT_UNSIGNED_INT:
+          r = primitive_assembly_elements_u32(pa, as, mode, indices, num_elements);
+          break;
+      }
+    }
+    else {
+      r = primitive_assembly_elements_arrayed(pa, as, mode, num_elements);
+    }
+
+    if (!r) {
+      /* No more primitives to process */
+      break;
+    }
+
+    while (primitive_assembly_gather_attribs(pa, as, &vertex_shader->exec_)) {
+
+      /* Set up execution chain */
+      uint8_t * restrict exec_chain = vertex_shader->exec_.exec_chain_reg_;
+      size_t exec_row;
+      for (exec_row = 0; exec_row < (pa->num_rows_ - 1); ++exec_row) {
+        exec_chain[exec_row] = 1;
+      }
+      exec_chain[pa->num_rows_ - 1] = 0;
+
+      /* Run vertex shader */
+      sl_exec_run(&vertex_shader->exec_, vmain, 0);
+
+      for (pa_row_index = 0; pa_row_index < pa->num_rows_; /* advancement depends on mode */) {
+        switch (mode) {
+          case PAM_POINTS:
+            // XXX: Handle points..
+            break;
+          case PAM_LINES:
+          case PAM_LINE_STRIP:
+          case PAM_LINE_LOOP:
+            // XXX: Handle lines
+            break;
+          case PAM_TRIANGLES:
+          case PAM_TRIANGLE_STRIP:
+          case PAM_TRIANGLE_FAN: {
+            float *iv0, *iv1, *iv2;
+            iv0 = cs->input_varyings_;
+            iv1 = iv0 + cs->num_varyings_;
+            iv2 = iv1 + cs->num_varyings_;
+            iv0[CLIPPING_STAGE_IDX_X] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[0]])[pa_row_index];
+            iv0[CLIPPING_STAGE_IDX_Y] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[1]])[pa_row_index];
+            iv0[CLIPPING_STAGE_IDX_Z] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[2]])[pa_row_index];
+            iv0[CLIPPING_STAGE_IDX_W] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[3]])[pa_row_index];
+
+            iv1[CLIPPING_STAGE_IDX_X] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[0]])[pa_row_index + 1];
+            iv1[CLIPPING_STAGE_IDX_Y] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[1]])[pa_row_index + 1];
+            iv1[CLIPPING_STAGE_IDX_Z] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[2]])[pa_row_index + 1];
+            iv1[CLIPPING_STAGE_IDX_W] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[3]])[pa_row_index + 1];
+
+            iv2[CLIPPING_STAGE_IDX_X] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[0]])[pa_row_index + 2];
+            iv2[CLIPPING_STAGE_IDX_Y] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[1]])[pa_row_index + 2];
+            iv2[CLIPPING_STAGE_IDX_Z] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[2]])[pa_row_index + 2];
+            iv2[CLIPPING_STAGE_IDX_W] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[3]])[pa_row_index + 2];
+
+            size_t attrib_route_index;
+            for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
+              iv0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
+                (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[pa_row_index];
+              iv1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
+                (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[pa_row_index + 1];
+              iv2[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
+                (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[pa_row_index + 2];
+            }
+
+            pa_row_index += 3;
+            break;
+          }
+        }
+
+        if (clipping_stage_process_triangle(cs)) {
+          /* XXX: Ugly reliance on size here, we stitch the SX,SY,SZ variables alongside 
+            *      the clipping output triangles, however the one is in floats, the other is in
+            *      int32_t's. We assume sizeof(float) == sizeof(int32_t). Find some better way */
+          assert(sizeof(float) == sizeof(int32_t));
+
+          perspective_division(3 * cs->num_triangles_in_b_, 
+                                cs->num_varyings_ - CLIPPING_STAGE_IDX_X, 
+                                cs->num_varyings_ * sizeof(float), 
+                                cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_X);
+
+          viewport_transformation(vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
+                                  screen_width, screen_height, max_z, 
+                                  3 * cs->num_triangles_in_b_, 
+                                  cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_X,
+                                  cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_Y,
+                                  cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_Z,
+                                  cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_W,
+                                  cs->num_varyings_ * sizeof(float),
+                                  (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SX,
+                                  (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SY,
+                                  (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SZ,
+                                  cs->num_varyings_ * sizeof(int32_t));
+
+          for (clip_tri_idx = 0; (clip_tri_idx + 2) < (3 * cs->num_triangles_in_b_); clip_tri_idx += 3) {
+            v0 = cs->triangle_varyings_b_ + cs->num_varyings_ * clip_tri_idx;
+            v1 = v0 + cs->num_varyings_;
+            v2 = v1 + cs->num_varyings_;
+            sx0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SX);
+            sy0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SY);
+            sz0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SZ);
+            sx1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SX);
+            sy1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SY);
+            sz1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SZ);
+            sx2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SX);
+            sy2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SY);
+            sz2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SZ);
+
+            int orientation;
+            int64_t D012 = rasterizer_compute_D012(sx0, sy0, sz0,
+                                                    sx1, sy1, sz1,
+                                                    sx2, sy2, sz2);
+            float ooD012 = (float)(1. / D012);
+
+            size_t attrib_index;
+            for (attrib_index = CLIPPING_STAGE_IDX_X; attrib_index < cs->num_varyings_; ++attrib_index) {
+              v0[attrib_index] *= ooD012;
+              v1[attrib_index] *= ooD012;
+              v2[attrib_index] *= ooD012;
+            }
+
+            prior_num_rows_in_fragbuf = fragbuf->num_rows_;
+
+            while ((orientation = rasterizer_triangle(ras, fragbuf, 
+                                                      rgba, rgba_stride,     // bitmap
+                                                      zbuf, zbuf_stride, zbuf_step,  // z-buffer
+                                                      stencil_buf, stencil_stride, stencil_step,  // stencil buffer
+                                                      norm_scissor_left, norm_scissor_top, 
+                                                      norm_scissor_right, norm_scissor_bottom,  // scissor-rect
+                                                      sx0, sy0, sz0,
+                                                      sx1, sy1, sz1,
+                                                      sx2, sy2, sz2,
+                                                      RASTERIZER_BOTH,
+                                                      offset_factor_f8, offset_units_f8))) {
+              if (orientation == fragbuf->fragment_orientation_) {
+                /* Run over all attributes to be filled in (including gl_FragCoord come to think of it),
+                 * and fill out their coordinates. gl_FragCoord is special here as it's the only "attribute"
+                 * that is not perspectively correct, but passed in raw form, prior to any division. */
+                size_t frag_row;
+                int frag_coord_x_reg = fgl_FragCoord->reg_alloc_.v_.regs_[0];
+                int frag_coord_y_reg = fgl_FragCoord->reg_alloc_.v_.regs_[1];
+                int frag_coord_z_reg = fgl_FragCoord->reg_alloc_.v_.regs_[2];
+                int frag_coord_w_reg = fgl_FragCoord->reg_alloc_.v_.regs_[3];
+                int64_t * restrict dp12 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP12];
+                int64_t * restrict dp20 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP20];
+                int64_t * restrict dp01 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP01];
+
+                if (frag_coord_x_reg != SL_REG_NONE) {
+                  float * restrict x = (float * restrict)fragment_shader->exec_.float_regs_[frag_coord_x_reg];
+                  for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                    x[frag_row] = 0.5f + (float)((int32_t *)fragbuf->column_data_[FB_IDX_X_COORD])[frag_row];
+                  }
+                }
+                if (frag_coord_y_reg != SL_REG_NONE) {
+                  float * restrict y = fragment_shader->exec_.float_regs_[frag_coord_y_reg];
+                  for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                    y[frag_row] = 0.5f + (float)((int32_t *)fragbuf->column_data_[FB_IDX_Y_COORD])[frag_row];
+                  }
+                }
+                if (frag_coord_z_reg != SL_REG_NONE) {
+                  float * restrict z = fragment_shader->exec_.float_regs_[frag_coord_z_reg];
+                  for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                    z[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_Z]
+                                + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_Z]
+                                + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_Z];
+                  }
+                }
+                if (frag_coord_w_reg != SL_REG_NONE) {
+                  /* w reg will contain "one-over-w" */
+                  float * restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
+                  for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                    oow[frag_row] = dp12[frag_row] * v0[CLIPPING_STAGE_IDX_W]
+                                  + dp20[frag_row] * v1[CLIPPING_STAGE_IDX_W]
+                                  + dp01[frag_row] * v2[CLIPPING_STAGE_IDX_W];
+                  }
+                }
+
+                if (ar->num_attribs_routed_) {
+                  float * restrict actual_w = (float * restrict)fragbuf->column_data_[FB_IDX_W];
+                  float *restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
+                  for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                    actual_w[frag_row] = 1.f / oow[frag_row];
+                  }
+                  size_t attrib_route_index;
+                  for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
+                    struct attrib_route *attr = ar->attribs_routed_ + attrib_route_index;
+                    float * restrict tgt = fragment_shader->exec_.float_regs_[attr->to_target_reg_];
+                    float * restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
+                    float fv0 = v0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                    float fv1 = v1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                    float fv2 = v2[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                    for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                      tgt[frag_row] = dp12[frag_row] * fv0 * actual_w[frag_row]
+                                    + dp20[frag_row] * fv1 * actual_w[frag_row]
+                                    + dp01[frag_row] * fv2 * actual_w[frag_row];
+                    }
+                  }
+                }
+              }
+              
+              while ((fragbuf->num_rows_ == FRAGMENT_BUFFER_MAX_ROWS) ||
+                     (fragbuf->num_rows_ && (fragbuf->fragment_orientation_ != orientation))) {
+                /* Full, or stalled because of an triangle - fragbuf orientation mismatch.
+                 * return to caller to process & clear fragbuf */
+                pa->continue_from_fragments_ = 1;
+                goto return_for_continuation;
+continue_from_fragments:
+                pa->continue_from_fragments_ = 0;
+              }
+              prior_num_rows_in_fragbuf = fragbuf->num_rows_;
+            }
+          }
+        }
+      }
+      pa->num_rows_ = 0;
+    }
+  }
+
+  while (fragbuf->num_rows_) {
+    pa->continue_from_fragments_ = 2;
+    return 1;
+continue_from_tail_end:
+    pa->continue_from_fragments_ = 0;
+  }
+
+  return 0;
+
+return_for_continuation:
+  pa->vgl_Position_ = vgl_Position;
+  pa->vmain_ = vmain;
+  pa->fgl_FragCoord_ = fgl_FragCoord;
+  pa->v0_ = v0;
+  pa->v1_ = v1;
+  pa->v2_ = v2;
+  pa->offset_factor_f8_ = offset_factor_f8;
+  pa->offset_units_f8_ = offset_units_f8;
+  pa->sx0_ = sx0;
+  pa->sy0_ = sy0;
+  pa->sz0_ = sz0;
+  pa->sx1_ = sx1;
+  pa->sy1_ = sy1;
+  pa->sz1_ = sz1;
+  pa->sx2_ = sx2;
+  pa->sy2_ = sy2;
+  pa->sz2_ = sz2;
+  pa->norm_scissor_left_ = norm_scissor_left;
+  pa->norm_scissor_top_ = norm_scissor_top;
+  pa->norm_scissor_right_ = norm_scissor_right;
+  pa->norm_scissor_bottom_ = norm_scissor_bottom;
+  pa->pa_row_index_ = pa_row_index;
+  pa->clip_tri_index_ = clip_tri_idx;
+  pa->prior_num_rows_in_fragbuf_ = prior_num_rows_in_fragbuf;
+  return 1;
+}
+
+void primitive_assembly_process_fragments(struct primitive_assembly *pa,
+                                          struct attrib_set *as,
+                                          struct sl_shader *vertex_shader,
+                                          struct attrib_routing *ar,
+                                          struct clipping_stage *cs,
+                                          struct rasterizer *ras,
+                                          struct fragment_buffer *fragbuf,
+                                          struct sl_shader *fragment_shader,
+                                          int32_t vp_x,
+                                          int32_t vp_y, 
+                                          uint32_t vp_width,
+                                          uint32_t vp_height,
+                                          float depth_range_near,
+                                          float depth_range_far,
+                                          uint32_t screen_width,
+                                          uint32_t screen_height,
+                                          int32_t scissor_left, int32_t scissor_bottom_counted_from_bottom,
+                                          int32_t scissor_width, int32_t scissor_height,
+                                          uint32_t max_z,
+                                          uint8_t *rgba, size_t rgba_stride,
+                                          uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
+                                          uint8_t *stencil_buf, size_t stencil_stride, size_t stencil_step,
+                                          int enable_stencil_test, 
+                                          uint32_t stencil_cw_mask,
+                                          primitive_assembly_stencil_func_t stencil_cw_func, uint32_t stencil_cw_func_ref, uint32_t stencil_cw_func_mask,
+                                          primitive_assembly_stencil_op_t stencil_cw_sfail, 
+                                          primitive_assembly_stencil_op_t stencil_cw_zfail, 
+                                          primitive_assembly_stencil_op_t stencil_cw_zpass,
+                                          uint32_t stencil_ccw_mask,
+                                          primitive_assembly_stencil_func_t stencil_ccw_func, uint32_t stencil_ccw_func_ref, uint32_t stencil_ccw_func_mask,
+                                          primitive_assembly_stencil_op_t stencil_ccw_sfail, 
+                                          primitive_assembly_stencil_op_t stencil_ccw_zfail, 
+                                          primitive_assembly_stencil_op_t stencil_ccw_zpass,
+                                          int enable_zbuf_test,
+                                          primitive_assembly_zbuf_func_t zbuf_func,
+                                          int enable_zbuf_write,
+                                          int enable_red, int enable_green, int enable_blue, int enable_alpha,
+                                          blend_eq_t rgb_eq, blend_eq_t alpha_eq,
+                                          blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
+                                          blend_func_t dst_rgb_fn, blend_func_t dst_alpha_fn,
+                                          uint8_t constant_red, uint8_t constant_grn, uint8_t constant_blu, uint8_t constant_alpha,
+                                          float offset_factor, float offset_units,
+                                          primitive_assembly_mode_t mode, 
+                                          size_t num_elements,
+                                          primitive_assembly_index_type_t index_type,
+                                          size_t arrayed_starting_index,
+                                          const void *indices,
+                                          int dbg_overrule_rgb, uint8_t dbg_red, uint8_t dbg_grn, uint8_t dbg_blu) {
+  struct sl_function *fmain = sl_compilation_unit_find_function(&fragment_shader->cu_, "main");
+  struct sl_variable *fgl_FragColor = sl_compilation_unit_find_variable(&fragment_shader->cu_, "gl_FragColor");
+  size_t frag_row;
+  int orientation = fragbuf->fragment_orientation_;
+
+  /* Set up execution chain */
+  uint8_t * restrict frag_exec_chain = fragment_shader->exec_.exec_chain_reg_;
+  size_t frag_exec_row;
+  for (frag_exec_row = 0; frag_exec_row < (fragbuf->num_rows_ - 1); ++frag_exec_row) {
+    frag_exec_chain[frag_exec_row] = 1;
+  }
+  frag_exec_chain[fragbuf->num_rows_ - 1] = 0;
+
+  /* Run fragment shader */
+  sl_exec_run(&fragment_shader->exec_, fmain, 0);
+  
+  /* Discarded fragments are in fragment_shader->exec_.execution_points_[0].alt_chain_
+   * successful fragments are in fragment_shader->exec_.execution_points_[0].post_chain_ */
+
+  /* Run over all discarded fragments and clear their corresponding mask (if any), to
+   * prevent them from generating output. */
+  /* XXX: Speed this up to take big steps (8 at a time) as per other primitives */
+  uint32_t row = fragment_shader->exec_.execution_points_[0].alt_chain_;
+  if (row != SL_EXEC_NO_CHAIN) {
+    uint8_t delta;
+    do {
+      delta = fragment_shader->exec_.exec_chain_reg_[row];
+
+      ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_MASK])[row] = 0x00;
+
+      row += delta;
+    } while (delta);
+  }
+
+  /* Copy over fragment colors as determined by shader */
+  /* XXX: Speed this up to take big steps (8 at a time) as per other primitives
+   * XXX: Super common path, inline everything. */
+  row = fragment_shader->exec_.execution_points_[0].post_chain_;
+  if (row != SL_EXEC_NO_CHAIN) {
+    uint8_t delta;
+    float * restrict red_channel = fragment_shader->exec_.float_regs_[fgl_FragColor->reg_alloc_.v_.regs_[0] ];
+    float * restrict green_channel = fragment_shader->exec_.float_regs_[fgl_FragColor->reg_alloc_.v_.regs_[1] ];
+    float * restrict blue_channel = fragment_shader->exec_.float_regs_[fgl_FragColor->reg_alloc_.v_.regs_[2] ];
+    float * restrict alpha_channel = fragment_shader->exec_.float_regs_[fgl_FragColor->reg_alloc_.v_.regs_[3] ];
+
+    do {
+      delta = fragment_shader->exec_.exec_chain_reg_[row];
+      ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_RED])[row] = (uint8_t)(255.f * red_channel[row]);
+      ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_GREEN])[row] = (uint8_t)(255.f * green_channel[row]);
+      ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_BLUE])[row] = (uint8_t)(255.f * blue_channel[row]);
+      ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[row] = (uint8_t)(255.f * alpha_channel[row]);
+
+      if (dbg_overrule_rgb) {
+        ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_RED])[row] = dbg_red;
+        ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_GREEN])[row] = dbg_grn;
+        ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_BLUE])[row] = dbg_blu;
+        ((uint8_t * restrict)fragbuf->column_data_[FB_IDX_FRAG_ALPHA])[row] = (uint8_t)(255.f * alpha_channel[row]);
+      }
+
+      row += delta;
+    } while (delta);
+  }
+
+  // Stencil test
+  primitive_assembly_stencil_func_t stencil_func;
+  uint32_t stencil_func_ref;
+  uint32_t stencil_func_ref_masked;
+  uint32_t stencil_func_mask;
+  primitive_assembly_stencil_op_t sfail_op, zfail_op, zpass_op;
+  uint32_t stencil_mask;
+
+  if (orientation == RASTERIZER_CLOCKWISE) {
+    stencil_mask = stencil_cw_mask;
+    stencil_func = stencil_cw_func;
+    stencil_func_ref = stencil_cw_func_ref;
+    stencil_func_mask = stencil_cw_func_mask;
+    sfail_op = stencil_cw_sfail;
+    zfail_op = stencil_cw_zfail;
+    zpass_op = stencil_cw_zpass;
+  }
+  else /* (orientation == RASTERIZER_COUNTER_CLOCKWISE) */ {
+    stencil_mask = stencil_ccw_mask;
+    stencil_func = stencil_ccw_func;
+    stencil_func_ref = stencil_ccw_func_ref;
+    stencil_func_mask = stencil_ccw_func_mask;
+    sfail_op = stencil_ccw_sfail;
+    zfail_op = stencil_ccw_zfail;
+    zpass_op = stencil_ccw_zpass;
+  }
+  stencil_func_ref_masked = stencil_func_ref & stencil_func_mask;
+
+  if (enable_stencil_test) {
+    /* Perform stencil function and store result in FB_IDX_TEMP_BYTE_0, note that the stencil
+     * function result is combined with the rasterizer-generated mask, consequently, we need not
+     * worry about writing pixels outside the triangle if we adhere to just the stencil mask. */
+    switch (stencil_func) {
+      case PASF_EQUAL:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t stencil_value = *((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint8_t mask = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint8_t r = mask & (uint8_t)-(int8_t)((stencil_value & stencil_func_mask) == stencil_func_ref_masked);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row] = r;
+        }
+        break;
+      case PASF_NOTEQUAL:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t stencil_value = *((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint8_t mask = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint8_t r = mask & (uint8_t)-(int8_t)((stencil_value & stencil_func_mask) != stencil_func_ref_masked);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row] = r;
+        }
+        break;
+      case PASF_LESS:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t stencil_value = *((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint8_t mask = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint8_t r = mask & (uint8_t)-(int8_t)((stencil_value & stencil_func_mask) < stencil_func_ref_masked);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row] = r;
+        }
+        break;
+      case PASF_GREATER:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t stencil_value = *((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint8_t mask = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint8_t r = mask & (uint8_t)-(int8_t)((stencil_value & stencil_func_mask) > stencil_func_ref_masked);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row] = r;
+        }
+        break;
+      case PASF_LEQUAL:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t stencil_value = *((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint8_t mask = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint8_t r = mask & (uint8_t)-(int8_t)((stencil_value & stencil_func_mask) <= stencil_func_ref_masked);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row] = r;
+        }
+        break;
+      case PASF_GEQUAL:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t stencil_value = *((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint8_t mask = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint8_t r = mask & (uint8_t)-(int8_t)((stencil_value & stencil_func_mask) >= stencil_func_ref_masked);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row] = r;
+        }
+        break;
+      case PASF_ALWAYS:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint8_t mask = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row] = mask;
+        }
+        break;
+      case PASF_NEVER:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row] = 0x00;
+        }
+        break;
+    }
+  }
+  else {
+    /* Ensure FB_IDX_TEMP_BYTE_0 is initialized with mask if stencil is disabled; z-buffer testing
+     * uses it as input. */
+    for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+      uint8_t mask = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row] = mask;
+    }
+  }
+
+  /* Z-buffer test - result of the z-buffer test (pass=0xFF, fail=0x00) is stored in FB_IDX_TEMP_BYTE_1
+   * If !enable_zbuf_test, then always pass, if enable_zbuf_test and enable_zbuf_write, then a write
+   * to the zbuffer occurs in case both the stencil function (in FB_IDX_TEMP_BYTE_0) and the zbuffer
+   * function is a pass. */
+  if (enable_zbuf_test) {
+    if (enable_zbuf_write) {
+      switch (zbuf_step) {
+        case 2:
+          /* 2 byte: 16 bit z-buffer */
+          switch (zbuf_func) {
+            case PAZF_NEVER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = 0x00;
+              }
+              break;
+            case PAZF_LESS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value < zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint16_t outmask = (uint16_t)(int16_t)(int8_t)r;
+                uint16_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_EQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value == zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint16_t outmask = (uint16_t)(int16_t)(int8_t)r;
+                uint16_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_LEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value <= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint16_t outmask = (uint16_t)(int16_t)(int8_t)r;
+                uint16_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_GREATER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value > zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint16_t outmask = (uint16_t)(int16_t)(int8_t)r;
+                uint16_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_NOTEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value != zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint16_t outmask = (uint16_t)(int16_t)(int8_t)r;
+                uint16_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_GEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value >= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint16_t outmask = (uint16_t)(int16_t)(int8_t)r;
+                uint16_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_ALWAYS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass;
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint16_t outmask = (uint16_t)(int16_t)(int8_t)r;
+                uint16_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+          }
+          break;
+        case 3:
+          /* 3 byte: 24 bit z-buffer
+           * Encoded big-endian so it is easier to debug / view in memory dumps
+           */
+          switch (zbuf_func) {
+            case PAZF_NEVER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = 0x00;
+              }
+              break;
+            case PAZF_LESS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value < zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+
+                zbuf_ptr[0] = (uint8_t)(new_zbuf_value >> 16);
+                zbuf_ptr[1] = (uint8_t)(new_zbuf_value >> 8);
+                zbuf_ptr[2] = (uint8_t)new_zbuf_value;
+              }
+              break;
+            case PAZF_EQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value == zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+
+                zbuf_ptr[0] = (uint8_t)(new_zbuf_value >> 16);
+                zbuf_ptr[1] = (uint8_t)(new_zbuf_value >> 8);
+                zbuf_ptr[2] = (uint8_t)new_zbuf_value;
+              }
+              break;
+            case PAZF_LEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value <= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+
+                zbuf_ptr[0] = (uint8_t)(new_zbuf_value >> 16);
+                zbuf_ptr[1] = (uint8_t)(new_zbuf_value >> 8);
+                zbuf_ptr[2] = (uint8_t)new_zbuf_value;
+              }
+              break;
+            case PAZF_GREATER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value > zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+
+                zbuf_ptr[0] = (uint8_t)(new_zbuf_value >> 16);
+                zbuf_ptr[1] = (uint8_t)(new_zbuf_value >> 8);
+                zbuf_ptr[2] = (uint8_t)new_zbuf_value;
+              }
+              break;
+            case PAZF_NOTEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value != zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+
+                zbuf_ptr[0] = (uint8_t)(new_zbuf_value >> 16);
+                zbuf_ptr[1] = (uint8_t)(new_zbuf_value >> 8);
+                zbuf_ptr[2] = (uint8_t)new_zbuf_value;
+              }
+              break;
+            case PAZF_GEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value >= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+
+                zbuf_ptr[0] = (uint8_t)(new_zbuf_value >> 16);
+                zbuf_ptr[1] = (uint8_t)(new_zbuf_value >> 8);
+                zbuf_ptr[2] = (uint8_t)new_zbuf_value;
+              }
+              break;
+            case PAZF_ALWAYS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass;
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+
+                zbuf_ptr[0] = (uint8_t)(new_zbuf_value >> 16);
+                zbuf_ptr[1] = (uint8_t)(new_zbuf_value >> 8);
+                zbuf_ptr[2] = (uint8_t)new_zbuf_value;
+              }
+              break;
+          }
+          break;
+        case 4:
+          /* 32 bit z-buffer */
+          switch (zbuf_func) {
+            case PAZF_NEVER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = 0x00;
+              }
+              break;
+            case PAZF_LESS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value < zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_EQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value == zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_LEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value <= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_GREATER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value > zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_NOTEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value != zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_GEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value >= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+            case PAZF_ALWAYS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass;
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+                uint32_t outmask = (uint32_t)(int32_t)(int8_t)r;
+                uint32_t new_zbuf_value = (zbuf_value & ~outmask) | (z_value & outmask);
+                *zbuf_ptr = new_zbuf_value;
+              }
+              break;
+          }
+          break;
+      }
+    }
+    else /* (!enable_zbuf_write) */ {
+      switch (zbuf_step) {
+        case 2:
+          /* 2 byte: 16 bit z-buffer */
+          switch (zbuf_func) {
+            case PAZF_NEVER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = 0x00;
+              }
+              break;
+            case PAZF_LESS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value < zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_EQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value == zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_LEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value <= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_GREATER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value > zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_NOTEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value != zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_GEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value >= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_ALWAYS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint16_t *zbuf_ptr = (((uint16_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint16_t zbuf_value = *zbuf_ptr;
+                uint16_t z_value = (uint16_t)((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass;
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+          }
+          break;
+        case 3:
+          /* 3 byte: 24 bit z-buffer
+           * Encoded big-endian so it is easier to debug / view in memory dumps
+           */
+          switch (zbuf_func) {
+            case PAZF_NEVER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = 0x00;
+              }
+              break;
+            case PAZF_LESS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value < zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_EQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value == zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_LEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value <= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_GREATER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value > zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_NOTEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value != zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_GEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value >= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_ALWAYS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint8_t *zbuf_ptr = (((uint8_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = (((uint32_t)zbuf_ptr[0]) << 16) |
+                                      (((uint32_t)zbuf_ptr[1]) << 8) |
+                                      (((uint32_t)zbuf_ptr[2]));
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass;
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+          }
+          break;
+        case 4:
+          /* 32 bit z-buffer */
+          switch (zbuf_func) {
+            case PAZF_NEVER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = 0x00;
+              }
+              break;
+            case PAZF_LESS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value < zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_EQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value == zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_LEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value <= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_GREATER:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value > zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_NOTEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value != zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_GEQUAL:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass & (uint8_t)-(int8_t)(z_value >= zbuf_value);
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+            case PAZF_ALWAYS:
+              for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+                uint32_t *zbuf_ptr = (((uint32_t *restrict*restrict)fragbuf->column_data_[FB_IDX_ZBUF_PTR])[frag_row]);
+                uint32_t zbuf_value = *zbuf_ptr;
+                uint32_t z_value = ((uint32_t *restrict)fragbuf->column_data_[FB_IDX_ZBUF_VALUE])[frag_row];
+                uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+                uint8_t r = stencil_pass;
+                ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = r;
+              }
+              break;
+          }
+          break;
+      }
+    }
+  }
+  else /* (!enable_zbuf_test) */ {
+    /* Always pass if the rasterizer considers it a valid pixel */
+    for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+      uint8_t stencil_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row] = stencil_pass;
+    }
+  }
+
+  /* FB_IDX_MASK holds the mask for writes from the rasterizer, 0x00 should be completely
+   *             ignored, 0xFF should be considered for the stencil functions
+   * FB_IDX_TEMPL_BYTE_0 holds the result of the stencil function, 0xFF for a pass, 0x00 for
+   *                     either a failure (or corresponding FB_IDX_MASK was 0x00.)
+   * FB_IDX_TEMPL_BYTE_1 holds the result of the zbuf function, 0xFF for a pass, 0x00 for
+   *                     either a failure, or the corresponding FB_IDX_TEMPL_BYTE_0 was 0x00.
+   * Consequently, if FB_IDX_TEMPL_BYTE_1 is 0xFF, we should apply zpass stencil, if
+   * FB_IDX_TEMPL_BYTE_1 is 0x00 and FB_IDX_TEMPL_BYTE_0 is 0xFF, we should apply zfail, if
+   * FB_IDX_TEMPL_BYTE_0 is 0x00 and FB_IDX_MASK is 0xFF, we should apply sfail.
+   * Finally, prior to blending, we should copy over FB_IDX_TEMPL_BYTE_1 to FB_IDX_MASK so
+   * the blend function will not render pixels that were stencilled out. */
+
+  if (enable_stencil_test && stencil_mask) {
+    /* FB_IDX_TEMPL_BYTE_0 now holds the result of the stencil function, 0xFF for a pass, 0x00
+     * for a failure */
+    /* Consuming FB_IDX_TEMP_BYTE_2 and FB_IDX_TEMP_BYTE_3 here to hold the result of the first
+     * stencil operator pass -- note how FB_IDX_TEMP_BYTE_2 is a byte size column yet we use it
+     * as a short word, hence FB_IDX_TEMP_BYTE_3 is also taken. */
+
+    /* sfail: the stencil failed (FB_IDX_TEMP_BYTE_0 is 0) but the pixel is valid (FB_IDX_MASK is 0xFF) */
+    switch (sfail_op) {
+      case PASO_ZERO:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = 0x0000 | ((*stencil_ptr) & ~mask);
+        }
+        break;
+      case PASO_REPLACE:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (stencil_func_ref & mask) | ((*stencil_ptr) & ~mask);
+        }
+        break;
+      case PASO_INCR:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = *stencil_ptr;
+          uint16_t new_stencil_value = (old_stencil_value == 0xFFFF) ? old_stencil_value : old_stencil_value + 1;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_DECR:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = *stencil_ptr;
+          uint16_t new_stencil_value = (old_stencil_value == 0x0000) ? old_stencil_value : old_stencil_value - 1;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_INCR_WRAP:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = *stencil_ptr;
+          uint16_t new_stencil_value = old_stencil_value + 1;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_DECR_WRAP:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = *stencil_ptr;
+          uint16_t new_stencil_value = old_stencil_value - 1;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_KEEP:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t stencil_value = *((uint16_t *restrict *restrict)fragbuf->column_data_[FBCT_STENCIL_PTR])[frag_row];
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = stencil_value;
+        }
+        break;
+      case PASO_INVERT:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = *stencil_ptr;
+          uint16_t new_stencil_value = ~old_stencil_value;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+    }
+
+    /* zfail: the stencil passed (FB_IDX_TEMP_BYTE_0 is 0xFF) but the zbuffer test failed (FB_IDX_TEMP_BYTE_1 is 0x00) */
+    switch (zfail_op) {
+      case PASO_ZERO:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = 0x0000 | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_REPLACE:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (stencil_func_ref & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_INCR:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = (old_stencil_value == 0xFFFF) ? old_stencil_value : old_stencil_value + 1;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_DECR:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = (old_stencil_value == 0x0000) ? old_stencil_value : old_stencil_value - 1;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_INCR_WRAP:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = old_stencil_value + 1;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_DECR_WRAP:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = old_stencil_value - 1;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+      case PASO_KEEP:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = old_stencil_value;
+        }
+        break;
+      case PASO_INVERT:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_0])[frag_row];
+          uint16_t must_be_clr = (uint16_t)(int16_t)(int8_t)((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t mask = must_be_set & (~must_be_clr) & stencil_mask;
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = ~old_stencil_value;
+          ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row] = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+        }
+        break;
+    }
+
+
+    /* zpass: the stencil passed and the zbuffer test passed (FB_IDX_TEMP_BYTE_1 is 0xFF); this is the same as just testing for FB_IDX_TEMPL_BYTE_1,
+     * Note that we also take the opportunity here to update FB_IDX_MASK to be set for every pixel that passed both the stencil and the zbuffer
+     * tests. Also note that, given zpass is the final pass of three (sfail, zfail, zpass), this is where we write back into the stencil buffer */
+    switch (zpass_op) {
+      case PASO_ZERO:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint8_t must_be_set8 = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)must_be_set8;
+          uint16_t mask = must_be_set & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+
+          *stencil_ptr = 0x0000 | (old_stencil_value & ~mask);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row] = must_be_set8;
+        }
+        break;
+      case PASO_REPLACE:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint8_t must_be_set8 = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)must_be_set8;
+          uint16_t mask = must_be_set & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          *stencil_ptr = (stencil_func_ref & mask) | (old_stencil_value & ~mask);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row] = must_be_set8;
+        }
+        break;
+      case PASO_INCR:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint8_t must_be_set8 = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)must_be_set8;
+          uint16_t mask = must_be_set & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = (old_stencil_value == 0xFFFF) ? old_stencil_value : old_stencil_value + 1;
+          *stencil_ptr = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row] = must_be_set8;
+        }
+        break;
+      case PASO_DECR:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint8_t must_be_set8 = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)must_be_set8;
+          uint16_t mask = must_be_set & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = (old_stencil_value == 0x0000) ? old_stencil_value : old_stencil_value - 1;
+          *stencil_ptr = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row] = must_be_set8;
+        }
+        break;
+      case PASO_INCR_WRAP:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint8_t must_be_set8 = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)must_be_set8;
+          uint16_t mask = must_be_set & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = old_stencil_value + 1;
+          *stencil_ptr = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row] = must_be_set8;
+        }
+        break;
+      case PASO_DECR_WRAP:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint8_t must_be_set8 = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)must_be_set8;
+          uint16_t mask = must_be_set & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = old_stencil_value - 1;
+          *stencil_ptr = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row] = must_be_set8;
+        }
+        break;
+      case PASO_KEEP:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint8_t must_be_set8 = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)must_be_set8;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          *stencil_ptr = old_stencil_value;
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row] = must_be_set8;
+        }
+        break;
+      case PASO_INVERT:
+        for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+          uint8_t must_be_set8 = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+          uint16_t must_be_set = (uint16_t)(int16_t)(int8_t)must_be_set8;
+          uint16_t mask = must_be_set & stencil_mask;
+          uint16_t *restrict stencil_ptr = ((uint16_t *restrict *restrict)fragbuf->column_data_[FB_IDX_STENCIL_PTR])[frag_row];
+          uint16_t old_stencil_value = ((uint16_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_2])[frag_row];
+          uint16_t new_stencil_value = ~old_stencil_value;
+          *stencil_ptr = (new_stencil_value & mask) | (old_stencil_value & ~mask);
+          ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row] = must_be_set8;
+        }
+        break;
+    }
+  }
+  else {
+    /* Stencil test not enabled, nevertheless, in the case of z-buffer test results we need to move
+     * them to FB_IDX_MASK so we don't write pixels that failed the z-buffer test. */
+    for (frag_row = 0; frag_row < fragbuf->num_rows_; ++frag_row) {
+      uint8_t zbuf_pass = ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_TEMP_BYTE_1])[frag_row];
+      ((uint8_t *restrict)fragbuf->column_data_[FB_IDX_MASK])[frag_row] = zbuf_pass;
+    }
+  }
+
+  // Write out / blend pixels
+
+  blend(fragbuf->num_rows_, fragbuf->column_data_[FB_IDX_MASK],
+        fragbuf->column_data_[FB_IDX_FRAG_RED],
+        fragbuf->column_data_[FB_IDX_FRAG_GREEN],
+        fragbuf->column_data_[FB_IDX_FRAG_BLUE],
+        fragbuf->column_data_[FB_IDX_FRAG_ALPHA],
+        fragbuf->column_data_[FB_IDX_PIXEL_PTR],
+        enable_red, enable_green, enable_blue, enable_alpha,
+        rgb_eq, alpha_eq, src_rgb_fn, src_alpha_fn, dst_rgb_fn, dst_alpha_fn,
+        constant_red, constant_grn, constant_blu, constant_alpha,
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_0],
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_1],
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_2],
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_3],
+
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_4],
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_5],
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_6],
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_7],
+
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_8],
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_9],
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_10],
+        fragbuf->column_data_[FB_IDX_TEMP_BYTE_11]);
+
+  fragbuf->num_rows_ = 0;
+}
+
+void primitive_assembly_draw_elements2(struct primitive_assembly *pa,
+                                       struct attrib_set *as,
+                                       struct sl_shader *vertex_shader,
+                                       struct attrib_routing *ar,
+                                       struct clipping_stage *cs,
+                                       struct rasterizer *ras,
+                                       struct fragment_buffer *fragbuf,
+                                       struct sl_shader *fragment_shader,
+                                       int32_t vp_x,
+                                       int32_t vp_y,
+                                       uint32_t vp_width,
+                                       uint32_t vp_height,
+                                       float depth_range_near,
+                                       float depth_range_far,
+                                       uint32_t screen_width,
+                                       uint32_t screen_height,
+                                       int32_t scissor_left, int32_t scissor_bottom_counted_from_bottom,
+                                       int32_t scissor_width, int32_t scissor_height,
+                                       uint32_t max_z,
+                                       uint8_t *rgba, size_t rgba_stride,
+                                       uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
+                                       uint8_t *stencil_buf, size_t stencil_stride, size_t stencil_step,
+                                       int enable_stencil_test, 
+                                       uint32_t stencil_cw_mask,
+                                       primitive_assembly_stencil_func_t stencil_cw_func, uint32_t stencil_cw_func_ref, uint32_t stencil_cw_func_mask,
+                                       primitive_assembly_stencil_op_t stencil_cw_sfail, 
+                                       primitive_assembly_stencil_op_t stencil_cw_zfail, 
+                                       primitive_assembly_stencil_op_t stencil_cw_zpass,
+                                       uint32_t stencil_ccw_mask,
+                                       primitive_assembly_stencil_func_t stencil_ccw_func, uint32_t stencil_ccw_func_ref, uint32_t stencil_ccw_func_mask,
+                                       primitive_assembly_stencil_op_t stencil_ccw_sfail, 
+                                       primitive_assembly_stencil_op_t stencil_ccw_zfail, 
+                                       primitive_assembly_stencil_op_t stencil_ccw_zpass,
+                                       int enable_zbuf_test,
+                                       primitive_assembly_zbuf_func_t zbuf_func,
+                                       int enable_zbuf_write,
+                                       int enable_red, int enable_green, int enable_blue, int enable_alpha,
+                                       blend_eq_t rgb_eq, blend_eq_t alpha_eq,
+                                       blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
+                                       blend_func_t dst_rgb_fn, blend_func_t dst_alpha_fn,
+                                       uint8_t constant_red, uint8_t constant_grn, uint8_t constant_blu, uint8_t constant_alpha,
+                                       float offset_factor, float offset_units,
+                                       primitive_assembly_mode_t mode, 
+                                       size_t num_elements,
+                                       primitive_assembly_index_type_t index_type,
+                                       size_t arrayed_starting_index,
+                                       const void *indices) {
+  int color_runner = 0;
+  uint8_t colors[] = {
+    0xFF, 0x00, 0x00,
+    0xFF, 0xFF, 0x00,
+    0x00, 0xFF, 0x00,
+    0x00, 0xFF, 0xFF,
+    0x00, 0x00, 0xFF,
+    0xFF, 0x00, 0xFF
+  };
+
+  while (primitive_assembly_process_primitives(pa, as, vertex_shader, ar, cs, ras, fragbuf, fragment_shader, 
+                                               vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
+                                               screen_width, screen_height,
+                                               scissor_left, scissor_bottom_counted_from_bottom, scissor_width, scissor_height,
+                                               max_z, rgba, rgba_stride, zbuf, zbuf_stride, zbuf_step,
+                                               stencil_buf, stencil_stride, stencil_step, enable_stencil_test,
+                                               stencil_cw_mask, stencil_cw_func, stencil_cw_func_ref, stencil_cw_func_mask,
+                                               stencil_cw_sfail, stencil_cw_zfail, stencil_cw_zpass,
+                                               stencil_ccw_mask, stencil_ccw_func, stencil_ccw_func_ref, stencil_ccw_func_mask,
+                                               stencil_ccw_sfail, stencil_ccw_zfail, stencil_ccw_zpass,
+                                               enable_zbuf_test,
+                                               zbuf_func,
+                                               enable_zbuf_write, enable_red, enable_green, enable_blue, enable_alpha,
+                                               rgb_eq, alpha_eq, src_rgb_fn, src_alpha_fn, dst_rgb_fn, dst_alpha_fn, 
+                                               constant_red, constant_grn, constant_blu, constant_alpha,
+                                               offset_factor, offset_units,
+                                               mode, num_elements, index_type, arrayed_starting_index, indices)) {
+#if 1
+    primitive_assembly_process_fragments(pa, as, vertex_shader, ar, cs, ras, fragbuf, fragment_shader, 
+                                         vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
+                                         screen_width, screen_height,
+                                         scissor_left, scissor_bottom_counted_from_bottom, scissor_width, scissor_height,
+                                         max_z, rgba, rgba_stride, zbuf, zbuf_stride, zbuf_step,
+                                         stencil_buf, stencil_stride, stencil_step, enable_stencil_test,
+                                         stencil_cw_mask, stencil_cw_func, stencil_cw_func_ref, stencil_cw_func_mask,
+                                         stencil_cw_sfail, stencil_cw_zfail, stencil_cw_zpass,
+                                         stencil_ccw_mask, stencil_ccw_func, stencil_ccw_func_ref, stencil_ccw_func_mask,
+                                         stencil_ccw_sfail, stencil_ccw_zfail, stencil_ccw_zpass,
+                                         enable_zbuf_test,
+                                         zbuf_func,
+                                         enable_zbuf_write, enable_red, enable_green, enable_blue, enable_alpha,
+                                         rgb_eq, alpha_eq, src_rgb_fn, src_alpha_fn, dst_rgb_fn, dst_alpha_fn, 
+                                         constant_red, constant_grn, constant_blu, constant_alpha,
+                                         offset_factor, offset_units,
+                                         mode, num_elements, index_type, arrayed_starting_index, indices,
+                                         0, 0, 0, 0);
+#else
+    uint8_t dbg_red = colors[color_runner + 0];
+    uint8_t dbg_grn = colors[color_runner + 1];
+    uint8_t dbg_blu = colors[color_runner + 2];
+
+    if (fragbuf->num_rows_ != 256) {
+      dbg_red = 0x88;
+      dbg_grn = 0x00;
+      dbg_blu = 0x00;
+    }
+
+    primitive_assembly_process_fragments(pa, as, vertex_shader, ar, cs, ras, fragbuf, fragment_shader, 
+                                         vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
+                                         screen_width, screen_height,
+                                         scissor_left, scissor_bottom_counted_from_bottom, scissor_width, scissor_height,
+                                         max_z, rgba, rgba_stride, zbuf, zbuf_stride, zbuf_step,
+                                         stencil_buf, stencil_stride, stencil_step, enable_stencil_test,
+                                         stencil_cw_mask, stencil_cw_func, stencil_cw_func_ref, stencil_cw_func_mask,
+                                         stencil_cw_sfail, stencil_cw_zfail, stencil_cw_zpass,
+                                         stencil_ccw_mask, stencil_ccw_func, stencil_ccw_func_ref, stencil_ccw_func_mask,
+                                         stencil_ccw_sfail, stencil_ccw_zfail, stencil_ccw_zpass,
+                                         enable_zbuf_test,
+                                         zbuf_func,
+                                         enable_zbuf_write, enable_red, enable_green, enable_blue, enable_alpha,
+                                         rgb_eq, alpha_eq, src_rgb_fn, src_alpha_fn, dst_rgb_fn, dst_alpha_fn, 
+                                         constant_red, constant_grn, constant_blu, constant_alpha,
+                                         offset_factor, offset_units,
+                                         mode, num_elements, index_type, arrayed_starting_index, indices,
+                                         1, dbg_red, dbg_grn, dbg_blu);
+    color_runner += 3;
+    if (color_runner >= (sizeof(colors)/sizeof(*colors))) {
+      color_runner = 0;
+    }
+#endif
+  }
+}
+

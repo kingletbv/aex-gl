@@ -109,7 +109,7 @@ struct fragment_buffer_column_descriptor {
 };
 
 struct fragment_buffer {
-  /* Number of rows, maximum is FRAGMENT_BUF_MAX_ROWS */
+  /* Number of rows, maximum is FRAGMENT_BUFFER_MAX_ROWS */
   size_t num_rows_;
 
   size_t num_cols_;

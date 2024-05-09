@@ -121,6 +121,17 @@ struct primitive_assembly {
   /* While assembling primitives, this is used to mark internal progress */
   size_t index_at_;
   int continue_at_;
+  int continue_from_fragments_;
+
+  /* backups for continuation on fragments in primitive_assembly_process_primitives() */
+  struct sl_variable *vgl_Position_;
+  struct sl_function *vmain_;
+  struct sl_variable *fgl_FragCoord_;
+  float *v0_, *v1_, *v2_;
+  int32_t offset_factor_f8_, offset_units_f8_;
+  int32_t sx0_, sy0_, sz0_, sx1_, sy1_, sz1_, sx2_, sy2_, sz2_;
+  uint32_t norm_scissor_left_, norm_scissor_top_, norm_scissor_right_, norm_scissor_bottom_;
+  size_t pa_row_index_, clip_tri_index_, prior_num_rows_in_fragbuf_;
 };
 
 void primitive_assembly_init(struct primitive_assembly *pa);
@@ -189,6 +200,54 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       primitive_assembly_index_type_t index_type,
                                       size_t arrayed_starting_index,
                                       const void *indices);
+
+void primitive_assembly_draw_elements2(struct primitive_assembly *pa,
+                                       struct attrib_set *as,
+                                       struct sl_shader *vertex_shader,
+                                       struct attrib_routing *ar,
+                                       struct clipping_stage *cs,
+                                       struct rasterizer *ras,
+                                       struct fragment_buffer *fragbuf,
+                                       struct sl_shader *fragment_shader,
+                                       int32_t vp_x,
+                                       int32_t vp_y,
+                                       uint32_t vp_width,
+                                       uint32_t vp_height,
+                                       float depth_range_near,
+                                       float depth_range_far,
+                                       uint32_t screen_width,
+                                       uint32_t screen_height,
+                                       int32_t scissor_left, int32_t scissor_bottom_counted_from_bottom,
+                                       int32_t scissor_width, int32_t scissor_height,
+                                       uint32_t max_z,
+                                       uint8_t *rgba, size_t rgba_stride,
+                                       uint8_t *zbuf, size_t zbuf_stride, size_t zbuf_step,
+                                       uint8_t *stencil_buf, size_t stencil_stride, size_t stencil_step,
+                                       int enable_stencil_test, 
+                                       uint32_t stencil_cw_mask,
+                                       primitive_assembly_stencil_func_t stencil_cw_func, uint32_t stencil_cw_func_ref, uint32_t stencil_cw_func_mask,
+                                       primitive_assembly_stencil_op_t stencil_cw_sfail, 
+                                       primitive_assembly_stencil_op_t stencil_cw_zfail, 
+                                       primitive_assembly_stencil_op_t stencil_cw_zpass,
+                                       uint32_t stencil_ccw_mask,
+                                       primitive_assembly_stencil_func_t stencil_ccw_func, uint32_t stencil_ccw_func_ref, uint32_t stencil_ccw_func_mask,
+                                       primitive_assembly_stencil_op_t stencil_ccw_sfail, 
+                                       primitive_assembly_stencil_op_t stencil_ccw_zfail, 
+                                       primitive_assembly_stencil_op_t stencil_ccw_zpass,
+                                       int enable_zbuf_test,
+                                       primitive_assembly_zbuf_func_t zbuf_func,
+                                       int enable_zbuf_write,
+                                       int enable_red, int enable_green, int enable_blue, int enable_alpha,
+                                       blend_eq_t rgb_eq, blend_eq_t alpha_eq,
+                                       blend_func_t src_rgb_fn, blend_func_t src_alpha_fn,
+                                       blend_func_t dst_rgb_fn, blend_func_t dst_alpha_fn,
+                                       uint8_t constant_red, uint8_t constant_grn, uint8_t constant_blu, uint8_t constant_alpha,
+                                       float offset_factor, float offset_units,
+                                       primitive_assembly_mode_t mode,
+                                       size_t num_elements,
+                                       primitive_assembly_index_type_t index_type,
+                                       size_t arrayed_starting_index,
+                                       const void *indices);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -677,17 +677,18 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       else {
         // Clockwise not permitted, reject.
       }
-      if (fragbf->num_rows_ && fragbf->fragment_orientation_ != orientation) {
-        /* Mismatch of triangle orientation with other existing fragments in the buffer.
-         * Clear out the buffer before continuing. */
-        return 1; /* resume at start is fine */
-      }
-      fragbf->fragment_orientation_ = orientation;
     }
     else {
       // Colinear, reject.
       return 0;
     }
+
+    if (fragbf->num_rows_ && fragbf->fragment_orientation_ != orientation) {
+      /* Mismatch of triangle orientation with other existing fragments in the buffer.
+       * Clear out the buffer before continuing. */
+      return orientation; /* resume at start is fine */
+    }
+    fragbf->fragment_orientation_ = orientation;
 
     // Dzx = determinant of z and y coordinates (change in numerator for each successive column (x))
     //       | z0 y0 1 |
