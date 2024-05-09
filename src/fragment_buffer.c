@@ -38,6 +38,7 @@ void fragment_buffer_init(struct fragment_buffer *fb) {
   fb->num_cols_ = 0;
   fb->column_descriptions_ = NULL;
   fb->column_data_ = NULL;
+  fb->fragment_orientation_ = 0;
   fb->fixed_slab_ = NULL;
 }
 

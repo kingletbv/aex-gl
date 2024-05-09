@@ -663,7 +663,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       // Clockwise, check if permitted.
       if (permitted_orientations & RASTERIZER_CLOCKWISE) {
         // Adopt xyz012 as is.
-      orientation = RASTERIZER_CLOCKWISE;
+        orientation = RASTERIZER_CLOCKWISE;
         x0 = px0;
         y0 = py0;
         z0 = pz0;
@@ -677,6 +677,12 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       else {
         // Clockwise not permitted, reject.
       }
+      if (fragbf->num_rows_ && fragbf->fragment_orientation_ != orientation) {
+        /* Mismatch of triangle orientation with other existing fragments in the buffer.
+         * Clear out the buffer before continuing. */
+        return 1; /* resume at start is fine */
+      }
+      fragbf->fragment_orientation_ = orientation;
     }
     else {
       // Colinear, reject.
