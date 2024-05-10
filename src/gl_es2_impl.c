@@ -2231,13 +2231,41 @@ static void perform_draw(primitive_assembly_mode_t mode,
   } stencil_cw, stencil_ccw;
   struct stencil_settings *ss_front, *ss_back;
 
+  int permitted_orientations = RASTERIZER_BOTH;
+
   if (c->front_face_ == gl_es2_front_face_clockwise) {
     ss_front = &stencil_cw;
     ss_back = &stencil_ccw;
+    if (c->is_culling_enabled_) {
+      switch (c->cull_face_mode_) {
+        case gl_es2_cull_face_front:
+          permitted_orientations &= ~RASTERIZER_CLOCKWISE;
+          break;
+        case gl_es2_cull_face_back:
+          permitted_orientations &= ~RASTERIZER_COUNTERCLOCKWISE;
+          break;
+        case gl_es2_cull_face_front_and_back:
+          permitted_orientations = 0;
+          break;
+      }
+    }
   }
-  else {
+  else /* (c->front_face_ == gl_es2_front_face_counterclockwise) */ {
     ss_front = &stencil_ccw;
     ss_back = &stencil_cw;
+    if (c->is_culling_enabled_) {
+      switch (c->cull_face_mode_) {
+        case gl_es2_cull_face_front:
+          permitted_orientations &= ~RASTERIZER_COUNTERCLOCKWISE;
+          break;
+        case gl_es2_cull_face_back:
+          permitted_orientations &= ~RASTERIZER_CLOCKWISE;
+          break;
+        case gl_es2_cull_face_front_and_back:
+          permitted_orientations = 0;
+          break;
+      }
+    }
   }
 
   ss_front->mask = c->stencil_writemask_;
@@ -2291,6 +2319,7 @@ static void perform_draw(primitive_assembly_mode_t mode,
                                    rgba_buffer_ptr, rgba_buffer_stride,
                                    depth_buffer_ptr, depth_buffer_stride, zbuf_step,
                                    stencil_buffer_ptr, stencil_buffer_stride, 2,
+                                   permitted_orientations,
                                    is_stencil_enabled, /* no stencil test */
                                    /* Settings for stencil on clockwise triangles: */
                                    stencil_cw.mask, /* clockwise stencil mask: all output bits enabled */
@@ -2851,6 +2880,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
         case gl_es2_front_face_counterclockwise: data[0] = (gl_es2_boolean)(GL_ES2_CCW ? GL_ES2_TRUE : GL_ES2_FALSE); break;
       }
       break;
+    case GL_ES2_CULL_FACE_MODE:
+      switch (c->cull_face_mode_) {
+        case gl_es2_cull_face_front:          data[0] = (gl_es2_boolean)(GL_ES2_FRONT ? GL_ES2_TRUE: GL_ES2_FALSE); break;
+        case gl_es2_cull_face_back:           data[0] = (gl_es2_boolean)(GL_ES2_BACK ? GL_ES2_TRUE: GL_ES2_FALSE); break;
+        case gl_es2_cull_face_front_and_back: data[0] = (gl_es2_boolean)(GL_ES2_FRONT_AND_BACK ? GL_ES2_TRUE: GL_ES2_FALSE); break;
+      }
+      break;
+
     case GL_ES2_MAX_VIEWPORT_DIMS:
       data[0] = (gl_es2_boolean)(GL_ES2_IMPL_MAX_VIEWPORT_DIMS ? GL_ES2_TRUE : GL_ES2_FALSE); break;
       data[1] = (gl_es2_boolean)(GL_ES2_IMPL_MAX_VIEWPORT_DIMS ? GL_ES2_TRUE : GL_ES2_FALSE); break;
@@ -3046,6 +3083,13 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
       switch (c->front_face_) {
         case gl_es2_front_face_clockwise:        data[0] = (float)GL_ES2_CW; break;
         case gl_es2_front_face_counterclockwise: data[0] = (float)GL_ES2_CCW; break;
+      }
+      break;
+    case GL_ES2_CULL_FACE_MODE:
+      switch (c->cull_face_mode_) {
+        case gl_es2_cull_face_front:          data[0] = (float)GL_ES2_FRONT; break;
+        case gl_es2_cull_face_back:           data[0] = (float)GL_ES2_BACK; break;
+        case gl_es2_cull_face_front_and_back: data[0] = (float)GL_ES2_FRONT_AND_BACK; break;
       }
       break;
     case GL_ES2_MAX_VIEWPORT_DIMS:
@@ -3305,6 +3349,13 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
       switch (c->front_face_) {
         case gl_es2_front_face_clockwise:        data[0] = (gl_es2_int)GL_ES2_CW; break;
         case gl_es2_front_face_counterclockwise: data[0] = (gl_es2_int)GL_ES2_CCW; break;
+      }
+      break;
+    case GL_ES2_CULL_FACE_MODE:
+      switch (c->cull_face_mode_) {
+        case gl_es2_cull_face_front:          data[0] = (gl_es2_int)GL_ES2_FRONT; break;
+        case gl_es2_cull_face_back:           data[0] = (gl_es2_int)GL_ES2_BACK; break;
+        case gl_es2_cull_face_front_and_back: data[0] = (gl_es2_int)GL_ES2_FRONT_AND_BACK; break;
       }
       break;
     case GL_ES2_MAX_VIEWPORT_DIMS:
