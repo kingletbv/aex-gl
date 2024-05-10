@@ -66,6 +66,49 @@ void clipping_stage_cleanup(struct clipping_stage *cs) {
   if (cs->triangle_varyings_b_) free(cs->triangle_varyings_b_);
 }
 
+static size_t clipping_stage_process_line_plane(struct clipping_stage *cs,
+                                                float d0, float d1, 
+                                                float *restrict input_v,
+                                                float *restrict output_v) {
+  size_t varying_index;
+  float *v0, *v1;
+  v0 = input_v;
+  v1 = v0 + cs->num_varyings_;
+  if (d0 >= 0.f) {
+    /* v0 inside */
+    if (d1 >= 0.f) {
+      /* v1 inside, all inside, pass line */
+      memcpy(output_v, input_v, sizeof(float) * cs->num_varyings_ * 2);
+      return 1;
+    }
+    else {
+      /* v0 inside, v1 outside */
+      memcpy(output_v, input_v, sizeof(float) * cs->num_varyings_);
+      float ood01 = 1.f / (d0 - d1);
+      for (varying_index = CLIPPING_STAGE_IDX_X; varying_index < cs->num_varyings_; ++varying_index) {
+        output_v[varying_index] = (-d1 * v0[varying_index] + d0 * v1[varying_index]) * ood01;
+      }
+      return 1;
+    }
+  }
+  else {
+    /* v0 outside */
+    if (d1 >= 0.f) {
+      /* v0 outside, v1 inside */
+      float ood01 = 1.f / (d1 - d0);
+      for (varying_index = CLIPPING_STAGE_IDX_X; varying_index < cs->num_varyings_; ++varying_index) {
+        output_v[varying_index] = (d1 * v0[varying_index] + -d0 * v1[varying_index]) * ood01;
+      }
+      memcpy(output_v, input_v, sizeof(float) * cs->num_varyings_);
+      return 1;
+    }
+    else {
+      /* v0 outside, v1 outside - ignore line */
+      return 0;
+    }
+  }
+}
+
 static size_t clipping_stage_process_triangle_plane(struct clipping_stage *cs,
                                                     float d0, float d1, float d2,
                                                     float *restrict input_v,
@@ -339,5 +382,83 @@ size_t clipping_stage_process_triangle(struct clipping_stage *cs) {
   cs->num_triangles_in_b_ = num_tris;
 
   return num_tris;
+}
+
+/* Processes line, this is analogous to the triangle and could be done inplace, however,
+ * we'll go for consistency and go back and forth between two buffers just like the triangle case. */
+size_t clipping_stage_process_line(struct clipping_stage *cs) {
+  size_t tri_stride = cs->num_varyings_ * 3;
+  float *input_v = cs->input_varyings_;
+  float *output_v = cs->triangle_varyings_a_;
+  float *v0, *v1;
+  cs->num_triangles_in_b_ = 0;
+  v0 = input_v;
+  v1 = v0 + cs->num_varyings_;
+
+  /* Note: OpenGL convention, DirectX would want z >= 0 (z == 0 after w div)
+   * -z + w >= 0
+   */
+  float d0 = -v0[CLIPPING_STAGE_IDX_Z] + v0[CLIPPING_STAGE_IDX_W];
+  float d1 = -v1[CLIPPING_STAGE_IDX_Z] + v1[CLIPPING_STAGE_IDX_W];
+
+  size_t num_lines = clipping_stage_process_line_plane(cs, d0, d1, input_v, cs->triangle_varyings_a_);
+
+  if (!num_lines) return 0;
+
+  v0 = cs->triangle_varyings_a_;
+  v1 = v0 + cs->num_varyings_;
+
+  /* z + w >= 0 */
+  d0 = v0[CLIPPING_STAGE_IDX_Z] + v0[CLIPPING_STAGE_IDX_W];
+  d1 = v1[CLIPPING_STAGE_IDX_Z] + v1[CLIPPING_STAGE_IDX_W];
+
+  num_lines = clipping_stage_process_line_plane(cs, d0, d1, cs->triangle_varyings_a_, cs->triangle_varyings_b_);
+
+  if (!num_lines) return 0;
+
+  v0 = cs->triangle_varyings_b_;
+  v1 = v0 + cs->num_varyings_;
+
+  /* -y + w >= 0 */
+  d0 = -v0[CLIPPING_STAGE_IDX_Y] + v0[CLIPPING_STAGE_IDX_W];
+  d1 = -v1[CLIPPING_STAGE_IDX_Y] + v1[CLIPPING_STAGE_IDX_W];
+
+  num_lines = clipping_stage_process_line_plane(cs, d0, d1, cs->triangle_varyings_b_, cs->triangle_varyings_a_);
+
+  if (!num_lines) return 0;
+
+  v0 = cs->triangle_varyings_a_;
+  v1 = v0 + cs->num_varyings_;
+
+  /* y + w >= 0 */
+  d0 = v0[CLIPPING_STAGE_IDX_Y] + v0[CLIPPING_STAGE_IDX_W];
+  d1 = v1[CLIPPING_STAGE_IDX_Y] + v1[CLIPPING_STAGE_IDX_W];
+
+  num_lines = clipping_stage_process_line_plane(cs, d0, d1, cs->triangle_varyings_a_, cs->triangle_varyings_b_);
+
+  if (!num_lines) return 0;
+
+  v0 = cs->triangle_varyings_b_;
+  v1 = v0 + cs->num_varyings_;
+
+  /* -x + w >= 0 */
+  d0 = -v0[CLIPPING_STAGE_IDX_X] + v0[CLIPPING_STAGE_IDX_W];
+  d1 = -v1[CLIPPING_STAGE_IDX_X] + v1[CLIPPING_STAGE_IDX_W];
+
+  num_lines = clipping_stage_process_line_plane(cs, d0, d1, cs->triangle_varyings_b_, cs->triangle_varyings_a_);
+
+  if (!num_lines) return 0;
+
+  v0 = cs->triangle_varyings_a_;
+  v1 = v0 + cs->num_varyings_;
+
+  /* x + w >= 0 */
+  d0 = v0[CLIPPING_STAGE_IDX_X] + v0[CLIPPING_STAGE_IDX_W];
+  d1 = v1[CLIPPING_STAGE_IDX_X] + v1[CLIPPING_STAGE_IDX_W];
+
+  num_lines = clipping_stage_process_line_plane(cs, d0, d1, cs->triangle_varyings_a_, cs->triangle_varyings_b_);
+  cs->num_triangles_in_b_ = num_lines; /* technically not the number of triangles but the number of lines */
+    
+  return num_lines;
 }
 

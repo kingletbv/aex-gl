@@ -57,6 +57,10 @@ struct clipping_stage {
    * We maintain 2 buffers so we take a plane, clip all current triangles from one buffer to the other,
    * take the next plane, clip all triangles from the other buffer back into the one buffer, and so on,
    * until clipping has completed.
+   * Note that, despite the nomenclature, if the clipping_stage is used to clip lines instead
+   * of triangles, then these buffers, whilst allocated for the size of triangles, will contain a line.
+   * num_triangles_in_b_ will then, at output, reflect 0 if there is no line, or 1 if there is a line.
+   * A line consists of two vertices, i.e., two sets of varying attributes, not three.
    */
   float *triangle_varyings_a_;
   size_t num_triangles_in_b_;
@@ -88,6 +92,13 @@ void clipping_stage_cleanup(struct clipping_stage *cs);
  * Output of the clipping is in clipping_stage::triangle_varyins_in_b_ */
 size_t clipping_stage_process_triangle(struct clipping_stage *cs);
 
+/* Process the line currently set in the clipping_stage.
+ * returns the number of lines clipped to the inside of the view frustrum.
+ * Output of the clipping is in clipping_stage::triangle_varyings_in_b_
+ * and the number of lines is in num_triangles_in_b_.
+ *                   -----           ---------
+ */
+size_t clipping_stage_process_line(struct clipping_stage *cs);
 
 #ifdef __cplusplus
 } /* extern "C" */
