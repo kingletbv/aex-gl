@@ -611,11 +611,33 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     // are outside the triangle, or the scissor; we will discard those fragments later - reason for this
     // is to be able to do mip-mapping and dFdx/dFdy type stuff.)
 
+    /* Determine bounding box, and intersect with the scissor rect */
+    int64_t bleft, btop, bright, bbottom;
+    bleft = bright = px0;
+    btop = bbottom = py0;
+    if (px1 < bleft) bleft = px1;
+    if (px1 > bright) bright = px1;
+    if (py1 < btop) btop = py1;
+    if (py1 > bbottom) bbottom = py1;
+    if (px2 < bleft) bleft = px2;
+    if (px2 > bright) bright = px2;
+    if (py2 < btop) btop = py2;
+    if (py2 > bbottom) bbottom = py2;
+    bleft = bleft >> RASTERIZER_SUBPIXEL_BITS;
+    btop = btop >> RASTERIZER_SUBPIXEL_BITS;
+    bright = (bright + ((1 << RASTERIZER_SUBPIXEL_BITS) - 1)) >> RASTERIZER_SUBPIXEL_BITS;
+    bbottom = (bbottom + ((1 << RASTERIZER_SUBPIXEL_BITS) - 1)) >> RASTERIZER_SUBPIXEL_BITS;
+
+    left = (bleft < scissor_left) ? scissor_left : bleft;
+    right = (bright > scissor_right) ? scissor_right : bright;
+    top = (btop < scissor_top) ? scissor_top : btop;
+    bottom = (bbottom > scissor_bottom) ? scissor_bottom : bbottom;
+
     // Be inclusive of odd edges on the scissor rectangle.
-    left = scissor_left & ~(int64_t)1;
-    top = scissor_top & ~(int64_t)1;
-    right = (scissor_right + 1) & ~(int64_t)1;
-    bottom = (scissor_bottom + 1) & ~(int64_t)1;
+    left = left & ~(int64_t)1;
+    top = top & ~(int64_t)1;
+    right = (right + 1) & ~(int64_t)1;
+    bottom = (bottom + 1) & ~(int64_t)1;
 
     // The scissor rectangle is still in pixel coordinates, convert it into sub-pixel coordinates
     int64_t left_sp = left << RASTERIZER_SUBPIXEL_BITS;
