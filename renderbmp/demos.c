@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+#ifdef _WIN32
+/* high res timers */
+#include <Windows.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -251,7 +256,23 @@ int run_demos(void) {
 
   glViewport(0, 0, output_width, output_height);
 
+  fprintf(stdout, "demo_mipmap_triangle:\n");
+#ifdef _WIN32
+  LARGE_INTEGER freq, start_count;
+  QueryPerformanceFrequency(&freq);
+  QueryPerformanceCounter(&start_count);
+#endif
   exit_ret = demo_mipmap_triangle(output_width, output_height);
+#ifdef _WIN32
+  LARGE_INTEGER end_count;
+  QueryPerformanceCounter(&end_count);
+  uint64_t delta = end_count.QuadPart - start_count.QuadPart;
+  delta = delta * 1000000 /* usecs */;
+  delta = delta / freq.QuadPart;
+  uint64_t fps = freq.QuadPart / (end_count.QuadPart - start_count.QuadPart);
+
+  fprintf(stdout, "usecs: %" PRIu64 " (~ %d fps)\n", delta, (int)fps);
+#endif
 
   glReadPixels(0, 0, output_width, output_height, GL_RGBA, GL_UNSIGNED_BYTE, rgba32);
 
