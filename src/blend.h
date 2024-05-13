@@ -58,8 +58,7 @@ void blend(size_t num_fragments, uint8_t *maskp,
            blend_func_t dst_rgb_fn, blend_func_t dst_alpha_fn,
            uint8_t constant_red, uint8_t constant_grn, uint8_t constant_blu, uint8_t constant_alpha,
            uint8_t *scratch_src_wgh_redp, uint8_t *scratch_src_wgh_grnp, uint8_t *scratch_src_wgh_blup, uint8_t *scratch_src_wgh_alpp,
-           uint8_t *scratch_dst_wgh_redp, uint8_t *scratch_dst_wgh_grnp, uint8_t *scratch_dst_wgh_blup, uint8_t *scratch_dst_wgh_alpp,
-           uint8_t *scratch_dst_redp, uint8_t *scratch_dst_grnp, uint8_t *scratch_dst_blup, uint8_t *scratch_dst_alpp);
+           uint8_t *scratch_dst_wgh_redp, uint8_t *scratch_dst_wgh_grnp, uint8_t *scratch_dst_wgh_blup, uint8_t *scratch_dst_wgh_alpp);
 
 #ifdef __cplusplus
 } /* extern "C" */

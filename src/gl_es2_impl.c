@@ -2309,7 +2309,7 @@ static void perform_draw(primitive_assembly_mode_t mode,
   }
   sl_program_load_uniforms_for_execution(prog, GL_ES2_IMPL_MAX_NUM_TEXTURE_UNITS, c->sampler_2D_uniform_loading_table_, c->sampler_Cube_uniform_loading_table_);
 
-  primitive_assembly_draw_elements2(&prog->pa_, &c->attribs_, prog->vertex_shader_, &prog->ar_, &prog->cs_, &c->ras_, 
+  primitive_assembly_draw_elements(&prog->pa_, &c->attribs_, prog->vertex_shader_, &prog->ar_, &prog->cs_, &c->ras_, 
                                    &prog->fragbuf_, prog->fragment_shader_,
                                    vp_x, vp_y, vp_width, vp_height, 
                                    c->near_plane_, c->far_plane_,
