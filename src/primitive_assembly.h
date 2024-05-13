@@ -132,6 +132,12 @@ struct primitive_assembly {
   int32_t sx0_, sy0_, sz0_, sx1_, sy1_, sz1_, sx2_, sy2_, sz2_;
   uint32_t norm_scissor_left_, norm_scissor_top_, norm_scissor_right_, norm_scissor_bottom_;
   size_t pa_row_index_, clip_tri_index_, prior_num_rows_in_fragbuf_;
+
+  /* The XYZ set of vertices that make up the triangles for line segment triangulation */
+  size_t line_seg_tri_index_;
+  int primary_dimension_; /* primary dimension of line segment, zero for horizontal, non-zero for vertical */
+  int32_t line_segment_triangulation_[3 * 3 * 4];
+
 };
 
 void primitive_assembly_init(struct primitive_assembly *pa);

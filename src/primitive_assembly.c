@@ -2668,20 +2668,22 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                                           size_t arrayed_starting_index,
                                           const void *indices) {
   int r;
-  struct sl_variable *vgl_Position;
-  struct sl_function *vmain;
-  struct sl_variable *fgl_FragCoord;
+  struct sl_variable *vgl_Position = NULL;
+  struct sl_function *vmain = NULL;
+  struct sl_variable *fgl_FragCoord = NULL;
 
-  float *v0, *v1, *v2;
-  int32_t offset_factor_f8;
-  int32_t offset_units_f8;
+  float *v0 = NULL, *v1 = NULL, *v2 = NULL;
+  int32_t offset_factor_f8 = 0;
+  int32_t offset_units_f8 = 0;
 
-  int32_t sx0, sy0, sz0, sx1, sy1, sz1, sx2, sy2, sz2;
+  int32_t sx0 = 0, sy0 = 0, sz0 = 0, sx1 = 0, sy1 = 0, sz1 = 0, sx2 = 0, sy2 = 0, sz2 = 0;
 
-  uint32_t norm_scissor_left, norm_scissor_top, norm_scissor_right, norm_scissor_bottom;
-  size_t pa_row_index;
-  size_t clip_tri_idx;
-  size_t prior_num_rows_in_fragbuf;
+  uint32_t norm_scissor_left = 0, norm_scissor_top = 0, norm_scissor_right = 0, norm_scissor_bottom = 0;
+  size_t pa_row_index = 0;
+  size_t clip_tri_idx = 0;
+  size_t prior_num_rows_in_fragbuf = 0;
+  size_t line_seg_tri_index = 0;
+  int line_dimension = 0;
 
   if (pa->continue_from_fragments_) {
     vgl_Position = pa->vgl_Position_;
@@ -2708,11 +2710,15 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
     pa_row_index = pa->pa_row_index_;
     clip_tri_idx = pa->clip_tri_index_;
     prior_num_rows_in_fragbuf = pa->prior_num_rows_in_fragbuf_;
+    line_seg_tri_index = pa->line_seg_tri_index_;
+    line_dimension = pa->primary_dimension_;
     switch (pa->continue_from_fragments_) {
       case 1:
         goto continue_from_fragments;
       case 2:
         goto continue_from_tail_end;
+      case 3:
+        goto continue_from_lineseg_fragments;
     }
     
   }
@@ -2795,9 +2801,639 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
             break;
           case PAM_LINES:
           case PAM_LINE_STRIP:
-          case PAM_LINE_LOOP:
-            // XXX: Handle lines
+          case PAM_LINE_LOOP: {
+            float *iv0, *iv1;
+            iv0 = cs->input_varyings_;
+            iv1 = iv0 + cs->num_varyings_;
+            iv0[CLIPPING_STAGE_IDX_X] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[0]])[pa_row_index];
+            iv0[CLIPPING_STAGE_IDX_Y] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[1]])[pa_row_index];
+            iv0[CLIPPING_STAGE_IDX_Z] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[2]])[pa_row_index];
+            iv0[CLIPPING_STAGE_IDX_W] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[3]])[pa_row_index];
+
+            iv1[CLIPPING_STAGE_IDX_X] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[0]])[pa_row_index + 1];
+            iv1[CLIPPING_STAGE_IDX_Y] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[1]])[pa_row_index + 1];
+            iv1[CLIPPING_STAGE_IDX_Z] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[2]])[pa_row_index + 1];
+            iv1[CLIPPING_STAGE_IDX_W] = (vertex_shader->exec_.float_regs_[vgl_Position->reg_alloc_.v_.regs_[3]])[pa_row_index + 1];
+
+            size_t attrib_route_index;
+            for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
+              iv0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
+                (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[pa_row_index];
+              iv1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
+                (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[pa_row_index + 1];
+            }
+
+            pa_row_index += 2;
+
+            if (clipping_stage_process_line(cs)) {
+              perspective_division(2 * cs->num_triangles_in_b_, 
+                                    cs->num_varyings_ - CLIPPING_STAGE_IDX_X, 
+                                    cs->num_varyings_ * sizeof(float), 
+                                    cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_X);
+
+              viewport_transformation(vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
+                                      screen_width, screen_height, max_z, 
+                                      2 * cs->num_triangles_in_b_, 
+                                      cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_X,
+                                      cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_Y,
+                                      cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_Z,
+                                      cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_W,
+                                      cs->num_varyings_ * sizeof(float),
+                                      (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SX,
+                                      (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SY,
+                                      (int32_t *)cs->triangle_varyings_b_ + CLIPPING_STAGE_IDX_SZ,
+                                      cs->num_varyings_ * sizeof(int32_t));
+
+              v0 = cs->triangle_varyings_b_ + cs->num_varyings_ * clip_tri_idx;
+              v1 = v0 + cs->num_varyings_;
+              sx0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SX);
+              sy0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SY);
+              sz0 = *(int32_t *)(v0+CLIPPING_STAGE_IDX_SZ);
+              sx1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SX);
+              sy1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SY);
+              sz1 = *(int32_t *)(v1+CLIPPING_STAGE_IDX_SZ);
+
+              /* Rasterize line - each pixel has a diamond shape around it, if a line intersects that
+               * diamond shape, the pixel is drawn. For edge cases, if a line "leaves" that diamond shape,
+               * the pixel is drawn.
+               * For implementation, to determine if a line intersects the pixel, we recognize that the diamond
+               * is a fairly regular convex shape. So instead of intersecting a line with diamonds, we extrude
+               * a diamond shape on our line and if that diamond shape intersects the pixel center, the pixel is
+               * drawn. Benefit of doing it that way is we can use the triangle rasterizer to ensure exactness
+               * of pixel coverage and keep things fully integer for determinism. Downside is that we'll be 
+               * emitting 4 triangles per line segment and we kind of suck doing many small triangles fast.
+               * Note that, to ensure we only cover a pixel when the line segment "leaves" the diamond shape,
+               * our extrusion ends with an empty diamond, not a solid diamond, for a line from A to B, going
+               * to the right:
+               *    ________________________
+               *   /                       /
+               *  /                       /
+               * /  A                    /  B
+               * \                       \
+               *  \                       \
+               *   \_______________________\
+               * Note how, at B, the point B is not covered by the segment, but instead by an "empty" diamond.
+               * Also note that the direction of the line matters here, if the line were to start at B and
+               * end to the left at A, we would have:
+               * _____                  ______
+               * \    \   instead of   /     /
+               * /____/                \_____\
+               */
+
+              int32_t *v = pa->line_segment_triangulation_;
+
+              /*        \    |    /
+               *         \ F | G /
+               *          \  |  /
+               *       E   \ | /   H
+               *            \|/
+               *  -----------+----------->
+               *            /|\   
+               *       D   / | \   A
+               *          /  |  \
+               *         / C | B \
+               *        /    |    \
+               *             v
+               *  +-> +x
+               *  |
+               *  v 
+               *    +y
+               */
+              const int32_t diamond_diameter = (int32_t)(1 << (RASTERIZER_SUBPIXEL_BITS - 1));
+              if (sx0 >= sx1) {
+                int32_t dx = sx0 - sx1;
+
+                if (sy0 >= sy1) {
+                  int32_t dy = sy0 - sy1;
+
+                  if (dx >= dy) {
+                    /* D
+                     * ______
+                     * \1    \0
+                     * /_____/
+                     */
+                    line_dimension = 0;
+                    v[0] = sx1 + diamond_diameter;
+                    v[1] = sy1;
+                    v[2] = sz1;
+                    v[3] = sx1;
+                    v[4] = sy1 - diamond_diameter;
+                    v[5] = sz1;
+                    v[6] = sx0;
+                    v[7] = sy0 - diamond_diameter;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx1 + diamond_diameter;
+                    v[1] = sy1;
+                    v[2] = sz1;
+                    v[3] = sx0;
+                    v[4] = sy0 - diamond_diameter;
+                    v[5] = sz0;
+                    v[6] = sx0 + diamond_diameter;
+                    v[7] = sy0;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx1;
+                    v[1] = sy1 + diamond_diameter;
+                    v[2] = sz1;
+                    v[3] = sx1 + diamond_diameter;
+                    v[4] = sy1;
+                    v[5] = sz1;
+                    v[6] = sx0;
+                    v[7] = sy0 + diamond_diameter;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx1;
+                    v[1] = sy1 + diamond_diameter;
+                    v[2] = sz1;
+                    v[3] = sx0 + diamond_diameter;
+                    v[4] = sy0;
+                    v[5] = sy0;
+                    v[6] = sx0;
+                    v[7] = sy0 + diamond_diameter;
+                    v[8] = sz0;
+                  }
+                  else {
+                    /* C
+                     *    0
+                     *   /\
+                     *  |  |
+                     *  |  |
+                     *  |/\|
+                     *    1
+                     */
+                    line_dimension = 1;
+                    v[0] = sx1 - diamond_diameter;
+                    v[1] = sy1;
+                    v[2] = sz1;
+                    v[3] = sx0 - diamond_diameter;
+                    v[4] = sy0;
+                    v[5] = sz0;
+                    v[6] = sx0;
+                    v[7] = sy0 - diamond_diameter;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx1 - diamond_diameter;
+                    v[1] = sy1;
+                    v[2] = sz1;
+                    v[3] = sx0;
+                    v[4] = sy0 - diamond_diameter;
+                    v[5] = sz0;
+                    v[6] = sx1;
+                    v[7] = sy1 - diamond_diameter;
+                    v[8] = sz1;
+                    v += 9;
+                    v[0] = sx1;
+                    v[1] = sy1 - diamond_diameter;
+                    v[2] = sz1;
+                    v[3] = sx0;
+                    v[4] = sy0 - diamond_diameter;
+                    v[5] = sz0;
+                    v[6] = sx0 + diamond_diameter;
+                    v[7] = sy0;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx1;
+                    v[1] = sy1 - diamond_diameter;
+                    v[2] = sz1;
+                    v[3] = sx0 + diamond_diameter;
+                    v[4] = sy0;
+                    v[5] = sz0;
+                    v[6] = sx1 + diamond_diameter;
+                    v[7] = sy1;
+                    v[8] = sz1;
+                  }
+                }
+                else /* (sy0 < sy1) */ {
+                  int32_t dy = sy1 - sy0;
+
+                  if (dx >= dy) {
+                    /* E 
+                     * ______
+                     * \1    \0
+                     * /_____/
+                     */
+                    line_dimension = 0;
+                    v[0] = sx1 + diamond_diameter;
+                    v[1] = sy1;
+                    v[2] = sz1;
+                    v[3] = sx1;
+                    v[4] = sy1 - diamond_diameter;
+                    v[5] = sz1;
+                    v[6] = sx0;
+                    v[7] = sy0 - diamond_diameter;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx1 + diamond_diameter;
+                    v[1] = sy1;
+                    v[2] = sz1;
+                    v[3] = sx0;
+                    v[4] = sy0 - diamond_diameter;
+                    v[5] = sz0;
+                    v[6] = sx0 + diamond_diameter;
+                    v[7] = sy0;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx1;
+                    v[1] = sy1 + diamond_diameter;
+                    v[2] = sz1;
+                    v[3] = sx1 + diamond_diameter;
+                    v[4] = sy1;
+                    v[5] = sz1;
+                    v[6] = sx0;
+                    v[7] = sy0 + diamond_diameter;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx1;
+                    v[1] = sy1 + diamond_diameter;
+                    v[2] = sz1;
+                    v[3] = sx0 + diamond_diameter;
+                    v[4] = sy0;
+                    v[5] = sy0;
+                    v[6] = sx0;
+                    v[7] = sy0 + diamond_diameter;
+                    v[8] = sz0;
+                  }
+                  else {
+                    /* F
+                     * |\/|
+                     * |1 |
+                     * |  |
+                     *  \/
+                     *   0
+                     */
+                    line_dimension = 1;
+                    v[0] = sx1 - diamond_diameter;
+                    v[1] = sy1;
+                    v[2] = sz1;
+                    v[3] = sx1;
+                    v[4] = sy1 + diamond_diameter;
+                    v[5] = sz1;
+                    v[6] = sx0 - diamond_diameter;
+                    v[7] = sy0;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx0 - diamond_diameter;
+                    v[1] = sy0;
+                    v[2] = sz0;
+                    v[3] = sx1;
+                    v[4] = sy1 + diamond_diameter;
+                    v[5] = sz1;
+                    v[6] = sx0;
+                    v[7] = sy0 + diamond_diameter;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx1;
+                    v[1] = sy1 + diamond_diameter;
+                    v[2] = sz1;
+                    v[3] = sx1 + diamond_diameter;
+                    v[4] = sy1;
+                    v[5] = sz1;
+                    v[6] = sx0 + diamond_diameter;
+                    v[7] = sy0;
+                    v[8] = sz0;
+                    v += 9;
+                    v[0] = sx0 + diamond_diameter;
+                    v[1] = sy0;
+                    v[2] = sz0;
+                    v[3] = sx0;
+                    v[4] = sy0 + diamond_diameter;
+                    v[5] = sz0;
+                    v[6] = sx1;
+                    v[7] = sy1 + diamond_diameter;
+                    v[8] = sz1;
+                  }
+                }
+              }
+              else if (sy0 >= sy1) {
+                int32_t dx = sx1 - sx0;
+                int32_t dy = sy0 - sy1;
+                if (dx >= dy) {
+                  /* H
+                   *  _____
+                   * /0   /1
+                   * \____\
+                   */
+                  line_dimension = 0;
+                  v[0] = sx0 - diamond_diameter;
+                  v[1] = sy0;
+                  v[2] = sz0;
+                  v[3] = sx0;
+                  v[4] = sy0 - diamond_diameter;
+                  v[5] = sz0;
+                  v[6] = sx1;
+                  v[7] = sy1 - diamond_diameter;
+                  v[8] = sz1;
+                  v += 9;
+                  v[0] = sx0 - diamond_diameter;
+                  v[1] = sy0;
+                  v[2] = sz0;
+                  v[3] = sx1;
+                  v[4] = sy1 - diamond_diameter;
+                  v[5] = sz1;
+                  v[6] = sx1 - diamond_diameter;
+                  v[7] = sy1;
+                  v[8] = sz1;
+                  v += 9;
+                  v[0] = sx0 - diamond_diameter;
+                  v[1] = sy0;
+                  v[2] = sz0;
+                  v[3] = sx1 - diamond_diameter;
+                  v[4] = sy1;
+                  v[5] = sz1;
+                  v[6] = sx0;
+                  v[7] = sy0 + diamond_diameter;
+                  v[8] = sz0;
+                  v += 9;
+                  v[0] = sx0;
+                  v[1] = sy0 + diamond_diameter;
+                  v[2] = sz0;
+                  v[3] = sx1 - diamond_diameter;
+                  v[4] = sy1;
+                  v[5] = sz1;
+                  v[6] = sx1;
+                  v[7] = sy1 + diamond_diameter;
+                  v[8] = sz1;
+                }
+                else {
+                  /* G
+                   *   1
+                   * |\/|
+                   * |  |
+                   * | 0|
+                   *  \/
+                   */
+                  line_dimension = 1;
+                  v[0] = sx1 - diamond_diameter;
+                  v[1] = sy1;
+                  v[2] = sz1;
+                  v[3] = sx1;
+                  v[4] = sy1 + diamond_diameter;
+                  v[5] = sz1;
+                  v[6] = sx0 - diamond_diameter;
+                  v[7] = sy0;
+                  v[8] = sz0;
+                  v += 9;
+                  v[0] = sx0 - diamond_diameter;
+                  v[1] = sy0;
+                  v[2] = sz0;
+                  v[3] = sx1;
+                  v[4] = sy1 + diamond_diameter;
+                  v[5] = sz1;
+                  v[6] = sx0;
+                  v[7] = sy0 + diamond_diameter;
+                  v[8] = sz0;
+                  v += 9;
+                  v[0] = sx1;
+                  v[1] = sy1 + diamond_diameter;
+                  v[2] = sz1;
+                  v[3] = sx1 + diamond_diameter;
+                  v[4] = sy1;
+                  v[5] = sz1;
+                  v[6] = sx0 + diamond_diameter;
+                  v[7] = sy0;
+                  v[8] = sz0;
+                  v += 9;
+                  v[0] = sx0 + diamond_diameter;
+                  v[1] = sy0;
+                  v[2] = sz0;
+                  v[3] = sx0;
+                  v[4] = sy0 + diamond_diameter;
+                  v[5] = sz0;
+                  v[6] = sx1;
+                  v[7] = sy1 + diamond_diameter;
+                  v[8] = sz1;
+                }
+              }
+              else {
+                int32_t dx = sx1 - sx0;
+                int32_t dy = sy1 - sy0;
+                if (dx >= dy) {
+                  /* A
+                   *  _____
+                   * /0   /1
+                   * \____\
+                   */
+                  line_dimension = 0;
+                  v[0] = sx0 - diamond_diameter;
+                  v[1] = sy0;
+                  v[2] = sz0;
+                  v[3] = sx0;
+                  v[4] = sy0 - diamond_diameter;
+                  v[5] = sz0;
+                  v[6] = sx1;
+                  v[7] = sy1 - diamond_diameter;
+                  v[8] = sz1;
+                  v += 9;
+                  v[0] = sx0 - diamond_diameter;
+                  v[1] = sy0;
+                  v[2] = sz0;
+                  v[3] = sx1;
+                  v[4] = sy1 - diamond_diameter;
+                  v[5] = sz1;
+                  v[6] = sx1 - diamond_diameter;
+                  v[7] = sy1;
+                  v[8] = sz1;
+                  v += 9;
+                  v[0] = sx0 - diamond_diameter;
+                  v[1] = sy0;
+                  v[2] = sz0;
+                  v[3] = sx1 - diamond_diameter;
+                  v[4] = sy1;
+                  v[5] = sz1;
+                  v[6] = sx0;
+                  v[7] = sy0 + diamond_diameter;
+                  v[8] = sz0;
+                  v += 9;
+                  v[0] = sx0;
+                  v[1] = sy0 + diamond_diameter;
+                  v[2] = sz0;
+                  v[3] = sx1 - diamond_diameter;
+                  v[4] = sy1;
+                  v[5] = sz1;
+                  v[6] = sx1;
+                  v[7] = sy1 + diamond_diameter;
+                  v[8] = sz1;
+                }
+                else {
+                  /* B
+                   *   /\
+                   *  | 0|
+                   *  |  |
+                   *  |/\|
+                   *    1
+                   */
+                  line_dimension = 1;
+                  v[0] = sx1 - diamond_diameter;
+                  v[1] = sy1;
+                  v[2] = sz1;
+                  v[3] = sx0 - diamond_diameter;
+                  v[4] = sy0;
+                  v[5] = sz0;
+                  v[6] = sx0;
+                  v[7] = sy0 - diamond_diameter;
+                  v[8] = sz0;
+                  v += 9;
+                  v[0] = sx1 - diamond_diameter;
+                  v[1] = sy1;
+                  v[2] = sz1;
+                  v[3] = sx0;
+                  v[4] = sy0 - diamond_diameter;
+                  v[5] = sz0;
+                  v[6] = sx1;
+                  v[7] = sy1 - diamond_diameter;
+                  v[8] = sz1;
+                  v += 9;
+                  v[0] = sx1;
+                  v[1] = sy1 - diamond_diameter;
+                  v[2] = sz1;
+                  v[3] = sx0;
+                  v[4] = sy0 - diamond_diameter;
+                  v[5] = sz0;
+                  v[6] = sx0 + diamond_diameter;
+                  v[7] = sy0;
+                  v[8] = sz0;
+                  v += 9;
+                  v[0] = sx1;
+                  v[1] = sy1 - diamond_diameter;
+                  v[2] = sz1;
+                  v[3] = sx0 + diamond_diameter;
+                  v[4] = sy0;
+                  v[5] = sz0;
+                  v[6] = sx1 + diamond_diameter;
+                  v[7] = sy1;
+                  v[8] = sz1;
+                }
+              }
+
+              for (line_seg_tri_index = 0; line_seg_tri_index < 4; ++line_seg_tri_index) {
+                int orientation;
+                prior_num_rows_in_fragbuf = fragbuf->num_rows_;
+
+                float one_over_weight;
+                if (line_dimension) {
+                  one_over_weight = 1.f / (float)(sy1 - sy0);
+                }
+                else {
+                  one_over_weight = 1.f / (float)(sx1 - sx0);
+                }
+
+                size_t attrib_index;
+                for (attrib_index = CLIPPING_STAGE_IDX_X; attrib_index < cs->num_varyings_; ++attrib_index) {
+                  v0[attrib_index] *= one_over_weight;
+                  v1[attrib_index] *= one_over_weight;
+                }
+
+                while ((orientation = rasterizer_triangle(ras, fragbuf, 
+                                                          rgba, rgba_stride,     // bitmap
+                                                          zbuf, zbuf_stride, zbuf_step,  // z-buffer
+                                                          stencil_buf, stencil_stride, stencil_step,  // stencil buffer
+                                                          norm_scissor_left, norm_scissor_top, 
+                                                          norm_scissor_right, norm_scissor_bottom,  // scissor-rect
+                                                          pa->line_segment_triangulation_[line_seg_tri_index * 9 + 0], pa->line_segment_triangulation_[line_seg_tri_index * 9 + 1], pa->line_segment_triangulation_[line_seg_tri_index * 9 + 2],
+                                                          pa->line_segment_triangulation_[line_seg_tri_index * 9 + 3], pa->line_segment_triangulation_[line_seg_tri_index * 9 + 4], pa->line_segment_triangulation_[line_seg_tri_index * 9 + 5],
+                                                          pa->line_segment_triangulation_[line_seg_tri_index * 9 + 6], pa->line_segment_triangulation_[line_seg_tri_index * 9 + 7], pa->line_segment_triangulation_[line_seg_tri_index * 9 + 8],
+                                                          RASTERIZER_BOTH /* lines are unaffected by culling; and our triangulation should always be clockwise */,
+                                                          offset_factor_f8, offset_units_f8))) {
+                  size_t frag_row;
+                  int frag_coord_x_reg = fgl_FragCoord->reg_alloc_.v_.regs_[0];
+                  int frag_coord_y_reg = fgl_FragCoord->reg_alloc_.v_.regs_[1];
+                  int frag_coord_z_reg = fgl_FragCoord->reg_alloc_.v_.regs_[2];
+                  int frag_coord_w_reg = fgl_FragCoord->reg_alloc_.v_.regs_[3];
+                  
+                  int64_t * restrict dp12 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP12];
+                  int64_t * restrict dp20 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP20];
+                  int64_t * restrict dp01 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP01];
+
+                  if (frag_coord_x_reg != SL_REG_NONE) {
+                    float * restrict x = (float * restrict)fragment_shader->exec_.float_regs_[frag_coord_x_reg];
+                    for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                      int32_t frag_xcoord = ((int32_t *)fragbuf->column_data_[FB_IDX_X_COORD])[frag_row];
+                      
+                      x[frag_row] = 0.5f + (float)frag_xcoord;
+                    }
+                  }
+                  if (frag_coord_y_reg != SL_REG_NONE) {
+                    float * restrict y = fragment_shader->exec_.float_regs_[frag_coord_y_reg];
+                    for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                      int32_t frag_ycoord = ((int32_t *)fragbuf->column_data_[FB_IDX_Y_COORD])[frag_row];
+
+                      y[frag_row] = 0.5f + (float)frag_ycoord;
+                    }
+                  }
+                  int primary_coord;
+                  int32_t sp0, sp1;
+                  if (line_dimension) {
+                    primary_coord = FB_IDX_Y_COORD;
+                    sp0 = sy0; sp1 = sy1;
+                  }
+                  else {
+                    primary_coord = FB_IDX_X_COORD;
+                    sp0 = sx0; sp1 = sx1;
+                  }
+                  if (frag_coord_z_reg != SL_REG_NONE) {
+                    float * restrict z = fragment_shader->exec_.float_regs_[frag_coord_z_reg];
+                    for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                      int32_t frag_primary_coord = ((((int32_t *)fragbuf->column_data_[primary_coord])[frag_row]) << RASTERIZER_SUBPIXEL_BITS) + RASTERIZER_SUBPIXEL_BITS/2;
+                      int32_t w0 = sx1 - frag_primary_coord;
+                      int32_t w1 = frag_primary_coord - sx0;
+
+                      z[frag_row] = (w0 * v0[CLIPPING_STAGE_IDX_Z]) + (w1 * v1[CLIPPING_STAGE_IDX_Z]);
+                    }
+                  }
+                  if (frag_coord_w_reg != SL_REG_NONE) {
+                    /* w reg will contain "one-over-w" */
+                    float * restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
+                    for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                      int32_t frag_primary_coord = ((((int32_t *)fragbuf->column_data_[primary_coord])[frag_row]) << RASTERIZER_SUBPIXEL_BITS) + RASTERIZER_SUBPIXEL_BITS/2;
+                      int32_t w0 = sx1 - frag_primary_coord;
+                      int32_t w1 = frag_primary_coord - sx0;
+
+                      oow[frag_row] = (w0 * v0[CLIPPING_STAGE_IDX_W]) + (w1 * v1[CLIPPING_STAGE_IDX_W]);
+                    }
+                  }
+
+                  if (ar->num_attribs_routed_) {
+                    float * restrict actual_w = (float * restrict)fragbuf->column_data_[FB_IDX_W];
+                    float *restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
+                    for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                      actual_w[frag_row] = 1.f / oow[frag_row];
+                    }
+                    size_t attrib_route_index;
+                    for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
+                      struct attrib_route *attr = ar->attribs_routed_ + attrib_route_index;
+                      float * restrict tgt = fragment_shader->exec_.float_regs_[attr->to_target_reg_];
+                      float * restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
+                      float fv0 = v0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                      float fv1 = v1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
+                      int32_t frag_primary_coord = ((((int32_t *)fragbuf->column_data_[primary_coord])[frag_row]) << RASTERIZER_SUBPIXEL_BITS) + RASTERIZER_SUBPIXEL_BITS/2;
+                      int32_t w0 = sx1 - frag_primary_coord;
+                      int32_t w1 = frag_primary_coord - sx0;
+                      for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                        tgt[frag_row] = w0 * fv0 * actual_w[frag_row]
+                                      + w1 * fv1 * actual_w[frag_row];
+                      }
+                    }
+                  }
+
+                  while ((fragbuf->num_rows_ == FRAGMENT_BUFFER_MAX_ROWS) ||
+                         (fragbuf->num_rows_ && (fragbuf->fragment_orientation_ != orientation))) {
+                     /* Full, or stalled because of an triangle - fragbuf orientation mismatch.
+                      * Return to caller to process & clear fragbuf.
+                      * Note that, while line segment orientation is always clockwise, there might be something
+                      * inside the fragment buffer prior to the line segment, with a different orientation. */
+                    pa->continue_from_fragments_ = 3;
+                    goto return_for_continuation;
+                  continue_from_lineseg_fragments:
+                    pa->continue_from_fragments_ = 0;
+                  }
+
+                  prior_num_rows_in_fragbuf = fragbuf->num_rows_;
+                }
+              }
+            }
             break;
+          }
           case PAM_TRIANGLES:
           case PAM_TRIANGLE_STRIP:
           case PAM_TRIANGLE_FAN: {
@@ -3017,6 +3653,8 @@ return_for_continuation:
   pa->pa_row_index_ = pa_row_index;
   pa->clip_tri_index_ = clip_tri_idx;
   pa->prior_num_rows_in_fragbuf_ = prior_num_rows_in_fragbuf;
+  pa->line_seg_tri_index_ = line_seg_tri_index;
+  pa->primary_dimension_ = line_dimension;
   return 1;
 }
 
