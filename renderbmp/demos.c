@@ -349,6 +349,7 @@ int run_demos(void) {
 #define JIG_PATH "../jig/"
 #endif
 
+  exit_ret = run_demo(output_width, output_height, demo_sixteen_lines, "Sixteen lines", JIG_PATH "sixteen_lines.bmp");
   exit_ret = run_demo(output_width, output_height, demo_mipmap_triangle, "Mipmapped triangle", JIG_PATH "mipmap_triangle.bmp");
   exit_ret = run_demo(output_width, output_height, demo_the_world_is_yours, "The-World-Is-Yours line drawing", JIG_PATH "world_is_yours.bmp");
 

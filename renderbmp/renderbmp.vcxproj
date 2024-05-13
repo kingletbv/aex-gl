@@ -22,6 +22,7 @@
     <ClCompile Include="..\3rdparty\world\world.c" />
     <ClCompile Include="demos.c" />
     <ClCompile Include="demo_mipmap_triangle.c" />
+    <ClCompile Include="demo_sixteen_lines.c" />
     <ClCompile Include="demo_the_world_is_yours.c" />
     <ClCompile Include="renderbmp.c" />
     <ClCompile Include="smiley.c" />
@@ -57,6 +58,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>

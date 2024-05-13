@@ -35,6 +35,7 @@ typedef int (*demo_func_t)(int output_width, int output_height);
 
 int demo_mipmap_triangle(int output_width, int output_height);
 int demo_the_world_is_yours(int output_width, int output_height);
+int demo_sixteen_lines(int output_width, int output_height);
 
 #ifdef __cplusplus
 } /* extern "C" */
