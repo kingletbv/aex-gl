@@ -220,16 +220,11 @@ int check_for_and_print_gl_err(FILE *fp) {
   return 1; /* had an error */
 }
 
-int run_demos(void) {
-  int exit_ret = 0;
+int run_demo(int output_width, int output_height, demo_func_t df, const char *name, const char *output_bmp_file) {
   int rgba32_is_flipped_y = 0;
-  int output_width;
-  int output_height;
+  int exit_ret = 0;
 
   glGetError(); /* clear any prior errors */
-
-  output_width = 1920;
-  output_height = 1080;
 
   uint8_t *rgba32 = (uint8_t *)malloc(output_width * output_height * 4);
   if (!rgba32) {
@@ -256,13 +251,13 @@ int run_demos(void) {
 
   glViewport(0, 0, output_width, output_height);
 
-  fprintf(stdout, "demo_mipmap_triangle:\n");
+  fprintf(stdout, "%s:\n", name);
 #ifdef _WIN32
   LARGE_INTEGER freq, start_count;
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&start_count);
 #endif
-  exit_ret = demo_mipmap_triangle(output_width, output_height);
+  exit_ret = df(output_width, output_height);
 #ifdef _WIN32
   LARGE_INTEGER end_count;
   QueryPerformanceCounter(&end_count);
@@ -309,9 +304,9 @@ int run_demos(void) {
   }
 
 #ifdef USE_STANDARD_NON_AEX_GL_HEADERS
-  FILE *fp = fopen("jig\\test.bmp", "wb"); // relative to project file.
+  FILE *fp = fopen(output_bmp_file, "wb"); // relative to project file.
 #else
-  FILE *fp = fopen("..\\jig\\test.bmp", "wb"); // relative to project file.
+  FILE *fp = fopen(output_bmp_file, "wb"); // relative to project file.
 #endif
   if (!fp) {
     perror("fopen");
@@ -331,6 +326,33 @@ int run_demos(void) {
   glDeleteFramebuffers(1, &fb);
   glDeleteRenderbuffers(1, &color_buffer);
   glDeleteRenderbuffers(1, &depth_buffer);
+
+  free(rgba32);
+  return 0;
+}
+
+int run_demos(void) {
+  int exit_ret = 0;
+  int rgba32_is_flipped_y = 0;
+  int output_width;
+  int output_height;
+
+  glGetError(); /* clear any prior errors */
+
+  output_width = 1920;
+  output_height = 1080;
+
+#ifdef USE_STANDARD_NON_AEX_GL_HEADERS
+  /* Path for non-AEX-gl environment */
+#define JIG_PATH" jig/"
+#else
+#define JIG_PATH "../jig/"
+#endif
+
+  exit_ret = run_demo(output_width, output_height, demo_mipmap_triangle, "Mipmapped triangle", JIG_PATH "mipmap_triangle.bmp");
+  exit_ret = run_demo(output_width, output_height, demo_the_world_is_yours, "The-World-Is-Yours line drawing", JIG_PATH "world_is_yours.bmp");
+
+  if (exit_ret) return exit_ret;
 
   return exit_ret;
 }

@@ -19,12 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\3rdparty\world\world.c" />
     <ClCompile Include="demos.c" />
     <ClCompile Include="demo_mipmap_triangle.c" />
+    <ClCompile Include="demo_the_world_is_yours.c" />
     <ClCompile Include="renderbmp.c" />
     <ClCompile Include="smiley.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\3rdparty\world\world.h" />
     <ClInclude Include="opengl_es2_headers.h" />
     <ClInclude Include="smiley.h" />
   </ItemGroup>

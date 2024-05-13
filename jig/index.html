@@ -1,21 +1,36 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>Test BMP Image</title>
-  </head>
-  <body>
-    <h1>Displaying BMP Image</h1>
-    <img src="test.bmp" alt="Test BMP" />
-    <img id="zoomedbitmap" src="test.bmp" alt="Zoomed BMP" />
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <title>Test BMP Image</title>
+  <style>
+    .zoomed {
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+  <h1>Displaying BMP Image</h1>
+  <div>
+    <img src="world_is_yours.bmp" alt="World is Yours BMP" class="original" />
+    <img src="world_is_yours.bmp" alt="Zoomed World is Yours BMP" class="zoomed" />
+  </div>
+  <div>
+    <img src="mipmap_triangle.bmp" alt="Mipmap Triangle" class="original" />
+    <img src="mipmap_triangle.bmp" alt="Zoomed Mipmap Triangle BMP" class="zoomed" />
+  </div>
+  <!-- Add more images here following the same structure -->
+
   <script>
-    // JavaScript to scale the image
-    window.onload = function() {
-      var img = document.getElementById('zoomedbitmap');
-      img.width = img.naturalWidth * 4; // Scale the width to 4 times
-      img.height = img.naturalHeight * 4; // Scale the height to 4 times
-      img.style.imageRendering = 'pixelated'; // Scale the image using pixelated so we can reason about it.
+    window.onload = function () {
+      const zoomFactor = 3;
+      const zoomedImages = document.querySelectorAll('.zoomed');
+
+      zoomedImages.forEach(img => {
+        img.width = img.naturalWidth * zoomFactor;
+        img.height = img.naturalHeight * zoomFactor;
+      });
     };
   </script>
+</body>
 </html>
