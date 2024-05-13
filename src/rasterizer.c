@@ -28,7 +28,6 @@
 #include "fragment_buffer.h"
 #endif
 
-
 static void adds128(int64_t ahi, int64_t alo, int64_t bhi, int64_t blo, int64_t *rhi, int64_t *rlo) {
   /* Implement signed addition as unsigned addition (identical if reg sizes are same) */
   uint64_t result_lo = ((uint64_t)alo) + ((uint64_t)blo);
@@ -905,7 +904,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
 
     /* Find correction to 8 bit fixed point */
     int64_t Dz_offset = Dz_gradient_lo + offset_units_fixed8;
-    int32_t z_offset = (int32_t)((Dz_offset + (1 << 8) - 1) >> 8);
+    z_offset = (int32_t)((Dz_offset + (1 << 8) - 1) >> 8);
 
     /* We have z_s_TL (the top-left fragment of our quadruple fragments), now take 1-pixel steps in X and Y
      * directions to find bottom-left (BL), top-right (TR) and bottom-right (BR) fragment numerators and
