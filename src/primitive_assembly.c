@@ -3341,10 +3341,6 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                   int frag_coord_z_reg = fgl_FragCoord->reg_alloc_.v_.regs_[2];
                   int frag_coord_w_reg = fgl_FragCoord->reg_alloc_.v_.regs_[3];
                   
-                  int64_t * restrict dp12 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP12];
-                  int64_t * restrict dp20 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP20];
-                  int64_t * restrict dp01 = (int64_t * restrict)fragbuf->column_data_[FB_IDX_DP01];
-
                   if (frag_coord_x_reg != SL_REG_NONE) {
                     float * restrict x = (float * restrict)fragment_shader->exec_.float_regs_[frag_coord_x_reg];
                     for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
@@ -3375,8 +3371,8 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                     float * restrict z = fragment_shader->exec_.float_regs_[frag_coord_z_reg];
                     for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
                       int32_t frag_primary_coord = ((((int32_t *)fragbuf->column_data_[primary_coord])[frag_row]) << RASTERIZER_SUBPIXEL_BITS) + RASTERIZER_SUBPIXEL_BITS/2;
-                      int32_t w0 = sx1 - frag_primary_coord;
-                      int32_t w1 = frag_primary_coord - sx0;
+                      int32_t w0 = sp1 - frag_primary_coord;
+                      int32_t w1 = frag_primary_coord - sp0;
 
                       z[frag_row] = (w0 * v0[CLIPPING_STAGE_IDX_Z]) + (w1 * v1[CLIPPING_STAGE_IDX_Z]);
                     }
@@ -3386,8 +3382,8 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                     float * restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
                     for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
                       int32_t frag_primary_coord = ((((int32_t *)fragbuf->column_data_[primary_coord])[frag_row]) << RASTERIZER_SUBPIXEL_BITS) + RASTERIZER_SUBPIXEL_BITS/2;
-                      int32_t w0 = sx1 - frag_primary_coord;
-                      int32_t w1 = frag_primary_coord - sx0;
+                      int32_t w0 = sp1 - frag_primary_coord;
+                      int32_t w1 = frag_primary_coord - sp0;
 
                       oow[frag_row] = (w0 * v0[CLIPPING_STAGE_IDX_W]) + (w1 * v1[CLIPPING_STAGE_IDX_W]);
                     }
@@ -3406,10 +3402,10 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                       float * restrict oow = fragment_shader->exec_.float_regs_[frag_coord_w_reg];
                       float fv0 = v0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
                       float fv1 = v1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index];
-                      int32_t frag_primary_coord = ((((int32_t *)fragbuf->column_data_[primary_coord])[frag_row]) << RASTERIZER_SUBPIXEL_BITS) + RASTERIZER_SUBPIXEL_BITS/2;
-                      int32_t w0 = sx1 - frag_primary_coord;
-                      int32_t w1 = frag_primary_coord - sx0;
                       for (frag_row = prior_num_rows_in_fragbuf; frag_row < fragbuf->num_rows_; ++frag_row) {
+                        int32_t frag_primary_coord = ((((int32_t *)fragbuf->column_data_[primary_coord])[frag_row]) << RASTERIZER_SUBPIXEL_BITS) + RASTERIZER_SUBPIXEL_BITS/2;
+                        int32_t w0 = sp1 - frag_primary_coord;
+                        int32_t w1 = frag_primary_coord - sp0;
                         tgt[frag_row] = w0 * fv0 * actual_w[frag_row]
                                       + w1 * fv1 * actual_w[frag_row];
                       }
