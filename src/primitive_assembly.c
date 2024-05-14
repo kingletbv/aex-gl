@@ -717,9 +717,10 @@ int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib
 int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct attrib_set *as, primitive_assembly_mode_t pam, size_t num_elements) {
   switch (pa->continue_at_) {
     case 0:
+      pa->end_index_ = pa->index_at_ + num_elements;
       if (pam == PAM_POINTS) {
         for (;;) {
-          while ((pa->index_at_ < num_elements) &&
+          while ((pa->index_at_ < pa->end_index_) &&
                  (pa->num_vertex_indices_ < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
           }
@@ -729,7 +730,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
             return 1;
     case __LINE__:;
           }
-          if (pa->index_at_== num_elements) {
+          if (pa->index_at_== pa->end_index_) {
             // Yield completion.
             pa->index_at_ = 0;
             pa->continue_at_ = 0;
@@ -739,7 +740,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
       }
       else if (pam == PAM_LINES) {
         for (;;) {
-          while (((pa->index_at_ + 2) <= num_elements) &&
+          while (((pa->index_at_ + 2) <= pa->end_index_) &&
                  ((pa->num_vertex_indices_ + 2) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
@@ -750,7 +751,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
             return 1;
     case __LINE__:;
           }
-          if ((pa->index_at_ + 2) > num_elements) {
+          if ((pa->index_at_ + 2) > pa->end_index_) {
             // Yield completion.
             pa->index_at_ = 0;
             pa->continue_at_ = 0;
@@ -763,7 +764,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
         pa->index_at_ = 0;
         for (;;) {
           while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
-                 ((pa->index_at_ + 2) <= num_elements)) {
+                 ((pa->index_at_ + 2) <= pa->end_index_)) {
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_; /* note we only advance once */
           }
@@ -773,7 +774,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
             return 1;
     case __LINE__: ;
           }
-          if ((pa->index_at_ + 2) > num_elements) {
+          if ((pa->index_at_ + 2) > pa->end_index_) {
             // Yield completion.
             pa->index_at_ = 0;
             pa->continue_at_ = 0;
@@ -787,12 +788,12 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
         pa->index_at_ = 0;
         for (;;) {
           while (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
-                 ((pa->index_at_ + 2) <= num_elements)) {
+                 ((pa->index_at_ + 2) <= pa->end_index_)) {
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_; /* note we only advance once */
           }
           if (((pa->num_vertex_indices_ + 2) <= (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_))) &&
-              ((pa->index_at_ + 1) <= num_elements) && (num_elements >= 2)) {
+              ((pa->index_at_ + 1) <= pa->end_index_) && (num_elements >= 2)) {
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)0; /* loop to start */
           }
@@ -802,7 +803,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
             return 1;
     case __LINE__: ;
           }
-          if ((pa->index_at_ + 1) > num_elements) {
+          if ((pa->index_at_ + 1) > pa->end_index_) {
             // Yield completion.
             pa->index_at_ = 0;
             pa->continue_at_ = 0;
@@ -813,7 +814,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
       else if (pam == PAM_TRIANGLES) {
         pa->index_at_ = 0;
         for (;;) {
-          while (((pa->index_at_ + 3) <= num_elements) &&
+          while (((pa->index_at_ + 3) <= pa->end_index_) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
             pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_++;
@@ -825,7 +826,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
             return 1;
     case __LINE__:;
           }
-          if ((pa->index_at_ + 3) > num_elements) {
+          if ((pa->index_at_ + 3) > pa->end_index_) {
             // Yield completion.
             pa->index_at_ = 0;
             pa->continue_at_ = 0;
@@ -836,7 +837,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
       else if (pam == PAM_TRIANGLE_STRIP) {
         pa->index_at_ = 0;
         for (;;) {
-          while (((pa->index_at_ + 3) <= num_elements) &&
+          while (((pa->index_at_ + 3) <= pa->end_index_) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
             if (pa->index_at_ & 0) {
               pa->vertex_indices_[pa->num_vertex_indices_ + 0] = (uint32_t)pa->index_at_ + 1;
@@ -856,7 +857,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
             return 1;
     case __LINE__:;
           }
-          if ((pa->index_at_ + 3) > num_elements) {
+          if ((pa->index_at_ + 3) > pa->end_index_) {
             // Yield completion.
             pa->index_at_ = 0;
             pa->continue_at_ = 0;
@@ -867,7 +868,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
       else if (pam == PAM_TRIANGLE_FAN) {
         pa->index_at_ = 0;
         for (;;) {
-          while (((pa->index_at_ + 3) <= num_elements) &&
+          while (((pa->index_at_ + 3) <= pa->end_index_) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
             pa->vertex_indices_[pa->num_vertex_indices_ + 0] = 0;
             pa->vertex_indices_[pa->num_vertex_indices_ + 1] = (uint32_t)pa->index_at_ + 1;
@@ -880,7 +881,7 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
             return 1;
     case __LINE__:;
           }
-          if ((pa->index_at_ + 3) > num_elements) {
+          if ((pa->index_at_ + 3) > pa->end_index_) {
             // Yield completion.
             pa->index_at_ = 0;
             pa->continue_at_ = 0;
@@ -1358,8 +1359,6 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
   /* Convert polygon offset values to 8-bit fixed point */
   offset_factor_f8 = (int32_t)(offset_factor * 256.f);
   offset_units_f8 = (int32_t)(offset_units * 256.f);
-
-  // XXX: Configure pipeline to handle points, lines or triangles, depending on what mode is.
 
   for (;;) {
     if (indices) {

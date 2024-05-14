@@ -120,6 +120,7 @@ struct primitive_assembly {
 
   /* While assembling primitives, this is used to mark internal progress */
   size_t index_at_;
+  size_t end_index_;
   int continue_at_;
   int continue_from_fragments_;
 
