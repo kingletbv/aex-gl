@@ -1910,20 +1910,21 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                 }
               }
 
-              for (line_seg_tri_index = 0; line_seg_tri_index < 4; ++line_seg_tri_index) {
-                float one_over_weight;
-                if (line_dimension) {
-                  one_over_weight = 1.f / (float)(sy1 - sy0);
-                }
-                else {
-                  one_over_weight = 1.f / (float)(sx1 - sx0);
-                }
+              float one_over_weight;
+              if (line_dimension) {
+                one_over_weight = 1.f / (float)(sy1 - sy0);
+              }
+              else {
+                one_over_weight = 1.f / (float)(sx1 - sx0);
+              }
 
-                size_t attrib_index;
-                for (attrib_index = CLIPPING_STAGE_IDX_X; attrib_index < cs->num_varyings_; ++attrib_index) {
-                  v0[attrib_index] *= one_over_weight;
-                  v1[attrib_index] *= one_over_weight;
-                }
+              size_t attrib_index;
+              for (attrib_index = CLIPPING_STAGE_IDX_X; attrib_index < cs->num_varyings_; ++attrib_index) {
+                v0[attrib_index] *= one_over_weight;
+                v1[attrib_index] *= one_over_weight;
+              }
+
+              for (line_seg_tri_index = 0; line_seg_tri_index < 4; ++line_seg_tri_index) {
 
                 prior_num_rows_in_fragbuf = fragbuf->num_rows_;
 
