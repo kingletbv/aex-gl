@@ -275,9 +275,6 @@ int demo_the_world_is_yours(int output_width, int output_height) {
 
   glViewport(0, 0, output_width, output_height);
 
-  //glClearColor(21.f/255.f, 2.f/255.f, 31.f/255.f, 1.f);
-  //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   /* Recreate the gradient background we had on our original bitmap, however, given
    * as we're using OpenGL ES2 this time around, we cannot directly set pixels to
    * our desired colors (there is no "glWritePixels"). Instead, use glClear with

@@ -12,12 +12,12 @@
 <body>
   <h1>Displaying BMP Image</h1>
   <div>
-    <img src="sixteen_lines.bmp" alt="Sixteen Lines" class="original" />
-    <img src="sixteen_lines.bmp" alt="Sixteen Lines" class="zoomed" />
-  </div>
-  <div>
     <img src="world_is_yours.bmp" alt="World is Yours BMP" class="original" />
     <img src="world_is_yours.bmp" alt="Zoomed World is Yours BMP" class="zoomed" />
+  </div>
+  <div>
+    <img src="sixteen_lines.bmp" alt="Sixteen Lines" class="original" />
+    <img src="sixteen_lines.bmp" alt="Sixteen Lines" class="zoomed" />
   </div>
   <div>
     <img src="mipmap_triangle.bmp" alt="Mipmap Triangle" class="original" />
@@ -25,8 +25,7 @@
   </div>
   <!-- Add more images here following the same structure -->
 
-  <script>
-    window.onload = function () {
+  <script>window.onload = function () {
       const zoomFactor = 3;
       const zoomedImages = document.querySelectorAll('.zoomed');
 
@@ -34,7 +33,6 @@
         img.width = img.naturalWidth * zoomFactor;
         img.height = img.naturalHeight * zoomFactor;
       });
-    };
-  </script>
+    };</script>
 </body>
 </html>

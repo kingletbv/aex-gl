@@ -344,7 +344,7 @@ int run_demos(void) {
 
 #ifdef USE_STANDARD_NON_AEX_GL_HEADERS
   /* Path for non-AEX-gl environment */
-#define JIG_PATH" jig/"
+#define JIG_PATH "jig/"
 #else
 #define JIG_PATH "../jig/"
 #endif
