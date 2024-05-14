@@ -39,13 +39,13 @@ Here are a few pictures rendered with Aex-GL.
 
 ### The World is Yours
 
-If you happen to know me, you might recognize this from firecrest.com ; the data is from naturalearthdata.com and the code is a 
-relatively straight port from the .js at firecrest.com (feel free to compare the two, view the source at [firecrest.com](https://firecrest.com/) 
+If you happen to know me, you might recognize this from [firecrest.com](https://firecrest.com/) ; the data is from [naturalearthdata.com](https://naturalearthdata.com)
+and the code is a relatively straight port from the original `.js` (feel free to compare the two, view the source at [firecrest.com](https://firecrest.com/) 
 and compare it with [demo_the_world_is_yours.c](/renderbmp/demo_the_world_is_yours.c)
 
 ![World is Yours](docs/world_is_yours.png)
 
-Suppose we compile everything at every frame, then, on my local machine, this runs 1080p at 35285 (or ~ 28fps.) Each line segment is 
+Suppose we compile everything at every frame, then, on my local machine, this runs 1080p at 35285 &mu;secs (or ~ 28fps.) Each line segment is 
 composed of two points, of which there are 21172. Given that each line segment decomposes into 4 triangles, for about 40K triangles
 in total, the current performance is surprisingly good (even ~50fps on the laptop..) Apologies for viewers from the Americas or Asia,
 but, as mentioned, this uses naturalearthdata.com, and a longitude of 0 happens to intersect Greenwich. You can see it spinning at
@@ -58,7 +58,7 @@ triangle test where the texture has been deliberately messed with to test mipmap
 
 ![Trilinear mipmapped triangle](docs/mipmap_triangle.png)
 
-So, again, compiling everything at every frame, then, on the local machine, this runs 1080p at 74878 (or ~ 13 fps.) This is a lot
+So, again, compiling everything at every frame, then, on the local machine, this runs 1080p at 74878 &mu;secs (or ~ 13 fps.) This is a lot
 slower because the texture mapping currently does not yet benefit from autovectorized parallelization (need it to hit the feature-set
 first, before we make it faster.)
 
