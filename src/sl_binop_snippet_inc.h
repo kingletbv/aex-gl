@@ -68,7 +68,7 @@ for (;;) {
       delta = (chain & 0xFF000000) >> 24;
       if (!delta) break;
       row += 3 + delta;
-    } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
   }
   else {
     do {

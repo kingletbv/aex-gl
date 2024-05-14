@@ -423,7 +423,7 @@ void sl_exec_f_move(uint8_t row, uint8_t *restrict chain_column, float *restrict
         uint8_t delta = (chain & 0xFF000000) >> 24;
         if (!delta) goto done;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -467,7 +467,7 @@ void sl_exec_i_move(uint8_t row, uint8_t *restrict chain_column, int64_t *restri
         uint8_t delta = (chain & 0xFF000000) >> 24;
         if (!delta) goto done;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -511,7 +511,7 @@ void sl_exec_b_move(uint8_t row, uint8_t *restrict chain_column, uint8_t *restri
         uint8_t delta = (chain & 0xFF000000) >> 24;
         if (!delta) goto done;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -552,7 +552,7 @@ void sl_exec_f_init(uint8_t row, uint8_t *restrict chain_column, float *restrict
         uint8_t delta = (chain & 0xFF000000) >> 24;
         if (!delta) goto done;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -593,7 +593,7 @@ void sl_exec_i_init(uint8_t row, uint8_t *restrict chain_column, int64_t *restri
         uint8_t delta = (chain & 0xFF000000) >> 24;
         if (!delta) goto done;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -634,7 +634,7 @@ void sl_exec_b_init(uint8_t row, uint8_t *restrict chain_column, uint8_t *restri
         uint8_t delta = (chain & 0xFF000000) >> 24;
         if (!delta) goto done;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -686,7 +686,7 @@ void sl_exec_f_dot_product2(uint8_t row, uint8_t *restrict chain_column, float *
         uint8_t delta = (chain & 0xFF000000) >> 24;
         if (!delta) goto done;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -747,7 +747,7 @@ void sl_exec_f_dot_product3(uint8_t row, uint8_t *restrict chain_column, float *
         uint8_t delta = (chain & 0xFF000000) >> 24;
         if (!delta) goto done;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -816,7 +816,7 @@ void sl_exec_f_dot_product4(uint8_t row, uint8_t *restrict chain_column, float *
         uint8_t delta = (chain & 0xFF000000) >> 24;
         if (!delta) goto done;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -3522,7 +3522,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             }
             if (false_chain != SL_EXEC_NO_CHAIN) {
               if (eps[epi].v_.stmt_->false_branch_) {
-                r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->false_branch_, true_chain, CHAIN_REF(eps[epi].post_chain_));
+                r = sl_exec_push_stmt(exec, eps[epi].v_.stmt_->false_branch_, false_chain, CHAIN_REF(eps[epi].post_chain_));
               }
               else {
                 eps[epi].post_chain_ = sl_exec_join_chains(exec, false_chain, eps[epi].post_chain_);

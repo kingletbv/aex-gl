@@ -6208,7 +6208,7 @@ void builtin_normalize_v2_runtime(struct sl_execution *exec, int exec_chain, str
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -6280,7 +6280,7 @@ void builtin_normalize_v3_runtime(struct sl_execution *exec, int exec_chain, str
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -6361,7 +6361,7 @@ void builtin_normalize_v4_runtime(struct sl_execution *exec, int exec_chain, str
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -6468,7 +6468,7 @@ void builtin_faceforward_fff_runtime(struct sl_execution *exec, int exec_chain, 
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -6543,7 +6543,7 @@ void builtin_faceforward_v2v2v2_runtime(struct sl_execution *exec, int exec_chai
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -6633,7 +6633,7 @@ void builtin_faceforward_v3v3v3_runtime(struct sl_execution *exec, int exec_chai
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -6738,7 +6738,7 @@ void builtin_faceforward_v4v4v4_runtime(struct sl_execution *exec, int exec_chai
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -6905,7 +6905,7 @@ void builtin_reflect_ff_runtime(struct sl_execution *exec, int exec_chain, struc
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -6974,7 +6974,7 @@ void builtin_reflect_v2v2_runtime(struct sl_execution *exec, int exec_chain, str
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -7055,7 +7055,7 @@ void builtin_reflect_v3v3_runtime(struct sl_execution *exec, int exec_chain, str
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -7148,7 +7148,7 @@ void builtin_reflect_v4v4_runtime(struct sl_execution *exec, int exec_chain, str
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -7302,7 +7302,7 @@ void builtin_refract_fff_runtime(struct sl_execution *exec, int exec_chain, stru
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -7394,7 +7394,7 @@ void builtin_refract_v2v2f_runtime(struct sl_execution *exec, int exec_chain, st
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -7501,7 +7501,7 @@ void builtin_refract_v3v3f_runtime(struct sl_execution *exec, int exec_chain, st
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -7623,7 +7623,7 @@ void builtin_refract_v4v4f_runtime(struct sl_execution *exec, int exec_chain, st
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -7821,7 +7821,7 @@ static void builtin_matrixCompMult_mNmN_runtime(struct sl_execution *exec, int e
           delta = (chain & 0xFF000000) >> 24;
           if (!delta) break;
           row += 3 + delta;
-        } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+        } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
       }
       else {
         do {
@@ -10448,7 +10448,7 @@ void builtin_dFdx_f_runtime(struct sl_execution *exec, int exec_chain, struct sl
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -10537,7 +10537,7 @@ void builtin_dFdx_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -10649,7 +10649,7 @@ void builtin_dFdx_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -10778,7 +10778,7 @@ void builtin_dFdx_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -10867,7 +10867,7 @@ void builtin_dFdy_f_runtime(struct sl_execution *exec, int exec_chain, struct sl
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -10959,7 +10959,7 @@ void builtin_dFdy_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -11074,7 +11074,7 @@ void builtin_dFdy_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -11212,7 +11212,7 @@ void builtin_dFdy_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -11305,7 +11305,7 @@ void builtin_fwidth_f_runtime(struct sl_execution *exec, int exec_chain, struct 
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -11410,7 +11410,7 @@ void builtin_fwidth_v2_runtime(struct sl_execution *exec, int exec_chain, struct
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -11547,7 +11547,7 @@ void builtin_fwidth_v3_runtime(struct sl_execution *exec, int exec_chain, struct
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
@@ -11716,7 +11716,7 @@ void builtin_fwidth_v4_runtime(struct sl_execution *exec, int exec_chain, struct
         delta = (chain & 0xFF000000) >> 24;
         if (!delta) break;
         row += 3 + delta;
-      } while (!(row & 3) && ((chain = (*(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
     }
     else {
       do {
