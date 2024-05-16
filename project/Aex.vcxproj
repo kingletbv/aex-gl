@@ -181,6 +181,7 @@
     <ClCompile Include="..\src\builtins.c" />
     <ClCompile Include="..\src\clipping_stage.c" />
     <ClCompile Include="..\src\data_buffer.c" />
+    <ClCompile Include="..\src\egl_impl.c" />
     <ClCompile Include="..\src\fragment_buffer.c" />
     <ClCompile Include="..\src\glsl_es1_assist.c" />
     <ClCompile Include="..\src\glsl_es1_compiler.c" />
@@ -326,6 +327,7 @@
     <ClInclude Include="..\src\builtins_binding_inc.h" />
     <ClInclude Include="..\src\clipping_stage.h" />
     <ClInclude Include="..\src\data_buffer.h" />
+    <ClInclude Include="..\src\egl_impl.h" />
     <ClInclude Include="..\src\fragment_buffer.h" />
     <ClInclude Include="..\src\glsl_es1_assist.h" />
     <ClInclude Include="..\src\glsl_es1_compiler.h" />

@@ -57,6 +57,7 @@
     <ClCompile Include="..\src\gl_es2_context.c" />
     <ClCompile Include="..\src\named_object_table.c" />
     <ClCompile Include="..\src\data_buffer.c" />
+    <ClCompile Include="..\src\egl_impl.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -127,6 +128,7 @@
     <ClInclude Include="..\src\sl_quadop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_octonop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_senop_snippet_inc.h" />
+    <ClInclude Include="..\src\egl_impl.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
