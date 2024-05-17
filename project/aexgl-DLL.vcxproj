@@ -20,9 +20,25 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\AexGL-DLL\AexGL.def" />
+    <CustomBuild Include="..\src\AexGL-DLL\EGL.def">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)src\AexGL-DLL\build_forwarding_dll.bat %(Identity) "$(IntDir)" $(TargetDir)%(Filename).dll
+ </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(TargetDir)%(Filename).dll</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)src\AexGL-DLL\build_forwarding_dll.bat %(Identity) "$(IntDir)" $(TargetDir)%(Filename).dll
+ </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(TargetDir)%(Filename).dll</Outputs>
+    </CustomBuild>
+    <None Include="..\src\AexGL-DLL\build_forwarding_dll.bat" />
+    <CustomBuild Include="..\src\AexGL-DLL\GLESv2.def">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)src\AexGL-DLL\build_forwarding_dll.bat %(Identity) "$(IntDir)" $(TargetDir)%(Filename).dll</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(TargetDir)%(Filename).dll</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)src\AexGL-DLL\build_forwarding_dll.bat %(Identity) "$(IntDir)" $(TargetDir)%(Filename).dll</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(TargetDir)%(Filename).dll</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\AexGL-DLL\dllmain.c" />
+    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -81,21 +97,25 @@
     <OutDir>$(SolutionDir)\build\Win_amd64\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\build\Win_amd64\$(Configuration)\AexGL-DLL-obj\</IntDir>
     <TargetName>AexGL</TargetName>
+    <CustomBuildAfterTargets>Link</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)\build\Win_amd64\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\build\Win_amd64\$(Configuration)\AexGL-DLL-obj\</IntDir>
     <TargetName>AexGL</TargetName>
+    <CustomBuildAfterTargets>Link</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)\build\Win_x86\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\build\Win_x86\$(Configuration)\AexGL-DLL-obj\</IntDir>
     <TargetName>AexGL</TargetName>
+    <CustomBuildAfterTargets>Link</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)\build\Win_x86\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\build\Win_x86\$(Configuration)\AexGL-DLL-obj\</IntDir>
     <TargetName>AexGL</TargetName>
+    <CustomBuildAfterTargets>Link</CustomBuildAfterTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

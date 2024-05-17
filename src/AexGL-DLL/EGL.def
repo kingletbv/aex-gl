@@ -1,0 +1,22 @@
+LIBRARY EGL
+EXPORTS
+   eglChooseConfig=AexGL.aex_egl_ChooseConfig
+   eglGetConfigAttrib=AexGL.aex_egl_GetConfigAttrib
+   eglGetConfigs=AexGL.aex_egl_GetConfigs
+   eglCreateContext=AexGL.aex_egl_CreateContext
+   eglCreatePbufferSurface=AexGL.aex_egl_CreatePbufferSurface
+   eglCreateWindowSurface=AexGL.aex_egl_CreateWindowSurface
+   eglDestroyContext=AexGL.aex_egl_DestroyContext
+   eglDestroySurface=AexGL.aex_egl_DestroySurface
+   eglGetDisplay=AexGL.aex_egl_GetDisplay
+   eglGetError=AexGL.aex_egl_GetError
+   eglInitialize=AexGL.aex_egl_Initialize
+   eglMakeCurrent=AexGL.aex_egl_MakeCurrent
+   eglQueryString=AexGL.aex_egl_QueryString
+   eglSwapBuffers=AexGL.aex_egl_SwapBuffers
+   eglTerminate=AexGL.aex_egl_Terminate
+   eglWaitGL=AexGL.aex_egl_WaitGL
+   eglWaitNative=AexGL.aex_egl_WaitNative
+   eglGetProcAddress=AexGL.aex_egl_GetProcAddress
+   eglBindAPI=AexGL.aex_egl_BindAPI
+   eglSwapInterval=AexGL.aex_egl_SwapInterval

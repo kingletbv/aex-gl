@@ -2,8 +2,14 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <None Include="..\src\AexGL-DLL\AexGL.def" />
+    <None Include="..\src\AexGL-DLL\build_forwarding_dll.bat" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\AexGL-DLL\dllmain.c" />
+    <ClCompile Include="Source.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\src\AexGL-DLL\EGL.def" />
+    <CustomBuild Include="..\src\AexGL-DLL\GLESv2.def" />
   </ItemGroup>
 </Project>
