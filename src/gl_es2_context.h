@@ -267,6 +267,9 @@ struct gl_es2_shader {
 struct gl_es2_context {
   struct thread_mutex lock_;
 
+  /* If non-zero, you can rely on this gl_es2_context to be a gl_es2_ctx_ field in a struct aex_gl_context. */
+  int is_egl_context_:1;
+
   gl_es2_enum current_error_;
 
   /* If non-zero, then internals become accessible:

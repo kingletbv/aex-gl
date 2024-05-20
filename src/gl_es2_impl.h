@@ -466,6 +466,28 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4f
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttribPointer)(gl_es2_uint index, gl_es2_int size, gl_es2_enum type, gl_es2_boolean normalized, gl_es2_sizei stride, const void *pointer);
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Viewport)(gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height);
 
+
+/* reallocates the framebuffer storage for the context if the specifications mismatch the current context.
+ * num_rgba_bits: must be 32 bits.
+ * num_stencil_bits: 0  for no stencil buffer,
+ *                   16 for a 16-bit stencil buffer.
+ * num_depth_bits: 0  for no depth buffer.
+ *                 16 for a 16-bit depth buffer.
+ *                 32 for a 32-bit depth buffer.
+ * width: value from 0 to 4194303 (GL_ES2_IMPL_MAX_VIEWPORT_DIMS) for the width in pixels of the framebuffer.
+ * height: value from 0 to 4194303 (GL_ES2_IMPL_MAX_VIEWPORT_DIMS) for the height in pixels of the framebuffer.
+ * Return values:
+ *   0: successful initialization (SL_ERR_OK in sl_defs.h)
+ *  -1: invalid argument (SL_ERR_INVALID_ARG in sl_defs.h)
+ *  -2: an overflow occurred (SL_ERR_OVERFLOW in sl_defs.h)
+ *  -3: not enough memory (SL_ERR_NO_MEM in sl_defs.h)
+ *  -4: an internal error occurred (SL_ERR_INTERNAL in sl_defs.h)
+ * Currently -5 (SL_ERR_HAD_ERRORS) cannot occur as this is returned for compilation errors. */
+GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_set_framebuffer_storage)(int num_rgba_bits,
+                                                                                                  int num_stencil_bits,
+                                                                                                  int num_depth_bits,
+                                                                                                  int width, int height);
+
 /* initialize the context, this initializes the Aex context and default framebuffer to the indicated specifications.
  * num_rgba_bits: must be 32 bits.
  * num_stencil_bits: 0  for no stencil buffer,

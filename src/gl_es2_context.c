@@ -583,6 +583,7 @@ void gl_es2_shader_cleanup(struct gl_es2_shader *shad) {
 
 void gl_es2_ctx_init(struct gl_es2_context *c) {
   thread_mutex_init(&c->lock_);
+  c->is_egl_context_ = 0; /* EGL will override this if we're called from there */
   c->current_error_ = GL_ES2_NO_ERROR;
 
   ref_range_allocator_init(&c->framebuffer_rra_);
@@ -878,6 +879,92 @@ void gl_es2_ctx_release(struct gl_es2_context *c) {
   }
 }
 
+static int set_framebuffer_storage_impl(struct gl_es2_context *c,
+                                        int num_rgba_bits,
+                                        int num_stencil_bits,
+                                        int num_depth_bits,
+                                        int width, int height) {
+  int r;
+  struct gl_es2_framebuffer *fb = NULL;
+  r = not_find_or_insert(&c->framebuffer_not_, 0 /* name */, sizeof(struct gl_es2_framebuffer), (struct named_object **)&fb);
+  if (r == NOT_NOMEM) {
+    return SL_ERR_NO_MEM;
+  }
+  else if (r == NOT_DUPLICATE) {
+    /* Common path if is_allocated, strange path we'll just run with if not */
+    c->framebuffer_ = fb;
+  }
+  else if (r == NOT_OK) {
+    /* Newly created framebuffer */
+    gl_es2_framebuffer_init(fb);
+    c->framebuffer_ = fb;
+  }
+
+  /* Initialize RGBA storage */
+  r = gl_es2_renderbuffer_storage(&c->default_color_attachment_, gl_es2_renderbuffer_format_rgba32, width, height);
+  if (r) {
+    return r;
+  }
+  gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->color_attachment0_, &c->default_color_attachment_);
+
+  if (num_stencil_bits == 16) {
+    r = gl_es2_renderbuffer_storage(&c->default_stencil_attachment_, gl_es2_renderbuffer_format_stencil16, width, height);
+    if (r) {
+      return r;
+    }
+    gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->stencil_attachment_, &c->default_stencil_attachment_);
+  }
+
+  if (num_depth_bits) {
+    enum gl_es2_renderbuffer_format depth_format = gl_es2_renderbuffer_format_none;
+    switch (num_depth_bits) {
+      case 16: depth_format = gl_es2_renderbuffer_format_depth16; break;
+      case 32: depth_format = gl_es2_renderbuffer_format_depth32; break;
+        /* note: validation already handled above. */
+    }
+    r = gl_es2_renderbuffer_storage(&c->default_depth_attachment_, depth_format, width, height);
+    if (r) {
+      return r;
+    }
+    gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->depth_attachment_, &c->default_depth_attachment_);
+  }
+  return SL_ERR_OK;
+}
+
+GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_set_framebuffer_storage)(int num_rgba_bits,
+                                                                                                  int num_stencil_bits,
+                                                                                                  int num_depth_bits,
+                                                                                                  int width, int height) {
+  int r;
+  if (num_rgba_bits != 32) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  if ((num_stencil_bits != 0) &&
+    (num_stencil_bits != 16)) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  if ((num_depth_bits != 0) &&
+    (num_depth_bits != 16) &&
+    (num_depth_bits != 32)) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  if ((width < 0) || (height < 0)) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  if ((width > GL_ES2_IMPL_MAX_VIEWPORT_DIMS) || (height > GL_ES2_IMPL_MAX_VIEWPORT_DIMS)) {
+    return SL_ERR_INVALID_ARG;
+  }
+
+  struct gl_es2_context *c = gl_es2_ctx();
+  r = set_framebuffer_storage_impl(c, num_rgba_bits, num_stencil_bits, num_depth_bits, width, height);
+  gl_es2_ctx_release(c);
+  return r;
+}
+
 GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(int num_rgba_bits,
                                                                                int num_stencil_bits,
                                                                                int num_depth_bits,
@@ -913,55 +1000,8 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
   c->vp_width_ = width;
   c->vp_height_ = height;
 
-  struct gl_es2_framebuffer *fb = NULL;
-  r = not_find_or_insert(&c->framebuffer_not_, 0 /* name */, sizeof(struct gl_es2_framebuffer), (struct named_object **)&fb);
-  if (r == NOT_NOMEM) {
-    gl_es2_ctx_release(c);
-    return SL_ERR_NO_MEM;
-  }
-  else if (r == NOT_DUPLICATE) {
-    /* Common path if is_allocated, strange path we'll just run with if not */
-    c->framebuffer_ = fb;
-  }
-  else if (r == NOT_OK) {
-    /* Newly created framebuffer */
-    gl_es2_framebuffer_init(fb);
-    c->framebuffer_ = fb;
-  }
-
-  /* Initialize RGBA storage */
-  r = gl_es2_renderbuffer_storage(&c->default_color_attachment_, gl_es2_renderbuffer_format_rgba32, width, height);
-  if (r) {
-    gl_es2_ctx_release(c);
-    return r;
-  }
-  gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->color_attachment0_, &c->default_color_attachment_);
-
-  if (num_stencil_bits == 16) {
-    r = gl_es2_renderbuffer_storage(&c->default_stencil_attachment_, gl_es2_renderbuffer_format_stencil16, width, height);
-    if (r) {
-      gl_es2_ctx_release(c);
-      return r;
-    }
-    gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->stencil_attachment_, &c->default_stencil_attachment_);
-  }
-
-  if (num_depth_bits) {
-    enum gl_es2_renderbuffer_format depth_format = gl_es2_renderbuffer_format_none;
-    switch (num_depth_bits) {
-      case 16: depth_format = gl_es2_renderbuffer_format_depth16; break;
-      case 32: depth_format = gl_es2_renderbuffer_format_depth32; break;
-        /* note: validation already handled above. */
-    }
-    r = gl_es2_renderbuffer_storage(&c->default_depth_attachment_, depth_format, width, height);
-    if (r) {
-      gl_es2_ctx_release(c);
-      return r;
-    }
-    gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->depth_attachment_, &c->default_depth_attachment_);
-  }
-
+  r = set_framebuffer_storage_impl(c, num_rgba_bits, num_stencil_bits, num_depth_bits, width, height);
   gl_es2_ctx_release(c);
-  return SL_ERR_OK;
+  return r;
 }
 

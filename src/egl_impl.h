@@ -56,7 +56,9 @@ typedef struct aex_egl_display {
 } *aex_egl_display_t;
 
 typedef struct aex_egl_context {
+  int was_current_before_:1;
   struct gl_es2_context gl_es2_ctx_;
+  HWND current_draw_hwnd_;
 } *aex_egl_context_t;
 
 typedef struct aex_egl_surface {

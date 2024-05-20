@@ -40,15 +40,33 @@
 
 #define EGL_IMPL_C /* this switches some declarations in egl_imp.h */
 
+#ifndef SL_DEFS_H_INCLUDED
+#define SL_DEFS_H_INCLUDED
+#include "sl_defs.h"
+#endif
+
 #ifndef EGL_IMPL_H_INCLUDED
 #define EGL_IMPL_H_INCLUDED
 #include "egl_impl.h"
+#endif
+
+#ifndef GL_ES2_IMPL_H_INCLUDED
+#define GL_ES2_IMPL_H_INCLUDED
+#include "gl_es2_impl.h"
 #endif
 
 #define AEX_WSTRINGIZE_IMPL(x) L#x
 #define AEX_WSTRINGIZE(x) AEX_WSTRINGIZE_IMPL(x)
 
 int g_aex_egl_error_ = 0;
+
+static aex_egl_context_t egl_context_from_gl_es2_context(struct gl_es2_context *c) {
+  uintptr_t offset = (uintptr_t)&(((aex_egl_context_t)0)->gl_es2_ctx_);
+  uintptr_t c_uintptr = (uintptr_t)c;
+  uintptr_t egl_uintptr = c_uintptr - offset;
+  aex_egl_context_t ctx = (aex_egl_context_t)egl_uintptr;
+  return ctx;
+}
 
 /* Returns AEX_EGL_TRUE if err was EAX_EGL_SUCCESS, or AEX_EGL_FALSE otherwise.
  * Note that this only changes the error code in g_aex_egl_error if the pre-existing
@@ -106,7 +124,9 @@ static void aex_egl_display_free(struct aex_egl_display *dp) {
 }
 
 static void aex_egl_context_init(aex_egl_context_t context) {
+  context->was_current_before_ = 0;
   gl_es2_ctx_init(&context->gl_es2_ctx_);
+  context->current_draw_hwnd_ = INVALID_HANDLE_VALUE;
 }
 
 static void aex_egl_context_cleanup(aex_egl_context_t context) {
@@ -357,6 +377,7 @@ AEX_EGL_DECL_SPEC aex_egl_context_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
     set_egl_err(AEX_EGL_BAD_ALLOC);
     return AEX_EGL_NO_CONTEXT;
   }
+  ctx->gl_es2_ctx_.is_egl_context_ = 1;
 
   return ctx;
 }
@@ -434,7 +455,83 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
 
 
 AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_ID(MakeCurrent)(aex_egl_display_t dpy, aex_egl_surface_t draw, aex_egl_surface_t read, aex_egl_context_t ctx) {
+  if (!ctx) {
+    tc_set_context(NULL);
+    return AEX_EGL_TRUE;
+  }
+
   tc_set_context(&ctx->gl_es2_ctx_);
+
+  struct gl_es2_context *c = gl_es2_ctx();
+  if (c != &ctx->gl_es2_ctx_) {
+    /* Something went very wrong */
+    gl_es2_ctx_release(c);
+    return set_egl_err(AEX_EGL_CONTEXT_LOST);
+  }
+
+  /* We have set the config and it is locked */
+
+  HWND hwnd = draw->hwnd_;
+  if (hwnd == INVALID_HANDLE_VALUE) {
+    gl_es2_ctx_release(c);
+    return set_egl_err(AEX_EGL_BAD_NATIVE_WINDOW);
+  }
+  RECT client_rect;
+  GetClientRect(hwnd, &client_rect);
+  int client_width, client_height;
+  client_width = (int)(client_rect.right - client_rect.left);
+  client_height = (int)(client_rect.bottom - client_rect.top);
+
+  int need_fb_storage_alloc = 0;
+
+  if (!ctx->was_current_before_) {
+    /* Set viewport and scissor rectangles to size of the native surface */
+    c->vp_width_ = (int32_t)client_width;
+    c->vp_height_ = (int32_t)client_height;
+    c->vp_x_ = 0;
+    c->vp_y_ = 0;
+    c->scissor_width_ = (int32_t)client_width;
+    c->scissor_height_ = (int32_t)client_height;
+    c->scissor_left_ = 0;
+    c->scissor_bottom_counted_from_bottom_ = 0;
+    ctx->was_current_before_ = 1;
+    need_fb_storage_alloc = 1;
+  }
+  else {
+    int fb_width, fb_height;
+    int r;
+    struct gl_es2_framebuffer *fb = (struct gl_es2_framebuffer *)not_find(&c->framebuffer_not_, 0);
+    if (!fb) {
+      need_fb_storage_alloc = 1;
+    }
+    else {
+      r = gl_es2_framebuffer_get_dims(fb, &fb_width, &fb_height);
+      if (!r) {
+        need_fb_storage_alloc = 1;
+      }
+      if ((fb_width != client_width) || (fb_height != client_height)) {
+        need_fb_storage_alloc = 1;
+      }
+    }
+  }
+
+  egl_context_from_gl_es2_context(c)->current_draw_hwnd_ = hwnd;
+
+  gl_es2_ctx_release(c);
+  if (need_fb_storage_alloc) {
+    int sl_err = GL_ES2_FUNCTION_ID(context_set_framebuffer_storage)(32, 16, 16, client_width, client_height);
+    switch (sl_err) {
+      case SL_ERR_OK:
+        return AEX_EGL_TRUE;
+      case SL_ERR_INVALID_ARG:
+        return set_egl_err(AEX_EGL_BAD_PARAMETER);
+      case SL_ERR_OVERFLOW:
+      case SL_ERR_NO_MEM:
+        return set_egl_err(AEX_EGL_BAD_ALLOC);
+      default:
+        return set_egl_err(AEX_EGL_CONTEXT_LOST);
+    }
+  }
 
   return AEX_EGL_TRUE;
 }
@@ -446,7 +543,73 @@ AEX_EGL_DECL_SPEC const char *AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_ID(Quer
 
 
 AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_ID(SwapBuffers)(aex_egl_display_t dpy, aex_egl_surface_t surface) {
-  return AEX_EGL_FALSE;
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  if (!c->is_egl_context_) {
+    gl_es2_ctx_release(c);
+    return set_egl_err(AEX_EGL_CONTEXT_LOST);
+  }
+
+  HWND hwnd = egl_context_from_gl_es2_context(c)->current_draw_hwnd_;
+
+  struct gl_es2_framebuffer *fb = (struct gl_es2_framebuffer *)not_find(&c->framebuffer_not_, 0);
+  if (!fb) {
+    gl_es2_ctx_release(c);
+    return set_egl_err(AEX_EGL_NOT_INITIALIZED);
+  }
+
+  int bmp_width, bmp_height;
+
+  if (!gl_es2_framebuffer_get_dims(fb, &bmp_width, &bmp_height)) {
+    gl_es2_ctx_release(c);
+    return set_egl_err(AEX_EGL_NOT_INITIALIZED);
+  }
+
+  void *rgba_ptr = NULL;
+  size_t rgba_stride;
+  gl_es2_framebuffer_attachment_raw_ptr(&fb->color_attachment0_, &rgba_ptr, &rgba_stride);
+
+  /* Following code is pretty bad because we're allocating, and worse, we're allocating GDI objects. */
+  HDC hdcwnd = GetDC(hwnd);
+  HDC hdcmem = CreateCompatibleDC(hdcwnd);
+  HBITMAP hbmp = CreateCompatibleBitmap(hdcwnd, bmp_width, bmp_height);
+
+  // Select the bitmap into the off-screen DC.
+  HBITMAP hprev_bmp = (HBITMAP)SelectObject(hdcmem, hbmp);
+
+  // Set up the bitmap header
+  BITMAPINFO bmi;
+  ZeroMemory(&bmi, sizeof(bmi));
+  bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  bmi.bmiHeader.biWidth = bmp_width;
+  bmi.bmiHeader.biHeight = -bmp_height; // Top-down approach
+  bmi.bmiHeader.biPlanes = 1;
+  bmi.bmiHeader.biBitCount = 32;
+  bmi.bmiHeader.biCompression = BI_RGB;
+
+  uint8_t *rowbuffer = (uint8_t *)malloc(bmp_width * 4);
+  if (!rowbuffer) {
+    gl_es2_ctx_release(c);
+    return set_egl_err(AEX_EGL_BAD_ALLOC);
+  }
+  int row;
+  for (row = 0; row < bmp_height; ++row) {
+    memcpy(rowbuffer, ((uint8_t *)rgba_ptr) + rgba_stride * row, bmp_width * 4);
+    SetDIBits(hdcmem, hbmp, bmp_height - 1 - row, 1, rowbuffer, &bmi, DIB_RGB_COLORS);
+  }
+  free(rowbuffer);
+
+  // Perform the bit blit
+  BitBlt(hdcwnd, 0, 0, bmp_width, bmp_height, hdcmem, 0, 0, SRCCOPY);
+
+  // Clean up
+  SelectObject(hdcmem, hprev_bmp);
+  DeleteObject(hbmp);
+  DeleteDC(hdcmem);
+  ReleaseDC(hwnd, hdcwnd);
+
+  gl_es2_ctx_release(c);
+  return AEX_EGL_TRUE;
 }
 
 
