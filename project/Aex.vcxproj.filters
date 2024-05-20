@@ -58,7 +58,7 @@
     <ClCompile Include="..\src\named_object_table.c" />
     <ClCompile Include="..\src\data_buffer.c" />
     <ClCompile Include="..\src\egl_impl.c" />
-    <ClCompile Include="..\src\thread_context.c" />
+    <ClCompile Include="..\src\thread_context_win32.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">

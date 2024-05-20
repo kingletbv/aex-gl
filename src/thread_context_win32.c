@@ -30,7 +30,20 @@
 #include "thread_context.h"
 #endif
 
-INIT_ONCE g_tls_keys_initialization_ = INIT_ONCE_STATIC_INIT;
+#ifndef SL_DEFS_H_INCLUDED
+#define SL_DEFS_H_INCLUDED
+#include "sl_defs.h"
+#endif
+
+#ifndef GL_ES2_CONTEXT_H_INCLUDED
+#define GL_ES2_CONTEXT_H_INCLUDED
+#include "gl_es2_context.h"
+#endif
+
+static INIT_ONCE g_default_context_initialization_ = INIT_ONCE_STATIC_INIT;
+static struct gl_es2_context g_default_context_ = { 0 };
+
+static INIT_ONCE g_tls_keys_initialization_ = INIT_ONCE_STATIC_INIT;
 
 static DWORD g_context_tls_key_ = 0;
 static DWORD g_api_tls_key_ = 0;
@@ -49,6 +62,35 @@ static BOOL CALLBACK tc_initialize_tls_keys(PINIT_ONCE init_once,
   g_context_tls_key_ = tls_key_ctx;
   g_api_tls_key_ = tls_key_api;
   return TRUE;
+}
+
+static void tc_default_context_at_exit_cleanup(void) {
+  gl_es2_ctx_cleanup(&g_default_context_);
+}
+
+static BOOL CALLBACK tc_initialize_default_context(PINIT_ONCE init_once,
+                                                   PVOID parameter,
+                                                   PVOID *ppcontext) {
+  /* Fixed initialization to known-good state */
+  gl_es2_ctx_init(&g_default_context_);
+
+  /* Complete initialization with may-fail allocations */
+  if (SL_ERR_OK != gl_es2_ctx_complete_initialization(&g_default_context_)) {
+    /* Failed allocations -- error will have been set. We're better of returning
+     * a context in failed state than not completing the initialization (which
+     * would cause us to return NULL and crash without diagnostics. */
+  }
+  atexit(tc_default_context_at_exit_cleanup);
+
+  return TRUE;
+}
+
+struct gl_es2_context *tc_get_default_context(void) {
+  BOOL status;
+  PVOID ctxp = NULL;
+  status = InitOnceExecuteOnce(&g_default_context_initialization_, tc_initialize_default_context, NULL, &ctxp);
+  if (!status) return NULL;
+  return &g_default_context_;
 }
 
 struct gl_es2_context *tc_get_context(void) {

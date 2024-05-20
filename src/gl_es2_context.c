@@ -27,6 +27,11 @@
 #include "gl_es2_context.h"
 #endif
 
+#ifndef THREAD_CONTEXT_H_INCLUDED
+#define THREAD_CONTEXT_H_INCLUDED
+#include "thread_context.h"
+#endif
+
 #ifndef SAMPLER_2D_H_INCLUDED
 #define SAMPLER_2D_H_INCLUDED
 #include "sampler_2d.h"
@@ -36,11 +41,6 @@
 #define SL_DEFS_H_INCLUDED
 #include "sl_defs.h"
 #endif
-
-/* XXX: Important: no TLS, no locks, no atomics, nary a cli/sti: no thread safety. */
-
-static struct gl_es2_context g_ctx_ = { 0 };
-static int                   g_ctx_is_initialized_ = 0;
 
 void gl_es2_framebuffer_attachment_init(struct gl_es2_framebuffer *fb, struct gl_es2_framebuffer_attachment *fa) {
   fa->kind_ = gl_es2_faot_none;
@@ -765,7 +765,7 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
   gl_es2_renderbuffer_cleanup(&c->default_stencil_attachment_);
 }
 
-static int gl_es2_ctx_complete_initialization(struct gl_es2_context *c) {
+int gl_es2_ctx_complete_initialization(struct gl_es2_context *c) {
   if (attrib_alloc_fixed_num_attribs(&c->attribs_, GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS)) {
     c->current_error_ = GL_ES2_OUT_OF_MEMORY;
     return SL_ERR_NO_MEM;
@@ -835,51 +835,17 @@ void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *
   *bottom = screen_height - norm_scissor_bottom;
 }
 
-static void gl_es2_at_exit_cleanup(void) {
-  if (g_ctx_is_initialized_) {
-    gl_es2_ctx_cleanup(&g_ctx_);
-    g_ctx_is_initialized_ = 0;
-  }
-}
-
 struct gl_es2_context *gl_es2_ctx(void) {
-  if (!g_ctx_is_initialized_) {
-    /* Fixed initialization to known-good state */
-    gl_es2_ctx_init(&g_ctx_);
+  struct gl_es2_context *ctx = tc_get_context();
+  if (ctx) return ctx;
 
-    /* Complete initialization with may-fail allocations */
-    if (SL_ERR_OK != gl_es2_ctx_complete_initialization(&g_ctx_)) {
-      /* Failed allocations -- error will have been
-       * set. We will allow this to continue to fail as things
-       * will implode if we return NULL. */
-    }
-    g_ctx_is_initialized_ = 1;
-    atexit(gl_es2_at_exit_cleanup);
-  }
-
-  return &g_ctx_;
-}
-
-int gl_es2_initialize_context(void) {
-  if (!g_ctx_is_initialized_) {
-    /* Fixed initialization to known-good state */
-    gl_es2_ctx_init(&g_ctx_);
-
-    /* Complete initialization with may-fail allocations */
-    if (SL_ERR_NO_MEM == gl_es2_ctx_complete_initialization(&g_ctx_)) {
-      /* Failed allocations.
-       * NOTE: Unlike the above, here we cleanup and return 
-       *       the -1; reason is that we can now expect the
-       *       caller to anticipate and handle any failure,
-       *       unlike gl_es2_ctx() where callers may assume
-       *       success. */
-      gl_es2_ctx_cleanup(&g_ctx_);
-      return SL_ERR_NO_MEM;
-    }
-    g_ctx_is_initialized_ = 1;
-    atexit(gl_es2_at_exit_cleanup);
-  }
-  return SL_ERR_OK;
+  /* No context set on the current thread; find or create the default
+   * context, and return that instead. Note that we don't *set* it as the
+   * thread's context because we'd like to reflect (from an EGL perspective)
+   * that the current context is "none", and GL calls on "none" are GL calls
+   * on the default context. */
+  ctx = tc_get_default_context();
+  return ctx;
 }
 
 GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(int num_rgba_bits,
@@ -910,10 +876,7 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
     return SL_ERR_INVALID_ARG;
   }
 
-  r = gl_es2_initialize_context();
-  if (r) return r;
-
-  struct gl_es2_context *c = &g_ctx_;
+  struct gl_es2_context *c = gl_es2_ctx();
 
   c->vp_x_ = 0;
   c->vp_y_ = 0;
@@ -923,7 +886,6 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
   struct gl_es2_framebuffer *fb = NULL;
   r = not_find_or_insert(&c->framebuffer_not_, 0 /* name */, sizeof(struct gl_es2_framebuffer), (struct named_object **)&fb);
   if (r == NOT_NOMEM) {
-    gl_es2_at_exit_cleanup();
     return SL_ERR_NO_MEM;
   }
   else if (r == NOT_DUPLICATE) {
@@ -939,7 +901,6 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
   /* Initialize RGBA storage */
   r = gl_es2_renderbuffer_storage(&c->default_color_attachment_, gl_es2_renderbuffer_format_rgba32, width, height);
   if (r) {
-    gl_es2_at_exit_cleanup();
     return r;
   }
   gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->color_attachment0_, &c->default_color_attachment_);
@@ -947,7 +908,6 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
   if (num_stencil_bits == 16) {
     r = gl_es2_renderbuffer_storage(&c->default_stencil_attachment_, gl_es2_renderbuffer_format_stencil16, width, height);
     if (r) {
-      gl_es2_at_exit_cleanup();
       return r;
     }
     gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->stencil_attachment_, &c->default_stencil_attachment_);
@@ -962,7 +922,6 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
     }
     r = gl_es2_renderbuffer_storage(&c->default_depth_attachment_, depth_format, width, height);
     if (r) {
-      gl_es2_at_exit_cleanup();
       return r;
     }
     gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->depth_attachment_, &c->default_depth_attachment_);

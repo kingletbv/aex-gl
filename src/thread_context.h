@@ -30,8 +30,20 @@ struct gl_es2_context;
 /* Get context from thread local storage, default NULL if uninintialized */
 struct gl_es2_context *tc_get_context(void);
 
+/* Set pctx as the context for the current thread, note that if you set this to
+ * NULL, any subsequent OpenGL API call will attempt to use the default context,
+ * creating it if necessary. */
+void tc_set_context(struct gl_es2_context *pctx);
+
+/* Get default context, create one if it doesn't yet exist.
+ * Note: creation of the default context installs an atexit() handler to clean it up. */
+struct gl_es2_context *tc_get_default_context(void);
+
 /* Get current API from thread local storage, default TC_OPENGL_NO_API if uninitialized */
 int tc_get_api(void);
+
+/* Sets the API value for the current thread, one of the TC_OPENGL_XXX_API values. */
+void tc_set_api(int api);
 
 #ifdef __cplusplus
 } /* extern "C" */

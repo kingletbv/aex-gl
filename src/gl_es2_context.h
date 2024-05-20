@@ -444,10 +444,15 @@ struct gl_es2_context {
   int is_sample_coverage_enabled_:1;
 };
 
-/* initializes the global context, returns SL_ERR_OK (sl_defs.h) for success or
- * SL_ERR_NO_MEM for failure.
- * Upon failure, no context will have been initialized. */
-int gl_es2_initialize_context(void);
+void gl_es2_ctx_init(struct gl_es2_context *c);
+void gl_es2_ctx_cleanup(struct gl_es2_context *c);
+
+/* Completes initialization of a context, this requires allocating / pre-reserving
+ * some names and buffers. Hence, this may fail. gl_es2_ctx_init() will always succeed
+ * and leave things safe for gl_es2_ctx_cleanup() to always complete execution, and
+ * gl_es2_ctx_complete_initialization() will complete the initialization so it can be
+ * used (but if it fails, a gl_es2_ctx_cleanup() is still required.) */
+int gl_es2_ctx_complete_initialization(struct gl_es2_context *c);
 
 /* Returns the global context. If one has not been initialized, initialize it and
  * return it. If the initialization fails (no memory), set the error to the context
