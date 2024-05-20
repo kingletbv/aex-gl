@@ -65,6 +65,11 @@
 #include "rasterizer.h"
 #endif
 
+#ifndef THREAD_MUTEX_H_INCLUDED
+#define THREAD_MUTEX_H_INCLUDED
+#include "thread_mutex.h"
+#endif
+
 /* glGet(GL_MAX_TEXTURE_IMAGE_UNITS)
  * glGet(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS)
  */
@@ -260,6 +265,8 @@ struct gl_es2_shader {
 };
 
 struct gl_es2_context {
+  struct thread_mutex lock_;
+
   gl_es2_enum current_error_;
 
   /* If non-zero, then internals become accessible:
@@ -457,8 +464,19 @@ int gl_es2_ctx_complete_initialization(struct gl_es2_context *c);
 /* Returns the global context. If one has not been initialized, initialize it and
  * return it. If the initialization fails (no memory), set the error to the context
  * and return it anyway (so here, unlike gl_es2_initialize_context(), we will always
- * end up with a context returned no matter what, even if it is a failed context.) */
+ * end up with a context returned no matter what, even if it is a failed context.)
+ * Note that the gl_es2_context is returned in a *locked* state, and that gl_es2_ctx
+ * may block waiting to get this lock.
+ * Caller must call gl_es2_ctx_release(c) where c is the returned context.
+ */
 struct gl_es2_context *gl_es2_ctx(void);
+
+/* Like gl_es2_ctx() but the context is not locked. Useful for cases where we can
+ * safely assume a caller or ancestor caller has already locked the context. */
+struct gl_es2_context *gl_es2_ctx_dont_lock(void);
+
+/* Release the gl_es2_context::lock_ lock (typically as acquired inside gl_es2_ctx()). */
+void gl_es2_ctx_release(struct gl_es2_context *c);
 
 void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *left, uint32_t *top, uint32_t *right, uint32_t *bottom);
 

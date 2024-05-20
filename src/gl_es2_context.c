@@ -582,6 +582,7 @@ void gl_es2_shader_cleanup(struct gl_es2_shader *shad) {
 
 
 void gl_es2_ctx_init(struct gl_es2_context *c) {
+  thread_mutex_init(&c->lock_);
   c->current_error_ = GL_ES2_NO_ERROR;
 
   ref_range_allocator_init(&c->framebuffer_rra_);
@@ -763,12 +764,17 @@ void gl_es2_ctx_cleanup(struct gl_es2_context *c) {
   gl_es2_renderbuffer_cleanup(&c->default_color_attachment_);
   gl_es2_renderbuffer_cleanup(&c->default_depth_attachment_);
   gl_es2_renderbuffer_cleanup(&c->default_stencil_attachment_);
+  thread_mutex_cleanup(&c->lock_);
 }
 
 int gl_es2_ctx_complete_initialization(struct gl_es2_context *c) {
   if (attrib_alloc_fixed_num_attribs(&c->attribs_, GL_ES2_IMPL_MAX_NUM_VERTEX_ATTRIBS)) {
     c->current_error_ = GL_ES2_OUT_OF_MEMORY;
     return SL_ERR_NO_MEM;
+  }
+
+  if (thread_mutex_finish_initialization(&c->lock_)) {
+    return SL_ERR_NO_MEM; /* presumably low memory condition */
   }
 
   /* Reserve 0 names to avoid allocation code cheerfully returning it */
@@ -837,7 +843,10 @@ void gl_es2_ctx_get_normalized_scissor_rect(struct gl_es2_context *c, uint32_t *
 
 struct gl_es2_context *gl_es2_ctx(void) {
   struct gl_es2_context *ctx = tc_get_context();
-  if (ctx) return ctx;
+  if (ctx) {
+    thread_mutex_enter(&ctx->lock_);
+    return ctx;
+  }
 
   /* No context set on the current thread; find or create the default
    * context, and return that instead. Note that we don't *set* it as the
@@ -845,7 +854,28 @@ struct gl_es2_context *gl_es2_ctx(void) {
    * that the current context is "none", and GL calls on "none" are GL calls
    * on the default context. */
   ctx = tc_get_default_context();
+
+  if (ctx) {
+    thread_mutex_enter(&ctx->lock_);
+    return ctx;
+  }
+
+  return NULL;
+}
+
+/* This is like gl_es2_ctx() but does not acquire the lock (instead assumes
+ * it is already held. */
+struct gl_es2_context *gl_es2_ctx_dont_lock(void) {
+  struct gl_es2_context *ctx = tc_get_context();
+  ctx = ctx ? ctx : tc_get_default_context();
+
   return ctx;
+}
+
+void gl_es2_ctx_release(struct gl_es2_context *c) {
+  if (c) {
+    thread_mutex_leave(&c->lock_);
+  }
 }
 
 GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(int num_rgba_bits,
@@ -886,6 +916,7 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
   struct gl_es2_framebuffer *fb = NULL;
   r = not_find_or_insert(&c->framebuffer_not_, 0 /* name */, sizeof(struct gl_es2_framebuffer), (struct named_object **)&fb);
   if (r == NOT_NOMEM) {
+    gl_es2_ctx_release(c);
     return SL_ERR_NO_MEM;
   }
   else if (r == NOT_DUPLICATE) {
@@ -901,6 +932,7 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
   /* Initialize RGBA storage */
   r = gl_es2_renderbuffer_storage(&c->default_color_attachment_, gl_es2_renderbuffer_format_rgba32, width, height);
   if (r) {
+    gl_es2_ctx_release(c);
     return r;
   }
   gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->color_attachment0_, &c->default_color_attachment_);
@@ -908,6 +940,7 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
   if (num_stencil_bits == 16) {
     r = gl_es2_renderbuffer_storage(&c->default_stencil_attachment_, gl_es2_renderbuffer_format_stencil16, width, height);
     if (r) {
+      gl_es2_ctx_release(c);
       return r;
     }
     gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->stencil_attachment_, &c->default_stencil_attachment_);
@@ -922,11 +955,13 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
     }
     r = gl_es2_renderbuffer_storage(&c->default_depth_attachment_, depth_format, width, height);
     if (r) {
+      gl_es2_ctx_release(c);
       return r;
     }
     gl_es2_framebuffer_attachment_attach_renderbuffer(&fb->depth_attachment_, &c->default_depth_attachment_);
   }
 
+  gl_es2_ctx_release(c);
   return SL_ERR_OK;
 }
 
