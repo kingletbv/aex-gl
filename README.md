@@ -62,6 +62,20 @@ So, again, compiling everything at every frame, then, on the local machine, this
 slower because the texture mapping currently does not yet benefit from autovectorized parallelization (need it to hit the feature-set
 first, before we make it faster.)
 
+### GLFW triangle-opengles demo
+
+While static linkage is one of the primary targets, the build on windows will also emit EGL.dll and GLESv2.dll to allow for easier
+integration. One of these integration targets is [GLFW](https://www.glfw.org/), an Open Source, multi-platform library for OpenGL, OpenGL 
+ES and Vulkan development on the desktop. The nice thign about GLFW is it has a few demos to test with:
+
+![GLFW ES2 triangle](docs/glfw_es2_triangle.png)
+
+This is an early stage of that integration, and shows Aex-GL running the spinning triangle demo that ships with GLFW. To run this
+yourself, build Aex-GL, copy over the AexGL.dll, EGL.dll and GLESv2.dll's from the build directory to the directory with the 
+triangle-opengles executable, and you should be good. But, beware! EGL support is currently very limited and under development; just 
+enough duct tape to get this going for now.
+
+
 # The parser
 
 If you came from [Carburetta.com](https://carburetta.com/) and just want to see the parsing side of the business: parsing occurs
