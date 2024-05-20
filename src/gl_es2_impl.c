@@ -1490,6 +1490,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompileShader)
       set_gl_err(GL_ES2_OUT_OF_MEMORY);
       gl_es2_ctx_release(c);
       return;
+    case SL_ERR_HAD_ERRORS:
+      gl_es2_ctx_release(c);
+      return;
     case SL_ERR_OK:
       break;
   }
