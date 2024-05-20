@@ -62,7 +62,7 @@ So, again, compiling everything at every frame, then, on the local machine, this
 slower because the texture mapping currently does not yet benefit from autovectorized parallelization (need it to hit the feature-set
 first, before we make it faster.)
 
-# "I came from Carburetta, show me the parser!"
+# The parser
 
 If you came from [Carburetta.com](https://carburetta.com/) and just want to see the parsing side of the business: parsing occurs
 in roughly two stages:
