@@ -66,7 +66,7 @@ first, before we make it faster.)
 
 While static linkage is one of the primary targets, the build on windows will also emit EGL.dll and GLESv2.dll to allow for easier
 integration. One of these integration targets is [GLFW](https://www.glfw.org/), an Open Source, multi-platform library for OpenGL, OpenGL 
-ES and Vulkan development on the desktop. The nice thign about GLFW is it has a few demos to test with:
+ES and Vulkan development on the desktop. The nice thing about GLFW is it has a few demos to test with:
 
 ![GLFW ES2 triangle](docs/glfw_es2_triangle.png)
 
