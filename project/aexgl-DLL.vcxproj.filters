@@ -6,7 +6,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\AexGL-DLL\dllmain.c" />
-    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\AexGL-DLL\EGL.def" />

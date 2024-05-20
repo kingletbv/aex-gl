@@ -226,6 +226,7 @@
     <ClCompile Include="..\src\sl_types.c" />
     <ClCompile Include="..\src\sl_uniforms.c" />
     <ClCompile Include="..\src\sym_table.c" />
+    <ClCompile Include="..\src\thread_context.c" />
     <ClCompile Include="..\src\viewport_transformation.c" />
   </ItemGroup>
   <ItemGroup>
@@ -370,6 +371,7 @@
     <ClInclude Include="..\src\sl_uniforms.h" />
     <ClInclude Include="..\src\sl_unop_snippet_inc.h" />
     <ClInclude Include="..\src\sym_table.h" />
+    <ClInclude Include="..\src\thread_context.h" />
     <ClInclude Include="..\src\viewport_transformation.h" />
   </ItemGroup>
   <ItemGroup>
