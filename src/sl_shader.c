@@ -94,15 +94,25 @@ int sl_shader_set_source(struct sl_shader *sh, size_t num_strings, const char * 
   size_t total_length = 0;
   size_t n;
   for (n = 0; n < num_strings; ++n) {
-    if (lengths[n] < 0) return -2;
-    size_t new_length = total_length + (size_t)lengths[n];
+    size_t new_length;
+    if (lengths) {
+      if (lengths[n] && !string_ptrs[n]) {
+        /* invalid argument */
+        return SL_ERR_INVALID_ARG;
+      }
+      if (lengths[n] < 0) return -2;
+      new_length = total_length + (size_t)lengths[n];
+    }
+    else {
+      if (!string_ptrs[n]) {
+        /* invalid argument */
+        return SL_ERR_INVALID_ARG;
+      }
+      new_length = total_length + strlen(string_ptrs[n]);
+    }
     if (new_length < total_length) {
       /* overflow */
       return SL_ERR_OVERFLOW;
-    }
-    if (lengths[n] && !string_ptrs[n]) {
-      /* invalid argument */
-      return SL_ERR_INVALID_ARG;
     }
     total_length = new_length;
   }
@@ -114,8 +124,15 @@ int sl_shader_set_source(struct sl_shader *sh, size_t num_strings, const char * 
   size_t at = 0;
   for (n = 0; n < num_strings; ++n) {
     /* If we get this far we can assume the buffers are good */
-    memcpy(buf + at, string_ptrs[n], (size_t)lengths[n]);
-    at += (size_t)lengths[n];
+    size_t len = 0;
+    if (lengths) {
+      len = (size_t)lengths[n];
+    }
+    else {
+      len = strlen(string_ptrs[n]);
+    }
+    memcpy(buf + at, string_ptrs[n], len);
+    at += len;
   }
   buf[at++] = '\0';
   assert(at == bufsize);
@@ -133,6 +150,7 @@ int sl_shader_compile(struct sl_shader *sh) {
 
   /* Overwrite default dx in favor of info log dx */
   cc.dx_ = &sh->gl_info_log_.dx_;
+  cc.pp_.dx_ = cc.dx_;
 
   /* Overwrite type-base to be the one from the shader */
   cc.tb_ = &sh->tb_;
