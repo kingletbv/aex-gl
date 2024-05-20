@@ -279,6 +279,7 @@ $: {
   : mediump { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_MEDIUM_PRECISION, &$); }  
   : lowp { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_LOW_PRECISION, &$); }  
   : precision { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_PRECISION, &$); }  
+  : version { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_VERSION, &$); }
 
   /* keywords denoted as reserved in GLSL, should map to error generating tokens for GLSL */
   : asm { struct pptk *tk = pptk_alloc(pp, pp_tokens, $text, PPTK_ASM, &$); }

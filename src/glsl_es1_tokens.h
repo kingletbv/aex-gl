@@ -142,6 +142,7 @@ extern "C" {
   xx(PPTK_PRAGMA,             GLSL_ES1_IDENTIFIER) \
   xx(PPTK_DEFINED,            GLSL_ES1_IDENTIFIER) \
   xx(PPTK_PRAGMA_OP,          GLSL_ES1_IDENTIFIER) \
+  xx(PPTK_VERSION,            GLSL_ES1_IDENTIFIER) \
 \
   xx(PPTK_BOOL_ID,            GLSL_ES1_BOOL) \
   xx(PPTK_BOOL_CONSTANT,      GLSL_ES1_BOOLCONSTANT) \

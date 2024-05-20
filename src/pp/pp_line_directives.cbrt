@@ -19,6 +19,11 @@
 #include <stdlib.h>
 #endif
 
+#ifndef INTTYPES_H_INCLUDED
+#define INTTYPES_H_INCLUDED
+#include <inttypes.h>
+#endif
+
 struct pptk;
 
 #ifndef PP_LINE_DIRECTIVES_H_INCLUDED
@@ -64,17 +69,17 @@ struct pptk;
 
 %token HASH_TOK IF_TOK IFDEF_TOK IFNDEF_TOK ELIF_TOK ELSE_TOK ENDIF_TOK INCLUDE_TOK DEFINE_TOK UNDEF_TOK \
        LINE_TOK ERROR_TOK PRAGMA_TOK PAR_OPEN_TOK PAR_CLOSE_TOK ELLIPSIS_TOK COMMA_TOK WS_TOK NEWLINE_TOK \
-       IDENTIFIER_TOK OTHER_TOK HEADER_NAME
+       IDENTIFIER_TOK OTHER_TOK HEADER_NAME VERSION_TOK
 
 %nt non-directive pp-tokens pp-tokens-opt replacement-list preprocessing-token identifier-list identifier-list-opt \
     non-dir-token non-par-open-token non-par-open-replacement-list non-hash-pp-tokens non-hash-pp-tokens-opt non-hash-token pp-line    \
     ws ws-opt newline newline-opt hash if ifdef ifndef elif else endif include define undef line error-nt pragma identifier ident      \
-    par-close comma ellipsis header-pp-tokens hdr-preprocessing-token
+    par-close comma ellipsis header-pp-tokens hdr-preprocessing-token version
 
 %type non-directive pp-tokens pp-tokens-opt replacement-list preprocessing-token identifier-list identifier-list-opt \
       non-dir-token non-par-open-token non-par-open-replacement-list non-hash-pp-tokens non-hash-pp-tokens-opt non-hash-token pp-line    \
       ws ws-opt newline newline-opt hash if ifdef ifndef elif else endif include define undef line error-nt pragma identifier ident      \
-      par-close comma ellipsis header-pp-tokens hdr-preprocessing-token: struct pptk *
+      par-close comma ellipsis header-pp-tokens hdr-preprocessing-token version : struct pptk *
 %constructor $$ = NULL;
 %move $$ = $0; $0 = NULL; 
 %destructor pptk_free($$);
@@ -82,6 +87,28 @@ struct pptk;
 
 pp-line: hash ws-opt non-directive newline-opt {
   dx_error_loc(pp->dx_, &$0->situs_, "Error, non-directive line ignored");
+}
+
+pp-line: hash version pp-tokens newline-opt {
+  struct pptk *tk = $2;
+  if (tk) {
+    while (g_pptk_to_ppld_[tk->tok_] == PPLD_WS_TOK) {
+      tk = tk->next_;
+      if (tk == $2) {
+        tk = NULL;
+        break;
+      }
+    }
+  }
+  if (!tk || (tk->tok_ != PPTK_INTEGER_LIT)) {
+    dx_error_loc(pp->dx_, &$0->situs_, "Error, expected a single version number to follow #version directive");
+  }
+  else {
+    /* Check if version number is valid */
+    if (tk->v_.i64_ != 100) {
+      dx_error_loc(pp->dx_, &$0->situs_, "Error, GLSL #version of %" PRId64 " is not supported, only GLSL version 100 is supported.", tk->v_.i64_);
+    }
+  }
 }
 
 pp-line: hash if pp-tokens newline-opt {
@@ -505,6 +532,7 @@ undef:    ws-opt UNDEF_TOK   { $$ = $1; $1 = NULL; }
 line:     ws-opt LINE_TOK    { $$ = $1; $1 = NULL; }
 error-nt: ws-opt ERROR_TOK   { $$ = $1; $1 = NULL; }
 pragma:   ws-opt PRAGMA_TOK  { $$ = $1; $1 = NULL; }
+version:  ws-opt VERSION_TOK { $$ = $1; $1 = NULL; }
 
 /* An identifier may be preceeded by whitespace and consists of identifier tokens, or any of the keyword tokens. */
 ident: IDENTIFIER_TOK { $$ = $0; $0 = NULL; }
@@ -520,6 +548,7 @@ ident: UNDEF_TOK      { $$ = $0; $0 = NULL; }
 ident: LINE_TOK       { $$ = $0; $0 = NULL; }
 ident: ERROR_TOK      { $$ = $0; $0 = NULL; }
 ident: PRAGMA_TOK     { $$ = $0; $0 = NULL; }
+ident: VERSION_TOK    { $$ = $0; $0 = NULL; }
 
 identifier: ws-opt ident { $$ = $1; $1 = NULL; }
 

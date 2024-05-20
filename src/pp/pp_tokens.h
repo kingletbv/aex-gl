@@ -223,6 +223,7 @@ extern "C" {
   xx(PPTK_CAST,               PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
   xx(PPTK_NAMESPACE,          PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
   xx(PPTK_USING,              PPLD_IDENTIFIER_TOK, PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
+  xx(PPTK_VERSION,            PPLD_VERSION_TOK,    PPCE_IDENT,               PPME_IDENT,      CP_IDENT) \
 \
   /* placemarker used during macro expansion of empty arguments adjacent to ## tokens (See C99 6.10.3.3-2) */ \
   xx(PPTK_PLACEMARKER,        0,                   0,                        0,               0) \
