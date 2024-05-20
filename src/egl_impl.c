@@ -33,6 +33,11 @@
 #include <stdint.h>
 #endif
 
+#ifndef THREAD_CONTEXT_H_INCLUDED
+#define THREAD_CONTEXT_H_INCLUDED
+#include "thread_context.h"
+#endif
+
 #define EGL_IMPL_C /* this switches some declarations in egl_imp.h */
 
 #ifndef EGL_IMPL_H_INCLUDED
@@ -101,16 +106,24 @@ static void aex_egl_display_free(struct aex_egl_display *dp) {
 }
 
 static void aex_egl_context_init(aex_egl_context_t context) {
-  context->unused_ = 0;
+  gl_es2_ctx_init(&context->gl_es2_ctx_);
 }
 
 static void aex_egl_context_cleanup(aex_egl_context_t context) {
+  gl_es2_ctx_cleanup(&context->gl_es2_ctx_);
 }
 
 static aex_egl_context_t aex_egl_context_alloc(void) {
   aex_egl_context_t context = (aex_egl_context_t)malloc(sizeof(struct aex_egl_context));
   if (!context) return NULL;
   aex_egl_context_init(context);
+
+  if (gl_es2_ctx_complete_initialization(&context->gl_es2_ctx_)) {
+    aex_egl_context_cleanup(context);
+    free(context);
+    return NULL;
+  }
+
   return context;
 }
 
@@ -421,7 +434,9 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
 
 
 AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_ID(MakeCurrent)(aex_egl_display_t dpy, aex_egl_surface_t draw, aex_egl_surface_t read, aex_egl_context_t ctx) {
-  return AEX_EGL_FALSE;
+  tc_set_context(&ctx->gl_es2_ctx_);
+
+  return AEX_EGL_TRUE;
 }
 
 
@@ -470,6 +485,7 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
 
 AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_ID(BindAPI)(aex_egl_enum_t api) {
   if (api == AEX_EGL_OPENGL_ES_API) {
+    tc_set_api(TC_OPENGL_ES2_API);
     return AEX_EGL_TRUE;
   }
   return set_egl_err(AEX_EGL_BAD_PARAMETER);

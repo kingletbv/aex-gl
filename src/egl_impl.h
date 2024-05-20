@@ -20,6 +20,13 @@
 #include <stdint.h>
 #endif
 
+#ifdef EGL_IMPL_C
+#ifndef GL_ES2_CONTEXT_H_INCLUDED
+#define GL_ES2_CONTEXT_H_INCLUDED
+#include "gl_es2_context.h"
+#endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,7 +56,7 @@ typedef struct aex_egl_display {
 } *aex_egl_display_t;
 
 typedef struct aex_egl_context {
-  int unused_;
+  struct gl_es2_context gl_es2_ctx_;
 } *aex_egl_context_t;
 
 typedef struct aex_egl_surface {
