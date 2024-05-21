@@ -1003,7 +1003,49 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
       }
       struct sl_type *lvalue_type = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
       struct sl_type *expr_type = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
-      if (lvalue_type != expr_type) {
+
+      int typematch = 0;
+      sl_type_kind_t left_kind = lvalue_type->kind_;
+      sl_type_kind_t right_kind = expr_type->kind_;
+      if (left_kind == right_kind) {
+        typematch = 1;
+      }
+      else {
+        switch (left_kind) {
+          case sltk_int:
+          case sltk_float:
+            /* Types mismatch and the lvalue is smaller than the rvalue in number of components.
+             * Cannot op-assign it, e.g.  "f *= v2" makes no sense.  */
+            break;
+          case sltk_ivec2:
+          case sltk_ivec3:
+          case sltk_ivec4:
+            if (right_kind == sltk_int) typematch = 1;
+            break;
+          case sltk_vec2:
+            /* Note that "v2 *= m2" >does< make sense. */
+            if (right_kind == sltk_float) typematch = 1;
+            if (right_kind == sltk_mat2) typematch = 1;
+            break;
+          case sltk_vec3:
+            if (right_kind == sltk_float) typematch = 1;
+            if (right_kind == sltk_mat3) typematch = 1;
+            break;
+          case sltk_vec4:
+            if (right_kind == sltk_float) typematch = 1;
+            if (right_kind == sltk_mat4) typematch = 1;
+            break;
+          case sltk_mat2:
+          case sltk_mat3:
+          case sltk_mat4:
+            /* Note that the right type can't be a vec because the resulting lvalue
+             * would be a vec, and not a mat. */
+            if (right_kind == sltk_float) typematch = 1;
+            break;
+        }
+      }
+
+      if (!typematch) {
         dx_error_loc(dx, &x->op_loc_, "Multiply-assign on incompatible lvalue type");
         return r | SLXV_INVALID;
       }
@@ -1021,7 +1063,39 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
       }
       struct sl_type *lvalue_type = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
       struct sl_type *expr_type = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
-      if (lvalue_type != expr_type) {
+      int typematch = 0;
+      sl_type_kind_t left_kind = lvalue_type->kind_;
+      sl_type_kind_t right_kind = expr_type->kind_;
+      if (left_kind == right_kind) {
+        typematch = 1;
+      }
+      else {
+        switch (left_kind) {
+          case sltk_int:
+          case sltk_float:
+            /* Types mismatch and the lvalue is smaller than the rvalue in number of components.
+             * Cannot op-assign it, e.g.  "f /= v2" makes no sense.  */
+            break;
+          case sltk_ivec2:
+          case sltk_ivec3:
+          case sltk_ivec4:
+            if (right_kind == sltk_int) typematch = 1;
+            break;
+          case sltk_vec2:
+          case sltk_vec3:
+          case sltk_vec4:
+            if (right_kind == sltk_float) typematch = 1;
+            break;
+          case sltk_mat2:
+          case sltk_mat3:
+          case sltk_mat4:
+            /* Note that the right type can't be a vec because the resulting lvalue
+             * would be a vec, and not a mat. */
+            if (right_kind == sltk_float) typematch = 1;
+            break;
+        }
+      }
+      if (!typematch) {
         dx_error_loc(dx, &x->op_loc_, "Assignment on incompatible lvalue type");
         return r | SLXV_INVALID;
       }
