@@ -40,6 +40,7 @@
 
 %common_type struct situs
 %constructor situs_init(&$$);
+%move situs_swap(&$$, &$0);
 %destructor situs_cleanup(&$$);
 
 %params struct preprocessor *pp, const char *filename, char **output_buf, size_t *output_end, size_t *output_buf_alloc_size, struct situs *output_situs

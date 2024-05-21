@@ -66,12 +66,14 @@
 %token IDENT OBJECT FUNCTION DEFINED PAR_OPEN PAR_CLOSE COMMA WS_TOK OTHER
 %token_type struct pptk *
 %constructor $$ = NULL;
+%move $$ = $0; $0 = NULL;
 %destructor pptk_free($$);
 %token_action $$ = pptk_pop_front(pp_input_chain);
 
 %nt opt-function-seq
 %type OBJECT FUNCTION: struct { struct pptk *tk_; struct macro *m_; }
 %constructor $$.tk_ = NULL; $$.m_ = NULL;
+%move $$.tk_ = $0.tk_; $$.m_ = $0.m_;
 %destructor pptk_free($$.tk_); macro_free($$.m_); /* Reduction of OBJECT drops a reference and might free the macro */
 %token_action \
   $$.tk_ = pptk_pop_front(pp_input_chain); \
@@ -91,11 +93,13 @@
 %nt non-function ws-opt ws-opt-emit par-span arg
 %type non-function ws-opt par-span arg: struct pptk *
 %constructor $$ = NULL;
+%move $$ = $0; $0 = NULL;
 %destructor pptk_free($$);
 
 %nt args
 %type args: struct macro_arg_inst *
 %constructor $$ = NULL;
+%move $$ = $0; $0 = NULL;
 %destructor macro_arg_inst_free($$);
 
 total: top-stream opt-function-seq;
