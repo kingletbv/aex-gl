@@ -473,7 +473,7 @@ struct sl_expr *glsl_es1_function_call_realize(struct diags *dx, struct sym_tabl
       dx_error_loc(dx, &fs->loc_, "Constructor \"%s\" expects one or more parameters, got 0", t->name_);
       return NULL;
     }
-    t_first_param = sl_expr_type(tb, fs->parameters_[0].expr_);
+    t_first_param = sl_type_unqualified(sl_expr_type(tb, fs->parameters_[0].expr_));
     if (!t_first_param) {
       /* No type, assume this was an issue that's already reported. */
       return NULL;
