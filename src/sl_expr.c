@@ -615,6 +615,24 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
       r |= index_validation;
       if (r & SLXV_INVALID) return r;
       struct sl_type *array_type = sl_type_unqualified(sl_expr_type(tb, x->children_[0]));
+      int typematch = 0;
+      switch (array_type->kind_) {
+        case sltk_array:
+        case sltk_vec2:
+        case sltk_vec3:
+        case sltk_vec4:
+        case sltk_mat2:
+        case sltk_mat3:
+        case sltk_mat4:
+        case sltk_ivec2:
+        case sltk_ivec3:
+        case sltk_ivec4:
+        case sltk_bvec2:
+        case sltk_bvec3:
+        case sltk_bvec4:
+          typematch = 1;
+          break;
+      }
       if (array_type->kind_ != sltk_array) {
         dx_error_loc(dx, &x->op_loc_, "Array subscript on non-array type");
         return r | SLXV_INVALID;
@@ -641,10 +659,41 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
           sl_expr_temp_cleanup(&index_value);
           return r | SLXV_INVALID;
         }
-        if (((uint64_t)index_value.v_.i_) >= array_type->array_size_) {
-          dx_error_loc(dx, &x->op_loc_, "Array subscript with index >= array size");
-          sl_expr_temp_cleanup(&index_value);
-          return r | SLXV_INVALID;
+        uint64_t num_components = 0;
+        switch (array_type->kind_) {
+          case sltk_array:
+            if (((uint64_t)index_value.v_.i_) >= array_type->array_size_) {
+              dx_error_loc(dx, &x->op_loc_, "Array subscript with index >= array size");
+              sl_expr_temp_cleanup(&index_value);
+              return r | SLXV_INVALID;
+            }
+            break;
+          case sltk_vec2:
+          case sltk_ivec2:
+          case sltk_bvec2:
+          case sltk_mat2:
+            num_components = 2;
+            break;
+          case sltk_vec3:
+          case sltk_ivec3:
+          case sltk_bvec3:
+          case sltk_mat3:
+            num_components = 3;
+            break;
+          case sltk_vec4:
+          case sltk_ivec4:
+          case sltk_bvec4:
+          case sltk_mat4:
+            num_components = 4;
+            break;
+        }
+        if (num_components) {
+          if (((uint64_t)index_value.v_.i_) >= array_type->array_size_) {
+            dx_error_loc(dx, &x->op_loc_, "Array subscript with index >= array size");
+            sl_expr_temp_cleanup(&index_value);
+            return r | SLXV_INVALID;
+          }
+
         }
         sl_expr_temp_cleanup(&index_value);
       }
@@ -1813,8 +1862,23 @@ struct sl_type *sl_expr_type(struct sl_type_base *tb, struct sl_expr *x) {
       struct sl_type *t = sl_expr_type(tb, x->children_[0]);
       if (!t) return NULL;
       t = sl_type_unqualified(t);
-      if (t->kind_ != sltk_array) return NULL;
-      return t->derived_type_;
+      if (t->kind_ == sltk_array) return t->derived_type_;
+      switch (t->kind_) {
+        case sltk_array: return t->derived_type_;
+        case sltk_vec2:
+        case sltk_vec3:
+        case sltk_vec4: return &tb->float_;
+        case sltk_mat2: return &tb->vec2_;
+        case sltk_mat3: return &tb->vec3_;
+        case sltk_mat4: return &tb->vec4_;
+        case sltk_ivec2:
+        case sltk_ivec3:
+        case sltk_ivec4: return &tb->int_;
+        case sltk_bvec2:
+        case sltk_bvec3:
+        case sltk_bvec4: return &tb->bool_;
+      }
+      return NULL; /* should not have passed validation */
     }
     case exop_component_selection: /* e.g. myvec3.xxz */ {
       struct sl_type *t = sl_expr_type(tb, x->children_[0]);
