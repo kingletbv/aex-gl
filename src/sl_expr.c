@@ -633,8 +633,8 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
           typematch = 1;
           break;
       }
-      if (array_type->kind_ != sltk_array) {
-        dx_error_loc(dx, &x->op_loc_, "Array subscript on non-array type");
+      if (!typematch) {
+        dx_error_loc(dx, &x->op_loc_, "Array subscript on non-indexable type");
         return r | SLXV_INVALID;
       }
       struct sl_type *index_type = sl_type_unqualified(sl_expr_type(tb, x->children_[1]));
