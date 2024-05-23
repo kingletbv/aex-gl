@@ -1026,6 +1026,7 @@ static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_a
       for (k = 0; k < array_quantity; ++k) {
         sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_2D_regs_[dst_reg + k], exec->sampler_2D_regs_[src_reg + k]);
       }
+      break;
     }
     case slrak_samplerCube: {
       int dst_reg = dst->local_frame_ ? ef->local_samplerCube_offset_ + dst->v_.regs_[0] : dst->v_.regs_[0];
@@ -1035,6 +1036,7 @@ static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_a
       for (k = 0; k < array_quantity; ++k) {
         sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_cube_regs_[dst_reg + k], exec->sampler_cube_regs_[src_reg + k]);
       }
+      break;
     }
   }
 }
@@ -1138,6 +1140,7 @@ static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl
       for (k = 0; k < array_quantity; ++k) {
         sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_2D_regs_[dst_reg + k], exec->sampler_2D_regs_[src_reg + k]);
       }
+      break;
     }
     case slrak_samplerCube: {
       int dst_reg = dst->local_frame_ ? dst_ef->local_samplerCube_offset_ + dst->v_.regs_[0] : dst->v_.regs_[0];
@@ -1147,6 +1150,7 @@ static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl
       for (k = 0; k < array_quantity; ++k) {
         sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_cube_regs_[dst_reg + k], exec->sampler_cube_regs_[src_reg + k]);
       }
+      break;
     }
   }
 }
