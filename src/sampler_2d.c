@@ -2285,7 +2285,7 @@ void builtin_textureCube_v3_runtime(struct sl_execution *exec, int exec_chain, s
 
   struct sampler_2d *samplers;
   samplers = split_execution_chains_to_cubemap_sampler_tex_chains(exec, exec_chain,
-                                                                  SAMPLER_2D_REG_PTR(x->children_[0], 0),
+                                                                  SAMPLER_CUBE_REG_PTR(x->children_[0], 0),
                                                                   coord_column_s, coord_column_t, coord_column_r,
                                                                   projected_s, projected_t);
 
@@ -2307,7 +2307,7 @@ void builtin_textureCube_v3_bias_runtime(struct sl_execution *exec, int exec_cha
 
   struct sampler_2d *samplers;
   samplers = split_execution_chains_to_cubemap_sampler_tex_chains(exec, exec_chain,
-                                                                  SAMPLER_2D_REG_PTR(x->children_[0], 0),
+                                                                  SAMPLER_CUBE_REG_PTR(x->children_[0], 0),
                                                                   coord_column_s, coord_column_t, coord_column_r,
                                                                   projected_s, projected_t);
 
@@ -2329,7 +2329,7 @@ void builtin_textureCubeLod_v3_runtime(struct sl_execution *exec, int exec_chain
 
   struct sampler_2d *samplers;
   samplers = split_execution_chains_to_cubemap_sampler_tex_chains(exec, exec_chain,
-                                                                  SAMPLER_2D_REG_PTR(x->children_[0], 0),
+                                                                  SAMPLER_CUBE_REG_PTR(x->children_[0], 0),
                                                                   coord_column_s, coord_column_t, coord_column_r,
                                                                   projected_s, projected_t);
 

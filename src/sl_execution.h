@@ -35,22 +35,26 @@ extern "C" {
 #define INT_REG_INDEX(expr, element_index) (EXPR_RVALUE(expr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_int_offset_ + EXPR_RVALUE(expr)->v_.regs_[element_index] : EXPR_RVALUE(expr)->v_.regs_[element_index])
 #define BOOL_REG_INDEX(expr, element_index) (EXPR_RVALUE(expr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_bool_offset_ + EXPR_RVALUE(expr)->v_.regs_[element_index] : EXPR_RVALUE(expr)->v_.regs_[element_index])
 #define SAMPLER_2D_REG_INDEX(expr, element_index) (EXPR_RVALUE(expr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_sampler2D_offset_ + EXPR_RVALUE(expr)->v_.regs_[element_index] : EXPR_RVALUE(expr)->v_.regs_[element_index])
+#define SAMPLER_CUBE_REG_INDEX(expr, element_index) (EXPR_RVALUE(expr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_samplerCube_offset_ + EXPR_RVALUE(expr)->v_.regs_[element_index] : EXPR_RVALUE(expr)->v_.regs_[element_index])
 
 #define FLOAT_REG_PTR(expr, element_index) exec->float_regs_[FLOAT_REG_INDEX(expr, element_index)]
 #define INT_REG_PTR(expr, element_index) exec->int_regs_[INT_REG_INDEX(expr, element_index)]
 #define BOOL_REG_PTR(expr, element_index) exec->bool_regs_[BOOL_REG_INDEX(expr, element_index)]
 #define SAMPLER_2D_REG_PTR(expr, element_index) exec->sampler_2D_regs_[SAMPLER_2D_REG_INDEX(expr, element_index)]
+#define SAMPLER_CUBE_REG_PTR(expr, element_index) exec->sampler_cube_regs_[SAMPLER_CUBE_REG_INDEX(expr, element_index)]
 
 /* Same as above, but ignoring offset and rvalue; use these for manually working with the offsets and rvalues */
 #define FLOAT_REG_INDEX_NRV(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_float_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
 #define INT_REG_INDEX_NRV(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_int_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
 #define BOOL_REG_INDEX_NRV(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_bool_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
 #define SAMPLER_2D_REG_INDEX_NRV(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_sampler2D_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
+#define SAMPLER_CUBE_REG_INDEX_NRV(reg_alloc_ptr, element_index) ((reg_alloc_ptr)->local_frame_ ? exec->execution_frames_[exec->num_execution_frames_-1].local_samplerCube_offset_ + (reg_alloc_ptr)->v_.regs_[element_index] : (reg_alloc_ptr)->v_.regs_[element_index])
 
 #define FLOAT_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->float_regs_[FLOAT_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
 #define INT_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->int_regs_[INT_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
 #define BOOL_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->bool_regs_[BOOL_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
 #define SAMPLER_2D_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->sampler_2D_regs[SAMPLER_2D_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
+#define SAMPLER_CUBE_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->sampler_cube_regs[SAMPLER_CUBE_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
 
 struct sl_stmt;
 struct sl_expr;

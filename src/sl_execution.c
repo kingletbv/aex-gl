@@ -526,6 +526,50 @@ void sl_exec_b_move(uint8_t row, uint8_t *restrict chain_column, uint8_t *restri
 done:;
 }
 
+void sl_exec_p_move(uint8_t row, uint8_t *restrict chain_column, void **restrict result_column, void * const *restrict src_column) {
+  if (result_column == src_column) return;
+  for (;;) {
+    uint64_t chain;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        void **restrict result = result_column + row;
+        void * const *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 8; n++) {
+          result[n] = src[n];
+        }
+
+        uint8_t delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) goto done;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        void **restrict result = result_column + row;
+        void * const *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 4; n++) {
+          result[n] = src[n];
+        }
+        uint8_t delta = (chain & 0xFF000000) >> 24;
+        if (!delta) goto done;
+        row += 3 + delta;
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        result_column[row] = src_column[row];
+        uint8_t delta = chain_column[row];
+        if (!delta) goto done;
+        row += delta;
+      } while (row & 3);
+    }
+  }
+done:;
+}
+
 void sl_exec_f_init(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, float src) {
   for (;;) {
     uint64_t chain;
@@ -964,8 +1008,8 @@ static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_a
         case slrak_bvec4: num_components = 4; break;
       }
       for (n = 0; n < num_components; ++n) {
-        int dst_reg = dst->local_frame_ ? ef->local_bool_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
-        int src_reg = src->local_frame_ ? ef->local_bool_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
+        int dst_reg = dst->local_frame_ ? ef->local_bool_offset_ + dst->v_.regs_[0] : dst->v_.regs_[0];
+        int src_reg = src->local_frame_ ? ef->local_bool_offset_ + src->v_.regs_[0] : src->v_.regs_[0];
 
         int k;
         for (k = 0; k < array_quantity; ++k) {
@@ -973,6 +1017,24 @@ static void sl_exec_move(struct sl_execution *exec, uint8_t row, struct sl_reg_a
         }
       }
       break;
+    }
+    case slrak_sampler2D: {
+      int dst_reg = dst->local_frame_ ? ef->local_sampler2D_offset_ + dst->v_.regs_[0] : dst->v_.regs_[0];
+      int src_reg = src->local_frame_ ? ef->local_sampler2D_offset_ + src->v_.regs_[0] : src->v_.regs_[0];
+
+      int k;
+      for (k = 0; k < array_quantity; ++k) {
+        sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_2D_regs_[dst_reg + k], exec->sampler_2D_regs_[src_reg + k]);
+      }
+    }
+    case slrak_samplerCube: {
+      int dst_reg = dst->local_frame_ ? ef->local_samplerCube_offset_ + dst->v_.regs_[0] : dst->v_.regs_[0];
+      int src_reg = src->local_frame_ ? ef->local_samplerCube_offset_ + src->v_.regs_[0] : src->v_.regs_[0];
+
+      int k;
+      for (k = 0; k < array_quantity; ++k) {
+        sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_cube_regs_[dst_reg + k], exec->sampler_cube_regs_[src_reg + k]);
+      }
     }
   }
 }
@@ -1067,6 +1129,24 @@ static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl
         }
       }
       break;
+    }
+    case slrak_sampler2D: {
+      int dst_reg = dst->local_frame_ ? dst_ef->local_sampler2D_offset_ + dst->v_.regs_[0] : dst->v_.regs_[0];
+      int src_reg = src->local_frame_ ? src_ef->local_sampler2D_offset_ + src->v_.regs_[0] : src->v_.regs_[0];
+
+      int k;
+      for (k = 0; k < array_quantity; ++k) {
+        sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_2D_regs_[dst_reg + k], exec->sampler_2D_regs_[src_reg + k]);
+      }
+    }
+    case slrak_samplerCube: {
+      int dst_reg = dst->local_frame_ ? dst_ef->local_samplerCube_offset_ + dst->v_.regs_[0] : dst->v_.regs_[0];
+      int src_reg = src->local_frame_ ? src_ef->local_samplerCube_offset_ + src->v_.regs_[0] : src->v_.regs_[0];
+
+      int k;
+      for (k = 0; k < array_quantity; ++k) {
+        sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_cube_regs_[dst_reg + k], exec->sampler_cube_regs_[src_reg + k]);
+      }
     }
   }
 }
