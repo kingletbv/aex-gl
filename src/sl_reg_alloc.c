@@ -85,6 +85,8 @@ static int sl_reg_alloc_get_cardinality(sl_reg_alloc_kind_t kind) {
 }
 
 void sl_reg_alloc_init(struct sl_reg_alloc *ra) {
+  ra->local_frame_ = 0;
+  ra->is_indirect_ = 0;
   ra->kind_ = slrak_void;
 }
 
@@ -97,6 +99,7 @@ int sl_reg_alloc_set_type(struct sl_reg_alloc *ra, const struct sl_type *t, int 
   if (!t) {
     /* special case for dud initialization short-hand */
     ra->kind_ = slrak_void;
+    ra->local_frame_ = !!local_frame;
     return 0;
   }
   struct sl_type *tunq = sl_type_unqualified(t);
@@ -286,6 +289,7 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
 
   dst->kind_ = src->kind_;
   dst->local_frame_ = src->local_frame_;
+  dst->is_indirect_ = src->is_indirect_;
   if (src->kind_ == slrak_struct) {
     size_t n;
     if (!src->v_.comp_.fields_) {
@@ -315,6 +319,8 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
     sl_reg_alloc_cleanup(dst);
     sl_reg_alloc_init(dst);
     dst->kind_ = src->kind_;
+    dst->local_frame_ = src->local_frame_;
+    dst->is_indirect_ = src->is_indirect_;
     dst->v_.comp_.fields_= new_elements;
     dst->v_.comp_.num_fields_ = src->v_.comp_.num_fields_;
     dst->v_.comp_.struct_type_ = src->v_.comp_.struct_type_;
@@ -336,6 +342,8 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
     sl_reg_alloc_cleanup(dst);
     sl_reg_alloc_init(dst);
     dst->kind_ = src->kind_;
+    dst->local_frame_ = src->local_frame_;
+    dst->is_indirect_ = src->is_indirect_;
     dst->v_.array_.num_elements_ = src->v_.array_.num_elements_;
     dst->v_.array_.element_type_ = src->v_.array_.element_type_;
     dst->v_.array_.head_ = src->v_.array_.head_;
@@ -344,6 +352,8 @@ int sl_reg_alloc_clone(struct sl_reg_alloc *dst, const struct sl_reg_alloc *src)
     sl_reg_alloc_cleanup(dst);
     sl_reg_alloc_init(dst);
     dst->kind_ = src->kind_;
+    dst->local_frame_ = src->local_frame_;
+    dst->is_indirect_ = src->is_indirect_;
     memcpy(dst->v_.regs_, src->v_.regs_, sizeof(dst->v_.regs_));
   }
   return 0;

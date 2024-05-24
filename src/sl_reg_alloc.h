@@ -89,6 +89,12 @@ struct sl_reg_alloc {
    * frame. */
   int local_frame_:1;
 
+  /* If non-zero, register indices in regs_ refer to integer registers 
+   * that hold the actual register. If kind_ is slrak_array, or slrak_struct,
+   * this field has no meaning (and the nested sl_reg_alloc's determine
+   * if a field is indirect.) */
+  int is_indirect_:1;
+
   union {
     int regs_[16];
     struct sl_reg_alloc_compound comp_;   /* struct */
