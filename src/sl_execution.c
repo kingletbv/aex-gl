@@ -1306,6 +1306,24 @@ static void sl_exec_b_offset_load(uint8_t * restrict chain_column,
   }
 }
 
+static void sl_exec_p_offset_load(uint8_t * restrict chain_column,
+                                  uint8_t row,
+                                  void * restrict * restrict dst,
+                                  void * const restrict * restrict * restrict voidp_regs,
+                                  int base_reg,
+                                  const int64_t * restrict indices) {
+  for (;;) {
+    void * restrict * restrict dst_row = dst + row;
+    void * const restrict * restrict src_row = voidp_regs[base_reg + indices[row]];
+    
+    *dst_row = *src_row;
+
+    uint8_t delta = chain_column[row];
+    if (!delta) return;
+    row += delta;
+  }
+}
+
 static void sl_exec_f_offset_load_strided(uint8_t * restrict chain_column,
                                           uint8_t row,
                                           float * restrict dst,
@@ -1365,6 +1383,27 @@ static void sl_exec_b_offset_load_strided(uint8_t * restrict chain_column,
     row += delta;
   }
 }
+
+static void sl_exec_p_offset_load_strided(uint8_t * restrict chain_column,
+                                          uint8_t row,
+                                          void * restrict * restrict dst,
+                                          void * const restrict * restrict * restrict voidp_regs,
+                                          int base_reg,
+                                          const int64_t * restrict indices,
+                                          int index_stride,
+                                          int array_offset) {
+  for (;;) {
+    void *restrict *restrict dst_row = dst + row;
+    void *const restrict *restrict src_row = voidp_regs[base_reg + index_stride * indices[row] + array_offset];
+    
+    *dst_row = *src_row;
+
+    uint8_t delta = chain_column[row];
+    if (!delta) return;
+    row += delta;
+  }
+}
+
 
 static void sl_exec_offset_load_strided(struct sl_execution *exec, uint8_t row, 
                                         struct sl_reg_alloc *dst,
@@ -1466,6 +1505,26 @@ static void sl_exec_offset_load_strided(struct sl_execution *exec, uint8_t row,
       }
       break;
     }
+    case slrak_sampler2D: {
+      sl_exec_p_offset_load_strided(exec->exec_chain_reg_, row,
+                                    SAMPLER_2D_REG_PTR_NRV(dst, 0),
+                                    exec->sampler_2D_regs_,
+                                    SAMPLER_2D_REG_INDEX_NRV(arr, 0),
+                                    INT_REG_PTR_NRV(index, 0),
+                                    index_stride,
+                                    array_offset);
+      break;
+    }
+    case slrak_samplerCube: {
+      sl_exec_p_offset_load_strided(exec->exec_chain_reg_, row,
+                                    SAMPLER_CUBE_REG_PTR_NRV(dst, 0),
+                                    exec->sampler_cube_regs_,
+                                    SAMPLER_CUBE_REG_INDEX_NRV(arr, 0),
+                                    INT_REG_PTR_NRV(index, 0),
+                                    index_stride,
+                                    array_offset);
+      break;
+    }
   }
 }
 
@@ -1513,7 +1572,7 @@ static void sl_exec_offset_load(struct sl_execution *exec, uint8_t row,
         sl_exec_f_offset_load(exec->exec_chain_reg_, row,
                               FLOAT_REG_PTR_NRV(dst, n),
                               exec->float_regs_,
-                              INT_REG_INDEX_NRV(arr, n),
+                              FLOAT_REG_INDEX_NRV(arr, n),
                               INT_REG_PTR_NRV(index, 0));
       }
       break;
@@ -1552,12 +1611,41 @@ static void sl_exec_offset_load(struct sl_execution *exec, uint8_t row,
         sl_exec_b_offset_load(exec->exec_chain_reg_, row,
                               BOOL_REG_PTR_NRV(dst, n),
                               exec->bool_regs_,
-                              INT_REG_INDEX_NRV(arr, n),
+                              BOOL_REG_INDEX_NRV(arr, n),
                               INT_REG_PTR_NRV(index, 0));
       }
       break;
     }
+    case slrak_sampler2D: {
+      sl_exec_p_offset_load(exec->exec_chain_reg_, row,
+                            SAMPLER_2D_REG_PTR_NRV(dst, 0),
+                            exec->sampler_2D_regs_,
+                            SAMPLER_2D_REG_INDEX_NRV(arr, 0),
+                            INT_REG_PTR_NRV(index, 0));
+      break;
+    }
+    case slrak_samplerCube: {
+      sl_exec_p_offset_load(exec->exec_chain_reg_, row,
+                            SAMPLER_CUBE_REG_PTR_NRV(dst, 0),
+                            exec->sampler_cube_regs_,
+                            SAMPLER_CUBE_REG_INDEX_NRV(arr, 0),
+                            INT_REG_PTR_NRV(index, 0));
+      break;
+    }
   }
+}
+
+static void sl_exec_indirect_load(struct sl_execution *exec, uint8_t row, 
+                                  struct sl_reg_alloc *dst,
+                                  const struct sl_reg_alloc *indir) {
+  // XXX: Implement
+}
+
+static void sl_exec_indirect_offset_load(struct sl_execution *exec, uint8_t row, 
+                                         struct sl_reg_alloc *dst,
+                                         const struct sl_reg_alloc *indir,
+                                         const struct sl_reg_alloc *index) {
+  // XXX: Implement
 }
 
 static void sl_exec_f_offset_store(uint8_t * restrict chain_column,
@@ -1613,6 +1701,25 @@ static void sl_exec_b_offset_store(uint8_t * restrict chain_column,
     row += delta;
   }
 }
+
+static void sl_exec_p_offset_store(uint8_t * restrict chain_column,
+                                   uint8_t row,
+                                   void * restrict * restrict * restrict voidp_regs,
+                                   int base_reg,
+                                   const int64_t * restrict indices,
+                                   const void * const restrict * restrict src) {
+  for (;;) {
+    void * restrict * restrict dst_row = voidp_regs[base_reg + indices[row] ]; 
+    void * const restrict * restrict src_row = src + row;
+    
+    *dst_row = *src_row;
+
+    uint8_t delta = chain_column[row];
+    if (!delta) return;
+    row += delta;
+  }
+}
+
 
 static void sl_exec_f_offset_store_strided(uint8_t * restrict chain_column,
                                            uint8_t row,
@@ -1674,6 +1781,26 @@ static void sl_exec_b_offset_store_strided(uint8_t * restrict chain_column,
   }
 }
 
+static void sl_exec_p_offset_store_strided(uint8_t * restrict chain_column,
+                                           uint8_t row,
+                                           void * restrict * restrict * restrict voidp_regs,
+                                           int base_reg,
+                                           const int64_t * restrict indices,
+                                           int index_stride,
+                                           int array_offset,
+                                           const void * const restrict * restrict src) {
+  for (;;) {
+    void * restrict * restrict dst_row = voidp_regs[base_reg + index_stride * indices[row] + array_offset]; 
+    void * const restrict * restrict src_row = src + row;
+    
+    *dst_row = *src_row;
+
+    uint8_t delta = chain_column[row];
+    if (!delta) return;
+    row += delta;
+  }
+}
+
 static void sl_exec_offset_store_strided(struct sl_execution *exec, uint8_t row, 
                                          struct sl_reg_alloc *dst_arr,
                                          struct sl_reg_alloc *dst_index,
@@ -1723,7 +1850,7 @@ static void sl_exec_offset_store_strided(struct sl_execution *exec, uint8_t row,
       for (n = 0; n < num_components; ++n) {
         sl_exec_f_offset_store_strided(exec->exec_chain_reg_, row,
                                        exec->float_regs_,
-                                       INT_REG_INDEX_NRV(dst_arr, n),
+                                       FLOAT_REG_INDEX_NRV(dst_arr, n),
                                        INT_REG_PTR_NRV(dst_index, 0),
                                        index_stride, array_offset,
                                        FLOAT_REG_PTR_NRV(src, n));
@@ -1764,13 +1891,32 @@ static void sl_exec_offset_store_strided(struct sl_execution *exec, uint8_t row,
       for (n = 0; n < num_components; ++n) {
         sl_exec_b_offset_store_strided(exec->exec_chain_reg_, row,
                                        exec->bool_regs_,
-                                       INT_REG_INDEX_NRV(dst_arr, n),
+                                       BOOL_REG_INDEX_NRV(dst_arr, n),
                                        INT_REG_PTR_NRV(dst_index, 0),
                                        index_stride, array_offset,
                                        BOOL_REG_PTR_NRV(src, n));
       }
       break;
     }
+    case slrak_sampler2D: {
+      sl_exec_p_offset_store_strided(exec->exec_chain_reg_, row,
+                                     exec->sampler_2D_regs_,
+                                     SAMPLER_2D_REG_INDEX_NRV(dst_arr, 0),
+                                     INT_REG_PTR_NRV(dst_index, 0),
+                                     index_stride, array_offset,
+                                     SAMPLER_2D_REG_PTR_NRV(src, 0));
+      break;
+    }
+    case slrak_samplerCube: {
+      sl_exec_p_offset_store_strided(exec->exec_chain_reg_, row,
+                                     exec->sampler_cube_regs_,
+                                     SAMPLER_CUBE_REG_INDEX_NRV(dst_arr, 0),
+                                     INT_REG_PTR_NRV(dst_index, 0),
+                                     index_stride, array_offset,
+                                     SAMPLER_CUBE_REG_PTR_NRV(src, 0));
+      break;
+    }
+
   }
 }
 
@@ -1817,7 +1963,7 @@ static void sl_exec_offset_store(struct sl_execution *exec, uint8_t row,
       for (n = 0; n < num_components; ++n) {
         sl_exec_f_offset_store(exec->exec_chain_reg_, row,
                                exec->float_regs_,
-                               INT_REG_INDEX_NRV(dst_arr, n),
+                               FLOAT_REG_INDEX_NRV(dst_arr, n),
                                INT_REG_PTR_NRV(dst_index, 0),
                                FLOAT_REG_PTR_NRV(src, n));
       }
@@ -1856,10 +2002,26 @@ static void sl_exec_offset_store(struct sl_execution *exec, uint8_t row,
       for (n = 0; n < num_components; ++n) {
         sl_exec_b_offset_store(exec->exec_chain_reg_, row,
                                exec->bool_regs_,
-                               INT_REG_INDEX_NRV(dst_arr, n),
+                               BOOL_REG_INDEX_NRV(dst_arr, n),
                                INT_REG_PTR_NRV(dst_index, 0),
                                BOOL_REG_PTR_NRV(src, n));
       }
+      break;
+    }
+    case slrak_sampler2D: {
+      sl_exec_p_offset_store(exec->exec_chain_reg_, row,
+                             exec->sampler_2D_regs_,
+                             SAMPLER_2D_REG_INDEX_NRV(dst_arr, 0),
+                             INT_REG_PTR_NRV(dst_index, 0),
+                             SAMPLER_2D_REG_PTR_NRV(src, 0));
+      break;
+    }
+    case slrak_samplerCube: {
+      sl_exec_p_offset_store(exec->exec_chain_reg_, row,
+                             exec->sampler_cube_regs_,
+                             SAMPLER_CUBE_REG_INDEX_NRV(dst_arr, 0),
+                             INT_REG_PTR_NRV(dst_index, 0),
+                             SAMPLER_CUBE_REG_PTR_NRV(src, 0));
       break;
     }
   }
@@ -3375,6 +3537,23 @@ void sl_exec_pop_execution_frame(struct sl_execution *exec) {
 }
 
 static void sl_exec_need_rvalue(struct sl_execution *exec, uint32_t chain, struct sl_expr *x) {
+  if (x->base_regs_.is_indirect_) {
+    /* Child is indirected via int registers identifying the actual registers .. */
+    if (x->offset_reg_.kind_ != slrak_void) {
+      /* .. and on top of being indirect, it's also offsetted. */
+      sl_exec_indirect_offset_load(exec, chain,
+                                   &x->rvalue_,
+                                   &x->base_regs_,
+                                   &x->offset_reg_);
+    }
+    else {
+      /* but not offseted from that indirection. */
+      sl_exec_indirect_load(exec, chain,
+                            &x->rvalue_,
+                            &x->base_regs_);
+    }
+    return;
+  }
   if (x->offset_reg_.kind_ != slrak_void) {
     /* Child is offsetted; load via rvalue */
     sl_exec_offset_load(exec, chain,

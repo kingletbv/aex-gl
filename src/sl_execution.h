@@ -27,7 +27,7 @@ extern "C" {
 /* pass in an expr and return the reg_alloc representing its r-value; this depends on whether it has an offset_,
  * if it has an offset (a number of registers beyond the base register) then the value should have been loaded into
  * a separate r-value. */
-#define EXPR_RVALUE(expr) (((expr)->offset_reg_.kind_ != slrak_void) ? (&(expr)->rvalue_) : (&(expr)->base_regs_))
+#define EXPR_RVALUE(expr) ((((expr)->offset_reg_.kind_ != slrak_void) || (expr)->base_regs_.is_indirect_) ? (&(expr)->rvalue_) : (&(expr)->base_regs_))
 
 /* pass in reg_alloc_ptr, a pointer to the sl_reg_alloc to load the register pointer for, and element_index, an index of the element/or component (e.g. the XYZ for a vec3, 0 for a scalar).
  * returns a pointer to the corresponding register for XXX_REG_PTR, and the index of the actual register (after frame corrections) for XXX_REG_INDEX */
@@ -53,8 +53,8 @@ extern "C" {
 #define FLOAT_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->float_regs_[FLOAT_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
 #define INT_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->int_regs_[INT_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
 #define BOOL_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->bool_regs_[BOOL_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
-#define SAMPLER_2D_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->sampler_2D_regs[SAMPLER_2D_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
-#define SAMPLER_CUBE_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->sampler_cube_regs[SAMPLER_CUBE_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
+#define SAMPLER_2D_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->sampler_2D_regs_[SAMPLER_2D_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
+#define SAMPLER_CUBE_REG_PTR_NRV(reg_alloc_ptr, element_index) exec->sampler_cube_regs_[SAMPLER_CUBE_REG_INDEX_NRV(reg_alloc_ptr, element_index)]
 
 struct sl_stmt;
 struct sl_expr;
