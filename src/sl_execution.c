@@ -570,6 +570,178 @@ void sl_exec_p_move(uint8_t row, uint8_t *restrict chain_column, void **restrict
 done:;
 }
 
+void sl_exec_f_indir_load(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, const int64_t *restrict src_column, const float * restrict * restrict float_regs) {
+  for (;;) {
+    uint64_t chain;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const int64_t *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 8; n++) {
+          result[n] = ((float_regs[src[n]]) + row)[n];
+        }
+
+        uint8_t delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) goto done;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        float *restrict result = result_column + row;
+        const int64_t *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 4; n++) {
+          result[n] = ((float_regs[src[n]]) + row)[n];
+        }
+        uint8_t delta = (chain & 0xFF000000) >> 24;
+        if (!delta) goto done;
+        row += 3 + delta;
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        result_column[row] = (float_regs[src_column[row]])[row];
+        uint8_t delta = chain_column[row];
+        if (!delta) goto done;
+        row += delta;
+      } while (row & 3);
+    }
+  }
+done:;
+}
+
+void sl_exec_i_indir_load(uint8_t row, uint8_t *restrict chain_column, int64_t *restrict result_column, const int64_t *restrict src_column, const int64_t * restrict * restrict int_regs) {
+  for (;;) {
+    uint64_t chain;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        int64_t *restrict result = result_column + row;
+        const int64_t *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 8; n++) {
+          result[n] = ((int_regs[src[n]]) + row)[n];
+        }
+
+        uint8_t delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) goto done;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        int64_t *restrict result = result_column + row;
+        const int64_t *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 4; n++) {
+          result[n] = ((int_regs[src[n]]) + row)[n];
+        }
+        uint8_t delta = (chain & 0xFF000000) >> 24;
+        if (!delta) goto done;
+        row += 3 + delta;
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        result_column[row] = (int_regs[src_column[row]])[row];
+        uint8_t delta = chain_column[row];
+        if (!delta) goto done;
+        row += delta;
+      } while (row & 3);
+    }
+  }
+done:;
+}
+
+void sl_exec_b_indir_load(uint8_t row, uint8_t *restrict chain_column, uint8_t *restrict result_column, const int64_t *restrict src_column, const uint8_t * restrict * restrict bool_regs) {
+  for (;;) {
+    uint64_t chain;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        uint8_t *restrict result = result_column + row;
+        const int64_t *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 8; n++) {
+          result[n] = ((bool_regs[src[n]]) + row)[n];
+        }
+
+        uint8_t delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) goto done;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        uint8_t *restrict result = result_column + row;
+        const int64_t *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 4; n++) {
+          result[n] = ((bool_regs[src[n]]) + row)[n];
+        }
+        uint8_t delta = (chain & 0xFF000000) >> 24;
+        if (!delta) goto done;
+        row += 3 + delta;
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        result_column[row] = (bool_regs[src_column[row]])[row];
+        uint8_t delta = chain_column[row];
+        if (!delta) goto done;
+        row += delta;
+      } while (row & 3);
+    }
+  }
+done:;
+}
+
+void sl_exec_p_indir_load(uint8_t row, uint8_t *restrict chain_column, void **restrict result_column, const int64_t *restrict src_column, void * restrict * const restrict *restrict voidp_regs) {
+  for (;;) {
+    uint64_t chain;
+    if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+      do {
+        void **restrict result = result_column + row;
+        const int64_t *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 8; n++) {
+          result[n] = ((voidp_regs[src[n]]) + row)[n];
+        }
+
+        uint8_t delta = (chain & 0xFF00000000000000) >> 56;
+        if (!delta) goto done;
+        row += 7 + delta;
+      } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+    }
+    else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+      do {
+        void **restrict result = result_column + row;
+        const int64_t *restrict src = src_column + row;
+        int n;
+        for (n = 0; n < 4; n++) {
+          result[n] = ((voidp_regs[src[n]]) + row)[n];
+        }
+        uint8_t delta = (chain & 0xFF000000) >> 24;
+        if (!delta) goto done;
+        row += 3 + delta;
+      } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+    }
+    else {
+      do {
+        /* Not trying to evoke auto-vectorization, just get it done. */
+        result_column[row] = (voidp_regs[src_column[row]])[row];
+        uint8_t delta = chain_column[row];
+        if (!delta) goto done;
+        row += delta;
+      } while (row & 3);
+    }
+  }
+done:;
+}
+
 void sl_exec_f_init(uint8_t row, uint8_t *restrict chain_column, float *restrict result_column, float src) {
   for (;;) {
     uint64_t chain;
@@ -1637,8 +1809,104 @@ static void sl_exec_offset_load(struct sl_execution *exec, uint8_t row,
 
 static void sl_exec_indirect_load(struct sl_execution *exec, uint8_t row, 
                                   struct sl_reg_alloc *dst,
-                                  const struct sl_reg_alloc *indir) {
-  // XXX: Implement
+                                  const struct sl_reg_alloc *indir,
+                                  int array_quantity) {
+  size_t num_components = 0;
+  size_t n;
+  switch (indir->kind_) {
+    case slrak_struct: {
+      for (n = 0; n < indir->v_.comp_.num_fields_; ++n) {
+        sl_exec_indirect_load(exec, row, dst->v_.comp_.fields_ + n, indir->v_.comp_.fields_ + n, array_quantity);
+      }
+      break;
+    }
+    case slrak_array: {
+      if (indir->v_.array_.num_elements_ > INT_MAX) {
+        return ; /* overflow */
+      }
+
+      array_quantity *= (int)dst->v_.array_.num_elements_;
+
+      sl_exec_indirect_load(exec, row, dst->v_.array_.head_, indir->v_.array_.head_, array_quantity);
+
+      break;
+    }
+    case slrak_float:
+    case slrak_vec2:
+    case slrak_vec3:
+    case slrak_vec4:
+    case slrak_mat2:
+    case slrak_mat3:
+    case slrak_mat4: {
+      switch (indir->kind_) {
+        case slrak_float: num_components = 1; break;
+        case slrak_vec2: num_components = 2; break;
+        case slrak_vec3: num_components = 3; break;
+        case slrak_vec4: num_components = 4; break;
+        case slrak_mat2: num_components = 4; break;
+        case slrak_mat3: num_components = 9; break;
+        case slrak_mat4: num_components = 16; break;
+      }
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_f_indir_load(row, exec->exec_chain_reg_,
+                             FLOAT_REG_PTR_NRV(dst, n),
+                             INT_REG_PTR_NRV(indir, n),
+                             exec->float_regs_);
+      }
+      break;
+    }
+
+    case slrak_int:
+    case slrak_ivec2:
+    case slrak_ivec3:
+    case slrak_ivec4: {
+      switch (indir->kind_) {
+        case slrak_int: num_components = 1; break;
+        case slrak_ivec2: num_components = 2; break;
+        case slrak_ivec3: num_components = 3; break;
+        case slrak_ivec4: num_components = 4; break;
+      }
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_i_indir_load(row, exec->exec_chain_reg_,
+                             INT_REG_PTR_NRV(dst, n),
+                             INT_REG_PTR_NRV(indir, n),
+                             exec->int_regs_);
+      }
+      break;
+    }
+    case slrak_bool:
+    case slrak_bvec2:
+    case slrak_bvec3:
+    case slrak_bvec4: {
+      switch (indir->kind_) {
+        case slrak_bool: num_components = 1; break;
+        case slrak_bvec2: num_components = 2; break;
+        case slrak_bvec3: num_components = 3; break;
+        case slrak_bvec4: num_components = 4; break;
+      }
+      for (n = 0; n < num_components; ++n) {
+        sl_exec_b_indir_load(row, exec->exec_chain_reg_,
+                             BOOL_REG_PTR_NRV(dst, n),
+                             INT_REG_PTR_NRV(indir, n),
+                             exec->bool_regs_);
+      }
+      break;
+    }
+    case slrak_sampler2D: {
+      sl_exec_p_indir_load(row, exec->exec_chain_reg_,
+                           SAMPLER_2D_REG_PTR_NRV(dst, 0),
+                           INT_REG_PTR_NRV(indir, 0),
+                           exec->sampler_2D_regs_);
+      break;
+    }
+    case slrak_samplerCube: {
+      sl_exec_p_indir_load(row, exec->exec_chain_reg_,
+                           SAMPLER_CUBE_REG_PTR_NRV(dst, 0),
+                           INT_REG_PTR_NRV(indir, 0),
+                           exec->sampler_cube_regs_);
+      break;
+    }
+  }
 }
 
 static void sl_exec_indirect_offset_load(struct sl_execution *exec, uint8_t row, 
@@ -3550,7 +3818,7 @@ static void sl_exec_need_rvalue(struct sl_execution *exec, uint32_t chain, struc
       /* but not offseted from that indirection. */
       sl_exec_indirect_load(exec, chain,
                             &x->rvalue_,
-                            &x->base_regs_);
+                            &x->base_regs_, 1);
     }
     return;
   }
