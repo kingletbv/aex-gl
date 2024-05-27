@@ -60,6 +60,7 @@
     <ClCompile Include="..\src\egl_impl.c" />
     <ClCompile Include="..\src\thread_context_win32.c" />
     <ClCompile Include="..\src\thread_mutex_win32.c" />
+    <ClCompile Include="..\src\sl_reg_move.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
