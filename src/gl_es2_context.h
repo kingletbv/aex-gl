@@ -243,6 +243,7 @@ struct gl_es2_program {
 
   struct gl_es2_program_shader_attachment vertex_shader_;
   struct gl_es2_program_shader_attachment fragment_shader_;
+  struct gl_es2_program_shader_attachment debug_shader_;
 
   struct sl_program program_;
 };
@@ -250,7 +251,8 @@ struct gl_es2_program {
 struct gl_es2_shader {
   struct named_object no_;
 
-  /* GL_ES2_VERTEX_SHADER or GL_ES2_FRAGMENT_SHADER */
+  /* GL_ES2_VERTEX_SHADER or GL_ES2_FRAGMENT_SHADER
+   * (or for internal purposes AEX_GL_DEBUG_SHADER) */
   gl_es2_enum type_;
 
   struct gl_es2_program_shader_attachment *first_program_attached_to_;

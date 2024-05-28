@@ -382,7 +382,7 @@ enum glsl_es1_compiler_result glsl_es1_compiler_compile_mem(struct glsl_es1_comp
 
       s = s->next_;
     } while (s != cc->cu_->global_scope_.seq_);
-    if (r) return GLSL_ES1_R_FAILED;
+    if (r) return GLSL_ES1_R_HAVE_ERRORS;
   }
 
   /* allocate registers for each individual frame (global and each function) */

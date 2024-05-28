@@ -220,6 +220,19 @@ int sl_shader_compile(struct sl_shader *sh) {
       goto cleanup;
     }
   }
+  else if (sh->type_ == SLST_DEBUG_SHADER) {
+    cr = glsl_es1_compile_builtin_prologue(&cc, "void dump(float f); "); /* trailing space matters!! otherwise compiler won't see final semicolon */
+
+    if (cr != GLSL_ES1_R_SUCCESS) {
+      r = SL_ERR_INTERNAL;
+      goto cleanup;
+    }
+    /* Last declaration emited is our output function */
+    assert(cc.cu_->global_scope_.seq_);
+    assert(cc.cu_->global_scope_.seq_->prev_->kind_ == SK_FUNCTION);
+    struct sl_function *f = cc.cu_->global_scope_.seq_->prev_->v_.function_;
+    f->is_dump_fn_ = 1;
+  }
 
   /* All variables introduced this far should not be subject to initialization from its literal. */
   struct sl_variable *v = cc.current_frame_->variables_;
@@ -233,7 +246,18 @@ int sl_shader_compile(struct sl_shader *sh) {
     } while (v != cc.current_frame_->variables_);
   }
 
-  const char *filename = (sh->type_ == SLST_FRAGMENT_SHADER) ? "fragment-shader" : "vertex-shader";
+  const char *filename = "";
+  switch (sh->type_) {
+    case SLST_FRAGMENT_SHADER:
+      filename = "fragment-shader";
+      break;
+    case SLST_VERTEX_SHADER:
+      filename = "vertex-shader";
+      break;
+    case SLST_DEBUG_SHADER:
+      filename = "debug-shader";
+      break;
+  };
   cr = glsl_es1_compiler_compile_mem(&cc, filename, sh->source_, sh->source_length_);
   if (cr != GLSL_ES1_R_SUCCESS) {
     sh->gl_last_compile_status_ = 0;

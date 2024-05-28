@@ -284,6 +284,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(AttachShader)(
     case GL_ES2_FRAGMENT_SHADER:
       psa = &prog->fragment_shader_;
       break;
+    case AEX_GL_DEBUG_SHADER:
+      psa = &prog->debug_shader_;
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_OPERATION);
       gl_es2_ctx_release(c);
@@ -1890,7 +1893,7 @@ GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateP
 
 GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateShader)(gl_es2_enum type) {
   struct gl_es2_context *c = gl_es2_ctx();
-  if ((type != GL_ES2_VERTEX_SHADER) && (type != GL_ES2_FRAGMENT_SHADER)) {
+  if ((type != GL_ES2_VERTEX_SHADER) && (type != GL_ES2_FRAGMENT_SHADER) && (type != AEX_GL_DEBUG_SHADER)) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     gl_es2_ctx_release(c);
     return 0;
@@ -1926,6 +1929,9 @@ GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateS
       break;
     case GL_ES2_FRAGMENT_SHADER:
       sl_shader_set_type(&shad->shader_, SLST_FRAGMENT_SHADER);
+      break;
+    case AEX_GL_DEBUG_SHADER:
+      sl_shader_set_type(&shad->shader_, SLST_DEBUG_SHADER);
       break;
   }
 

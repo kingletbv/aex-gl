@@ -179,6 +179,10 @@ struct sl_function {
   /* All exop_function_call expressions invoking this function. */
   struct sl_expr *callers_;
 
+  /* Flag to indicate if this is the special testing "dump" function. This function
+   * is only defined when creating an SLST_DEBUG_SHADER (AEX_GL_DEBUG_SHADER) */
+  int is_dump_fn_:1;
+
   /* Runtime flag to help detect recursion while analyzing the call-graph */
   int visited_:1;
 };

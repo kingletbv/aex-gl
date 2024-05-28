@@ -67,6 +67,9 @@ struct sl_program {
   struct sl_shader *fragment_shader_;
   struct sl_program *next_program_using_fragment_shader_, *prev_program_using_fragment_shader_;
 
+  struct sl_shader *debug_shader_;
+  struct sl_program *next_program_using_debug_shader_, *prev_program_using_debug_shader_;
+
   struct attrib_binding_table abt_;
   struct attrib_routing ar_;
 

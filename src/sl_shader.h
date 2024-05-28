@@ -38,7 +38,8 @@
 enum sl_shader_type {
   SLST_INVALID_SHADER,
   SLST_VERTEX_SHADER,
-  SLST_FRAGMENT_SHADER
+  SLST_FRAGMENT_SHADER,
+  SLST_DEBUG_SHADER
 };
 
 #ifdef __cplusplus
@@ -61,7 +62,8 @@ struct sl_shader {
    * but can be used in multiple programs.
    * Depending on the kind of shader, this will chain all programs using this shader
    * via sl_program::next/prev_program_using_vertex_shader_ or
-   * sl_program::next/prev_program_using_fragment_shader_ 
+   * sl_program::next/prev_program_using_fragment_shader_ or
+   * sl_program::next/prev_program_using_debug_shader_
    */
   struct sl_program *programs_;
 

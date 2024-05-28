@@ -71,6 +71,9 @@ void sl_program_init(struct sl_program *prog) {
   prog->next_program_using_fragment_shader_ = NULL;
   prog->prev_program_using_fragment_shader_ = NULL;
   prog->fragment_shader_ = NULL;
+  prog->next_program_using_debug_shader_ = NULL;
+  prog->prev_program_using_debug_shader_ = NULL;
+  prog->debug_shader_ = NULL;
   abt_init(&prog->abt_);
   attrib_routing_init(&prog->ar_);
   sl_uniform_table_init(&prog->uniforms_);
@@ -84,6 +87,7 @@ void sl_program_cleanup(struct sl_program *prog) {
   fragment_buffer_cleanup(&prog->fragbuf_);
   sl_program_detach_shader(prog, prog->fragment_shader_);
   sl_program_detach_shader(prog, prog->vertex_shader_);
+  sl_program_detach_shader(prog, prog->debug_shader_);
   abt_cleanup(&prog->abt_);
   attrib_routing_cleanup(&prog->ar_);
   sl_uniform_table_cleanup(&prog->uniforms_);
@@ -114,6 +118,18 @@ void sl_program_attach_shader(struct sl_program *prog, struct sl_shader *sh) {
       prog->next_program_using_fragment_shader_ = prog->prev_program_using_fragment_shader_ = prog;
     }
     prog->fragment_shader_ = sh;
+  }
+  else if (sh->type_ == SLST_DEBUG_SHADER) {
+    if (prog->debug_shader_) sl_program_detach_shader(prog, prog->debug_shader_);
+    if (sh->programs_) {
+      prog->next_program_using_debug_shader_ = sh->programs_;
+      prog->prev_program_using_debug_shader_ = sh->programs_->prev_program_using_debug_shader_;
+    }
+    else {
+      sh->programs_ = prog;
+      prog->next_program_using_debug_shader_ = prog->prev_program_using_debug_shader_ = prog;
+    }
+    prog->debug_shader_ = sh;
   }
   else {
     assert(0 && "Unknown shader type, cannot attach to program.");
@@ -163,7 +179,7 @@ void sl_program_detach_shader(struct sl_program *prog, struct sl_shader *sh) {
     prog->next_program_using_vertex_shader_ = prog->prev_program_using_vertex_shader_ = NULL;
     prog->vertex_shader_ = NULL;
   }
-  else /* (sh == prog->fragment_shader_) */ {
+  else if (sh == prog->fragment_shader_) {
     assert(sh == prog->fragment_shader_);
     if (prog->next_program_using_fragment_shader_ == prog) {
       sh->programs_ = NULL;
@@ -176,6 +192,19 @@ void sl_program_detach_shader(struct sl_program *prog, struct sl_shader *sh) {
     prog->next_program_using_fragment_shader_ = prog->prev_program_using_fragment_shader_ = NULL;
     prog->fragment_shader_ = NULL;
   }
+  else /* (sh == prog->debug_shader_) */ {
+    assert(sh == prog->debug_shader_);
+    if (prog->next_program_using_debug_shader_ == prog) {
+      sh->programs_ = NULL;
+    }
+    else {
+      if (sh->programs_ == prog) sh->programs_ = prog->next_program_using_debug_shader_;
+      prog->next_program_using_debug_shader_->prev_program_using_debug_shader_ = prog->prev_program_using_debug_shader_;
+      prog->prev_program_using_debug_shader_->next_program_using_debug_shader_ = prog->next_program_using_debug_shader_;
+    }
+    prog->next_program_using_debug_shader_ = prog->prev_program_using_debug_shader_ = NULL;
+    prog->debug_shader_ = NULL;
+  }
 }
 
 int sl_program_link(struct sl_program *prog) {
@@ -185,200 +214,235 @@ int sl_program_link(struct sl_program *prog) {
 
   if (!prog) return SL_ERR_INVALID_ARG;
   int fail_invalid_arg = 0;
-  if (!prog->vertex_shader_) {
-    dx_error(&prog->log_.dx_, "Program has no vertex shader attached\n");
-    fail_invalid_arg = 1;
+  if (!prog->debug_shader_) {
+    if (!prog->vertex_shader_) {
+      dx_error(&prog->log_.dx_, "Program has no vertex shader attached\n");
+      fail_invalid_arg = 1;
+    }
+    else if (!prog->vertex_shader_->gl_last_compile_status_) {
+      dx_error(&prog->log_.dx_, "Program's vertex shader has not successfully been compiled\n");
+      fail_invalid_arg = 1;
+    }
+    if (!prog->fragment_shader_) {
+      dx_error(&prog->log_.dx_, "Program has no fragment shader attached\n");
+      fail_invalid_arg = 1;
+    }
+    else if (!prog->fragment_shader_->gl_last_compile_status_) {
+      dx_error(&prog->log_.dx_, "Program's fragment shader has not successfully been compiled\n");
+      fail_invalid_arg = 1;
+    }
   }
-  else if (!prog->vertex_shader_->gl_last_compile_status_) {
-    dx_error(&prog->log_.dx_, "Program's vertex shader has not successfully been compiled\n");
-    fail_invalid_arg = 1;
-  }
-  if (!prog->fragment_shader_) {
-    dx_error(&prog->log_.dx_, "Program has no fragment shader attached\n");
-    fail_invalid_arg = 1;
-  }
-  else if (!prog->fragment_shader_->gl_last_compile_status_) {
-    dx_error(&prog->log_.dx_, "Program's fragment shader has not successfully been compiled\n");
-    fail_invalid_arg = 1;
+  else {
+    /* Have a debug shader, special case */
+    if (!prog->debug_shader_->gl_last_compile_status_) {
+      dx_error(&prog->log_.dx_, "Program's debug shader has not successfully been compiled\n");
+      fail_invalid_arg = 1;
+    }
   }
   if (fail_invalid_arg) {
     return SL_ERR_INVALID_ARG;
   }
-
   struct ref_range_allocator rra;
   ref_range_allocator_init(&rra);
 
-  /* First run through all manually bound attributes and lock their ranges */
+  struct sl_variable *v, *fv;
   struct attrib_binding *ab;
-  ab = prog->abt_.seq_;
-  if (ab) {
-    do {
-      if (ab->bound_index_ != -1) {
-        /* Have a bound index, lock that range and set it as the active index */
-        struct sym *s = st_find(&prog->vertex_shader_->cu_.global_scope_, ab->name_, ab->name_len_);
-        if (s && s->kind_ == SK_VARIABLE) {
-          struct sl_variable *v;
-          v = s->v_.variable_;
-          assert(v);
-          int qualifier = sl_type_qualifiers(v->type_);
-          if (qualifier & SL_TYPE_QUALIFIER_ATTRIBUTE) {
-            int num_attribs_needed = sl_program_num_attribs_for_var(v);
-            if (!num_attribs_needed) {
-              /* Cannot bind to this type, compiler should have issued an error and we 
-               * shouldn't be getting this far.. */
-              ref_range_allocator_cleanup(&rra);
-              return SL_ERR_INTERNAL;
+
+  /* First run through all manually bound attributes and lock their ranges */
+  if (prog->vertex_shader_ && prog->fragment_shader_) {
+    /* note that attributes and varyings won't work in debug shaders */
+
+    ab = prog->abt_.seq_;
+    if (ab) {
+      do {
+        if (ab->bound_index_ != -1) {
+          /* Have a bound index, lock that range and set it as the active index */
+          struct sym *s = st_find(&prog->vertex_shader_->cu_.global_scope_, ab->name_, ab->name_len_);
+          if (s && s->kind_ == SK_VARIABLE) {
+            struct sl_variable *v;
+            v = s->v_.variable_;
+            assert(v);
+            int qualifier = sl_type_qualifiers(v->type_);
+            if (qualifier & SL_TYPE_QUALIFIER_ATTRIBUTE) {
+              int num_attribs_needed = sl_program_num_attribs_for_var(v);
+              if (!num_attribs_needed) {
+                /* Cannot bind to this type, compiler should have issued an error and we 
+                 * shouldn't be getting this far.. */
+                ref_range_allocator_cleanup(&rra);
+                return SL_ERR_INTERNAL;
+              }
+              if (ab->bound_index_ < 0) {
+                ref_range_allocator_cleanup(&rra);
+                return SL_ERR_INVALID_ARG;
+              }
+              if (ref_range_mark_range_allocated(&rra, (uintptr_t)ab->bound_index_, (uintptr_t)ab->bound_index_ + num_attribs_needed)) {
+                /* Should always succeed unless it could not get the memory */
+                ref_range_allocator_cleanup(&rra);
+                return SL_ERR_NO_MEM;
+              }
+              ab->active_index_ = ab->bound_index_;
+              ab->var_ = v;
             }
-            if (ab->bound_index_ < 0) {
-              ref_range_allocator_cleanup(&rra);
-              return SL_ERR_INVALID_ARG;
-            }
-            if (ref_range_mark_range_allocated(&rra, (uintptr_t)ab->bound_index_, (uintptr_t)ab->bound_index_ + num_attribs_needed)) {
-              /* Should always succeed unless it could not get the memory */
-              ref_range_allocator_cleanup(&rra);
-              return SL_ERR_NO_MEM;
-            }
-            ab->active_index_ = ab->bound_index_;
-            ab->var_ = v;
           }
         }
-      }
 
-      ab = ab->next_;
-    } while (ab != prog->abt_.seq_);
-  }
+        ab = ab->next_;
+      } while (ab != prog->abt_.seq_);
+    }
 
-  /* Next, run through all attributes that have not yet been bound to any range, this is the
-   * complement to the loop above, however, we cannot join loops as we don't want allocations
-   * to overlap bound attributes */
-  struct sl_variable *v = prog->vertex_shader_->cu_.global_frame_.variables_;
-  if (v) {
-    do {
-      v = v->chain_;
+    /* Next, run through all attributes that have not yet been bound to any range, this is the
+     * complement to the loop above, however, we cannot join loops as we don't want allocations
+     * to overlap bound attributes */
+    v = prog->vertex_shader_->cu_.global_frame_.variables_;
+    if (v) {
+      do {
+        v = v->chain_;
 
-      int qualifiers = sl_type_qualifiers(v->type_);
-      if (qualifiers & SL_TYPE_QUALIFIER_ATTRIBUTE) {
-        attrib_binding_table_result_t abtr;
-        struct attrib_binding *ab = NULL;
-        abtr = abt_find_or_insert(&prog->abt_, v->name_, strlen(v->name_), &ab);
-        if (abtr == ABT_NOMEM) {
-          ref_range_allocator_cleanup(&rra);
-          return SL_ERR_NO_MEM;
-        }
-        assert(ab && "no other return code should lead to failure");
-        if (ab->bound_index_ == -1) {
-          /* No bound index, so we have to find one */
-          int num_attribs_needed = sl_program_num_attribs_for_var(v);
-          if (!num_attribs_needed) {
-            /* invalid type for use as attribute, compiler should already have issued an error */
-            return SL_ERR_INTERNAL;
-          }
-          uintptr_t base_of_range = 0;
-          if (ref_range_alloc(&rra, (uintptr_t)num_attribs_needed, &base_of_range)) {
+        int qualifiers = sl_type_qualifiers(v->type_);
+        if (qualifiers & SL_TYPE_QUALIFIER_ATTRIBUTE) {
+          attrib_binding_table_result_t abtr;
+          struct attrib_binding *ab = NULL;
+          abtr = abt_find_or_insert(&prog->abt_, v->name_, strlen(v->name_), &ab);
+          if (abtr == ABT_NOMEM) {
             ref_range_allocator_cleanup(&rra);
             return SL_ERR_NO_MEM;
           }
-          if (base_of_range > INT_MAX) {
-            return SL_ERR_OVERFLOW;
-          }
-          ab->active_index_ = (int)base_of_range;
-          ab->var_ = v;
-        }
-        else {
-          /* already locked in the loop above.. */
-        }
-      }
-    } while (v != prog->vertex_shader_->cu_.global_frame_.variables_);
-  }
-
-  /* Allocate and route varyings */
-  struct sl_variable *fv = prog->fragment_shader_->cu_.global_frame_.variables_;
-  if (fv) {
-    do {
-      fv = fv->chain_;
-
-      int qualifiers = sl_type_qualifiers(fv->type_);
-      if (qualifiers & SL_TYPE_QUALIFIER_VARYING) {
-        /* Varying on the side of the fragment shader, if we can find a varying of the
-         * same name (and type) on the side of the vertex shader, we can route. */
-        struct sl_variable *vv = sl_compilation_unit_find_variable(&prog->vertex_shader_->cu_, fv->name_);
-        if (vv) {
-          int vv_qualifiers = sl_type_qualifiers(vv->type_);
-          if (vv_qualifiers & SL_TYPE_QUALIFIER_VARYING) {
-            /* Have matching varying on the vertex shader side, and it is also a varying, route. */
-            if (!sl_are_variables_compatible(vv, fv)) {
-              dx_error(&prog->log_.dx_, "Incompatible types for \"%s\" varyings", vv->name_);
-              return SL_ERR_INVALID_ARG;
+          assert(ab && "no other return code should lead to failure");
+          if (ab->bound_index_ == -1) {
+            /* No bound index, so we have to find one */
+            int num_attribs_needed = sl_program_num_attribs_for_var(v);
+            if (!num_attribs_needed) {
+              /* invalid type for use as attribute, compiler should already have issued an error */
+              return SL_ERR_INTERNAL;
             }
-            else {
-              r = attrib_routing_add_variables(&prog->ar_, fv, vv);
-              if (r) {
-                dx_error(&prog->log_.dx_, "Failed adding \"%s\" varyings", vv->name_);
-                return r;
+            uintptr_t base_of_range = 0;
+            if (ref_range_alloc(&rra, (uintptr_t)num_attribs_needed, &base_of_range)) {
+              ref_range_allocator_cleanup(&rra);
+              return SL_ERR_NO_MEM;
+            }
+            if (base_of_range > INT_MAX) {
+              return SL_ERR_OVERFLOW;
+            }
+            ab->active_index_ = (int)base_of_range;
+            ab->var_ = v;
+          }
+          else {
+            /* already locked in the loop above.. */
+          }
+        }
+      } while (v != prog->vertex_shader_->cu_.global_frame_.variables_);
+    }
+
+    /* Allocate and route varyings */
+    fv = prog->fragment_shader_->cu_.global_frame_.variables_;
+    if (fv) {
+      do {
+        fv = fv->chain_;
+
+        int qualifiers = sl_type_qualifiers(fv->type_);
+        if (qualifiers & SL_TYPE_QUALIFIER_VARYING) {
+          /* Varying on the side of the fragment shader, if we can find a varying of the
+           * same name (and type) on the side of the vertex shader, we can route. */
+          struct sl_variable *vv = sl_compilation_unit_find_variable(&prog->vertex_shader_->cu_, fv->name_);
+          if (vv) {
+            int vv_qualifiers = sl_type_qualifiers(vv->type_);
+            if (vv_qualifiers & SL_TYPE_QUALIFIER_VARYING) {
+              /* Have matching varying on the vertex shader side, and it is also a varying, route. */
+              if (!sl_are_variables_compatible(vv, fv)) {
+                dx_error(&prog->log_.dx_, "Incompatible types for \"%s\" varyings", vv->name_);
+                return SL_ERR_INVALID_ARG;
+              }
+              else {
+                r = attrib_routing_add_variables(&prog->ar_, fv, vv);
+                if (r) {
+                  dx_error(&prog->log_.dx_, "Failed adding \"%s\" varyings", vv->name_);
+                  return r;
+                }
               }
             }
           }
         }
-      }
-    } while (fv != prog->fragment_shader_->cu_.global_frame_.variables_);
+      } while (fv != prog->fragment_shader_->cu_.global_frame_.variables_);
+    }
   }
 
-  /* Run through all variables in both the shaders, check if they are uniforms.
+  /* Run through all variables in all the shaders, check if they are uniforms.
    * If they are, we need to add these uniforms to the program's uniform table
    * so the front-end can set them. */
-  v = prog->vertex_shader_->cu_.global_frame_.variables_;
-  if (v) {
-    do {
-      v = v->chain_;
+  if (prog->vertex_shader_) {
+    v = prog->vertex_shader_->cu_.global_frame_.variables_;
+    if (v) {
+      do {
+        v = v->chain_;
 
-      int qualifiers = sl_type_qualifiers(v->type_);
-      if (qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
-        /* Locate the fragment_shader equivalent (the uniform might appear in both shaders..) */
-        struct sl_variable *fv = sl_compilation_unit_find_variable(&prog->fragment_shader_->cu_, v->name_);
+        int qualifiers = sl_type_qualifiers(v->type_);
+        if (qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
+          /* Locate the fragment_shader equivalent (the uniform might appear in both shaders..) */
+          struct sl_variable *fv = sl_compilation_unit_find_variable(&prog->fragment_shader_->cu_, v->name_);
 
-        if (fv) {
-          int fv_qualifiers = sl_type_qualifiers(fv->type_);
-          if (!(fv_qualifiers & SL_TYPE_QUALIFIER_UNIFORM)) {
-            /* Fragment shader variable of the same name is not a uniform, discard. */
-            fv = NULL;
+          if (fv) {
+            int fv_qualifiers = sl_type_qualifiers(fv->type_);
+            if (!(fv_qualifiers & SL_TYPE_QUALIFIER_UNIFORM)) {
+              /* Fragment shader variable of the same name is not a uniform, discard. */
+              fv = NULL;
+            }
           }
+          struct sl_uniform *new_uniform = NULL;
+          r = sl_uniform_table_add_uniform(&prog->uniforms_, &new_uniform, v, fv, NULL);
+          if (r) return r;
         }
-        struct sl_uniform *new_uniform = NULL;
-        r = sl_uniform_table_add_uniform(&prog->uniforms_, &new_uniform, v, fv);
-        if (r) return r;
-      }
-    } while (v != prog->vertex_shader_->cu_.global_frame_.variables_);
+      } while (v != prog->vertex_shader_->cu_.global_frame_.variables_);
+    }
   }
 
   /* We just added all uniforms in the vertex shader, and if there was an identical uniform
    * in the fragment shader, they're both linked up to the same uniform.
    * What remains is to add the uniforms that are in the fragment shader but do not appear
    * in the vertex shader */
-  fv = prog->fragment_shader_->cu_.global_frame_.variables_;
-  if (fv) {
-    do {
-      fv = fv->chain_;
+  if (prog->fragment_shader_) {
+    fv = prog->fragment_shader_->cu_.global_frame_.variables_;
+    if (fv) {
+      do {
+        fv = fv->chain_;
 
-      int qualifiers = sl_type_qualifiers(fv->type_);
-      if (qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
-        /* Locate the vertex_shader equivalent */
-        struct sl_variable *v = sl_compilation_unit_find_variable(&prog->vertex_shader_->cu_, fv->name_);
-        if (v) {
-          int v_qualifiers = sl_type_qualifiers(v->type_);
-          if (v_qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
-            /* Fragment shader uniform was already added as a uniform as part of the vertex shader, discard
-             * it from consideration here. */
-            continue;
+        int qualifiers = sl_type_qualifiers(fv->type_);
+        if (qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
+          /* Locate the vertex_shader equivalent */
+          struct sl_variable *v = sl_compilation_unit_find_variable(&prog->vertex_shader_->cu_, fv->name_);
+          if (v) {
+            int v_qualifiers = sl_type_qualifiers(v->type_);
+            if (v_qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
+              /* Fragment shader uniform was already added as a uniform as part of the vertex shader, discard
+               * it from consideration here. */
+              continue;
+            }
           }
+          /* Fragment shader uniform has no vertex shader counterpart and still needs to be added as uniform. */
+          struct sl_uniform *new_uniform = NULL;
+          r = sl_uniform_table_add_uniform(&prog->uniforms_, &new_uniform, NULL, fv, NULL);
+          if (r) return r;
         }
-        /* Fragment shader uniform has no vertex shader counterpart and still needs to be added as uniform. */
-        struct sl_uniform *new_uniform = NULL;
-        r = sl_uniform_table_add_uniform(&prog->uniforms_, &new_uniform, NULL, fv);
-        if (r) return r;
-      }
-    } while (fv != prog->fragment_shader_->cu_.global_frame_.variables_);
+      } while (fv != prog->fragment_shader_->cu_.global_frame_.variables_);
+    }
   }
 
+  /* If there are uniforms in the debug shader, they'll be the only uniform around (as debug shaders
+   * exist in isolation from any other shader.) */
+  if (prog->debug_shader_) {
+    v = prog->debug_shader_->cu_.global_frame_.variables_;
+    if (v) {
+      do {
+        v = v->chain_;
+
+        int qualifiers = sl_type_qualifiers(v->type_);
+        if (qualifiers & SL_TYPE_QUALIFIER_UNIFORM) {
+          struct sl_uniform *new_uniform = NULL;
+          r = sl_uniform_table_add_uniform(&prog->uniforms_, &new_uniform, NULL, NULL, v);
+          if (r) return r;
+        }
+      } while (v != prog->debug_shader_->cu_.global_frame_.variables_);
+    }
+  }
 
   /* We now allocate the various buffers that do not rely on the user-defined attributes. */
   if (clipping_stage_alloc_varyings(&prog->cs_, prog->ar_.num_attribs_routed_) ||
@@ -388,10 +452,19 @@ int sl_program_link(struct sl_program *prog) {
   }
 
   /* Allocate register banks */
-  r = sl_exec_prep(&prog->vertex_shader_->exec_, &prog->vertex_shader_->cu_);
-  r = r ? r : sl_exec_allocate_registers_by_slab(&prog->vertex_shader_->exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
-  r = r ? r : sl_exec_prep(&prog->fragment_shader_->exec_, &prog->fragment_shader_->cu_);
-  r = r ? r : sl_exec_allocate_registers_by_slab(&prog->fragment_shader_->exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
+  r = 0;
+  if (prog->vertex_shader_) {
+    r = r ? r : sl_exec_prep(&prog->vertex_shader_->exec_, &prog->vertex_shader_->cu_);
+    r = r ? r : sl_exec_allocate_registers_by_slab(&prog->vertex_shader_->exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
+  }
+  if (prog->fragment_shader_) {
+    r = r ? r : sl_exec_prep(&prog->fragment_shader_->exec_, &prog->fragment_shader_->cu_);
+    r = r ? r : sl_exec_allocate_registers_by_slab(&prog->fragment_shader_->exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
+  }
+  if (prog->debug_shader_) {
+    r = r ? r : sl_exec_prep(&prog->debug_shader_->exec_, &prog->debug_shader_->cu_);
+    r = r ? r : sl_exec_allocate_registers_by_slab(&prog->debug_shader_->exec_, SL_EXEC_CHAIN_MAX_NUM_ROWS);
+  }
   if (r) return r;
 
   /* Reset primitive assembly as we'll be (re)building the columns */

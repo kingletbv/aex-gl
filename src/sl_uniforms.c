@@ -59,7 +59,7 @@
 
 static void sl_uniform_init(struct sl_uniform *u) {
   u->chain_ = NULL;
-  u->fragment_variable_ = u->vertex_variable_ = NULL;
+  u->fragment_variable_ = u->vertex_variable_ = u->debug_variable_ = NULL;
   u->slab_[0] = 0;
 }
 
@@ -378,7 +378,7 @@ int sl_uniform_get_location_info(struct sl_uniform_table *ut, size_t location, v
     do {
       u = u->chain_;
 
-      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : u->fragment_variable_;
+      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : (u->fragment_variable_ ? u->fragment_variable_ : u->debug_variable_);
 
       size_t num_locations_in_uniform;
       r = sl_uniform_get_reg_alloc_num_indices(&v->reg_alloc_, &num_locations_in_uniform);
@@ -595,7 +595,7 @@ int sl_uniform_get_named_location(struct sl_uniform_table *ut, const char *name,
     do {
       u = u->chain_;
 
-      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : u->fragment_variable_;
+      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : (u->fragment_variable_ ? u->fragment_variable_ : u->debug_variable_);
       size_t u_name_len = strlen(v->name_);
       if ((u_name_len == (end_ident - name)) && !memcmp(v->name_, name, u_name_len)) {
         /* Lengths match and string matches; this is the uniform variable we're looking for. */
@@ -620,14 +620,14 @@ int sl_uniform_get_named_location(struct sl_uniform_table *ut, const char *name,
 }
 
 
-int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform **pp_uniform, struct sl_variable *vertex_side, struct sl_variable *fragment_side) {
-  if (!vertex_side && !fragment_side) return SL_ERR_INVALID_ARG;
-  if (!sl_are_variables_compatible(vertex_side, fragment_side)) {
+int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform **pp_uniform, struct sl_variable *vertex_side, struct sl_variable *fragment_side, struct sl_variable *debug_side) {
+  if (!vertex_side && !fragment_side && !debug_side) return SL_ERR_INVALID_ARG;
+  if ((vertex_side || fragment_side) && !sl_are_variables_compatible(vertex_side, fragment_side)) {
     return SL_ERR_INVALID_ARG;
   }
 
   /* either vertex_side or, if that's NULL, fragment_side (one of these is guaranteed to not be NULL). */
-  struct sl_variable *var = vertex_side ? vertex_side : fragment_side;
+  struct sl_variable *var = vertex_side ? vertex_side : (fragment_side ? fragment_side : debug_side);
 
   size_t slab_size, slab_align;
   int r;
@@ -640,6 +640,7 @@ int sl_uniform_table_add_uniform(struct sl_uniform_table *ut, struct sl_uniform 
   sl_uniform_init(u);
   u->vertex_variable_ = vertex_side;
   u->fragment_variable_ = fragment_side;
+  u->debug_variable_ = debug_side;
   memset(u->slab_, 0, slab_size);
   if (ut->uniforms_) {
     /* tail cyclic append to end */
@@ -699,7 +700,7 @@ int sl_uniform_table_max_name_length(struct sl_uniform_table *ut, size_t *pmax_n
     do {
       u = u->chain_;
 
-      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : u->fragment_variable_;
+      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : (u->fragment_variable_ ? u->fragment_variable_ : u->debug_variable_);
       size_t uniform_name_length;
       uniform_name_length = strlen(v->name_);
       size_t uniform_ra_max_length;
@@ -723,7 +724,7 @@ int sl_uniform_table_num_locations(struct sl_uniform_table *ut, size_t *pnum_loc
     do {
       u = u->chain_;
 
-      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : u->fragment_variable_;
+      struct sl_variable *v = u->vertex_variable_ ? u->vertex_variable_ : (u->fragment_variable_ ? u->fragment_variable_ : u->debug_variable_);
 
       size_t num_locations = 0;
       r = sl_uniform_get_reg_alloc_num_indices(&v->reg_alloc_, &num_locations);

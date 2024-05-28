@@ -90,6 +90,8 @@ extern "C" {
 #define GL_ES2_ARRAY_BUFFER         0x8892
 #define GL_ES2_ELEMENT_ARRAY_BUFFER 0x8893
 
+#define AEX_GL_DEBUG_SHADER 0x108B31 /* internal use, e.g. testing */
+
 #define GL_ES2_FRAGMENT_SHADER 0x8B30
 #define GL_ES2_VERTEX_SHADER   0x8B31
 

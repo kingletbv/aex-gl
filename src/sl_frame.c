@@ -182,6 +182,7 @@ struct sl_function *sl_frame_alloc_function(const char *name, const struct situs
   f->builtin_runtime_fn_ = NULL;
   f->builtin_eval_fn_ = NULL;
   f->callers_ = NULL;
+  f->is_dump_fn_ = 0;
   f->visited_ = 0;
   return f;
 }
@@ -411,6 +412,13 @@ void sl_function_call_search(struct sym_table *current_scope, const char *name, 
       if (s->kind_ == SK_FUNCTION) {
         struct sl_function *cf = s->v_.function_;
         if (cf) {
+          if (cf->is_dump_fn_) {
+            /* Special test output function, always matches any parameter set */
+            if (ppst_found_at) *ppst_found_at = st;
+            if (ppsym_found_at) *ppsym_found_at = s;
+            if (ppfunc_found) *ppfunc_found = cf;
+            return;
+          }
           do {
             cf = cf->overload_chain_;
 
@@ -464,7 +472,7 @@ static int sl_function_expr_call_graph_validation(struct diags *dx, struct sl_ex
       dx_error_loc(dx, &x->op_loc_, "no function found");
       return -1;
     }
-    if (!f->body_ && !f->builtin_runtime_fn_) {
+    if (!f->body_ && !f->builtin_runtime_fn_ && !f->is_dump_fn_) {
       /* No function definition */
       dx_error_loc(dx, &x->op_loc_, "no function definition for function \"%s\"\n", f->name_);
       return -1;
