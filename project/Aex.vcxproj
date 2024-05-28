@@ -365,6 +365,7 @@
     <ClInclude Include="..\src\sl_program.h" />
     <ClInclude Include="..\src\sl_quadop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_reg_alloc.h" />
+    <ClInclude Include="..\src\sl_reg_move.h" />
     <ClInclude Include="..\src\sl_senop_snippet_inc.h" />
     <ClInclude Include="..\src\sl_shader.h" />
     <ClInclude Include="..\src\sl_stmt.h" />

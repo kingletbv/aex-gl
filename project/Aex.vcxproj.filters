@@ -134,6 +134,7 @@
     <ClInclude Include="..\src\egl_impl.h" />
     <ClInclude Include="..\src\thread_context.h" />
     <ClInclude Include="..\src\thread_mutex.h" />
+    <ClInclude Include="..\src\sl_reg_move.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
