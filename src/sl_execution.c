@@ -3695,7 +3695,7 @@ void sl_exec_pop_execution_frame(struct sl_execution *exec) {
 }
 
 static void sl_exec_need_rvalue(struct sl_execution *exec, uint32_t chain, struct sl_expr *x) {
-  sl_reg_move(exec, chain, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL, 1, 1, 1);
+  sl_reg_move(exec, chain, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL);
 }
 
 static void sl_exec_initialize_globals(struct sl_execution *exec) {
@@ -4092,7 +4092,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             /* The value is already in the appropriate registers; do the move anyway, as, though
              * it will turn into a no-op, it reduces coupling. */
             assert((eps[epi].v_.expr_->offset_reg_.kind_ == slrak_void) && "variable sub-expression's lvalue should not be offset based");
-            sl_reg_move(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->variable_->reg_alloc_, NULL, &eps[epi].v_.expr_->base_regs_, NULL, 1, 1, 1);
+            sl_reg_move(exec, eps[epi].enter_chain_, &eps[epi].v_.expr_->variable_->reg_alloc_, NULL, &eps[epi].v_.expr_->base_regs_, NULL);
 
             uint32_t *continuation_ep = (uint32_t *)(((char *)exec->execution_points_) + eps[epi].continue_chain_ptr_);
             *continuation_ep = sl_exec_join_chains(exec, *continuation_ep, eps[epi].enter_chain_);
@@ -4245,7 +4245,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             else {
               sl_reg_move(exec, eps[epi].revisit_chain_, 
                           &eps[epi].v_.expr_->children_[1]->base_regs_, &eps[epi].v_.expr_->children_[1]->offset_reg_,
-                          &eps[epi].v_.expr_->offset_reg_, NULL, 1, 1, 1);
+                          &eps[epi].v_.expr_->offset_reg_, NULL);
             }
             break;
           }
@@ -4276,8 +4276,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
               /* Move the pre-existing value into the result */
               sl_reg_move(exec, eps[epi].revisit_chain_,
                           &eps[epi].v_.expr_->children_[0]->base_regs_, NULL,
-                          &eps[epi].v_.expr_->base_regs_, NULL,
-                          1, 1, 1);
+                          &eps[epi].v_.expr_->base_regs_, NULL);
 
               /* And then Inc/Decrement the value from the result (the pre-existing one) into the child's l-value */
               if (eps[epi].v_.expr_->op_ == exop_post_inc) {
@@ -4297,7 +4296,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                           &eps[epi].v_.expr_->children_[0]->base_regs_,
                           &eps[epi].v_.expr_->children_[0]->offset_reg_,
                           &eps[epi].v_.expr_->children_[0]->rvalue_,
-                          NULL, 1, 1, 1);
+                          NULL);
               /* Inc/Decrement the rvalue into the result value */
               if (eps[epi].v_.expr_->op_ == exop_pre_inc) {
                 sl_exec_increment(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_->children_[0]));
@@ -4310,8 +4309,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
               sl_reg_move(exec, eps[epi].revisit_chain_,
                           EXPR_RVALUE(eps[epi].v_.expr_), NULL,
                           &eps[epi].v_.expr_->children_[0]->base_regs_,
-                          &eps[epi].v_.expr_->children_[0]->offset_reg_,
-                          1, 1, 1);
+                          &eps[epi].v_.expr_->children_[0]->offset_reg_);
             }
             else {
               /* Child can be used directly. */
@@ -4325,8 +4323,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
               /* Store the result value back into the original child's register */
               sl_reg_move(exec, eps[epi].revisit_chain_,
                           &eps[epi].v_.expr_->base_regs_, NULL,
-                          &eps[epi].v_.expr_->children_[0]->base_regs_, NULL,
-                          1, 1, 1);
+                          &eps[epi].v_.expr_->children_[0]->base_regs_, NULL);
             }
             break;
           }
@@ -4354,7 +4351,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
 
             if (eps[epi].v_.expr_->op_ == exop_mul_assign) {
               /* Store the result value into the original child's l-value */
-              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_, 1, 1, 1);
+              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_);
             }
             break;
           }
@@ -4368,7 +4365,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                         eps[epi].v_.expr_->children_[1]);
             if (eps[epi].v_.expr_->op_ == exop_div_assign) {
               /* Store the result value into the original child's l-value */
-              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_, 1, 1, 1);
+              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_);
             }
             break;
           }
@@ -4384,7 +4381,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
 
             if (eps[epi].v_.expr_->op_ == exop_add_assign) {
               /* Store the result value into the original child's l-value */
-              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_, 1, 1, 1);
+              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_);
             }
 
             break;
@@ -4401,7 +4398,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
 
             if (eps[epi].v_.expr_->op_ == exop_sub_assign) {
               /* Store the result value into the original child's l-value */
-              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_, 1, 1, 1);
+              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_);
             }
             break;
           }
@@ -4530,7 +4527,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           case exop_assign: {
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
 
-            sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_, 1, 1, 1);
+            sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_);
 
             break;
           }
@@ -4547,7 +4544,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                                          &true_chain, &false_chain);
             eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
             /* Child 0 == false ? Move child 0 result to our result and pass on to continuation. */
-            sl_reg_move(exec, false_chain, EXPR_RVALUE(eps[epi].v_.expr_->children_[0]), NULL, &eps[epi].v_.expr_->base_regs_, NULL, 1, 1, 1);
+            sl_reg_move(exec, false_chain, EXPR_RVALUE(eps[epi].v_.expr_->children_[0]), NULL, &eps[epi].v_.expr_->base_regs_, NULL);
             uint32_t *chain_ptr = (uint32_t *)(((uintptr_t)exec->execution_points_) + eps[epi].continue_chain_ptr_);
             *chain_ptr = sl_exec_join_chains(exec, *chain_ptr, false_chain);
             
@@ -4572,7 +4569,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                                          &true_chain, &false_chain);
             eps[epi].revisit_chain_ = SL_EXEC_NO_CHAIN;
             /* Child 0 == true ? Move child 0 result to our result and pass on to continuation */
-            sl_reg_move(exec, true_chain, EXPR_RVALUE(eps[epi].v_.expr_->children_[0]), NULL, &eps[epi].v_.expr_->base_regs_, NULL, 1, 1, 1);
+            sl_reg_move(exec, true_chain, EXPR_RVALUE(eps[epi].v_.expr_->children_[0]), NULL, &eps[epi].v_.expr_->base_regs_, NULL);
             uint32_t *chain_ptr = (uint32_t *)(((uintptr_t)exec->execution_points_) + eps[epi].continue_chain_ptr_);
             *chain_ptr = sl_exec_join_chains(exec, *chain_ptr, true_chain);
 
@@ -4587,7 +4584,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           case exop_sequence: {
             if (!sl_reg_alloc_are_equal(&eps[epi].v_.expr_->base_regs_, &eps[epi].v_.expr_->children_[1]->base_regs_)) {
               sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
-              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), NULL, &eps[epi].v_.expr_->base_regs_, NULL, 1, 1, 1);
+              sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), NULL, &eps[epi].v_.expr_->base_regs_, NULL);
             }
             else {
               /* eps[epi].v_.expr_ shares registers with second child, we're already done even if both are lvalues */
@@ -4641,7 +4638,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             else {
               /* Child not at an offset, just perform a move; this will likely be a no-op unless the
                * parent of the exop_field_selection interfered during register allocation. */
-              sl_reg_move(exec, eps[epi].revisit_chain_, child_field, NULL, &x->base_regs_, NULL, 1, 1, 1);
+              sl_reg_move(exec, eps[epi].revisit_chain_, child_field, NULL, &x->base_regs_, NULL);
             }
             break;
           }
@@ -4827,14 +4824,14 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             /* Move true results into our own register; register allocation tries to make this the same register
              * but can't guarantee it (e.g. if the true branch is a variable, it'll have a different reg.) */
             sl_exec_need_rvalue(exec, eps[epi].post_chain_, eps[epi].v_.expr_->children_[1]);
-            sl_reg_move(exec, eps[epi].post_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), NULL, &eps[epi].v_.expr_->base_regs_, NULL, 1, 1, 1);
+            sl_reg_move(exec, eps[epi].post_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), NULL, &eps[epi].v_.expr_->base_regs_, NULL);
             break;
           }
           case exop_logical_or:
           case exop_logical_and: {
             /* Move result from second child into result of logical-and or logical-or expression node */
             sl_exec_need_rvalue(exec, eps[epi].post_chain_, eps[epi].v_.expr_->children_[1]);
-            sl_reg_move(exec, eps[epi].post_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), NULL, &eps[epi].v_.expr_->base_regs_, NULL, 1, 1, 1);
+            sl_reg_move(exec, eps[epi].post_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), NULL, &eps[epi].v_.expr_->base_regs_, NULL);
             break;
           }
         }
@@ -4847,7 +4844,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           case exop_conditional: {
             /* Handle completion of the false branch's execution */
           sl_exec_need_rvalue(exec, eps[epi].alt_chain_, eps[epi].v_.expr_->children_[2]);
-          sl_reg_move(exec, eps[epi].alt_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[2]), NULL, &eps[epi].v_.expr_->base_regs_, NULL, 1, 1, 1);
+          sl_reg_move(exec, eps[epi].alt_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[2]), NULL, &eps[epi].v_.expr_->base_regs_, NULL);
             break;
           }
           case exop_function_call: {

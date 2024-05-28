@@ -1948,12 +1948,12 @@ static void sl_reg_move_sc_indir_offset_to_indir_offset(struct sl_execution *exe
   }
 }
 
-void sl_reg_move(struct sl_execution *exec,
-                 uint8_t row,
-                 struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset,
-                 struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset,
-                 int from_offset_step_size, int to_offset_step_size,
-                 int array_quantity) {
+void sl_reg_move_crossframe(struct sl_execution *exec,
+                            uint8_t row,
+                            int from_frame, struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset,
+                            int to_frame, struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset,
+                            int from_offset_step_size, int to_offset_step_size,
+                            int array_quantity) {
   size_t num_components = 0;
   size_t n;
   int k;
@@ -1964,13 +1964,13 @@ void sl_reg_move(struct sl_execution *exec,
       int new_from_offset_step_size = (int)(from_offset_step_size * from_ra->v_.array_.num_elements_);
       int new_to_offset_step_size = (int)(to_offset_step_size * from_ra->v_.array_.num_elements_);
       int new_array_quantity = (int)(array_quantity * from_ra->v_.array_.num_elements_);
-      sl_reg_move(exec, row, from_ra->v_.array_.head_, from_ra_offset, to_ra->v_.array_.head_, to_ra_offset, new_from_offset_step_size, new_to_offset_step_size, new_array_quantity);
+      sl_reg_move_crossframe(exec, row, from_frame, from_ra->v_.array_.head_, from_ra_offset, to_frame, to_ra->v_.array_.head_, to_ra_offset, new_from_offset_step_size, new_to_offset_step_size, new_array_quantity);
       break;
     }
     case slrak_struct: {
       if (from_ra->v_.comp_.num_fields_ != to_ra->v_.comp_.num_fields_) return;
       for (n = 0; n < from_ra->v_.comp_.num_fields_; ++n) {
-        sl_reg_move(exec, row, from_ra->v_.comp_.fields_ + n, from_ra_offset, to_ra->v_.comp_.fields_ + n, to_ra_offset, from_offset_step_size, to_offset_step_size, array_quantity);
+        sl_reg_move_crossframe(exec, row, from_frame, from_ra->v_.comp_.fields_ + n, from_ra_offset, to_frame, to_ra->v_.comp_.fields_ + n, to_ra_offset, from_offset_step_size, to_offset_step_size, array_quantity);
       }
       break;
     }
@@ -2002,12 +2002,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_indir_offset_to_indir_offset(exec,
                                                              row,
-                                                             INT_REG_INDEX_NRV(to_ra, n),
-                                                             INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                              k,
                                                              to_offset_step_size,
-                                                             INT_REG_INDEX_NRV(from_ra, n),
-                                                             INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                              k,
                                                              from_offset_step_size);
                 }
@@ -2019,11 +2019,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_indir_to_indir_offset(exec,
                                                       row,
-                                                      INT_REG_INDEX_NRV(to_ra, n),
-                                                      INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                       k,
                                                       to_offset_step_size,
-                                                      INT_REG_INDEX_NRV(from_ra, n),
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                       k);
                 }
               }
@@ -2037,10 +2037,10 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_indir_offset_to_indir(exec,
                                                       row,
-                                                      INT_REG_INDEX_NRV(to_ra, n),
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                                       k,
-                                                      INT_REG_INDEX_NRV(from_ra, n),
-                                                      INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                       k,
                                                       from_offset_step_size);
                 }
@@ -2052,9 +2052,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_indir_to_indir(exec,
                                                row,
-                                               INT_REG_INDEX_NRV(to_ra, n),
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                                k,
-                                               INT_REG_INDEX_NRV(from_ra, n),
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                k);
                 }
               }
@@ -2071,12 +2071,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_offset_reg_to_indir_offset(exec,
                                                            row,
-                                                           INT_REG_INDEX_NRV(to_ra, n),
-                                                           INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                            k,
                                                            to_offset_step_size,
-                                                           FLOAT_REG_INDEX_NRV(from_ra, n) + k,
-                                                           INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                            0,
                                                            from_offset_step_size);
                 }
@@ -2088,11 +2088,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_reg_to_indir_offset(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, n),
-                                                    INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                     k,
                                                     to_offset_step_size,
-                                                    FLOAT_REG_INDEX_NRV(from_ra, n) + k);
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2105,10 +2105,10 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_offset_reg_to_indir(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                                     k,
-                                                    FLOAT_REG_INDEX_NRV(from_ra, n) + k,
-                                                    INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                     0,
                                                     from_offset_step_size);
                 }
@@ -2120,9 +2120,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_reg_to_indir(exec,
                                              row,
-                                             INT_REG_INDEX_NRV(to_ra, n),
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                              k,
-                                             FLOAT_REG_INDEX_NRV(from_ra, n) + k);
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2141,12 +2141,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_indir_offset_to_offset_reg(exec,
                                                            row,
-                                                           FLOAT_REG_INDEX_NRV(to_ra, n) + k,
-                                                           INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                            0,
                                                            to_offset_step_size,
-                                                           INT_REG_INDEX_NRV(from_ra, n),
-                                                           INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                            k,
                                                            from_offset_step_size);
                 }
@@ -2158,11 +2158,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_indir_to_offset_reg(exec,
                                                     row,
-                                                    FLOAT_REG_INDEX_NRV(to_ra, n) + k,
-                                                    INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                     0,
                                                     to_offset_step_size,
-                                                    INT_REG_INDEX_NRV(from_ra, n),
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                     k);
                 }
               }
@@ -2176,9 +2176,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_indir_offset_to_reg(exec,
                                                     row,
-                                                    FLOAT_REG_INDEX_NRV(to_ra, n) + k,
-                                                    INT_REG_INDEX_NRV(from_ra, n),
-                                                    INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                     k,
                                                     from_offset_step_size);
                 }
@@ -2190,8 +2190,8 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_indir_to_reg(exec,
                                              row,
-                                             FLOAT_REG_INDEX_NRV(to_ra, n) + k,
-                                             INT_REG_INDEX_NRV(from_ra, n),
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                              k);
                 }
               }
@@ -2208,12 +2208,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_offset_reg_to_offset_reg(exec,
                                                          row,
-                                                         FLOAT_REG_INDEX_NRV(to_ra, n) + k,
-                                                         INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                          0,
                                                          to_offset_step_size,
-                                                         FLOAT_REG_INDEX_NRV(from_ra, n) + k,
-                                                         INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                          0,
                                                          from_offset_step_size);
                 }
@@ -2225,11 +2225,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_reg_to_offset_reg(exec,
                                                   row,
-                                                  FLOAT_REG_INDEX_NRV(to_ra, n) + k,
-                                                  INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                   0,
                                                   to_offset_step_size,
-                                                  FLOAT_REG_INDEX_NRV(from_ra, n) + k);
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2242,9 +2242,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_offset_reg_to_reg(exec,
                                                   row,
-                                                  FLOAT_REG_INDEX_NRV(to_ra, n) + k,
-                                                  FLOAT_REG_INDEX_NRV(from_ra, n) + k,
-                                                  INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                   0,
                                                   from_offset_step_size);
                 }
@@ -2256,8 +2256,8 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_f_reg_to_reg(exec,
                                            row,
-                                           FLOAT_REG_INDEX_NRV(to_ra, n) + k,
-                                           FLOAT_REG_INDEX_NRV(from_ra, n) + k);
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2288,12 +2288,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_indir_offset_to_indir_offset(exec,
                                                              row,
-                                                             INT_REG_INDEX_NRV(to_ra, n),
-                                                             INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                              k,
                                                              to_offset_step_size,
-                                                             INT_REG_INDEX_NRV(from_ra, n),
-                                                             INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                              k,
                                                              from_offset_step_size);
                 }
@@ -2305,11 +2305,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_indir_to_indir_offset(exec,
                                                       row,
-                                                      INT_REG_INDEX_NRV(to_ra, n),
-                                                      INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                       k,
                                                       to_offset_step_size,
-                                                      INT_REG_INDEX_NRV(from_ra, n),
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                       k);
                 }
               }
@@ -2323,10 +2323,10 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_indir_offset_to_indir(exec,
                                                       row,
-                                                      INT_REG_INDEX_NRV(to_ra, n),
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                                       k,
-                                                      INT_REG_INDEX_NRV(from_ra, n),
-                                                      INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                       k,
                                                       from_offset_step_size);
                 }
@@ -2338,9 +2338,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_indir_to_indir(exec,
                                                row,
-                                               INT_REG_INDEX_NRV(to_ra, n),
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                                k,
-                                               INT_REG_INDEX_NRV(from_ra, n),
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                k);
                 }
               }
@@ -2357,12 +2357,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_offset_reg_to_indir_offset(exec,
                                                            row,
-                                                           INT_REG_INDEX_NRV(to_ra, n),
-                                                           INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                            k,
                                                            to_offset_step_size,
-                                                           INT_REG_INDEX_NRV(from_ra, n) + k,
-                                                           INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                            0,
                                                            from_offset_step_size);
                 }
@@ -2374,11 +2374,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_reg_to_indir_offset(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, n),
-                                                    INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                     k,
                                                     to_offset_step_size,
-                                                    INT_REG_INDEX_NRV(from_ra, n) + k);
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2391,10 +2391,10 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_offset_reg_to_indir(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                                     k,
-                                                    INT_REG_INDEX_NRV(from_ra, n) + k,
-                                                    INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                     0,
                                                     from_offset_step_size);
                 }
@@ -2406,9 +2406,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_reg_to_indir(exec,
                                              row,
-                                             INT_REG_INDEX_NRV(to_ra, n),
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                              k,
-                                             INT_REG_INDEX_NRV(from_ra, n) + k);
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2427,12 +2427,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_indir_offset_to_offset_reg(exec,
                                                            row,
-                                                           INT_REG_INDEX_NRV(to_ra, n) + k,
-                                                           INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                            0,
                                                            to_offset_step_size,
-                                                           INT_REG_INDEX_NRV(from_ra, n),
-                                                           INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                            k,
                                                            from_offset_step_size);
                 }
@@ -2444,11 +2444,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_indir_to_offset_reg(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, n) + k,
-                                                    INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                     0,
                                                     to_offset_step_size,
-                                                    INT_REG_INDEX_NRV(from_ra, n),
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                     k);
                 }
               }
@@ -2462,9 +2462,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_indir_offset_to_reg(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, n) + k,
-                                                    INT_REG_INDEX_NRV(from_ra, n),
-                                                    INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                     k,
                                                     from_offset_step_size);
                 }
@@ -2476,8 +2476,8 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_indir_to_reg(exec,
                                              row,
-                                             INT_REG_INDEX_NRV(to_ra, n) + k,
-                                             INT_REG_INDEX_NRV(from_ra, n),
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                              k);
                 }
               }
@@ -2494,12 +2494,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_offset_reg_to_offset_reg(exec,
                                                          row,
-                                                         INT_REG_INDEX_NRV(to_ra, n) + k,
-                                                         INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                          0,
                                                          to_offset_step_size,
-                                                         INT_REG_INDEX_NRV(from_ra, n) + k,
-                                                         INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                          0,
                                                          from_offset_step_size);
                 }
@@ -2511,11 +2511,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_reg_to_offset_reg(exec,
                                                   row,
-                                                  INT_REG_INDEX_NRV(to_ra, n) + k,
-                                                  INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                   0,
                                                   to_offset_step_size,
-                                                  INT_REG_INDEX_NRV(from_ra, n) + k);
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2528,9 +2528,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_offset_reg_to_reg(exec,
                                                   row,
-                                                  INT_REG_INDEX_NRV(to_ra, n) + k,
-                                                  INT_REG_INDEX_NRV(from_ra, n) + k,
-                                                  INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                   0,
                                                   from_offset_step_size);
                 }
@@ -2542,8 +2542,8 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_i_reg_to_reg(exec,
                                            row,
-                                           INT_REG_INDEX_NRV(to_ra, n) + k,
-                                           INT_REG_INDEX_NRV(from_ra, n) + k);
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2574,12 +2574,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_indir_offset_to_indir_offset(exec,
                                                              row,
-                                                             INT_REG_INDEX_NRV(to_ra, n),
-                                                             INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                              k,
                                                              to_offset_step_size,
-                                                             INT_REG_INDEX_NRV(from_ra, n),
-                                                             INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                              k,
                                                              from_offset_step_size);
                 }
@@ -2591,11 +2591,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_indir_to_indir_offset(exec,
                                                       row,
-                                                      INT_REG_INDEX_NRV(to_ra, n),
-                                                      INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                       k,
                                                       to_offset_step_size,
-                                                      INT_REG_INDEX_NRV(from_ra, n),
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                       k);
                 }
               }
@@ -2609,10 +2609,10 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_indir_offset_to_indir(exec,
                                                       row,
-                                                      INT_REG_INDEX_NRV(to_ra, n),
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                                       k,
-                                                      INT_REG_INDEX_NRV(from_ra, n),
-                                                      INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                       k,
                                                       from_offset_step_size);
                 }
@@ -2624,9 +2624,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_indir_to_indir(exec,
                                                row,
-                                               INT_REG_INDEX_NRV(to_ra, n),
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                                k,
-                                               INT_REG_INDEX_NRV(from_ra, n),
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                k);
                 }
               }
@@ -2643,12 +2643,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_offset_reg_to_indir_offset(exec,
                                                            row,
-                                                           INT_REG_INDEX_NRV(to_ra, n),
-                                                           INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                            k,
                                                            to_offset_step_size,
-                                                           BOOL_REG_INDEX_NRV(from_ra, n) + k,
-                                                           INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                            0,
                                                            from_offset_step_size);
                 }
@@ -2660,11 +2660,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_reg_to_indir_offset(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, n),
-                                                    INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                     k,
                                                     to_offset_step_size,
-                                                    BOOL_REG_INDEX_NRV(from_ra, n) + k);
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2677,10 +2677,10 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_offset_reg_to_indir(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                                     k,
-                                                    BOOL_REG_INDEX_NRV(from_ra, n) + k,
-                                                    INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                     0,
                                                     from_offset_step_size);
                 }
@@ -2692,9 +2692,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_reg_to_indir(exec,
                                              row,
-                                             INT_REG_INDEX_NRV(to_ra, n),
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
                                              k,
-                                             BOOL_REG_INDEX_NRV(from_ra, n) + k);
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2713,12 +2713,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_indir_offset_to_offset_reg(exec,
                                                            row,
-                                                           BOOL_REG_INDEX_NRV(to_ra, n) + k,
-                                                           INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                            0,
                                                            to_offset_step_size,
-                                                           INT_REG_INDEX_NRV(from_ra, n),
-                                                           INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                            k,
                                                            from_offset_step_size);
                 }
@@ -2730,11 +2730,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_indir_to_offset_reg(exec,
                                                     row,
-                                                    BOOL_REG_INDEX_NRV(to_ra, n) + k,
-                                                    INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                     0,
                                                     to_offset_step_size,
-                                                    INT_REG_INDEX_NRV(from_ra, n),
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                     k);
                 }
               }
@@ -2748,9 +2748,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_indir_offset_to_reg(exec,
                                                     row,
-                                                    BOOL_REG_INDEX_NRV(to_ra, n) + k,
-                                                    INT_REG_INDEX_NRV(from_ra, n),
-                                                    INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                     k,
                                                     from_offset_step_size);
                 }
@@ -2762,8 +2762,8 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_indir_to_reg(exec,
                                              row,
-                                             BOOL_REG_INDEX_NRV(to_ra, n) + k,
-                                             INT_REG_INDEX_NRV(from_ra, n),
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                              k);
                 }
               }
@@ -2780,12 +2780,12 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_offset_reg_to_offset_reg(exec,
                                                          row,
-                                                         BOOL_REG_INDEX_NRV(to_ra, n) + k,
-                                                         INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                          0,
                                                          to_offset_step_size,
-                                                         BOOL_REG_INDEX_NRV(from_ra, n) + k,
-                                                         INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                          0,
                                                          from_offset_step_size);
                 }
@@ -2797,11 +2797,11 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_reg_to_offset_reg(exec,
                                                   row,
-                                                  BOOL_REG_INDEX_NRV(to_ra, n) + k,
-                                                  INT_REG_INDEX_NRV(to_ra_offset, n),
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
                                                   0,
                                                   to_offset_step_size,
-                                                  BOOL_REG_INDEX_NRV(from_ra, n) + k);
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2814,9 +2814,9 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_offset_reg_to_reg(exec,
                                                   row,
-                                                  BOOL_REG_INDEX_NRV(to_ra, n) + k,
-                                                  BOOL_REG_INDEX_NRV(from_ra, n) + k,
-                                                  INT_REG_INDEX_NRV(from_ra_offset, n),
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
                                                   0,
                                                   from_offset_step_size);
                 }
@@ -2828,8 +2828,8 @@ void sl_reg_move(struct sl_execution *exec,
                 for (n = 0; n < num_components; ++n) {
                   sl_reg_move_b_reg_to_reg(exec,
                                            row,
-                                           BOOL_REG_INDEX_NRV(to_ra, n) + k,
-                                           BOOL_REG_INDEX_NRV(from_ra, n) + k);
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
                 }
               }
             }
@@ -2850,12 +2850,12 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_indir_offset_to_indir_offset(exec,
                                                              row,
-                                                             INT_REG_INDEX_NRV(to_ra, 0),
-                                                             INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                              k,
                                                              to_offset_step_size,
-                                                             INT_REG_INDEX_NRV(from_ra, 0),
-                                                             INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                              k,
                                                              from_offset_step_size);
               }
@@ -2865,11 +2865,11 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_indir_to_indir_offset(exec,
                                                       row,
-                                                      INT_REG_INDEX_NRV(to_ra, 0),
-                                                      INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                       k,
                                                       to_offset_step_size,
-                                                      INT_REG_INDEX_NRV(from_ra, 0),
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
                                                       k);
               }
             }
@@ -2881,10 +2881,10 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_indir_offset_to_indir(exec,
                                                       row,
-                                                      INT_REG_INDEX_NRV(to_ra, 0),
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                       k,
-                                                      INT_REG_INDEX_NRV(from_ra, 0),
-                                                      INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                       k,
                                                       from_offset_step_size);
               }
@@ -2894,9 +2894,9 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_indir_to_indir(exec,
                                                row,
-                                               INT_REG_INDEX_NRV(to_ra, 0),
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                k,
-                                               INT_REG_INDEX_NRV(from_ra, 0),
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
                                                k);
               }
             }
@@ -2911,12 +2911,12 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_offset_reg_to_indir_offset(exec,
                                                            row,
-                                                           INT_REG_INDEX_NRV(to_ra, 0),
-                                                           INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
-                                                           SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
-                                                           INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            0,
                                                            from_offset_step_size);
               }
@@ -2926,11 +2926,11 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_reg_to_indir_offset(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, 0),
-                                                    INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
-                                                    SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k);
               }
             }
           }
@@ -2941,10 +2941,10 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_offset_reg_to_indir(exec,
                                                     row,
-                                                    INT_REG_INDEX_NRV(to_ra, 0),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
-                                                    SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
-                                                    INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     0,
                                                     from_offset_step_size);
               }
@@ -2954,9 +2954,9 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_reg_to_indir(exec,
                                              row,
-                                             INT_REG_INDEX_NRV(to_ra, 0),
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
-                                             SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k);
               }
             }
           }
@@ -2973,12 +2973,12 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_indir_offset_to_offset_reg(exec,
                                                            row,
-                                                           SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                           INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            0,
                                                            to_offset_step_size,
-                                                           INT_REG_INDEX_NRV(from_ra, 0),
-                                                           INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               }
@@ -2988,11 +2988,11 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_indir_to_offset_reg(exec,
                                                     row,
-                                                    SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                    INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     0,
                                                     to_offset_step_size,
-                                                    INT_REG_INDEX_NRV(from_ra, 0),
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
                                                     k);
               }
             }
@@ -3004,9 +3004,9 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_indir_offset_to_reg(exec,
                                                     row,
-                                                    SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                    INT_REG_INDEX_NRV(from_ra, 0),
-                                                    INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               }
@@ -3016,8 +3016,8 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_indir_to_reg(exec,
                                              row,
-                                             SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                             INT_REG_INDEX_NRV(from_ra, 0),
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
                                              k);
               }
             }
@@ -3032,12 +3032,12 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_offset_reg_to_offset_reg(exec,
                                                          row,
-                                                         SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                         INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
-                                                         SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
-                                                         INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               }
@@ -3047,11 +3047,11 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_reg_to_offset_reg(exec,
                                                   row,
-                                                  SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                  INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
-                                                  SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k);
               }
             }
           }
@@ -3062,9 +3062,9 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_offset_reg_to_reg(exec,
                                                   row,
-                                                  SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                  SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
-                                                  INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               }
@@ -3074,8 +3074,8 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_s2d_reg_to_reg(exec,
                                            row,
-                                           SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                           SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k);
               }
             }
           }
@@ -3095,12 +3095,12 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_indir_offset_to_indir_offset(exec,
                                                             row,
-                                                            INT_REG_INDEX_NRV(to_ra, 0),
-                                                            INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
+                                                            to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                             k,
                                                             to_offset_step_size,
-                                                            INT_REG_INDEX_NRV(from_ra, 0),
-                                                            INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
+                                                            from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                             k,
                                                             from_offset_step_size);
               }
@@ -3110,11 +3110,11 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_indir_to_indir_offset(exec,
                                                      row,
-                                                     INT_REG_INDEX_NRV(to_ra, 0),
-                                                     INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
+                                                     to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                      k,
                                                      to_offset_step_size,
-                                                     INT_REG_INDEX_NRV(from_ra, 0),
+                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
                                                      k);
               }
             }
@@ -3126,10 +3126,10 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_indir_offset_to_indir(exec,
                                                      row,
-                                                     INT_REG_INDEX_NRV(to_ra, 0),
+                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                      k,
-                                                     INT_REG_INDEX_NRV(from_ra, 0),
-                                                     INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
+                                                     from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                      k,
                                                      from_offset_step_size);
               }
@@ -3139,9 +3139,9 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_indir_to_indir(exec,
                                               row,
-                                              INT_REG_INDEX_NRV(to_ra, 0),
+                                              to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                               k,
-                                              INT_REG_INDEX_NRV(from_ra, 0),
+                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
                                               k);
               }
             }
@@ -3156,12 +3156,12 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_offset_reg_to_indir_offset(exec,
                                                           row,
-                                                          INT_REG_INDEX_NRV(to_ra, 0),
-                                                          INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
+                                                          to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                           k,
                                                           to_offset_step_size,
-                                                          SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
-                                                          INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k,
+                                                          from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                           0,
                                                           from_offset_step_size);
               }
@@ -3171,11 +3171,11 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_reg_to_indir_offset(exec,
                                                    row,
-                                                   INT_REG_INDEX_NRV(to_ra, 0),
-                                                   INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
+                                                   to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                    k,
                                                    to_offset_step_size,
-                                                   SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
+                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k);
               }
             }
           }
@@ -3186,10 +3186,10 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_offset_reg_to_indir(exec,
                                                    row,
-                                                   INT_REG_INDEX_NRV(to_ra, 0),
+                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                    k,
-                                                   SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
-                                                   INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k,
+                                                   from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                    0,
                                                    from_offset_step_size);
               }
@@ -3199,9 +3199,9 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_reg_to_indir(exec,
                                             row,
-                                            INT_REG_INDEX_NRV(to_ra, 0),
+                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                             k,
-                                            SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
+                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k);
               }
             }
           }
@@ -3218,12 +3218,12 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_indir_offset_to_offset_reg(exec,
                                                           row,
-                                                          SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                          INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                          to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                           0,
                                                           to_offset_step_size,
-                                                          INT_REG_INDEX_NRV(from_ra, 0),
-                                                          INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
+                                                          from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                           k,
                                                           from_offset_step_size);
               }
@@ -3233,11 +3233,11 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_indir_to_offset_reg(exec,
                                                    row,
-                                                   SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                   INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                   to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                    0,
                                                    to_offset_step_size,
-                                                   INT_REG_INDEX_NRV(from_ra, 0),
+                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
                                                    k);
               }
             }
@@ -3249,9 +3249,9 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_indir_offset_to_reg(exec,
                                                    row,
-                                                   SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                   INT_REG_INDEX_NRV(from_ra, 0),
-                                                   INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
+                                                   from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                    k,
                                                    from_offset_step_size);
               }
@@ -3261,8 +3261,8 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_indir_to_reg(exec,
                                             row,
-                                            SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                            INT_REG_INDEX_NRV(from_ra, 0),
+                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0],
                                             k);
               }
             }
@@ -3277,12 +3277,12 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_offset_reg_to_offset_reg(exec,
                                                         row,
-                                                        SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                        INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                        to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                        to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                         0,
                                                         to_offset_step_size,
-                                                        SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
-                                                        INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                        from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k,
+                                                        from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                         0,
                                                         from_offset_step_size);
               }
@@ -3292,11 +3292,11 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_reg_to_offset_reg(exec,
                                                  row,
-                                                 SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                 INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                 to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                 to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                  0,
                                                  to_offset_step_size,
-                                                 SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
+                                                 from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k);
               }
             }
           }
@@ -3307,9 +3307,9 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_offset_reg_to_reg(exec,
                                                  row,
-                                                 SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                 SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
-                                                 INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                 to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                                 from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k,
+                                                 from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                  0,
                                                  from_offset_step_size);
               }
@@ -3319,8 +3319,8 @@ void sl_reg_move(struct sl_execution *exec,
               for (k = 0; k < array_quantity; ++k) {
                 sl_reg_move_sc_reg_to_reg(exec,
                                           row,
-                                          SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                          SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
+                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k,
+                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k);
               }
             }
           }
@@ -3329,4 +3329,10 @@ void sl_reg_move(struct sl_execution *exec,
       break;
     }
   }
+}
+void sl_reg_move(struct sl_execution *exec,
+                 uint8_t row,
+                 struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset,
+                 struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset) {
+  sl_reg_move_crossframe(exec, row, (int)(exec->num_execution_frames_ - 1), from_ra, from_ra_offset, (int)(exec->num_execution_frames_ - 1), to_ra, to_ra_offset, 1, 1, 1);
 }
