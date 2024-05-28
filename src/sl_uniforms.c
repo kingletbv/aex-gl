@@ -261,7 +261,7 @@ static int sl_uniform_get_ra_location_info(struct sl_reg_alloc *ra, size_t locat
 
     // Max uint64 = 18446744073709551615, which is 20 digits, add [ ], and add null terminator.
     char name_index[20 + 2 + 1];
-    sprintf(name_index, "[%" PRIu64 "]" , element_index);
+    sprintf(name_index, "[%zu]" , element_index);
     size_t len = strlen(name_index);
     if (name_buf) {
       strcpy(name_buf, name_index);
