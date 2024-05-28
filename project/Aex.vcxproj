@@ -206,6 +206,7 @@
     </ClCompile>
     <ClCompile Include="..\src\rasterizer.c">
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <ClCompile Include="..\src\ref_range_allocator.c" />
     <ClCompile Include="..\src\sampler_2d.c" />
