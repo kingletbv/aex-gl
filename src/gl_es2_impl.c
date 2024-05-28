@@ -8091,5 +8091,7 @@ GL_ES2_DECL_SPEC const char *GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(get_sha
     gl_es2_ctx_release(c);
     return "";
   }
-  return shad->shader_.exec_.dump_text_ ? shad->shader_.exec_.dump_text_ : "";
+  const char *text = shad->shader_.exec_.dump_text_ ? shad->shader_.exec_.dump_text_ : "";
+  gl_es2_ctx_release(c);
+  return text;
 }
