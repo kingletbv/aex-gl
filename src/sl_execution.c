@@ -4668,9 +4668,9 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
               eps[epi].v_.expr_->function_->builtin_runtime_fn_(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_);
             }
             else {
-              struct sl_execution_frame *parent = exec->execution_frames_ + exec->num_execution_frames_ - 1;
               r = sl_exec_push_execution_frame(exec);
               if (r) return r;
+              struct sl_execution_frame *parent = exec->execution_frames_ + exec->num_execution_frames_ - 2;
               struct sl_execution_frame *ef = exec->execution_frames_ + exec->num_execution_frames_ - 1;
               ef->f_ = eps[epi].v_.expr_->function_;
             

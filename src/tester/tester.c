@@ -51,7 +51,22 @@ struct shader_test_code {
   { "void main(void) {\n"
     "  dump(vec3(1,2,3));\n"
     "}\n",
-    "vec3(1.000000, 2.000000, 3.000000)\n3"
+    "vec3(1.000000, 2.000000, 3.000000)\n"
+  },
+
+  { "void main(void) {\n"
+    "  dump(1+1);\n"
+    "}",
+    "2\n"
+  },
+
+  { "void dump_arg(int arg) {\n"
+    "  dump(arg);\n"
+    "}\n"
+    "void main(void) {\n"
+    "  dump_arg(1+1);\n"
+    "}\n",
+    "2\n"
   }
 };
 
