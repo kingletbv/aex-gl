@@ -2286,7 +2286,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_offset_to_indir_offset(exec,
+                  sl_reg_move_i_indir_offset_to_indir_offset(exec,
                                                              row,
                                                              INT_REG_INDEX_NRV(to_ra, n),
                                                              INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2303,7 +2303,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_to_indir_offset(exec,
+                  sl_reg_move_i_indir_to_indir_offset(exec,
                                                       row,
                                                       INT_REG_INDEX_NRV(to_ra, n),
                                                       INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2321,7 +2321,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_offset_to_indir(exec,
+                  sl_reg_move_i_indir_offset_to_indir(exec,
                                                       row,
                                                       INT_REG_INDEX_NRV(to_ra, n),
                                                       k,
@@ -2336,7 +2336,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_to_indir(exec,
+                  sl_reg_move_i_indir_to_indir(exec,
                                                row,
                                                INT_REG_INDEX_NRV(to_ra, n),
                                                k,
@@ -2355,7 +2355,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_offset_reg_to_indir_offset(exec,
+                  sl_reg_move_i_offset_reg_to_indir_offset(exec,
                                                            row,
                                                            INT_REG_INDEX_NRV(to_ra, n),
                                                            INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2372,7 +2372,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_reg_to_indir_offset(exec,
+                  sl_reg_move_i_reg_to_indir_offset(exec,
                                                     row,
                                                     INT_REG_INDEX_NRV(to_ra, n),
                                                     INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2389,7 +2389,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_offset_reg_to_indir(exec,
+                  sl_reg_move_i_offset_reg_to_indir(exec,
                                                     row,
                                                     INT_REG_INDEX_NRV(to_ra, n),
                                                     k,
@@ -2404,7 +2404,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_reg_to_indir(exec,
+                  sl_reg_move_i_reg_to_indir(exec,
                                              row,
                                              INT_REG_INDEX_NRV(to_ra, n),
                                              k,
@@ -2425,7 +2425,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_offset_to_offset_reg(exec,
+                  sl_reg_move_i_indir_offset_to_offset_reg(exec,
                                                            row,
                                                            INT_REG_INDEX_NRV(to_ra, n) + k,
                                                            INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2442,7 +2442,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_to_offset_reg(exec,
+                  sl_reg_move_i_indir_to_offset_reg(exec,
                                                     row,
                                                     INT_REG_INDEX_NRV(to_ra, n) + k,
                                                     INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2460,7 +2460,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_offset_to_reg(exec,
+                  sl_reg_move_i_indir_offset_to_reg(exec,
                                                     row,
                                                     INT_REG_INDEX_NRV(to_ra, n) + k,
                                                     INT_REG_INDEX_NRV(from_ra, n),
@@ -2474,7 +2474,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_to_reg(exec,
+                  sl_reg_move_i_indir_to_reg(exec,
                                              row,
                                              INT_REG_INDEX_NRV(to_ra, n) + k,
                                              INT_REG_INDEX_NRV(from_ra, n),
@@ -2492,7 +2492,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_offset_reg_to_offset_reg(exec,
+                  sl_reg_move_i_offset_reg_to_offset_reg(exec,
                                                          row,
                                                          INT_REG_INDEX_NRV(to_ra, n) + k,
                                                          INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2509,7 +2509,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_reg_to_offset_reg(exec,
+                  sl_reg_move_i_reg_to_offset_reg(exec,
                                                   row,
                                                   INT_REG_INDEX_NRV(to_ra, n) + k,
                                                   INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2526,7 +2526,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_offset_reg_to_reg(exec,
+                  sl_reg_move_i_offset_reg_to_reg(exec,
                                                   row,
                                                   INT_REG_INDEX_NRV(to_ra, n) + k,
                                                   INT_REG_INDEX_NRV(from_ra, n) + k,
@@ -2540,7 +2540,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_reg_to_reg(exec,
+                  sl_reg_move_i_reg_to_reg(exec,
                                            row,
                                            INT_REG_INDEX_NRV(to_ra, n) + k,
                                            INT_REG_INDEX_NRV(from_ra, n) + k);
@@ -2572,7 +2572,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_offset_to_indir_offset(exec,
+                  sl_reg_move_b_indir_offset_to_indir_offset(exec,
                                                              row,
                                                              INT_REG_INDEX_NRV(to_ra, n),
                                                              INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2589,7 +2589,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_to_indir_offset(exec,
+                  sl_reg_move_b_indir_to_indir_offset(exec,
                                                       row,
                                                       INT_REG_INDEX_NRV(to_ra, n),
                                                       INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2607,7 +2607,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_offset_to_indir(exec,
+                  sl_reg_move_b_indir_offset_to_indir(exec,
                                                       row,
                                                       INT_REG_INDEX_NRV(to_ra, n),
                                                       k,
@@ -2622,7 +2622,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_to_indir(exec,
+                  sl_reg_move_b_indir_to_indir(exec,
                                                row,
                                                INT_REG_INDEX_NRV(to_ra, n),
                                                k,
@@ -2641,7 +2641,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_offset_reg_to_indir_offset(exec,
+                  sl_reg_move_b_offset_reg_to_indir_offset(exec,
                                                            row,
                                                            INT_REG_INDEX_NRV(to_ra, n),
                                                            INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2658,7 +2658,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_reg_to_indir_offset(exec,
+                  sl_reg_move_b_reg_to_indir_offset(exec,
                                                     row,
                                                     INT_REG_INDEX_NRV(to_ra, n),
                                                     INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2675,7 +2675,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_offset_reg_to_indir(exec,
+                  sl_reg_move_b_offset_reg_to_indir(exec,
                                                     row,
                                                     INT_REG_INDEX_NRV(to_ra, n),
                                                     k,
@@ -2690,7 +2690,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_reg_to_indir(exec,
+                  sl_reg_move_b_reg_to_indir(exec,
                                              row,
                                              INT_REG_INDEX_NRV(to_ra, n),
                                              k,
@@ -2711,7 +2711,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_offset_to_offset_reg(exec,
+                  sl_reg_move_b_indir_offset_to_offset_reg(exec,
                                                            row,
                                                            BOOL_REG_INDEX_NRV(to_ra, n) + k,
                                                            INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2728,7 +2728,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_to_offset_reg(exec,
+                  sl_reg_move_b_indir_to_offset_reg(exec,
                                                     row,
                                                     BOOL_REG_INDEX_NRV(to_ra, n) + k,
                                                     INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2746,7 +2746,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_offset_to_reg(exec,
+                  sl_reg_move_b_indir_offset_to_reg(exec,
                                                     row,
                                                     BOOL_REG_INDEX_NRV(to_ra, n) + k,
                                                     INT_REG_INDEX_NRV(from_ra, n),
@@ -2760,7 +2760,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_indir_to_reg(exec,
+                  sl_reg_move_b_indir_to_reg(exec,
                                              row,
                                              BOOL_REG_INDEX_NRV(to_ra, n) + k,
                                              INT_REG_INDEX_NRV(from_ra, n),
@@ -2778,7 +2778,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_offset_reg_to_offset_reg(exec,
+                  sl_reg_move_b_offset_reg_to_offset_reg(exec,
                                                          row,
                                                          BOOL_REG_INDEX_NRV(to_ra, n) + k,
                                                          INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2795,7 +2795,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_reg_to_offset_reg(exec,
+                  sl_reg_move_b_reg_to_offset_reg(exec,
                                                   row,
                                                   BOOL_REG_INDEX_NRV(to_ra, n) + k,
                                                   INT_REG_INDEX_NRV(to_ra_offset, n),
@@ -2812,7 +2812,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_offset_reg_to_reg(exec,
+                  sl_reg_move_b_offset_reg_to_reg(exec,
                                                   row,
                                                   BOOL_REG_INDEX_NRV(to_ra, n) + k,
                                                   BOOL_REG_INDEX_NRV(from_ra, n) + k,
@@ -2826,7 +2826,7 @@ void sl_reg_move(struct sl_execution *exec,
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
                 for (n = 0; n < num_components; ++n) {
-                  sl_reg_move_f_reg_to_reg(exec,
+                  sl_reg_move_b_reg_to_reg(exec,
                                            row,
                                            BOOL_REG_INDEX_NRV(to_ra, n) + k,
                                            BOOL_REG_INDEX_NRV(from_ra, n) + k);
@@ -2848,29 +2848,29 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_offset_to_indir_offset(exec,
-                                                           row,
-                                                           INT_REG_INDEX_NRV(to_ra, 0),
-                                                           INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                           k,
-                                                           to_offset_step_size,
-                                                           INT_REG_INDEX_NRV(from_ra, 0),
-                                                           INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                           k,
-                                                           from_offset_step_size);
+                sl_reg_move_s2d_indir_offset_to_indir_offset(exec,
+                                                             row,
+                                                             INT_REG_INDEX_NRV(to_ra, 0),
+                                                             INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                             k,
+                                                             to_offset_step_size,
+                                                             INT_REG_INDEX_NRV(from_ra, 0),
+                                                             INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                             k,
+                                                             from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_to_indir_offset(exec,
-                                                    row,
-                                                    INT_REG_INDEX_NRV(to_ra, 0),
-                                                    INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                    k,
-                                                    to_offset_step_size,
-                                                    INT_REG_INDEX_NRV(from_ra, 0),
-                                                    k);
+                sl_reg_move_s2d_indir_to_indir_offset(exec,
+                                                      row,
+                                                      INT_REG_INDEX_NRV(to_ra, 0),
+                                                      INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                      k,
+                                                      to_offset_step_size,
+                                                      INT_REG_INDEX_NRV(from_ra, 0),
+                                                      k);
               }
             }
           }
@@ -2879,25 +2879,25 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_offset_to_indir(exec,
-                                                    row,
-                                                    INT_REG_INDEX_NRV(to_ra, 0),
-                                                    k,
-                                                    INT_REG_INDEX_NRV(from_ra, 0),
-                                                    INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                    k,
-                                                    from_offset_step_size);
+                sl_reg_move_s2d_indir_offset_to_indir(exec,
+                                                      row,
+                                                      INT_REG_INDEX_NRV(to_ra, 0),
+                                                      k,
+                                                      INT_REG_INDEX_NRV(from_ra, 0),
+                                                      INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                      k,
+                                                      from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_to_indir(exec,
-                                             row,
-                                             INT_REG_INDEX_NRV(to_ra, 0),
-                                             k,
-                                             INT_REG_INDEX_NRV(from_ra, 0),
-                                             k);
+                sl_reg_move_s2d_indir_to_indir(exec,
+                                               row,
+                                               INT_REG_INDEX_NRV(to_ra, 0),
+                                               k,
+                                               INT_REG_INDEX_NRV(from_ra, 0),
+                                               k);
               }
             }
           }
@@ -2909,28 +2909,28 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_offset_reg_to_indir_offset(exec,
-                                                         row,
-                                                         INT_REG_INDEX_NRV(to_ra, 0),
-                                                         INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                         k,
-                                                         to_offset_step_size,
-                                                         SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
-                                                         INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                         0,
-                                                         from_offset_step_size);
+                sl_reg_move_s2d_offset_reg_to_indir_offset(exec,
+                                                           row,
+                                                           INT_REG_INDEX_NRV(to_ra, 0),
+                                                           INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                           k,
+                                                           to_offset_step_size,
+                                                           SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
+                                                           INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                           0,
+                                                           from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_reg_to_indir_offset(exec,
-                                                  row,
-                                                  INT_REG_INDEX_NRV(to_ra, 0),
-                                                  INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                  k,
-                                                  to_offset_step_size,
-                                                  SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
+                sl_reg_move_s2d_reg_to_indir_offset(exec,
+                                                    row,
+                                                    INT_REG_INDEX_NRV(to_ra, 0),
+                                                    INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                    k,
+                                                    to_offset_step_size,
+                                                    SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
               }
             }
           }
@@ -2939,24 +2939,24 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_offset_reg_to_indir(exec,
-                                                  row,
-                                                  INT_REG_INDEX_NRV(to_ra, 0),
-                                                  k,
-                                                  SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
-                                                  INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                  0,
-                                                  from_offset_step_size);
+                sl_reg_move_s2d_offset_reg_to_indir(exec,
+                                                    row,
+                                                    INT_REG_INDEX_NRV(to_ra, 0),
+                                                    k,
+                                                    SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
+                                                    INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                    0,
+                                                    from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_reg_to_indir(exec,
-                                           row,
-                                           INT_REG_INDEX_NRV(to_ra, 0),
-                                           k,
-                                           SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
+                sl_reg_move_s2d_reg_to_indir(exec,
+                                             row,
+                                             INT_REG_INDEX_NRV(to_ra, 0),
+                                             k,
+                                             SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
               }
             }
           }
@@ -2971,29 +2971,29 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_offset_to_offset_reg(exec,
-                                                         row,
-                                                         SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                         INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                         0,
-                                                         to_offset_step_size,
-                                                         INT_REG_INDEX_NRV(from_ra, 0),
-                                                         INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                         k,
-                                                         from_offset_step_size);
+                sl_reg_move_s2d_indir_offset_to_offset_reg(exec,
+                                                           row,
+                                                           SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
+                                                           INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                           0,
+                                                           to_offset_step_size,
+                                                           INT_REG_INDEX_NRV(from_ra, 0),
+                                                           INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                           k,
+                                                           from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_to_offset_reg(exec,
-                                                  row,
-                                                  SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                  INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                  0,
-                                                  to_offset_step_size,
-                                                  INT_REG_INDEX_NRV(from_ra, 0),
-                                                  k);
+                sl_reg_move_s2d_indir_to_offset_reg(exec,
+                                                    row,
+                                                    SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
+                                                    INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                    0,
+                                                    to_offset_step_size,
+                                                    INT_REG_INDEX_NRV(from_ra, 0),
+                                                    k);
               }
             }
           }
@@ -3002,23 +3002,23 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_offset_to_reg(exec,
-                                                  row,
-                                                  SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                  INT_REG_INDEX_NRV(from_ra, 0),
-                                                  INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                  k,
-                                                  from_offset_step_size);
+                sl_reg_move_s2d_indir_offset_to_reg(exec,
+                                                    row,
+                                                    SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
+                                                    INT_REG_INDEX_NRV(from_ra, 0),
+                                                    INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                    k,
+                                                    from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_to_reg(exec,
-                                           row,
-                                           SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                           INT_REG_INDEX_NRV(from_ra, 0),
-                                           k);
+                sl_reg_move_s2d_indir_to_reg(exec,
+                                             row,
+                                             SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
+                                             INT_REG_INDEX_NRV(from_ra, 0),
+                                             k);
               }
             }
           }
@@ -3030,28 +3030,28 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_offset_reg_to_offset_reg(exec,
-                                                       row,
-                                                       SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                       INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                       0,
-                                                       to_offset_step_size,
-                                                       SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
-                                                       INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                       0,
-                                                       from_offset_step_size);
+                sl_reg_move_s2d_offset_reg_to_offset_reg(exec,
+                                                         row,
+                                                         SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
+                                                         INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                         0,
+                                                         to_offset_step_size,
+                                                         SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
+                                                         INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                         0,
+                                                         from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_reg_to_offset_reg(exec,
-                                                row,
-                                                SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                0,
-                                                to_offset_step_size,
-                                                SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
+                sl_reg_move_s2d_reg_to_offset_reg(exec,
+                                                  row,
+                                                  SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
+                                                  INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                  0,
+                                                  to_offset_step_size,
+                                                  SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
               }
             }
           }
@@ -3060,22 +3060,22 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_offset_reg_to_reg(exec,
-                                                row,
-                                                SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                                SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
-                                                INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                0,
-                                                from_offset_step_size);
+                sl_reg_move_s2d_offset_reg_to_reg(exec,
+                                                  row,
+                                                  SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
+                                                  SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k,
+                                                  INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                  0,
+                                                  from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_reg_to_reg(exec,
-                                         row,
-                                         SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
-                                         SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
+                sl_reg_move_s2d_reg_to_reg(exec,
+                                           row,
+                                           SAMPLER_2D_REG_INDEX_NRV(to_ra, 0) + k,
+                                           SAMPLER_2D_REG_INDEX_NRV(from_ra, 0) + k);
               }
             }
           }
@@ -3093,29 +3093,29 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_offset_to_indir_offset(exec,
-                                                           row,
-                                                           INT_REG_INDEX_NRV(to_ra, 0),
-                                                           INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                           k,
-                                                           to_offset_step_size,
-                                                           INT_REG_INDEX_NRV(from_ra, 0),
-                                                           INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                           k,
-                                                           from_offset_step_size);
+                sl_reg_move_sc_indir_offset_to_indir_offset(exec,
+                                                            row,
+                                                            INT_REG_INDEX_NRV(to_ra, 0),
+                                                            INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                            k,
+                                                            to_offset_step_size,
+                                                            INT_REG_INDEX_NRV(from_ra, 0),
+                                                            INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                            k,
+                                                            from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_to_indir_offset(exec,
-                                                    row,
-                                                    INT_REG_INDEX_NRV(to_ra, 0),
-                                                    INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                    k,
-                                                    to_offset_step_size,
-                                                    INT_REG_INDEX_NRV(from_ra, 0),
-                                                    k);
+                sl_reg_move_sc_indir_to_indir_offset(exec,
+                                                     row,
+                                                     INT_REG_INDEX_NRV(to_ra, 0),
+                                                     INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                     k,
+                                                     to_offset_step_size,
+                                                     INT_REG_INDEX_NRV(from_ra, 0),
+                                                     k);
               }
             }
           }
@@ -3124,25 +3124,25 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_offset_to_indir(exec,
-                                                    row,
-                                                    INT_REG_INDEX_NRV(to_ra, 0),
-                                                    k,
-                                                    INT_REG_INDEX_NRV(from_ra, 0),
-                                                    INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                    k,
-                                                    from_offset_step_size);
+                sl_reg_move_sc_indir_offset_to_indir(exec,
+                                                     row,
+                                                     INT_REG_INDEX_NRV(to_ra, 0),
+                                                     k,
+                                                     INT_REG_INDEX_NRV(from_ra, 0),
+                                                     INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                     k,
+                                                     from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_to_indir(exec,
-                                             row,
-                                             INT_REG_INDEX_NRV(to_ra, 0),
-                                             k,
-                                             INT_REG_INDEX_NRV(from_ra, 0),
-                                             k);
+                sl_reg_move_sc_indir_to_indir(exec,
+                                              row,
+                                              INT_REG_INDEX_NRV(to_ra, 0),
+                                              k,
+                                              INT_REG_INDEX_NRV(from_ra, 0),
+                                              k);
               }
             }
           }
@@ -3154,28 +3154,28 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_offset_reg_to_indir_offset(exec,
-                                                         row,
-                                                         INT_REG_INDEX_NRV(to_ra, 0),
-                                                         INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                         k,
-                                                         to_offset_step_size,
-                                                         SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
-                                                         INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                         0,
-                                                         from_offset_step_size);
+                sl_reg_move_sc_offset_reg_to_indir_offset(exec,
+                                                          row,
+                                                          INT_REG_INDEX_NRV(to_ra, 0),
+                                                          INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                          k,
+                                                          to_offset_step_size,
+                                                          SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
+                                                          INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                          0,
+                                                          from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_reg_to_indir_offset(exec,
-                                                  row,
-                                                  INT_REG_INDEX_NRV(to_ra, 0),
-                                                  INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                  k,
-                                                  to_offset_step_size,
-                                                  SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
+                sl_reg_move_sc_reg_to_indir_offset(exec,
+                                                   row,
+                                                   INT_REG_INDEX_NRV(to_ra, 0),
+                                                   INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                   k,
+                                                   to_offset_step_size,
+                                                   SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
               }
             }
           }
@@ -3184,24 +3184,24 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_offset_reg_to_indir(exec,
-                                                  row,
-                                                  INT_REG_INDEX_NRV(to_ra, 0),
-                                                  k,
-                                                  SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
-                                                  INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                  0,
-                                                  from_offset_step_size);
+                sl_reg_move_sc_offset_reg_to_indir(exec,
+                                                   row,
+                                                   INT_REG_INDEX_NRV(to_ra, 0),
+                                                   k,
+                                                   SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
+                                                   INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                   0,
+                                                   from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_reg_to_indir(exec,
-                                           row,
-                                           INT_REG_INDEX_NRV(to_ra, 0),
-                                           k,
-                                           SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
+                sl_reg_move_sc_reg_to_indir(exec,
+                                            row,
+                                            INT_REG_INDEX_NRV(to_ra, 0),
+                                            k,
+                                            SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
               }
             }
           }
@@ -3216,29 +3216,29 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_offset_to_offset_reg(exec,
-                                                         row,
-                                                         SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                         INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                         0,
-                                                         to_offset_step_size,
-                                                         INT_REG_INDEX_NRV(from_ra, 0),
-                                                         INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                         k,
-                                                         from_offset_step_size);
+                sl_reg_move_sc_indir_offset_to_offset_reg(exec,
+                                                          row,
+                                                          SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
+                                                          INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                          0,
+                                                          to_offset_step_size,
+                                                          INT_REG_INDEX_NRV(from_ra, 0),
+                                                          INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                          k,
+                                                          from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_to_offset_reg(exec,
-                                                  row,
-                                                  SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                  INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                  0,
-                                                  to_offset_step_size,
-                                                  INT_REG_INDEX_NRV(from_ra, 0),
-                                                  k);
+                sl_reg_move_sc_indir_to_offset_reg(exec,
+                                                   row,
+                                                   SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
+                                                   INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                   0,
+                                                   to_offset_step_size,
+                                                   INT_REG_INDEX_NRV(from_ra, 0),
+                                                   k);
               }
             }
           }
@@ -3247,23 +3247,23 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_offset_to_reg(exec,
-                                                  row,
-                                                  SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                  INT_REG_INDEX_NRV(from_ra, 0),
-                                                  INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                  k,
-                                                  from_offset_step_size);
+                sl_reg_move_sc_indir_offset_to_reg(exec,
+                                                   row,
+                                                   SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
+                                                   INT_REG_INDEX_NRV(from_ra, 0),
+                                                   INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                   k,
+                                                   from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_indir_to_reg(exec,
-                                           row,
-                                           SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                           INT_REG_INDEX_NRV(from_ra, 0),
-                                           k);
+                sl_reg_move_sc_indir_to_reg(exec,
+                                            row,
+                                            SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
+                                            INT_REG_INDEX_NRV(from_ra, 0),
+                                            k);
               }
             }
           }
@@ -3275,28 +3275,28 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_offset_reg_to_offset_reg(exec,
-                                                       row,
-                                                       SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                       INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                       0,
-                                                       to_offset_step_size,
-                                                       SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
-                                                       INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                       0,
-                                                       from_offset_step_size);
+                sl_reg_move_sc_offset_reg_to_offset_reg(exec,
+                                                        row,
+                                                        SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
+                                                        INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                        0,
+                                                        to_offset_step_size,
+                                                        SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
+                                                        INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                        0,
+                                                        from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_reg_to_offset_reg(exec,
-                                                row,
-                                                SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                INT_REG_INDEX_NRV(to_ra_offset, 0),
-                                                0,
-                                                to_offset_step_size,
-                                                SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
+                sl_reg_move_sc_reg_to_offset_reg(exec,
+                                                 row,
+                                                 SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
+                                                 INT_REG_INDEX_NRV(to_ra_offset, 0),
+                                                 0,
+                                                 to_offset_step_size,
+                                                 SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
               }
             }
           }
@@ -3305,22 +3305,22 @@ void sl_reg_move(struct sl_execution *exec,
             if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
               /* have a from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_offset_reg_to_reg(exec,
-                                                row,
-                                                SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                                SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
-                                                INT_REG_INDEX_NRV(from_ra_offset, 0),
-                                                0,
-                                                from_offset_step_size);
+                sl_reg_move_sc_offset_reg_to_reg(exec,
+                                                 row,
+                                                 SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
+                                                 SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k,
+                                                 INT_REG_INDEX_NRV(from_ra_offset, 0),
+                                                 0,
+                                                 from_offset_step_size);
               }
             }
             else {
               /* no from offset */
               for (k = 0; k < array_quantity; ++k) {
-                sl_reg_move_f_reg_to_reg(exec,
-                                         row,
-                                         SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
-                                         SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
+                sl_reg_move_sc_reg_to_reg(exec,
+                                          row,
+                                          SAMPLER_CUBE_REG_INDEX_NRV(to_ra, 0) + k,
+                                          SAMPLER_CUBE_REG_INDEX_NRV(from_ra, 0) + k);
               }
             }
           }
