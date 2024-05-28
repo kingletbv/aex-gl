@@ -1103,118 +1103,8 @@ static void sl_exec_split_chains_by_bool(struct sl_execution *exec, struct sl_ex
   *pfalse_chain = false_chain;
 }
 
-static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl_execution_frame *dst_ef, struct sl_reg_alloc *dst, struct sl_execution_frame *src_ef, struct sl_reg_alloc *src, int array_quantity) {
-  int num_components = 0;
-  int n;
-
-  switch (src->kind_) {
-    case slrak_array: {
-      if (dst->v_.array_.num_elements_ > (INT_MAX / array_quantity)) {
-        /* overflow */
-        return;
-      }
-      array_quantity *= (int)dst->v_.array_.num_elements_;
-      sl_exec_move_param(exec, row, dst_ef, dst->v_.array_.head_, src_ef, src->v_.array_.head_, array_quantity);
-      break;
-    }
-    case slrak_struct: {
-      size_t index;
-      for (index = 0; index < src->v_.comp_.num_fields_; ++index) {
-        sl_exec_move_param(exec, row, dst_ef, dst->v_.comp_.fields_ + index, src_ef, src->v_.comp_.fields_ + index, array_quantity);
-      }
-      break;
-    }
-    case slrak_float:
-    case slrak_vec2:
-    case slrak_vec3:
-    case slrak_vec4:
-    case slrak_mat2:
-    case slrak_mat3:
-    case slrak_mat4: {
-      switch (src->kind_) {
-        case slrak_float: num_components = 1; break;
-        case slrak_vec2:  num_components = 2; break;
-        case slrak_vec3:  num_components = 3; break;
-        case slrak_vec4:  num_components = 4; break;
-        case slrak_mat2:  num_components = 4; break;
-        case slrak_mat3:  num_components = 9; break;
-        case slrak_mat4:  num_components = 16; break;
-          break;
-      }
-      for (n = 0; n < num_components; ++n) {
-        int dst_reg = dst->local_frame_ ? dst_ef->local_float_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
-        int src_reg = src->local_frame_ ? src_ef->local_float_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
-
-        int k;
-        for (k = 0; k < array_quantity; ++k) {
-          sl_exec_f_move(row, exec->exec_chain_reg_, exec->float_regs_[dst_reg + k], exec->float_regs_[src_reg + k]);
-        }
-      }
-      break;
-    }
-    case slrak_int:
-    case slrak_ivec2:
-    case slrak_ivec3:
-    case slrak_ivec4: {
-      switch (src->kind_) {
-        case slrak_int:   num_components = 1; break;
-        case slrak_ivec2: num_components = 2; break;
-        case slrak_ivec3: num_components = 3; break;
-        case slrak_ivec4: num_components = 4; break;
-      }
-      for (n = 0; n < num_components; ++n) {
-        int dst_reg = dst->local_frame_ ? dst_ef->local_int_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
-        int src_reg = src->local_frame_ ? src_ef->local_int_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
-
-        int k;
-        for (k = 0; k < array_quantity; ++k) {
-          sl_exec_i_move(row, exec->exec_chain_reg_, exec->int_regs_[dst_reg + k], exec->int_regs_[src_reg + k]);
-        }
-      }
-      break;
-    }
-    case slrak_bool:
-    case slrak_bvec2:
-    case slrak_bvec3:
-    case slrak_bvec4: {
-      switch (src->kind_) {
-        case slrak_bool:  num_components = 1; break;
-        case slrak_bvec2: num_components = 2; break;
-        case slrak_bvec3: num_components = 3; break;
-        case slrak_bvec4: num_components = 4; break;
-      }
-      for (n = 0; n < num_components; ++n) {
-        int dst_reg = dst->local_frame_ ? dst_ef->local_bool_offset_ + dst->v_.regs_[n] : dst->v_.regs_[n];
-        int src_reg = src->local_frame_ ? src_ef->local_bool_offset_ + src->v_.regs_[n] : src->v_.regs_[n];
-
-        int k;
-        for (k = 0; k < array_quantity; ++k) {
-          sl_exec_b_move(row, exec->exec_chain_reg_, exec->bool_regs_[dst_reg + k], exec->bool_regs_[src_reg + k]);
-        }
-      }
-      break;
-    }
-    case slrak_sampler2D: {
-      int dst_reg = dst->local_frame_ ? dst_ef->local_sampler2D_offset_ + dst->v_.regs_[0] : dst->v_.regs_[0];
-      int src_reg = src->local_frame_ ? src_ef->local_sampler2D_offset_ + src->v_.regs_[0] : src->v_.regs_[0];
-
-      int k;
-      for (k = 0; k < array_quantity; ++k) {
-        sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_2D_regs_[dst_reg + k], exec->sampler_2D_regs_[src_reg + k]);
-      }
-      break;
-    }
-    case slrak_samplerCube: {
-      int dst_reg = dst->local_frame_ ? dst_ef->local_samplerCube_offset_ + dst->v_.regs_[0] : dst->v_.regs_[0];
-      int src_reg = src->local_frame_ ? src_ef->local_samplerCube_offset_ + src->v_.regs_[0] : src->v_.regs_[0];
-
-      int k;
-      for (k = 0; k < array_quantity; ++k) {
-        sl_exec_p_move(row, exec->exec_chain_reg_, exec->sampler_cube_regs_[dst_reg + k], exec->sampler_cube_regs_[src_reg + k]);
-      }
-      break;
-    }
-  }
+static void sl_exec_move_param(struct sl_execution *exec, uint8_t row, struct sl_execution_frame *dst_ef, struct sl_reg_alloc *dst, struct sl_execution_frame *src_ef, struct sl_reg_alloc *src) {
+  sl_reg_move_crossframe(exec, row, (int)(src_ef - exec->execution_frames_), src, NULL, (int)(dst_ef - exec->execution_frames_), dst, NULL, 1, 1, 1);
 }
 
 
@@ -3997,7 +3887,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                   sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.stmt_->expr_);
                   sl_exec_move_param(exec, eps[epi].revisit_chain_, 
                                      exec->execution_frames_ + exec->num_execution_frames_ - 2, &eps[pepi].v_.expr_->base_regs_,
-                                     exec->execution_frames_ + exec->num_execution_frames_ - 1, EXPR_RVALUE(eps[epi].v_.stmt_->expr_), 1);
+                                     exec->execution_frames_ + exec->num_execution_frames_ - 1, EXPR_RVALUE(eps[epi].v_.stmt_->expr_));
                   eps[pepi].alt_chain_ = sl_exec_join_chains(exec, eps[pepi].alt_chain_, eps[epi].revisit_chain_);
                   break;
                 }
@@ -4797,7 +4687,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                 sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_);
                 struct sl_reg_alloc *call_arg_ra = EXPR_RVALUE(eps[epi].v_.expr_->children_[n]);
               
-                sl_exec_move_param(exec, eps[epi].revisit_chain_, ef, param_ra, parent, call_arg_ra, 1);
+                sl_exec_move_param(exec, eps[epi].revisit_chain_, ef, param_ra, parent, call_arg_ra);
               }
 
               r = sl_exec_push_stmt(exec, ef->f_->body_, eps[epi].revisit_chain_, CHAIN_REF(eps[epi].alt_chain_));
@@ -4861,7 +4751,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
               struct sl_type *param_type = param->type_;
               int qualifiers = sl_type_qualifiers(param_type);
               if ((qualifiers & SL_PARAMETER_QUALIFIER_OUT) && (qualifiers & SL_PARAMETER_QUALIFIER_INOUT)) {
-                sl_exec_move_param(exec, eps[epi].revisit_chain_, parent_frame, call_arg_ra, func_frame, param_ra, 1);
+                sl_exec_move_param(exec, eps[epi].revisit_chain_, parent_frame, call_arg_ra, func_frame, param_ra);
                 if (eps[epi].v_.expr_->offset_reg_.kind_ != slrak_void) {
                   /* Store rvalue into actual lvalue passed in to the arg */
                   sl_exec_offset_store(exec, eps[epi].alt_chain_, 
