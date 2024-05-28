@@ -143,6 +143,10 @@ struct sl_execution {
   /* Maximum number of rows the execution has been allocated for */
   size_t max_num_rows_;
 
+  /* Dump text, used by the debug shader dump() function to write output */
+  size_t dump_text_len_;
+  char *dump_text_;
+
   /* Slab allocation for registers */
   void *slab_;
 
@@ -260,6 +264,9 @@ void sl_exec_offset_dumpf_strided(struct sl_execution *exec,
 /* Convenience wrapper analogous to sl_exec_dump which sends its output to fp */
 void sl_exec_dumpf(struct sl_execution *exec, FILE *fp,
                     uint8_t single_row, const struct sl_reg_alloc *ra);
+
+void sl_exec_debug_dump_builtin(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
+  
 
 #ifdef __cplusplus
 } /* extern "C" */

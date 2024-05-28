@@ -232,6 +232,7 @@ int sl_shader_compile(struct sl_shader *sh) {
     assert(cc.cu_->global_scope_.seq_->prev_->kind_ == SK_FUNCTION);
     struct sl_function *f = cc.cu_->global_scope_.seq_->prev_->v_.function_;
     f->is_dump_fn_ = 1;
+    f->builtin_runtime_fn_ = sl_exec_debug_dump_builtin;
   }
 
   /* All variables introduced this far should not be subject to initialization from its literal. */

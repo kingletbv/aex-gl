@@ -8036,3 +8036,60 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Viewport)(gl_e
   gl_es2_ctx_release(c);
 }
 
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(run_debug_shader)(int program) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = NULL;
+  prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_ctx_release(c);
+    return ;
+  }
+
+  if (!prog->debug_shader_.shader_) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_ctx_release(c);
+    return;
+  }
+
+  int r;
+  struct sl_function *vmain = NULL;
+  struct sl_shader *debug_shader = &prog->debug_shader_.shader_->shader_;
+  vmain = sl_compilation_unit_find_function(&debug_shader->cu_, "main");
+  if (!vmain) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_ctx_release(c);
+    return;
+  }
+
+  /* Set up execution chain of 1 single isolated row only. */
+  uint8_t *exec_chain = debug_shader->exec_.exec_chain_reg_;
+  exec_chain[0] = 0;
+
+  r = sl_exec_run(&prog->debug_shader_.shader_->shader_.exec_, vmain, 0);
+
+  if (r) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_ctx_release(c);
+    return;
+  }
+
+  gl_es2_ctx_release(c);
+  return ;
+}
+
+GL_ES2_DECL_SPEC const char *GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(get_shader_debug_string)(int shader) {
+  struct gl_es2_context *c = gl_es2_ctx();
+
+  uintptr_t shad_name = (uintptr_t)shader;
+  struct gl_es2_shader *shad = NULL;
+  shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
+  if (!shad) {
+    set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_ctx_release(c);
+    return "";
+  }
+  return shad->shader_.exec_.dump_text_ ? shad->shader_.exec_.dump_text_ : "";
+}

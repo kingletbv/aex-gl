@@ -906,6 +906,9 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
         r = r | sl_expr_validate(dx, tb, x->children_[n]);
         if (r & SLXV_INVALID) return r;
       }
+      /* No further validation if this is a very special case polymorphic debug dump function */
+      if (x->function_->is_dump_fn_) return r;
+
       struct sl_function *f = x->function_;
       for (n = 0; n < x->num_children_; ++n) {
         struct sl_type *t = sl_expr_type(tb, x->children_[n]);

@@ -511,6 +511,22 @@ GL_ES2_DECL_SPEC int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(context_init)(i
                                                                                int num_depth_bits,
                                                                                int width, int height);
 
+/* runs the debug shader inside the specified program. This requires that the shader was created
+ * using glCreateShader(AEX_GL_DEBUG_SHADER) and is the only shader attached to the program.
+ */
+GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(run_debug_shader)(int program);
+
+/* retrieves the debug dump string as logged by the "dump()" builtin function (available only on
+ * glCreateShader(AEX_GL_DEBUG_SHADER) type shaders). If no dump() call was made, or an error
+ * occurs, an empty string "" is returned. Otherwise a multi-line string is returned whereby,
+ * for each line, a single dump() call is specified.
+ * For instance, "dump(vec2(1,2))" will result in the dump string "vec2(1.000000, 2.000000)\n"
+ * (so, important: including a newline at the end!)
+ * similarly, "dump(ivec4(1,2,3,4))" will result in the dump string "ivec4(1, 2, 3, 4)\n"
+ * and so on.
+ */
+GL_ES2_DECL_SPEC const char *GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(get_shader_debug_string)(int shader);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

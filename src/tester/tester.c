@@ -23,6 +23,11 @@
 #include <stdio.h>
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
 #ifdef USE_STANDARD_NON_AEX_GL_HEADERS
 #ifndef GLES2_GL2_H_INCLUDED
 #define GLES2_GL2_H_INCLUDED
@@ -39,10 +44,15 @@
 #include "gl_es2_aex_func_map.c"
 #endif
 
-const char *shader_code[] = {
-  "void main(void) {\n"
-  "  dump(3.f);\n"
-  "}\n"
+struct shader_test_code {
+  const char *code_;
+  const char *expected_dump_;
+} shader_tests[] = {
+  { "void main(void) {\n"
+    "  dump(vec3(1,2,3));\n"
+    "}\n",
+    "vec3(1.000000, 2.000000, 3.000000)\n3"
+  }
 };
 
 int check_for_and_print_gl_err(FILE *fp) {
@@ -100,12 +110,15 @@ int print_program_log(FILE *fp, GLuint program) {
 
 
 int main(int argc, char **argv) {
+  int num_successes = 0;
+  int total_num = (int)(sizeof(shader_tests) / sizeof(*shader_tests));
 
   size_t n;
-  for (n = 0; n < sizeof(shader_code) / sizeof(*shader_code); ++n) {
+  for (n = 0; n < sizeof(shader_tests) / sizeof(*shader_tests); ++n) {
+    struct shader_test_code *stc = shader_tests + n;
     int sh = glCreateShader(AEX_GL_DEBUG_SHADER);
     check_for_and_print_gl_err(stderr);
-    glShaderSource(sh, 1, &shader_code[n], NULL);
+    glShaderSource(sh, 1, &stc->code_, NULL);
     check_for_and_print_gl_err(stderr);
     glCompileShader(sh);
     check_for_and_print_gl_err(stderr);
@@ -138,14 +151,30 @@ int main(int argc, char **argv) {
         return -1;
       }
     }
+    else {
+      aex_gl_es2_run_debug_shader(prog);
+      if (!check_for_and_print_gl_err(stderr)) {
+        const char *dump_output = aex_gl_es2_get_shader_debug_string(sh);
+        if (strcmp(dump_output, stc->expected_dump_)) {
+          fprintf(stderr, "Failed test #%zu\nExpected output:\n%sActual output:\n%s\n", n, stc->expected_dump_, dump_output);
+        }
+        else {
+          num_successes++;
+        }
+      }
+      else {
+        fprintf(stderr, "Failed test #%zu\n", n);
+      }
+    }
 
     glDeleteProgram(prog);
+    check_for_and_print_gl_err(stderr);
 
     glDeleteShader(sh);
     check_for_and_print_gl_err(stderr);
   }
-  
-  
 
-  return EXIT_SUCCESS;
+  fprintf(stdout, "%d / %d tests passed\n", num_successes, total_num);
+  
+  return (num_successes == total_num) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -3085,6 +3085,8 @@ static void sl_exec_clear_ep(struct sl_execution *exec, size_t ep_index) {
 void sl_exec_init(struct sl_execution *exec) {
   exec->cu_ = NULL;
   exec->max_num_rows_ = 0;
+  exec->dump_text_ = NULL;
+  exec->dump_text_len_ = 0;
   exec->num_execution_points_ = exec->num_execution_points_allocated_ = 0;
   exec->execution_points_ = NULL;
   exec->num_execution_frames_ = exec->num_execution_frames_allocated_ = 0;
@@ -3103,6 +3105,7 @@ void sl_exec_init(struct sl_execution *exec) {
 }
 
 void sl_exec_cleanup(struct sl_execution *exec) {
+  if (exec->dump_text_) free(exec->dump_text_);
   if (exec->execution_points_) free(exec->execution_points_);
   if (exec->execution_frames_) free(exec->execution_frames_);
   if (exec->exec_chain_reg_) free(exec->exec_chain_reg_);
@@ -4792,3 +4795,21 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
 
   return 0;
 }
+
+void sl_exec_debug_dump_builtin(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
+  sl_exec_need_rvalue(exec, exec_chain, x->children_[0]);
+
+  struct sl_reg_alloc *ra = EXPR_RVALUE(x->children_[0]);
+
+  size_t len_needed = sl_exec_offset_dump_strided(exec, NULL, exec_chain, ra, NULL, 1, 0);
+  char *m = (char *)malloc(exec->dump_text_len_ + len_needed + 2);
+  if (!m) return;
+  memcpy(m, exec->dump_text_, exec->dump_text_len_);
+  sl_exec_offset_dump_strided(exec, m + exec->dump_text_len_, exec_chain, ra, NULL, 1, 0);
+  m[exec->dump_text_len_ + len_needed] = '\n';
+  m[exec->dump_text_len_ + len_needed + 1] = '\0';
+  if (exec->dump_text_) free(exec->dump_text_);
+  exec->dump_text_ = m;
+  exec->dump_text_len_ += len_needed + 1;
+}
+
