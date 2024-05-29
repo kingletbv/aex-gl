@@ -389,12 +389,17 @@ int sl_reg_alloc_are_equal(const struct sl_reg_alloc *a, const struct sl_reg_all
   }
 }
 
-static sl_reg_category_t sl_reg_alloc_get_category(sl_reg_alloc_kind_t kind) {
-  switch (kind) {
+static sl_reg_category_t sl_reg_alloc_get_category(const struct sl_reg_alloc *ra) {
+  /* Filter out the undesirables, then check if this is indirect, if so, int regs,
+   * otherwise the underlying scalar type */
+  switch (ra->kind_) {
     case slrak_void:
     case slrak_array:
     case slrak_struct:
       return slrc_invalid;
+  }
+  if (ra->is_indirect_) return slrc_int;
+  switch (ra->kind_) {
     case slrak_float:
       return slrc_float;
     case slrak_int:
@@ -571,7 +576,7 @@ int sl_reg_allocator_lock_descend(struct sl_reg_allocator *ract, int array_quant
   }
   else {
     int card = sl_reg_alloc_get_cardinality(ra->kind_);
-    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra);
     int n;
     for (n = 0; n < card; ++n) {
       r = sl_reg_allocator_lock_reg_range(ract, cat, ra->v_.regs_[n], array_quantity);
@@ -613,7 +618,7 @@ int sl_reg_allocator_unlock_descend(struct sl_reg_allocator *ract, int array_qua
   }
   else {
     int card = sl_reg_alloc_get_cardinality(ra->kind_);
-    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra);
     int n;
     for (n = 0; n < card; ++n) {
       r = sl_reg_allocator_unlock_reg_range(ract, cat, ra->v_.regs_[n], array_quantity);
@@ -655,7 +660,7 @@ int sl_reg_allocator_alloc_descend(struct sl_reg_allocator *ract, int array_quan
   }
   else {
     int card = sl_reg_alloc_get_cardinality(ra->kind_);
-    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra);
     int n;
     for (n = 0; n < card; ++n) {
       int base_reg = 0;
@@ -703,7 +708,7 @@ int sl_reg_allocator_lock_or_alloc_descend(struct sl_reg_allocator *ract, int ar
   }
   else {
     int card = sl_reg_alloc_get_cardinality(ra->kind_);
-    sl_reg_category_t cat = sl_reg_alloc_get_category(ra->kind_);
+    sl_reg_category_t cat = sl_reg_alloc_get_category(ra);
     int n;
     int is_allocated = sl_reg_alloc_is_allocated(ra);
     for (n = 0; n < card; ++n) {
