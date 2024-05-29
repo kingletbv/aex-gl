@@ -24,10 +24,12 @@ extern "C" {
 
 #define SL_EXEC_NO_CHAIN UINT32_MAX
 
-/* pass in an expr and return the reg_alloc representing its r-value; this depends on whether it has an offset_,
- * if it has an offset (a number of registers beyond the base register) then the value should have been loaded into
- * a separate r-value. */
-#define EXPR_RVALUE(expr) ((((expr)->offset_reg_.kind_ != slrak_void) || (expr)->base_regs_.is_indirect_) ? (&(expr)->rvalue_) : (&(expr)->base_regs_))
+/* pass in an expr and return the reg_alloc representing its r-value; whether the r-value is separate from the base_reg_
+ * depends on whether it has an offset, or whether whether the base_reg_ is indirect, or whether context requires working
+ * on a separate copy (e.g. assignment requires the rvalue to be distinct from the lvalue, in particular for multi-component
+ * values being swizzled.)
+ * Capture all these cases by checking whether the rvalue_ has a non-void kind. */
+#define EXPR_RVALUE(expr) (((expr)->rvalue_.kind_ != slrak_void) ? (&(expr)->rvalue_) : (&(expr)->base_regs_))
 
 /* pass in reg_alloc_ptr, a pointer to the sl_reg_alloc to load the register pointer for, and element_index, an index of the element/or component (e.g. the XYZ for a vec3, 0 for a scalar).
  * returns a pointer to the corresponding register for XXX_REG_PTR, and the index of the actual register (after frame corrections) for XXX_REG_INDEX */

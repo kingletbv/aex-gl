@@ -186,7 +186,7 @@ int main(int argc, char **argv) {
   size_t first_selected_test = 0;
   size_t end_selected_test = sizeof(shader_tests) / sizeof(*shader_tests);
 
-  //end_selected_test = 1 + (first_selected_test = 5);
+  //end_selected_test = 1 + (first_selected_test = 7);
 
   size_t n;
   for (n = first_selected_test; n < end_selected_test; ++n) {

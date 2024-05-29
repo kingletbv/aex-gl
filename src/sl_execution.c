@@ -2368,7 +2368,7 @@ static void sl_exec_negate(struct sl_execution *exec, uint8_t row, struct sl_exp
       }
       size_t n;
       for (n = 0; n < num_components; ++n) {
-        sl_exec_f_negate(row, exec->exec_chain_reg_, FLOAT_REG_PTR(dst, n), FLOAT_REG_PTR(opd, n));
+        sl_exec_f_negate(row, exec->exec_chain_reg_, FLOAT_REG_PTR_NRV(&dst->base_regs_, n), FLOAT_REG_PTR(opd, n));
       }
       break;
     }
@@ -2385,7 +2385,7 @@ static void sl_exec_negate(struct sl_execution *exec, uint8_t row, struct sl_exp
       }
       size_t n;
       for (n = 0; n < num_components; ++n) {
-        sl_exec_i_negate(row, exec->exec_chain_reg_, INT_REG_PTR(dst, n), INT_REG_PTR(opd, n));
+        sl_exec_i_negate(row, exec->exec_chain_reg_, INT_REG_PTR_NRV(&dst->base_regs_, n), INT_REG_PTR(opd, n));
       }
       break;
     }
@@ -2402,7 +2402,7 @@ static void sl_exec_logical_not(struct sl_execution *exec, uint8_t row, struct s
   }
   size_t n;
   for (n = 0; n < num_components; ++n) {
-    sl_exec_b_logical_not(row, exec->exec_chain_reg_, BOOL_REG_PTR(dst, n), BOOL_REG_PTR(opd, n));
+    sl_exec_b_logical_not(row, exec->exec_chain_reg_, BOOL_REG_PTR_NRV(&dst->base_regs_, n), BOOL_REG_PTR(opd, n));
   }
 }
 
@@ -2414,97 +2414,97 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
     switch (left_kind) {
       case slrak_float:
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 0),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 0),
                       FLOAT_REG_PTR(left, 0),
                       FLOAT_REG_PTR(right, 0));
         break;
       case slrak_int:
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 0),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 0),
                       INT_REG_PTR(left, 0),
                       INT_REG_PTR(right, 0));
         break;
       case slrak_vec2:
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 0),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 0),
                       FLOAT_REG_PTR(left, 0),
                       FLOAT_REG_PTR(right, 0));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 1),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 1),
                       FLOAT_REG_PTR(left, 1),
                       FLOAT_REG_PTR(right, 1));
         break;
       case slrak_vec3:
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 0),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 0),
                       FLOAT_REG_PTR(left, 0),
                       FLOAT_REG_PTR(right, 0));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 1),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 1),
                       FLOAT_REG_PTR(left, 1),
                       FLOAT_REG_PTR(right, 1));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 2),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 2),
                       FLOAT_REG_PTR(left, 2),
                       FLOAT_REG_PTR(right, 2));
         break;
       case slrak_vec4:
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 0),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 0),
                       FLOAT_REG_PTR(left, 0),
                       FLOAT_REG_PTR(right, 0));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 1),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 1),
                       FLOAT_REG_PTR(left, 1),
                       FLOAT_REG_PTR(right, 1));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 2),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 2),
                       FLOAT_REG_PTR(left, 2),
                       FLOAT_REG_PTR(right, 2));
         sl_exec_f_mul(row, exec->exec_chain_reg_,
-                      FLOAT_REG_PTR(dst, 3),
+                      FLOAT_REG_PTR_NRV(&dst->base_regs_, 3),
                       FLOAT_REG_PTR(left, 3),
                       FLOAT_REG_PTR(right, 3));
         break;
       case slrak_ivec2:
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 0),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 0),
                       INT_REG_PTR(left, 0),
                       INT_REG_PTR(right, 0));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 1),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 1),
                       INT_REG_PTR(left, 1),
                       INT_REG_PTR(right, 1));
         break;
       case slrak_ivec3:
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 0),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 0),
                       INT_REG_PTR(left, 0),
                       INT_REG_PTR(right, 0));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 1),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 1),
                       INT_REG_PTR(left, 1),
                       INT_REG_PTR(right, 1));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 2),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 2),
                       INT_REG_PTR(left, 2),
                       INT_REG_PTR(right, 2));
         break;
       case slrak_ivec4:
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 0),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 0),
                       INT_REG_PTR(left, 0),
                       INT_REG_PTR(right, 0));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 1),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 1),
                       INT_REG_PTR(left, 1),
                       INT_REG_PTR(right, 1));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 2),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 2),
                       INT_REG_PTR(left, 2),
                       INT_REG_PTR(right, 2));
         sl_exec_i_mul(row, exec->exec_chain_reg_,
-                      INT_REG_PTR(dst, 3),
+                      INT_REG_PTR_NRV(&dst->base_regs_, 3),
                       INT_REG_PTR(left, 3),
                       INT_REG_PTR(right, 3));
         break;
@@ -2512,7 +2512,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
         for (c = 0; c < 2; ++c) {
           for (r = 0; r < 2; ++r) {
             sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
-                                   FLOAT_REG_PTR(dst, c*2+r),
+                                   FLOAT_REG_PTR_NRV(&dst->base_regs_, c*2+r),
                                    FLOAT_REG_PTR(left, r+0),
                                    FLOAT_REG_PTR(left, r+2),
                                    FLOAT_REG_PTR(right, c*2 + 0),                                
@@ -2524,7 +2524,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
         for (c = 0; c < 3; ++c) {
           for (r = 0; r < 3; ++r) {
             sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
-                                   FLOAT_REG_PTR(dst, c*3+r),
+                                   FLOAT_REG_PTR_NRV(&dst->base_regs_, c*3+r),
                                    FLOAT_REG_PTR(left, r+0),
                                    FLOAT_REG_PTR(left, r+3),
                                    FLOAT_REG_PTR(left, r+6),
@@ -2538,7 +2538,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
         for (c = 0; c < 4; ++c) {
           for (r = 0; r < 4; ++r) {
             sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
-                                   FLOAT_REG_PTR(dst, c*4+r),
+                                   FLOAT_REG_PTR_NRV(&dst->base_regs_, c*4+r),
                                    FLOAT_REG_PTR(left, r+0),
                                    FLOAT_REG_PTR(left, r+4),
                                    FLOAT_REG_PTR(left, r+8),
@@ -2564,7 +2564,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_coords; ++r) {
       sl_exec_f_mul(row, exec->exec_chain_reg_,
-                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                     FLOAT_REG_PTR(left, 0),
                     FLOAT_REG_PTR(right, r));
     }
@@ -2581,7 +2581,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_coords; ++r) {
       sl_exec_f_mul(row, exec->exec_chain_reg_,
-                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                     FLOAT_REG_PTR(left, r),
                     FLOAT_REG_PTR(right, 0));
     }
@@ -2595,7 +2595,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_coords; ++r) {
       sl_exec_i_mul(row, exec->exec_chain_reg_,
-                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR_NRV(&dst->base_regs_, r),
                     INT_REG_PTR(left, 0),
                     INT_REG_PTR(right, r));
     }
@@ -2609,7 +2609,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_coords; ++r) {
       sl_exec_i_mul(row, exec->exec_chain_reg_,
-                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR_NRV(&dst->base_regs_, r),
                     INT_REG_PTR(left, r),
                     INT_REG_PTR(right, 0));
     }
@@ -2617,7 +2617,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
   else if ((left_kind == slrak_vec2) && (right_kind == slrak_mat2)) {
     for (r = 0; r < 2; ++r) {
       sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
-                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                              FLOAT_REG_PTR(left, 0),
                              FLOAT_REG_PTR(left, 1),
                              FLOAT_REG_PTR(right, 0 + r * 2),
@@ -2627,7 +2627,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
   else if ((left_kind == slrak_mat2) && (right_kind == slrak_vec2)) {
     for (r = 0; r < 2; ++r) {
       sl_exec_f_dot_product2(row, exec->exec_chain_reg_,
-                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                              FLOAT_REG_PTR(left, 0 + r),
                              FLOAT_REG_PTR(left, 2 + r),
                              FLOAT_REG_PTR(right, 0),
@@ -2637,7 +2637,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
   else if ((left_kind == slrak_vec3) && (right_kind == slrak_mat3)) {
     for (r = 0; r < 3; ++r) {
       sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
-                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                              FLOAT_REG_PTR(left, 0),
                              FLOAT_REG_PTR(left, 1),
                              FLOAT_REG_PTR(left, 2),
@@ -2649,7 +2649,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
   else if ((left_kind == slrak_mat3) && (right_kind == slrak_vec3)) {
     for (r = 0; r < 3; ++r) {
       sl_exec_f_dot_product3(row, exec->exec_chain_reg_,
-                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                              FLOAT_REG_PTR(left, 0 + r),
                              FLOAT_REG_PTR(left, 3 + r),
                              FLOAT_REG_PTR(left, 6 + r),
@@ -2661,7 +2661,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
   else if ((left_kind == slrak_vec4) && (right_kind == slrak_mat4)) {
     for (r = 0; r < 4; ++r) {
       sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
-                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                              FLOAT_REG_PTR(left, 0),
                              FLOAT_REG_PTR(left, 1),
                              FLOAT_REG_PTR(left, 2),
@@ -2675,7 +2675,7 @@ static void sl_exec_mul(struct sl_execution *exec, uint8_t row, struct sl_expr *
   else if ((left_kind == slrak_mat4) && (right_kind == slrak_vec4)) {
     for (r = 0; r < 4; ++r) {
       sl_exec_f_dot_product4(row, exec->exec_chain_reg_,
-                             FLOAT_REG_PTR(dst, r),
+                             FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                              FLOAT_REG_PTR(left, 0 + r),
                              FLOAT_REG_PTR(left, 4 + r),
                              FLOAT_REG_PTR(left, 8 + r),
@@ -2715,7 +2715,7 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_expr *
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_f_div(row, exec->exec_chain_reg_, 
-                        FLOAT_REG_PTR(dst, r),
+                        FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                         FLOAT_REG_PTR(left, r),
                         FLOAT_REG_PTR(right, r));
         }
@@ -2734,7 +2734,7 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_expr *
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_i_div(row, exec->exec_chain_reg_, 
-                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR_NRV(&dst->base_regs_, r),
                         INT_REG_PTR(left, r),
                         INT_REG_PTR(right, r));
         }
@@ -2754,7 +2754,7 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_div(row, exec->exec_chain_reg_, 
-                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                     FLOAT_REG_PTR(left, 0),
                     FLOAT_REG_PTR(right, r));
     }
@@ -2771,7 +2771,7 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_div(row, exec->exec_chain_reg_, 
-                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                     FLOAT_REG_PTR(left, r),
                     FLOAT_REG_PTR(right, 0));
     }
@@ -2785,7 +2785,7 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_div(row, exec->exec_chain_reg_,
-                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR_NRV(&dst->base_regs_, r),
                     INT_REG_PTR(left, 0),
                     INT_REG_PTR(right, r));
     }
@@ -2799,7 +2799,7 @@ static void sl_exec_div(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_div(row, exec->exec_chain_reg_,
-                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR_NRV(&dst->base_regs_, r),
                     INT_REG_PTR(left, r),
                     INT_REG_PTR(right, 0));
     }
@@ -2832,7 +2832,7 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_expr *
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_f_add(row, exec->exec_chain_reg_, 
-                        FLOAT_REG_PTR(dst, r),
+                        FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                         FLOAT_REG_PTR(left, r),
                         FLOAT_REG_PTR(right, r));
         }
@@ -2851,7 +2851,7 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_expr *
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_i_add(row, exec->exec_chain_reg_, 
-                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR_NRV(&dst->base_regs_, r),
                         INT_REG_PTR(left, r),
                         INT_REG_PTR(right, r));
         }
@@ -2871,7 +2871,7 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_add(row, exec->exec_chain_reg_, 
-                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                     FLOAT_REG_PTR(left, 0),
                     FLOAT_REG_PTR(right, r));
     }
@@ -2888,7 +2888,7 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_add(row, exec->exec_chain_reg_, 
-                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                     FLOAT_REG_PTR(left, r),
                     FLOAT_REG_PTR(right, 0));
     }
@@ -2902,7 +2902,7 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_add(row, exec->exec_chain_reg_,
-                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR_NRV(&dst->base_regs_, r),
                     INT_REG_PTR(left, 0),
                     INT_REG_PTR(right, r));
     }
@@ -2916,7 +2916,7 @@ static void sl_exec_add(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_add(row, exec->exec_chain_reg_,
-                    INT_REG_PTR(dst, r),
+                    INT_REG_PTR_NRV(&dst->base_regs_, r),
                     INT_REG_PTR(left, r),
                     INT_REG_PTR(right, 0));
     }
@@ -2949,7 +2949,7 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_expr *
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_f_sub(row, exec->exec_chain_reg_, 
-                        FLOAT_REG_PTR(dst, r),
+                        FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                         FLOAT_REG_PTR(left, r),
                         FLOAT_REG_PTR(right, r));
         }
@@ -2968,7 +2968,7 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_expr *
         }
         for (r = 0; r < num_components; ++r) {
           sl_exec_i_sub(row, exec->exec_chain_reg_, 
-                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR_NRV(&dst->base_regs_, r),
                         INT_REG_PTR(left, r),
                         INT_REG_PTR(right, r));
         }
@@ -2988,7 +2988,7 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_sub(row, exec->exec_chain_reg_, 
-                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                     FLOAT_REG_PTR(left, 0),
                     FLOAT_REG_PTR(right, r));
     }
@@ -3005,7 +3005,7 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_f_sub(row, exec->exec_chain_reg_, 
-                    FLOAT_REG_PTR(dst, r),
+                    FLOAT_REG_PTR_NRV(&dst->base_regs_, r),
                     FLOAT_REG_PTR(left, r),
                     FLOAT_REG_PTR(right, 0));
     }
@@ -3019,7 +3019,7 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_sub(row, exec->exec_chain_reg_,
-                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR_NRV(&dst->base_regs_, r),
                         INT_REG_PTR(left, 0),
                         INT_REG_PTR(right, r));
     }
@@ -3033,7 +3033,7 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_expr *
     }
     for (r = 0; r < num_components; ++r) {
       sl_exec_i_sub(row, exec->exec_chain_reg_,
-                        INT_REG_PTR(dst, r),
+                        INT_REG_PTR_NRV(&dst->base_regs_, r),
                         INT_REG_PTR(left, r),
                         INT_REG_PTR(right, 0));
     }
@@ -4161,7 +4161,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                     if (eps[epi].v_.expr_->children_[0]->base_regs_.local_frame_) {
                       /* Child 0 registers are relative to the local frame, offset them to the global frame before we assign the register indices */
                       for (;;) {
-                        int64_t row_array_index = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[1]->base_regs_, 0)[row];
+                        int64_t row_array_index = INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0)[row];
 
                         // XXX: NOTE this breaks when expr_->children_[0]->base_regs_.local_frame_ != eps[epi].v_.expr_->base_regs_.local_frame_
                         // XXX: NOTE this simply breaks outright, the indirection value stored inside teh register is ALWAYS in the global frame,
@@ -4176,7 +4176,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                     else {
                       /* Child 0 registers are already in the global frame, no further work. */
                       for (;;) {
-                        int64_t row_array_index = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[1]->base_regs_, 0)[row];
+                        int64_t row_array_index = INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0)[row];
 
                         // XXX: NOTE this breaks when expr_->children_[0]->base_regs_.local_frame_ != eps[epi].v_.expr_->base_regs_.local_frame_
                         // XXX: NOTE this simply breaks outright, the indirection value stored inside teh register is ALWAYS in the global frame,
@@ -4192,7 +4192,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                   else {
                     /* Indirect; base_reg_ holds integer indices of the register that holds the actual index */
                     for (;;) {
-                      int64_t row_array_index = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[1]->base_regs_, 0)[row];
+                      int64_t row_array_index = INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0)[row];
 
                       /* Copy from the indirect int holding the register to the indirect int holding the register. */
                       INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, 0)[row] = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[0]->base_regs_, row_array_index)[row];
@@ -4491,7 +4491,6 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
 
             sl_reg_move(exec, eps[epi].revisit_chain_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]), NULL, &eps[epi].v_.expr_->children_[0]->base_regs_, &eps[epi].v_.expr_->children_[0]->offset_reg_);
-
             break;
           }
 
@@ -4733,7 +4732,6 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           }
 
           case exop_function_call: {
-            //int sl_exec_push_execution_frame(struct sl_execution *exec)
             if (eps[epi].v_.expr_->function_->builtin_runtime_fn_) {
               eps[epi].v_.expr_->function_->builtin_runtime_fn_(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_);
             }

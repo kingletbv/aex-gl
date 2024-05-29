@@ -2401,13 +2401,7 @@ static int sl_expr_is_assignment(struct sl_expr *x) {
   return is_assign[x->op_];
 }
 
-static int sl_expr_need_rvalue(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
-  if ((x->offset_reg_.kind_ == slrak_void) && !x->base_regs_.is_indirect_) {
-    /* No need for separate rvalue as the registers for x can be used directly,
-     * (are not at an offset and so don't need a separate load.) */
-    sl_reg_alloc_void(&x->rvalue_);
-    return 0;
-  }
+static int sl_expr_force_rvalue(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
   struct sl_type *t = sl_expr_type(tb, x);
   if (!t) return -1;
 
@@ -2417,6 +2411,16 @@ static int sl_expr_need_rvalue(struct sl_type_base *tb, struct sl_reg_allocator 
 
   /* Allocate the rvalue and, importantly, leave it locked on exit */
   return sl_reg_allocator_lock_or_alloc(ract, &x->rvalue_);
+}
+
+static int sl_expr_need_rvalue(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
+  if ((x->offset_reg_.kind_ == slrak_void) && !x->base_regs_.is_indirect_) {
+    /* No need for separate rvalue as the registers for x can be used directly,
+     * (are not at an offset and so don't need a separate load.) */
+    sl_reg_alloc_void(&x->rvalue_);
+    return 0;
+  }
+  return sl_expr_force_rvalue(tb, ract, x);
 }
 
 static int sl_expr_clone_lvalue(struct sl_expr *dst, struct sl_expr *src) {
@@ -2876,8 +2880,17 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
     r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[1]);
 
     /* For the second child, we'd like to have an rvalue. Not so much for the first 
-     * as exop_assign overwrites the destination without concern for prior contents. */
-    r = r ? r : sl_expr_need_rvalue(tb, ract, x->children_[1]);
+     * as exop_assign overwrites the destination without concern for prior contents.
+     * Note that we *force* an rvalue, the reason for this is the left and right sides
+     * might use the same registers, consequently, as we modify the left side, we're
+     * overwriting the values on the right side:
+     * "v.wzyx = v.xyzw"
+     * This should reverse all components, but if we don't force the rvalue, sl_expr_need_rvalue()
+     * will see an unoffsetted non-indirect "v.xyzw", conclude an rvalue is not needed, and work
+     * from the base_reg_ directly. Thus it would instead assign "v.wzyx = v.xyyx"; which is not
+     * the desired semantic here.
+     */
+    r = r ? r : sl_expr_force_rvalue(tb, ract, x->children_[1]);
 
     /* Assume the assignment is performed here during evaluation.
      * Unlock lvalue, clone the registers for the rvalue into our own expression 

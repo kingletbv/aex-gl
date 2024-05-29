@@ -46,7 +46,7 @@ void builtin_not_implemented_eval(struct sl_type_base *tb, const struct sl_expr 
 
 void builtin_radians_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float * restrict result_column = FLOAT_REG_PTR(x, 0);
+  float * restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float * restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0); 
   uint8_t row = exec_chain;
 
@@ -65,12 +65,12 @@ void builtin_radians_v2_runtime(struct sl_execution *exec, int exec_chain, struc
 
 #define UNOP_SNIPPET_OPERATOR(opd) (((float)SL_PI)*(opd)/180.f)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0); 
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
@@ -87,18 +87,18 @@ void builtin_radians_v3_runtime(struct sl_execution *exec, int exec_chain, struc
 
 #define UNOP_SNIPPET_OPERATOR(opd) (((float)SL_PI)*(opd)/180.f)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -116,24 +116,24 @@ void builtin_radians_v4_runtime(struct sl_execution *exec, int exec_chain, struc
 
 #define UNOP_SNIPPET_OPERATOR(opd) (((float)SL_PI)*(opd)/180.f)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -187,7 +187,7 @@ void builtin_radians_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, s
 
 void builtin_degrees_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -206,12 +206,12 @@ void builtin_degrees_v2_runtime(struct sl_execution *exec, int exec_chain, struc
 
 #define UNOP_SNIPPET_OPERATOR(opd) (180.f*(opd)/((float)SL_PI))
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -229,18 +229,18 @@ void builtin_degrees_v3_runtime(struct sl_execution *exec, int exec_chain, struc
 
 #define UNOP_SNIPPET_OPERATOR(opd) (180.f*(opd)/((float)SL_PI))
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -258,22 +258,22 @@ void builtin_degrees_v4_runtime(struct sl_execution *exec, int exec_chain, struc
 
 #define UNOP_SNIPPET_OPERATOR(opd) (180.f*(opd)/((float)SL_PI))
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
@@ -331,7 +331,7 @@ void builtin_degrees_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, s
 
 void builtin_sin_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -350,12 +350,12 @@ void builtin_sin_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) sinf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -373,18 +373,18 @@ void builtin_sin_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) sinf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -402,24 +402,24 @@ void builtin_sin_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) sinf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -471,7 +471,7 @@ void builtin_sin_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struc
 
 void builtin_cos_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -490,12 +490,12 @@ void builtin_cos_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) cosf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -513,18 +513,18 @@ void builtin_cos_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) cosf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -542,24 +542,24 @@ void builtin_cos_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) cosf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -617,7 +617,7 @@ void builtin_cos_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struc
 
 void builtin_tan_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float * restrict result_column = FLOAT_REG_PTR(x, 0);
+  float * restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float * restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0); 
   uint8_t row = exec_chain;
 
@@ -636,12 +636,12 @@ void builtin_tan_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) tanf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -659,18 +659,18 @@ void builtin_tan_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) tanf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -688,24 +688,24 @@ void builtin_tan_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) tanf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
   
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -763,7 +763,7 @@ void builtin_tan_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struc
 
 void builtin_asin_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -782,12 +782,12 @@ void builtin_asin_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) asinf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -805,18 +805,18 @@ void builtin_asin_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) asinf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -834,24 +834,24 @@ void builtin_asin_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) asinf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -909,7 +909,7 @@ void builtin_asin_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_acos_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float * restrict result_column = FLOAT_REG_PTR(x, 0);
+  float * restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float * restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0); 
   uint8_t row = exec_chain;
 
@@ -928,12 +928,12 @@ void builtin_acos_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) acosf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -951,18 +951,18 @@ void builtin_acos_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) acosf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -980,24 +980,24 @@ void builtin_acos_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) acosf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -1055,7 +1055,7 @@ void builtin_acos_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_atan_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float * restrict result_column = FLOAT_REG_PTR(x, 0);
+  float * restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float * restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0); 
   uint8_t row = exec_chain;
 
@@ -1074,12 +1074,12 @@ void builtin_atan_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) atanf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -1097,18 +1097,18 @@ void builtin_atan_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) atanf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -1126,24 +1126,24 @@ void builtin_atan_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) atanf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -1201,7 +1201,7 @@ void builtin_atan_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_atan_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float * restrict result_column = FLOAT_REG_PTR(x, 0);
+  float * restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float * restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
   uint8_t row = exec_chain;
@@ -1224,13 +1224,13 @@ void builtin_atan_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -1250,20 +1250,20 @@ void builtin_atan_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -1283,27 +1283,27 @@ void builtin_atan_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -1387,7 +1387,7 @@ void builtin_atan_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, st
 
 void builtin_pow_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
   uint8_t row = exec_chain;
@@ -1410,13 +1410,13 @@ void builtin_pow_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -1436,20 +1436,20 @@ void builtin_pow_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -1469,27 +1469,27 @@ void builtin_pow_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -1569,7 +1569,7 @@ void builtin_pow_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x, str
 }
 void builtin_exp_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -1588,12 +1588,12 @@ void builtin_exp_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) expf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -1611,18 +1611,18 @@ void builtin_exp_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) expf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -1640,24 +1640,24 @@ void builtin_exp_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) expf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -1709,7 +1709,7 @@ void builtin_exp_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struc
 
 void builtin_log_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -1728,12 +1728,12 @@ void builtin_log_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) logf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -1751,18 +1751,18 @@ void builtin_log_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) logf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -1780,24 +1780,24 @@ void builtin_log_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) logf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -1849,7 +1849,7 @@ void builtin_log_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struc
 
 void builtin_exp2_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -1868,12 +1868,12 @@ void builtin_exp2_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) exp2f(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -1891,18 +1891,18 @@ void builtin_exp2_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) exp2f(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -1920,24 +1920,24 @@ void builtin_exp2_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) exp2f(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -1989,7 +1989,7 @@ void builtin_exp2_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_log2_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -2008,12 +2008,12 @@ void builtin_log2_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) log2f(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -2031,18 +2031,18 @@ void builtin_log2_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) log2f(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -2060,24 +2060,24 @@ void builtin_log2_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) log2f(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -2129,7 +2129,7 @@ void builtin_log2_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_sqrt_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -2148,12 +2148,12 @@ void builtin_sqrt_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) sqrtf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -2171,18 +2171,18 @@ void builtin_sqrt_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) sqrtf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -2200,24 +2200,24 @@ void builtin_sqrt_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) sqrtf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -2269,7 +2269,7 @@ void builtin_sqrt_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_inversesqrt_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -2288,12 +2288,12 @@ void builtin_inversesqrt_v2_runtime(struct sl_execution *exec, int exec_chain, s
 
 #define UNOP_SNIPPET_OPERATOR(opd) 1.f/sqrtf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -2311,18 +2311,18 @@ void builtin_inversesqrt_v3_runtime(struct sl_execution *exec, int exec_chain, s
 
 #define UNOP_SNIPPET_OPERATOR(opd) 1.f/sqrtf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -2340,24 +2340,24 @@ void builtin_inversesqrt_v4_runtime(struct sl_execution *exec, int exec_chain, s
 
 #define UNOP_SNIPPET_OPERATOR(opd) 1.f/sqrtf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -2441,7 +2441,7 @@ static float aex_smoothstepf(float edge0, float edge1, float x) {
 
 void builtin_abs_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -2460,12 +2460,12 @@ void builtin_abs_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) fabsf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -2483,18 +2483,18 @@ void builtin_abs_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) fabsf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -2512,24 +2512,24 @@ void builtin_abs_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 #define UNOP_SNIPPET_OPERATOR(opd) fabsf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -2581,7 +2581,7 @@ void builtin_abs_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, struc
 
 void builtin_sign_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -2600,12 +2600,12 @@ void builtin_sign_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) aex_signf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -2623,18 +2623,18 @@ void builtin_sign_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) aex_signf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -2652,24 +2652,24 @@ void builtin_sign_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) aex_signf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -2721,7 +2721,7 @@ void builtin_sign_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_floor_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -2740,12 +2740,12 @@ void builtin_floor_v2_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 #define UNOP_SNIPPET_OPERATOR(opd) floorf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -2763,18 +2763,18 @@ void builtin_floor_v3_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 #define UNOP_SNIPPET_OPERATOR(opd) floorf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -2792,24 +2792,24 @@ void builtin_floor_v4_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 #define UNOP_SNIPPET_OPERATOR(opd) floorf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -2861,7 +2861,7 @@ void builtin_floor_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, str
 
 void builtin_ceil_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -2880,12 +2880,12 @@ void builtin_ceil_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) ceilf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -2903,18 +2903,18 @@ void builtin_ceil_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) ceilf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -2932,24 +2932,24 @@ void builtin_ceil_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) ceilf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -3001,7 +3001,7 @@ void builtin_ceil_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_fract_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -3020,12 +3020,12 @@ void builtin_fract_v2_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 #define UNOP_SNIPPET_OPERATOR(opd) aex_fractf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
@@ -3043,18 +3043,18 @@ void builtin_fract_v3_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 #define UNOP_SNIPPET_OPERATOR(opd) aex_fractf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
@@ -3072,24 +3072,24 @@ void builtin_fract_v4_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 #define UNOP_SNIPPET_OPERATOR(opd) aex_fractf(opd)
 #define UNOP_SNIPPET_TYPE float
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = FLOAT_REG_PTR(x->children_[0], 0);
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = FLOAT_REG_PTR(x->children_[0], 1);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = FLOAT_REG_PTR(x->children_[0], 2);
 
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   opd_column = FLOAT_REG_PTR(x->children_[0], 3);
 
   row = exec_chain;
@@ -3142,7 +3142,7 @@ void builtin_fract_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, str
 
 void builtin_mod_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
   uint8_t row = exec_chain;
@@ -3165,13 +3165,13 @@ void builtin_mod_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3191,20 +3191,20 @@ void builtin_mod_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3224,27 +3224,27 @@ void builtin_mod_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3264,13 +3264,13 @@ void builtin_mod_v2f_runtime(struct sl_execution *exec, int exec_chain, struct s
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3290,20 +3290,20 @@ void builtin_mod_v3f_runtime(struct sl_execution *exec, int exec_chain, struct s
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3323,27 +3323,27 @@ void builtin_mod_v4f_runtime(struct sl_execution *exec, int exec_chain, struct s
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3478,7 +3478,7 @@ void builtin_mod_v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_min_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
   uint8_t row = exec_chain;
@@ -3501,13 +3501,13 @@ void builtin_min_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3527,20 +3527,20 @@ void builtin_min_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3560,27 +3560,27 @@ void builtin_min_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3600,13 +3600,13 @@ void builtin_min_v2f_runtime(struct sl_execution *exec, int exec_chain, struct s
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3626,20 +3626,20 @@ void builtin_min_v3f_runtime(struct sl_execution *exec, int exec_chain, struct s
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3659,27 +3659,27 @@ void builtin_min_v4f_runtime(struct sl_execution *exec, int exec_chain, struct s
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3814,7 +3814,7 @@ void builtin_min_v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_max_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
   uint8_t row = exec_chain;
@@ -3837,13 +3837,13 @@ void builtin_max_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3863,20 +3863,20 @@ void builtin_max_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3896,27 +3896,27 @@ void builtin_max_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3936,13 +3936,13 @@ void builtin_max_v2f_runtime(struct sl_execution *exec, int exec_chain, struct s
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3962,20 +3962,20 @@ void builtin_max_v3f_runtime(struct sl_execution *exec, int exec_chain, struct s
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -3995,27 +3995,27 @@ void builtin_max_v4f_runtime(struct sl_execution *exec, int exec_chain, struct s
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -4150,7 +4150,7 @@ void builtin_max_v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_clamp_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[1], 0);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[2], 0);
@@ -4176,14 +4176,14 @@ void builtin_clamp_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, str
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4205,14 +4205,14 @@ void builtin_clamp_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, str
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4220,7 +4220,7 @@ void builtin_clamp_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, str
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 2);
   third_column = FLOAT_REG_PTR(x->children_[2], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4242,14 +4242,14 @@ void builtin_clamp_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, str
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4257,7 +4257,7 @@ void builtin_clamp_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, str
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 2);
   third_column = FLOAT_REG_PTR(x->children_[2], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4265,7 +4265,7 @@ void builtin_clamp_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, str
   first_column = FLOAT_REG_PTR(x->children_[0], 3);
   second_column = FLOAT_REG_PTR(x->children_[1], 3);
   third_column = FLOAT_REG_PTR(x->children_[2], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4287,14 +4287,14 @@ void builtin_clamp_v2ff_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4316,14 +4316,14 @@ void builtin_clamp_v3ff_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4331,7 +4331,7 @@ void builtin_clamp_v3ff_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4353,14 +4353,14 @@ void builtin_clamp_v4ff_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4368,7 +4368,7 @@ void builtin_clamp_v4ff_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4376,7 +4376,7 @@ void builtin_clamp_v4ff_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 3);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4560,7 +4560,7 @@ void builtin_clamp_v4ff_eval(struct sl_type_base *tb, const struct sl_expr *x, s
 
 void builtin_mix_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[1], 0);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[2], 0);
@@ -4586,14 +4586,14 @@ void builtin_mix_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4615,14 +4615,14 @@ void builtin_mix_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4630,7 +4630,7 @@ void builtin_mix_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 2);
   third_column = FLOAT_REG_PTR(x->children_[2], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4652,14 +4652,14 @@ void builtin_mix_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4667,7 +4667,7 @@ void builtin_mix_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 2);
   third_column = FLOAT_REG_PTR(x->children_[2], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4675,7 +4675,7 @@ void builtin_mix_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struc
   first_column = FLOAT_REG_PTR(x->children_[0], 3);
   second_column = FLOAT_REG_PTR(x->children_[1], 3);
   third_column = FLOAT_REG_PTR(x->children_[2], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4697,14 +4697,14 @@ void builtin_mix_v2v2f_runtime(struct sl_execution *exec, int exec_chain, struct
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4726,14 +4726,14 @@ void builtin_mix_v3v3f_runtime(struct sl_execution *exec, int exec_chain, struct
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4741,7 +4741,7 @@ void builtin_mix_v3v3f_runtime(struct sl_execution *exec, int exec_chain, struct
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 2);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4763,14 +4763,14 @@ void builtin_mix_v4v4f_runtime(struct sl_execution *exec, int exec_chain, struct
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4778,7 +4778,7 @@ void builtin_mix_v4v4f_runtime(struct sl_execution *exec, int exec_chain, struct
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 2);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4786,7 +4786,7 @@ void builtin_mix_v4v4f_runtime(struct sl_execution *exec, int exec_chain, struct
   first_column = FLOAT_REG_PTR(x->children_[0], 3);
   second_column = FLOAT_REG_PTR(x->children_[1], 3);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -4970,7 +4970,7 @@ void builtin_mix_v4v4f_eval(struct sl_type_base *tb, const struct sl_expr *x, st
 
 void builtin_step_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
   uint8_t row = exec_chain;
@@ -4993,13 +4993,13 @@ void builtin_step_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -5019,20 +5019,20 @@ void builtin_step_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -5052,27 +5052,27 @@ void builtin_step_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -5092,13 +5092,13 @@ void builtin_step_fv2_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -5118,20 +5118,20 @@ void builtin_step_fv3_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -5151,27 +5151,27 @@ void builtin_step_fv4_runtime(struct sl_execution *exec, int exec_chain, struct 
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -5306,7 +5306,7 @@ void builtin_step_fv4_eval(struct sl_type_base *tb, const struct sl_expr *x, str
 
 void builtin_smoothstep_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[1], 0);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[2], 0);
@@ -5332,14 +5332,14 @@ void builtin_smoothstep_v2v2v2_runtime(struct sl_execution *exec, int exec_chain
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5361,14 +5361,14 @@ void builtin_smoothstep_v3v3v3_runtime(struct sl_execution *exec, int exec_chain
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5376,7 +5376,7 @@ void builtin_smoothstep_v3v3v3_runtime(struct sl_execution *exec, int exec_chain
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 2);
   third_column = FLOAT_REG_PTR(x->children_[2], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5398,14 +5398,14 @@ void builtin_smoothstep_v4v4v4_runtime(struct sl_execution *exec, int exec_chain
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 1);
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5413,7 +5413,7 @@ void builtin_smoothstep_v4v4v4_runtime(struct sl_execution *exec, int exec_chain
   first_column = FLOAT_REG_PTR(x->children_[0], 2);
   second_column = FLOAT_REG_PTR(x->children_[1], 2);
   third_column = FLOAT_REG_PTR(x->children_[2], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5421,7 +5421,7 @@ void builtin_smoothstep_v4v4v4_runtime(struct sl_execution *exec, int exec_chain
   first_column = FLOAT_REG_PTR(x->children_[0], 3);
   second_column = FLOAT_REG_PTR(x->children_[1], 3);
   third_column = FLOAT_REG_PTR(x->children_[2], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5443,14 +5443,14 @@ void builtin_smoothstep_ffv2_runtime(struct sl_execution *exec, int exec_chain, 
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5472,14 +5472,14 @@ void builtin_smoothstep_ffv3_runtime(struct sl_execution *exec, int exec_chain, 
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5487,7 +5487,7 @@ void builtin_smoothstep_ffv3_runtime(struct sl_execution *exec, int exec_chain, 
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5509,14 +5509,14 @@ void builtin_smoothstep_ffv4_runtime(struct sl_execution *exec, int exec_chain, 
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 0);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_ternop_snippet_inc.h"
 
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 1);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5524,7 +5524,7 @@ void builtin_smoothstep_ffv4_runtime(struct sl_execution *exec, int exec_chain, 
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 2);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5532,7 +5532,7 @@ void builtin_smoothstep_ffv4_runtime(struct sl_execution *exec, int exec_chain, 
   first_column = FLOAT_REG_PTR(x->children_[0], 0);
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[2], 3);
-  result_column = FLOAT_REG_PTR(x, 3);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_ternop_snippet_inc.h"
@@ -5719,7 +5719,7 @@ void builtin_smoothstep_ffv4_eval(struct sl_type_base *tb, const struct sl_expr 
 
 void builtin_length_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -5732,7 +5732,7 @@ void builtin_length_f_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 void builtin_length_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict right_column = FLOAT_REG_PTR(x->children_[0], 1);
   uint8_t row = exec_chain;
@@ -5746,7 +5746,7 @@ void builtin_length_v2_runtime(struct sl_execution *exec, int exec_chain, struct
 
 void builtin_length_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -5761,7 +5761,7 @@ void builtin_length_v3_runtime(struct sl_execution *exec, int exec_chain, struct
 
 void builtin_length_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -5817,7 +5817,7 @@ void builtin_length_v4_eval(struct sl_type_base *tb, const struct sl_expr *x, st
 
 void builtin_distance_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
   uint8_t row = exec_chain;
@@ -5831,7 +5831,7 @@ void builtin_distance_ff_runtime(struct sl_execution *exec, int exec_chain, stru
 
 void builtin_distance_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[1], 0);
@@ -5847,7 +5847,7 @@ void builtin_distance_v2v2_runtime(struct sl_execution *exec, int exec_chain, st
 
 void builtin_distance_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -5865,7 +5865,7 @@ void builtin_distance_v3v3_runtime(struct sl_execution *exec, int exec_chain, st
 
 void builtin_distance_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -5955,7 +5955,7 @@ void builtin_distance_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x
 
 void builtin_dot_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict left_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict right_column = FLOAT_REG_PTR(x->children_[1], 0);
   uint8_t row = exec_chain;
@@ -5969,7 +5969,7 @@ void builtin_dot_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 void builtin_dot_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[1], 0);
@@ -5985,7 +5985,7 @@ void builtin_dot_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 void builtin_dot_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -6003,7 +6003,7 @@ void builtin_dot_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 void builtin_dot_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict first_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict second_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict third_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -6106,7 +6106,7 @@ void builtin_cross_v3v3_runtime(struct sl_execution *exec, int exec_chain, struc
   second_column = FLOAT_REG_PTR(x->children_[1], 2);
   third_column = FLOAT_REG_PTR(x->children_[0], 2);
   fourth_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = FLOAT_REG_PTR(x, 0);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_quadop_snippet_inc.h"
 
@@ -6114,7 +6114,7 @@ void builtin_cross_v3v3_runtime(struct sl_execution *exec, int exec_chain, struc
   second_column = FLOAT_REG_PTR(x->children_[1], 0);
   third_column = FLOAT_REG_PTR(x->children_[0], 0);
   fourth_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = FLOAT_REG_PTR(x, 1);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
 
 #include "sl_quadop_snippet_inc.h"
 
@@ -6122,7 +6122,7 @@ void builtin_cross_v3v3_runtime(struct sl_execution *exec, int exec_chain, struc
   second_column = FLOAT_REG_PTR(x->children_[1], 1);
   third_column = FLOAT_REG_PTR(x->children_[0], 1);
   fourth_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = FLOAT_REG_PTR(x, 2);
+  result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
 
 #include "sl_quadop_snippet_inc.h"
 
@@ -6150,7 +6150,7 @@ void builtin_cross_v3v3_eval(struct sl_type_base *tb, const struct sl_expr *x, s
 
 void builtin_normalize_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -6163,8 +6163,8 @@ void builtin_normalize_f_runtime(struct sl_execution *exec, int exec_chain, stru
 
 void builtin_normalize_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_x_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result_y_column = FLOAT_REG_PTR(x, 1);
+  float *restrict result_x_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result_y_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   float *restrict x_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict y_column = FLOAT_REG_PTR(x->children_[0], 1);
   uint8_t row = exec_chain;
@@ -6227,9 +6227,9 @@ void builtin_normalize_v2_runtime(struct sl_execution *exec, int exec_chain, str
 
 void builtin_normalize_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_x_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result_y_column = FLOAT_REG_PTR(x, 1);
-  float *restrict result_z_column = FLOAT_REG_PTR(x, 2);
+  float *restrict result_x_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result_y_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict result_z_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   float *restrict x_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict y_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict z_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -6300,10 +6300,10 @@ void builtin_normalize_v3_runtime(struct sl_execution *exec, int exec_chain, str
 
 void builtin_normalize_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_x_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result_y_column = FLOAT_REG_PTR(x, 1);
-  float *restrict result_z_column = FLOAT_REG_PTR(x, 2);
-  float *restrict result_w_column = FLOAT_REG_PTR(x, 3);
+  float *restrict result_x_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result_y_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict result_z_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
+  float *restrict result_w_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   float *restrict x_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict y_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict z_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -6425,7 +6425,7 @@ void builtin_normalize_v4_eval(struct sl_type_base *tb, const struct sl_expr *x,
 
 void builtin_faceforward_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict N_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict I_column = FLOAT_REG_PTR(x->children_[1], 0);
   float *restrict Nref_column = FLOAT_REG_PTR(x->children_[2], 0);
@@ -6486,8 +6486,8 @@ void builtin_faceforward_fff_runtime(struct sl_execution *exec, int exec_chain, 
 
 void builtin_faceforward_v2v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
-  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
+  float *restrict resultx_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   float *restrict Nx_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict Ny_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict Ix_column = FLOAT_REG_PTR(x->children_[1], 0);
@@ -6562,9 +6562,9 @@ void builtin_faceforward_v2v2v2_runtime(struct sl_execution *exec, int exec_chai
 
 void builtin_faceforward_v3v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
-  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
-  float *restrict resultz_column = FLOAT_REG_PTR(x, 2);
+  float *restrict resultx_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict resultz_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   float *restrict Nx_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict Ny_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict Nz_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -6653,10 +6653,10 @@ void builtin_faceforward_v3v3v3_runtime(struct sl_execution *exec, int exec_chai
 
 void builtin_faceforward_v4v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
-  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
-  float *restrict resultz_column = FLOAT_REG_PTR(x, 2);
-  float *restrict resultw_column = FLOAT_REG_PTR(x, 3);
+  float *restrict resultx_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict resultz_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
+  float *restrict resultw_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   float *restrict Nx_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict Ny_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict Nz_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -6865,7 +6865,7 @@ void builtin_faceforward_v4v4v4_eval(struct sl_type_base *tb, const struct sl_ex
 
 void builtin_reflect_ff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict I_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict N_column = FLOAT_REG_PTR(x->children_[1], 0);
   uint8_t row = exec_chain;
@@ -6923,8 +6923,8 @@ void builtin_reflect_ff_runtime(struct sl_execution *exec, int exec_chain, struc
 
 void builtin_reflect_v2v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
-  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
+  float *restrict resultx_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   float *restrict Ix_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict Iy_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict Nx_column = FLOAT_REG_PTR(x->children_[1], 0);
@@ -6993,9 +6993,9 @@ void builtin_reflect_v2v2_runtime(struct sl_execution *exec, int exec_chain, str
 
 void builtin_reflect_v3v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
-  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
-  float *restrict resultz_column = FLOAT_REG_PTR(x, 2);
+  float *restrict resultx_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict resultz_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   float *restrict Ix_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict Iy_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict Iz_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -7075,10 +7075,10 @@ void builtin_reflect_v3v3_runtime(struct sl_execution *exec, int exec_chain, str
 
 void builtin_reflect_v4v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
-  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
-  float *restrict resultz_column = FLOAT_REG_PTR(x, 2);
-  float *restrict resultw_column = FLOAT_REG_PTR(x, 3);
+  float *restrict resultx_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict resultz_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
+  float *restrict resultw_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   float *restrict Ix_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict Iy_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict Iz_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -7247,7 +7247,7 @@ void builtin_reflect_v4v4_eval(struct sl_type_base *tb, const struct sl_expr *x,
 
 void builtin_refract_fff_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict I_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict N_column = FLOAT_REG_PTR(x->children_[1], 0);
   float *restrict eta_column = FLOAT_REG_PTR(x->children_[2], 0);
@@ -7326,8 +7326,8 @@ void builtin_refract_fff_runtime(struct sl_execution *exec, int exec_chain, stru
 
 void builtin_refract_v2v2f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
-  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
+  float *restrict resultx_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   float *restrict Ix_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict Iy_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict Nx_column = FLOAT_REG_PTR(x->children_[1], 0);
@@ -7420,9 +7420,9 @@ void builtin_refract_v2v2f_runtime(struct sl_execution *exec, int exec_chain, st
 
 void builtin_refract_v3v3f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
-  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
-  float *restrict resultz_column = FLOAT_REG_PTR(x, 2);
+  float *restrict resultx_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict resultz_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   float *restrict Ix_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict Iy_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict Iz_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -7529,10 +7529,10 @@ void builtin_refract_v3v3f_runtime(struct sl_execution *exec, int exec_chain, st
 
 void builtin_refract_v4v4f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict resultx_column = FLOAT_REG_PTR(x, 0);
-  float *restrict resulty_column = FLOAT_REG_PTR(x, 1);
-  float *restrict resultz_column = FLOAT_REG_PTR(x, 2);
-  float *restrict resultw_column = FLOAT_REG_PTR(x, 3);
+  float *restrict resultx_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict resulty_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict resultz_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
+  float *restrict resultw_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   float *restrict Ix_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict Iy_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict Iz_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -7783,7 +7783,7 @@ static void builtin_matrixCompMult_mNmN_runtime(struct sl_execution *exec, int e
 
   for (component_index = 0; component_index < N; ++component_index) {
     uint8_t *restrict chain_column = exec->exec_chain_reg_;
-    float *restrict result_column = FLOAT_REG_PTR(x, component_index);
+    float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, component_index);
     float *restrict first_opd_column = FLOAT_REG_PTR(x->children_[0], component_index);
     float *restrict second_opd_column = FLOAT_REG_PTR(x->children_[1], component_index);
     uint8_t row = exec_chain;
@@ -7913,13 +7913,13 @@ void builtin_lessThan_v2v2_runtime(struct sl_execution *exec, int exec_chain, st
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -7941,20 +7941,20 @@ void builtin_lessThan_v3v3_runtime(struct sl_execution *exec, int exec_chain, st
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -7976,27 +7976,27 @@ void builtin_lessThan_v4v4_runtime(struct sl_execution *exec, int exec_chain, st
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8072,13 +8072,13 @@ void builtin_lessThan_iv2iv2_runtime(struct sl_execution *exec, int exec_chain, 
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8100,20 +8100,20 @@ void builtin_lessThan_iv3iv3_runtime(struct sl_execution *exec, int exec_chain, 
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8135,27 +8135,27 @@ void builtin_lessThan_iv4iv4_runtime(struct sl_execution *exec, int exec_chain, 
 #define BINOP_SNIPPET_TYPE int64_t 
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 3);
   right_column = INT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8231,13 +8231,13 @@ void builtin_lessThanEqual_v2v2_runtime(struct sl_execution *exec, int exec_chai
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8259,20 +8259,20 @@ void builtin_lessThanEqual_v3v3_runtime(struct sl_execution *exec, int exec_chai
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8294,27 +8294,27 @@ void builtin_lessThanEqual_v4v4_runtime(struct sl_execution *exec, int exec_chai
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8390,13 +8390,13 @@ void builtin_lessThanEqual_iv2iv2_runtime(struct sl_execution *exec, int exec_ch
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8418,20 +8418,20 @@ void builtin_lessThanEqual_iv3iv3_runtime(struct sl_execution *exec, int exec_ch
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8453,27 +8453,27 @@ void builtin_lessThanEqual_iv4iv4_runtime(struct sl_execution *exec, int exec_ch
 #define BINOP_SNIPPET_TYPE int64_t 
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 3);
   right_column = INT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8549,13 +8549,13 @@ void builtin_greaterThan_v2v2_runtime(struct sl_execution *exec, int exec_chain,
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8577,20 +8577,20 @@ void builtin_greaterThan_v3v3_runtime(struct sl_execution *exec, int exec_chain,
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8612,27 +8612,27 @@ void builtin_greaterThan_v4v4_runtime(struct sl_execution *exec, int exec_chain,
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8708,13 +8708,13 @@ void builtin_greaterThan_iv2iv2_runtime(struct sl_execution *exec, int exec_chai
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8736,20 +8736,20 @@ void builtin_greaterThan_iv3iv3_runtime(struct sl_execution *exec, int exec_chai
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8771,27 +8771,27 @@ void builtin_greaterThan_iv4iv4_runtime(struct sl_execution *exec, int exec_chai
 #define BINOP_SNIPPET_TYPE int64_t 
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 3);
   right_column = INT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8867,13 +8867,13 @@ void builtin_greaterThanEqual_v2v2_runtime(struct sl_execution *exec, int exec_c
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8895,20 +8895,20 @@ void builtin_greaterThanEqual_v3v3_runtime(struct sl_execution *exec, int exec_c
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -8930,27 +8930,27 @@ void builtin_greaterThanEqual_v4v4_runtime(struct sl_execution *exec, int exec_c
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9026,13 +9026,13 @@ void builtin_greaterThanEqual_iv2iv2_runtime(struct sl_execution *exec, int exec
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9054,20 +9054,20 @@ void builtin_greaterThanEqual_iv3iv3_runtime(struct sl_execution *exec, int exec
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9089,27 +9089,27 @@ void builtin_greaterThanEqual_iv4iv4_runtime(struct sl_execution *exec, int exec
 #define BINOP_SNIPPET_TYPE int64_t 
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 3);
   right_column = INT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9186,13 +9186,13 @@ void builtin_equal_v2v2_runtime(struct sl_execution *exec, int exec_chain, struc
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9214,20 +9214,20 @@ void builtin_equal_v3v3_runtime(struct sl_execution *exec, int exec_chain, struc
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9249,27 +9249,27 @@ void builtin_equal_v4v4_runtime(struct sl_execution *exec, int exec_chain, struc
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9345,13 +9345,13 @@ void builtin_equal_iv2iv2_runtime(struct sl_execution *exec, int exec_chain, str
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9373,20 +9373,20 @@ void builtin_equal_iv3iv3_runtime(struct sl_execution *exec, int exec_chain, str
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9408,27 +9408,27 @@ void builtin_equal_iv4iv4_runtime(struct sl_execution *exec, int exec_chain, str
 #define BINOP_SNIPPET_TYPE int64_t 
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 3);
   right_column = INT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9504,13 +9504,13 @@ void builtin_equal_bv2bv2_runtime(struct sl_execution *exec, int exec_chain, str
 #define BINOP_SNIPPET_TYPE uint8_t
   left_column = BOOL_REG_PTR(x->children_[0], 0);
   right_column = BOOL_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 1);
   right_column = BOOL_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9532,20 +9532,20 @@ void builtin_equal_bv3bv3_runtime(struct sl_execution *exec, int exec_chain, str
 #define BINOP_SNIPPET_TYPE uint8_t
   left_column = BOOL_REG_PTR(x->children_[0], 0);
   right_column = BOOL_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 1);
   right_column = BOOL_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 2);
   right_column = BOOL_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9567,27 +9567,27 @@ void builtin_equal_bv4bv4_runtime(struct sl_execution *exec, int exec_chain, str
 #define BINOP_SNIPPET_TYPE uint8_t
   left_column = BOOL_REG_PTR(x->children_[0], 0);
   right_column = BOOL_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 1);
   right_column = BOOL_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 2);
   right_column = BOOL_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 3);
   right_column = BOOL_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9663,13 +9663,13 @@ void builtin_notEqual_v2v2_runtime(struct sl_execution *exec, int exec_chain, st
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9691,20 +9691,20 @@ void builtin_notEqual_v3v3_runtime(struct sl_execution *exec, int exec_chain, st
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9726,27 +9726,27 @@ void builtin_notEqual_v4v4_runtime(struct sl_execution *exec, int exec_chain, st
 #define BINOP_SNIPPET_TYPE float
   left_column = FLOAT_REG_PTR(x->children_[0], 0);
   right_column = FLOAT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 1);
   right_column = FLOAT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 2);
   right_column = FLOAT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = FLOAT_REG_PTR(x->children_[0], 3);
   right_column = FLOAT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9822,13 +9822,13 @@ void builtin_notEqual_iv2iv2_runtime(struct sl_execution *exec, int exec_chain, 
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9850,20 +9850,20 @@ void builtin_notEqual_iv3iv3_runtime(struct sl_execution *exec, int exec_chain, 
 #define BINOP_SNIPPET_TYPE int64_t
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9885,27 +9885,27 @@ void builtin_notEqual_iv4iv4_runtime(struct sl_execution *exec, int exec_chain, 
 #define BINOP_SNIPPET_TYPE int64_t 
   left_column = INT_REG_PTR(x->children_[0], 0);
   right_column = INT_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 1);
   right_column = INT_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 2);
   right_column = INT_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = INT_REG_PTR(x->children_[0], 3);
   right_column = INT_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -9981,13 +9981,13 @@ void builtin_notEqual_bv2bv2_runtime(struct sl_execution *exec, int exec_chain, 
 #define BINOP_SNIPPET_TYPE uint8_t
   left_column = BOOL_REG_PTR(x->children_[0], 0);
   right_column = BOOL_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 1);
   right_column = BOOL_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -10009,20 +10009,20 @@ void builtin_notEqual_bv3bv3_runtime(struct sl_execution *exec, int exec_chain, 
 #define BINOP_SNIPPET_TYPE uint8_t
   left_column = BOOL_REG_PTR(x->children_[0], 0);
   right_column = BOOL_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 1);
   right_column = BOOL_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 2);
   right_column = BOOL_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -10044,27 +10044,27 @@ void builtin_notEqual_bv4bv4_runtime(struct sl_execution *exec, int exec_chain, 
 #define BINOP_SNIPPET_TYPE uint8_t
   left_column = BOOL_REG_PTR(x->children_[0], 0);
   right_column = BOOL_REG_PTR(x->children_[1], 0);
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
 
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 1);
   right_column = BOOL_REG_PTR(x->children_[1], 1);
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 2);
   right_column = BOOL_REG_PTR(x->children_[1], 2);
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
 
   left_column = BOOL_REG_PTR(x->children_[0], 3);
   right_column = BOOL_REG_PTR(x->children_[1], 3);
-  result_column = BOOL_REG_PTR(x, 3);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 3);
 
   row = exec_chain;
 #include "sl_binop_snippet_inc.h"
@@ -10130,7 +10130,7 @@ void builtin_notEqual_bv4bv4_eval(struct sl_type_base *tb, const struct sl_expr 
 
 void builtin_any_bv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  uint8_t *restrict result_column = BOOL_REG_PTR(x, 0);
+  uint8_t *restrict result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
   uint8_t *restrict left_column = BOOL_REG_PTR(x->children_[0], 0);
   uint8_t *restrict right_column = BOOL_REG_PTR(x->children_[0], 1);
   uint8_t row = exec_chain;
@@ -10148,7 +10148,7 @@ void builtin_any_bv2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_any_bv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  uint8_t *restrict result_column = BOOL_REG_PTR(x, 0);
+  uint8_t *restrict result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
   uint8_t *restrict first_column = BOOL_REG_PTR(x->children_[0], 0);
   uint8_t *restrict second_column = BOOL_REG_PTR(x->children_[0], 1);
   uint8_t *restrict third_column = BOOL_REG_PTR(x->children_[0], 2);
@@ -10163,7 +10163,7 @@ void builtin_any_bv3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_any_bv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  uint8_t *restrict result_column = BOOL_REG_PTR(x, 0);
+  uint8_t *restrict result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
   uint8_t *restrict first_column = BOOL_REG_PTR(x->children_[0], 0);
   uint8_t *restrict second_column = BOOL_REG_PTR(x->children_[0], 1);
   uint8_t *restrict third_column = BOOL_REG_PTR(x->children_[0], 2);
@@ -10209,7 +10209,7 @@ void builtin_any_bv4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_all_bv2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  uint8_t *restrict result_column = BOOL_REG_PTR(x, 0);
+  uint8_t *restrict result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
   uint8_t *restrict left_column = BOOL_REG_PTR(x->children_[0], 0);
   uint8_t *restrict right_column = BOOL_REG_PTR(x->children_[0], 1);
   uint8_t row = exec_chain;
@@ -10227,7 +10227,7 @@ void builtin_all_bv2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_all_bv3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  uint8_t *restrict result_column = BOOL_REG_PTR(x, 0);
+  uint8_t *restrict result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
   uint8_t *restrict first_column = BOOL_REG_PTR(x->children_[0], 0);
   uint8_t *restrict second_column = BOOL_REG_PTR(x->children_[0], 1);
   uint8_t *restrict third_column = BOOL_REG_PTR(x->children_[0], 2);
@@ -10242,7 +10242,7 @@ void builtin_all_bv3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_all_bv4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  uint8_t *restrict result_column = BOOL_REG_PTR(x, 0);
+  uint8_t *restrict result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
   uint8_t *restrict first_column = BOOL_REG_PTR(x->children_[0], 0);
   uint8_t *restrict second_column = BOOL_REG_PTR(x->children_[0], 1);
   uint8_t *restrict third_column = BOOL_REG_PTR(x->children_[0], 2);
@@ -10295,12 +10295,12 @@ void builtin_not_bv2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) (uint8_t)(0x100 - !(opd))
 #define UNOP_SNIPPET_TYPE uint8_t 
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = BOOL_REG_PTR(x->children_[0], 0); 
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = BOOL_REG_PTR(x->children_[0], 1);
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
@@ -10317,17 +10317,17 @@ void builtin_not_bv3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) (uint8_t)(0x100 - !(opd))
 #define UNOP_SNIPPET_TYPE uint8_t 
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = BOOL_REG_PTR(x->children_[0], 0); 
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = BOOL_REG_PTR(x->children_[0], 1);
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = BOOL_REG_PTR(x->children_[0], 2);
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
@@ -10344,17 +10344,17 @@ void builtin_not_bv4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 #define UNOP_SNIPPET_OPERATOR(opd) (uint8_t)(0x100 - !(opd))
 #define UNOP_SNIPPET_TYPE uint8_t 
-  result_column = BOOL_REG_PTR(x, 0);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 0);
   opd_column = BOOL_REG_PTR(x->children_[0], 0); 
 
 #include "sl_unop_snippet_inc.h"
 
-  result_column = BOOL_REG_PTR(x, 1);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 1);
   opd_column = BOOL_REG_PTR(x->children_[0], 1);
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
 
-  result_column = BOOL_REG_PTR(x, 2);
+  result_column = BOOL_REG_PTR_NRV(&x->base_regs_, 2);
   opd_column = BOOL_REG_PTR(x->children_[0], 1);
   row = exec_chain;
 #include "sl_unop_snippet_inc.h"
@@ -10401,7 +10401,7 @@ void builtin_not_bv4_eval(struct sl_type_base *tb, const struct sl_expr *x, stru
 
 void builtin_dFdx_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -10472,8 +10472,8 @@ void builtin_dFdx_f_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 void builtin_dFdx_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
+  float *restrict result0_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result1_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
   uint8_t row = exec_chain;
@@ -10566,9 +10566,9 @@ void builtin_dFdx_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_dFdx_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
-  float *restrict result2_column = FLOAT_REG_PTR(x, 2);
+  float *restrict result0_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result1_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict result2_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict opd2_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -10683,10 +10683,10 @@ void builtin_dFdx_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_dFdx_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
-  float *restrict result2_column = FLOAT_REG_PTR(x, 2);
-  float *restrict result3_column = FLOAT_REG_PTR(x, 3);
+  float *restrict result0_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result1_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict result2_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
+  float *restrict result3_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict opd2_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -10817,7 +10817,7 @@ void builtin_dFdx_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_dFdy_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -10891,8 +10891,8 @@ void builtin_dFdy_f_runtime(struct sl_execution *exec, int exec_chain, struct sl
 
 void builtin_dFdy_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
+  float *restrict result0_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result1_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
   uint8_t row = exec_chain;
@@ -10988,9 +10988,9 @@ void builtin_dFdy_v2_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_dFdy_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
-  float *restrict result2_column = FLOAT_REG_PTR(x, 2);
+  float *restrict result0_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result1_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict result2_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict opd2_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -11108,10 +11108,10 @@ void builtin_dFdy_v3_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_dFdy_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
-  float *restrict result2_column = FLOAT_REG_PTR(x, 2);
-  float *restrict result3_column = FLOAT_REG_PTR(x, 3);
+  float *restrict result0_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result1_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict result2_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
+  float *restrict result3_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict opd2_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -11251,7 +11251,7 @@ void builtin_dFdy_v4_runtime(struct sl_execution *exec, int exec_chain, struct s
 
 void builtin_fwidth_f_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result_column = FLOAT_REG_PTR(x, 0);
+  float *restrict result_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
   float *restrict opd_column = FLOAT_REG_PTR(x->children_[0], 0);
   uint8_t row = exec_chain;
 
@@ -11332,8 +11332,8 @@ void builtin_fwidth_f_runtime(struct sl_execution *exec, int exec_chain, struct 
 
 void builtin_fwidth_v2_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
+  float *restrict result0_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result1_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
   float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
   uint8_t row = exec_chain;
@@ -11445,9 +11445,9 @@ void builtin_fwidth_v2_runtime(struct sl_execution *exec, int exec_chain, struct
 
 void builtin_fwidth_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
-  float *restrict result2_column = FLOAT_REG_PTR(x, 2);
+  float *restrict result0_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result1_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict result2_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
   float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict opd2_column = FLOAT_REG_PTR(x->children_[0], 2);
@@ -11590,10 +11590,10 @@ void builtin_fwidth_v3_runtime(struct sl_execution *exec, int exec_chain, struct
 
 void builtin_fwidth_v4_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x) {
   uint8_t *restrict chain_column = exec->exec_chain_reg_;
-  float *restrict result0_column = FLOAT_REG_PTR(x, 0);
-  float *restrict result1_column = FLOAT_REG_PTR(x, 1);
-  float *restrict result2_column = FLOAT_REG_PTR(x, 2);
-  float *restrict result3_column = FLOAT_REG_PTR(x, 3);
+  float *restrict result0_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 0);
+  float *restrict result1_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 1);
+  float *restrict result2_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 2);
+  float *restrict result3_column = FLOAT_REG_PTR_NRV(&x->base_regs_, 3);
   float *restrict opd0_column = FLOAT_REG_PTR(x->children_[0], 0);
   float *restrict opd1_column = FLOAT_REG_PTR(x->children_[0], 1);
   float *restrict opd2_column = FLOAT_REG_PTR(x->children_[0], 2);
