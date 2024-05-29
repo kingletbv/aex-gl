@@ -48,18 +48,21 @@ struct shader_test_code {
   const char *code_;
   const char *expected_dump_;
 } shader_tests[] = {
+  /* 0 */
   { "void main(void) {\n"
     "  dump(vec3(1,2,3));\n"
     "}\n",
     "vec3(1.000000, 2.000000, 3.000000)\n"
   },
 
+  /* 1 */
   { "void main(void) {\n"
     "  dump(1+1);\n"
     "}",
     "2\n"
   },
 
+  /* 2 */
   { "void dump_arg(int arg) {\n"
     "  dump(arg);\n"
     "}\n"
@@ -67,6 +70,14 @@ struct shader_test_code {
     "  dump_arg(1+1);\n"
     "}\n",
     "2\n"
+  },
+
+  /* 3 */
+  { "void main(void) {\n"
+    "  ivec4 v = ivec4(1,2,3,4);\n"
+    "  dump(v.z);\n"
+    "}\n",
+    "3\n"
   }
 };
 
@@ -126,10 +137,14 @@ int print_program_log(FILE *fp, GLuint program) {
 
 int main(int argc, char **argv) {
   int num_successes = 0;
-  int total_num = (int)(sizeof(shader_tests) / sizeof(*shader_tests));
+
+  size_t first_selected_test = 0;
+  size_t end_selected_test = sizeof(shader_tests) / sizeof(*shader_tests);
+
+  //end_selected_test = 1 + (first_selected_test = 3);
 
   size_t n;
-  for (n = 0; n < sizeof(shader_tests) / sizeof(*shader_tests); ++n) {
+  for (n = first_selected_test; n < end_selected_test; ++n) {
     struct shader_test_code *stc = shader_tests + n;
     int sh = glCreateShader(AEX_GL_DEBUG_SHADER);
     check_for_and_print_gl_err(stderr);
@@ -189,7 +204,7 @@ int main(int argc, char **argv) {
     check_for_and_print_gl_err(stderr);
   }
 
-  fprintf(stdout, "%d / %d tests passed\n", num_successes, total_num);
+  fprintf(stdout, "%d / %zu tests passed\n", num_successes, (end_selected_test - first_selected_test));
   
-  return (num_successes == total_num) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return (num_successes == (int)(end_selected_test - first_selected_test)) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
