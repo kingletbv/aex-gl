@@ -270,9 +270,9 @@ struct sl_expr *glsl_es1_field_or_swizzle_selection(struct diags *dx, struct sl_
     dx_error_loc(dx, field_loc, "No field named \"%s\" in struct \"%s\", see line %d", field_id, t->name_, situs_line(&t->tag_loc_));
     return NULL;
   }
-  else if ((t->kind_ == sletk_vec2) || (t->kind_ == sletk_vec3) || (t->kind_ == sletk_vec4) ||
-           (t->kind_ == sletk_ivec2) || (t->kind_ == sletk_ivec3) || (t->kind_ == sletk_ivec4) ||
-           (t->kind_ == sletk_bvec2) || (t->kind_ == sletk_bvec3) || (t->kind_ == sletk_bvec4)) {
+  else if ((t->kind_ == sltk_vec2) || (t->kind_ == sltk_vec3) || (t->kind_ == sltk_vec4) ||
+           (t->kind_ == sltk_ivec2) || (t->kind_ == sltk_ivec3) || (t->kind_ == sltk_ivec4) ||
+           (t->kind_ == sltk_bvec2) || (t->kind_ == sltk_bvec3) || (t->kind_ == sltk_bvec4)) {
     /* Look for a matching swizzle */
     int num_src_components = glsl_es1_sl_type_num_components(t);
     size_t num_tgt_components = strlen(field_id);
