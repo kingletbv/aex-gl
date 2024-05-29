@@ -123,6 +123,41 @@ struct shader_test_code {
     "1\n"
     "2\n"
     "3\n"
+  },
+
+  /* 8 */
+  { "void main(void) {\n"
+    "  ivec4 v = ivec4(0, 1, 2, 3);\n"
+    "  v.xyzw = v.wzyx;\n"
+    "  v.wzyx[2] = 6; // note that we're putting it, after swizzling, in y. However, that's an lvalue, so it should change the 2nd (#1) component, not the 3rd (#2) component.\n"
+    "  dump(v);\n"
+    "}\n",
+    "ivec4(3, 6, 1, 0)\n"
+  },
+
+  /* 9 */
+  { "void main(void) {\n"
+    "  /* 0 2   \n"
+    "   * 1 3 */\n"
+    "  mat2 m = mat2(0, 1, 2, 3);\n"
+    "  dump(m[0]);\n"
+    "  dump(m[1]);\n"
+    "}\n",
+    "vec2(0.000000, 1.000000)\n"
+    "vec2(2.000000, 3.000000)\n"
+  },
+
+  /* 10 */
+  { "void main(void) {\n"
+    "  /* 0 3 6 \n"
+    "   * 1 4 7 \n"
+    "   * 2 5 8*/\n"
+    "  mat3 m = mat3(0, 1, 2, 3, 4, 5, 6, 7, 8);\n"
+    "  dump(m[0]);\n"
+    "  dump(m[1]);\n"
+    "}\n",
+    "vec3(0.000000, 1.000000, 2.000000)\n"
+    "vec3(3.000000, 4.000000, 5.000000)\n"
   }
 };
 
@@ -186,7 +221,7 @@ int main(int argc, char **argv) {
   size_t first_selected_test = 0;
   size_t end_selected_test = sizeof(shader_tests) / sizeof(*shader_tests);
 
-  //end_selected_test = 1 + (first_selected_test = 7);
+  //end_selected_test = 1 + (first_selected_test = 10);
 
   size_t n;
   for (n = first_selected_test; n < end_selected_test; ++n) {
