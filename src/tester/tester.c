@@ -78,6 +78,51 @@ struct shader_test_code {
     "  dump(v.z);\n"
     "}\n",
     "3\n"
+  },
+
+  /* 4 */
+  { "void main(void) {\n"
+    "  ivec4 v = ivec4(1,2,3,4);\n"
+    "  dump((v.zw).y);\n"
+    "}\n",
+    "4\n"
+  },
+
+  /* 5 */
+  { "void main(void) {\n"
+    "  ivec4 v = ivec4(1,2,3,4);\n"
+    "  dump(v[2]);\n"
+    "}\n",
+    "3\n"
+  },
+
+  /* 6 */
+  { "void main(void) {\n"
+    "  ivec4 v = ivec4(0, 1, 2, 3);\n"
+    "  dump(v.wzyx[0]);\n"
+    "  dump(v.wzyx[1]);\n"
+    "  dump(v.wzyx[2]);\n"
+    "  dump(v.wzyx[3]);\n"
+    "}\n",
+    "3\n"
+    "2\n"
+    "1\n"
+    "0\n"
+  },
+
+  /* 7 */
+  { "void main(void) {\n"
+    "  ivec4 v = ivec4(0, 1, 2, 3);\n"
+    "  v.xyzw = v.wzyx;\n"
+    "  dump(v.wzyx[0]);\n"
+    "  dump(v.wzyx[1]);\n"
+    "  dump(v.wzyx[2]);\n"
+    "  dump(v.wzyx[3]);\n"
+    "}\n",
+    "0\n"
+    "1\n"
+    "2\n"
+    "3\n"
   }
 };
 
@@ -141,7 +186,7 @@ int main(int argc, char **argv) {
   size_t first_selected_test = 0;
   size_t end_selected_test = sizeof(shader_tests) / sizeof(*shader_tests);
 
-  //end_selected_test = 1 + (first_selected_test = 3);
+  //end_selected_test = 1 + (first_selected_test = 5);
 
   size_t n;
   for (n = first_selected_test; n < end_selected_test; ++n) {
