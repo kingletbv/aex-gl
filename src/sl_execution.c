@@ -3051,7 +3051,7 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_expr *
  *       dst_ra might be local ; if so, we need to offset before we access...
  */
 
-static void sl_exec_load_effective_reg_index(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst_ra, int64_t reg_base_offset, const struct sl_reg_alloc *src_ra, const struct sl_reg_alloc *src_index_ra) {
+static void sl_exec_load_effective_reg_index(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst_ra, const struct sl_reg_alloc *src_ra, const struct sl_reg_alloc *src_index_ra) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   int64_t * restrict result_column = INT_REG_PTR_NRV(dst_ra, 0);
   const int64_t * restrict opd_column = INT_REG_PTR_NRV(src_index_ra, 0);
@@ -3089,7 +3089,7 @@ static void sl_exec_load_effective_reg_index(struct sl_execution *exec, uint8_t 
           break;
       }
 #define UNOP_SNIPPET_TYPE int64_t
-#define UNOP_SNIPPET_OPERATOR(opd) reg_base_offset + src_ra->v_.regs_[ (opd) ];
+#define UNOP_SNIPPET_OPERATOR(opd) global_offset + src_ra->v_.regs_[ (opd) ];
 #include "sl_unop_snippet_inc.h"
 #undef UNOP_SNIPPET_OPERATOR
 #undef UNOP_SNIPPET_TYPE
@@ -4261,7 +4261,8 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             }
             else {
               /* Not an array, base must be indirect and this array subscript is to access components */
-              /* XXX: PLACEHOLDER CODE, NEEDS DEEPER THOUGHT ON PERFORMANCE */
+              sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
+
               switch (eps[epi].v_.expr_->children_[0]->base_regs_.kind_) {
                 case slrak_vec2:
                 case slrak_vec3:
@@ -4272,65 +4273,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
                 case slrak_bvec2:
                 case slrak_bvec3:
                 case slrak_bvec4: {
-                  uint8_t delta;
-                  uint8_t row = eps[epi].revisit_chain_;
-                  if (!eps[epi].v_.expr_->children_[0]->base_regs_.is_indirect_) {
-                    if (eps[epi].v_.expr_->children_[0]->base_regs_.local_frame_) {
-                      /* Child 0 registers are relative to the local frame, offset them to the global frame before we assign the register indices */
-                      int local_offset = 0;
-                      switch (eps[epi].v_.expr_->children_[0]->base_regs_.kind_) {
-                        case slrak_vec2:
-                        case slrak_vec3:
-                        case slrak_vec4:
-                          local_offset = exec->execution_frames_[exec->num_execution_frames_-1].local_float_offset_;
-                          break;
-                        case slrak_ivec2:
-                        case slrak_ivec3:
-                        case slrak_ivec4:
-                          local_offset = exec->execution_frames_[exec->num_execution_frames_-1].local_int_offset_;
-                          break;
-                        case slrak_bvec2:
-                        case slrak_bvec3:
-                        case slrak_bvec4:
-                          local_offset = exec->execution_frames_[exec->num_execution_frames_-1].local_bool_offset_;
-                          break;
-                      }
-                      for (;;) {
-                        int64_t row_array_index = INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0)[row];
-
-                        INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, 0)[row] = local_offset + eps[epi].v_.expr_->children_[0]->base_regs_.v_.regs_[ row_array_index ];
-
-                        delta = exec->exec_chain_reg_[row];
-                        if (!delta) break;
-                        row += delta;
-                      }
-                    }
-                    else {
-                      /* Child 0 registers are already in the global frame, no further work. */
-                      for (;;) {
-                        int64_t row_array_index = INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0)[row];
-
-                        INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, 0)[row] = eps[epi].v_.expr_->children_[0]->base_regs_.v_.regs_[ row_array_index ];
-
-                        delta = exec->exec_chain_reg_[row];
-                        if (!delta) break;
-                        row += delta;
-                      }
-                    }
-                  }
-                  else {
-                    /* Indirect; base_reg_ holds integer indices of the register that holds the actual index */
-                    for (;;) {
-                      int64_t row_array_index = INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0)[row];
-
-                      /* Copy from the indirect int holding the register to the indirect int holding the register. */
-                      INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, 0)[row] = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[0]->base_regs_, row_array_index)[row];
-
-                      delta = exec->exec_chain_reg_[row];
-                      if (!delta) break;
-                      row += delta;
-                    }
-                  }
+                  sl_exec_load_effective_reg_index(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->base_regs_, &eps[epi].v_.expr_->children_[0]->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]));
                   break;
                 }
                 case slrak_mat2:
