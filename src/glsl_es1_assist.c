@@ -863,7 +863,9 @@ int glsl_es1_build_array_type(struct diags *dx, struct sl_type_base *tb, struct 
     sl_expr_temp_cleanup(&array_size_temp);
     return 0;
   }
-  struct sl_type *array_type = sl_type_base_array_type(tb, base_type, array_size);
+  /* Lift qualifiers off of base_type, apply them to the array type */
+  int derived_qualifiers = sl_type_qualifiers(base_type);
+  struct sl_type *array_type = sl_type_base_qualified_type(tb, sl_type_base_array_type(tb, sl_type_unqualified(base_type), array_size), derived_qualifiers);
   if (!array_type) {
     dx_no_memory(dx);
     sl_expr_temp_cleanup(&array_size_temp);
