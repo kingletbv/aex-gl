@@ -3053,8 +3053,19 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_expr *
 
 static void sl_exec_load_effective_reg_index(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst_ra, const struct sl_reg_alloc *src_ra, const struct sl_reg_alloc *src_index_ra) {
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
-  int64_t * restrict result_column = INT_REG_PTR_NRV(dst_ra, 0);
-  const int64_t * restrict opd_column = INT_REG_PTR_NRV(src_index_ra, 0);
+
+  int column_size = 0; /* column size of 0 means "no column" (but instead selecting a scalar from a vec) */
+  switch (src_ra->kind_) {
+    case slrak_mat2:
+      column_size = 2;
+      break;
+    case slrak_mat3:
+      column_size = 3;
+      break;
+    case slrak_mat4:
+      column_size = 4;
+      break;
+  }
 
   if (!src_ra->is_indirect_) {
     if (src_ra->local_frame_) {
@@ -3088,21 +3099,59 @@ static void sl_exec_load_effective_reg_index(struct sl_execution *exec, uint8_t 
           global_offset = exec->execution_frames_[exec->num_execution_frames_ - 1].local_samplerCube_offset_;
           break;
       }
+      if (!column_size) {
+        int64_t *restrict result_column = INT_REG_PTR_NRV(dst_ra, 0);
+        const int64_t *restrict opd_column = INT_REG_PTR_NRV(src_index_ra, 0);
 #define UNOP_SNIPPET_TYPE int64_t
 #define UNOP_SNIPPET_OPERATOR(opd) global_offset + src_ra->v_.regs_[ (opd) ];
 #include "sl_unop_snippet_inc.h"
 #undef UNOP_SNIPPET_OPERATOR
 #undef UNOP_SNIPPET_TYPE
+      }
+      else {
+        /* Matrix */
+        int k;
+        for (k = 0; k < column_size; ++k) {
+          int64_t *restrict result_column = INT_REG_PTR_NRV(dst_ra, k);
+          const int64_t *restrict opd_column = INT_REG_PTR_NRV(src_index_ra, 0);
+
+#define UNOP_SNIPPET_TYPE int64_t
+#define UNOP_SNIPPET_OPERATOR(opd) global_offset + src_ra->v_.regs_[ (opd) * (int64_t)column_size + k ];
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+        }
+      }
     }
     else {
+      if (!column_size) {
+        int64_t *restrict result_column = INT_REG_PTR_NRV(dst_ra, 0);
+        const int64_t *restrict opd_column = INT_REG_PTR_NRV(src_index_ra, 0);
 #define UNOP_SNIPPET_TYPE int64_t
 #define UNOP_SNIPPET_OPERATOR(opd) src_ra->v_.regs_[ (opd) ];
 #include "sl_unop_snippet_inc.h"
 #undef UNOP_SNIPPET_OPERATOR
 #undef UNOP_SNIPPET_TYPE
+      }
+      else {
+        /* Matrix */
+        int k;
+        for (k = 0; k < column_size; ++k) {
+          int64_t *restrict result_column = INT_REG_PTR_NRV(dst_ra, k);
+          const int64_t *restrict opd_column = INT_REG_PTR_NRV(src_index_ra, 0);
+
+#define UNOP_SNIPPET_TYPE int64_t
+#define UNOP_SNIPPET_OPERATOR(opd) src_ra->v_.regs_[ (opd) * (int64_t)column_size + k ];
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+        }
+      }
     }
   }
   else {
+    /* Vec or matrix we're indexing from is already indirect */
+
     int64_t * restrict component_indirect_columns[16];
     size_t n;
     int64_t global_offset = 0;
@@ -3112,48 +3161,105 @@ static void sl_exec_load_effective_reg_index(struct sl_execution *exec, uint8_t 
     for (n = 0; n < 16; ++n) {
       component_indirect_columns[n] = exec->int_regs_[ global_offset + src_ra->v_.regs_[n] ];
     }
-    for (;;) {
-      uint64_t chain;
-      uint8_t delta;
-      if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
-        do {
-          int64_t *restrict result = result_column + row;
-          const int64_t *restrict opd = opd_column + row;
-          int n;
-          /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
-          for (n = 0; n < 8; n++) {
-            result[n] = (component_indirect_columns[(opd[n])])[n + row];
-          }
+    if (!column_size) {
+      int64_t *restrict result_column = INT_REG_PTR_NRV(dst_ra, 0);
+      const int64_t *restrict opd_column = INT_REG_PTR_NRV(src_index_ra, 0);
 
-          delta = (chain & 0xFF00000000000000) >> 56;
-          if (!delta) break;
-          row += 7 + delta;
-        } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+      for (;;) {
+        uint64_t chain;
+        uint8_t delta;
+        if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+          do {
+            int64_t *restrict result = result_column + row;
+            const int64_t *restrict opd = opd_column + row;
+            int n;
+            /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+            for (n = 0; n < 8; n++) {
+              result[n] = (component_indirect_columns[(opd[n])])[n + row];
+            }
+
+            delta = (chain & 0xFF00000000000000) >> 56;
+            if (!delta) break;
+            row += 7 + delta;
+          } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+        }
+        else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+          do {
+            int64_t *restrict result = result_column + row;
+            const int64_t *restrict opd = opd_column + row;
+            int n;
+            /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+            for (n = 0; n < 4; n++) {
+              result[n] = (component_indirect_columns[(opd[n])])[n + row];
+            }
+            delta = (chain & 0xFF000000) >> 24;
+            if (!delta) break;
+            row += 3 + delta;
+          } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+        }
+        else {
+          do {
+            /* Not trying to evoke auto-vectorization, just get it done. */
+            result_column[row] = (component_indirect_columns[(opd_column[row])])[row];
+            delta = chain_column[row];
+            if (!delta) break;
+            row += delta;
+          } while (row & 3);
+        }
+        if (!delta) break;
       }
-      else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
-        do {
-          int64_t *restrict result = result_column + row;
-          const int64_t *restrict opd = opd_column + row;
-          int n;
-          /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
-          for (n = 0; n < 4; n++) {
-            result[n] = (component_indirect_columns[(opd[n])])[n + row];
+    }
+    else {
+      /* Matrix */
+      int k;
+      for (k = 0; k < column_size; ++k) {
+        int64_t *restrict result_column = INT_REG_PTR_NRV(dst_ra, k);
+        const int64_t *restrict opd_column = INT_REG_PTR_NRV(src_index_ra, 0);
+
+        for (;;) {
+          uint64_t chain;
+          uint8_t delta;
+          if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+            do {
+              int64_t *restrict result = result_column + row;
+              const int64_t *restrict opd = opd_column + row;
+              int n;
+              /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+              for (n = 0; n < 8; n++) {
+                result[n] = (component_indirect_columns[column_size * (opd[n]) + k])[n + row];
+              }
+
+              delta = (chain & 0xFF00000000000000) >> 56;
+              if (!delta) break;
+              row += 7 + delta;
+            } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
           }
-          delta = (chain & 0xFF000000) >> 24;
+          else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+            do {
+              int64_t *restrict result = result_column + row;
+              const int64_t *restrict opd = opd_column + row;
+              int n;
+              /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+              for (n = 0; n < 4; n++) {
+                result[n] = (component_indirect_columns[column_size * (opd[n]) + k])[n + row];
+              }
+              delta = (chain & 0xFF000000) >> 24;
+              if (!delta) break;
+              row += 3 + delta;
+            } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+          }
+          else {
+            do {
+              /* Not trying to evoke auto-vectorization, just get it done. */
+              result_column[row] = (component_indirect_columns[column_size * (opd_column[row]) + k])[row];
+              delta = chain_column[row];
+              if (!delta) break;
+              row += delta;
+            } while (row & 3);
+          }
           if (!delta) break;
-          row += 3 + delta;
-        } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+        }
       }
-      else {
-        do {
-          /* Not trying to evoke auto-vectorization, just get it done. */
-          result_column[row] = (component_indirect_columns[(opd_column[row])])[row];
-          delta = chain_column[row];
-          if (!delta) break;
-          row += delta;
-        } while (row & 3);
-      }
-      if (!delta) break;
     }
   }
 }
@@ -4263,82 +4369,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
               /* Not an array, base must be indirect and this array subscript is to access components */
               sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[1]);
 
-              switch (eps[epi].v_.expr_->children_[0]->base_regs_.kind_) {
-                case slrak_vec2:
-                case slrak_vec3:
-                case slrak_vec4:
-                case slrak_ivec2:
-                case slrak_ivec3:
-                case slrak_ivec4:
-                case slrak_bvec2:
-                case slrak_bvec3:
-                case slrak_bvec4: {
-                  sl_exec_load_effective_reg_index(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->base_regs_, &eps[epi].v_.expr_->children_[0]->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]));
-                  break;
-                }
-                case slrak_mat2:
-                case slrak_mat3:
-                case slrak_mat4: {
-                  int column_size = 0;
-                  switch (eps[epi].v_.expr_->children_[0]->base_regs_.kind_) {
-                    case slrak_mat2: column_size = 2; break;
-                    case slrak_mat3: column_size = 3; break;
-                    case slrak_mat4: column_size = 4; break;
-                  }
-
-                  int k;
-                  for (k = 0; k < column_size; ++k) {
-                    uint8_t delta;
-                    uint8_t row = eps[epi].revisit_chain_;
-                    if (!eps[epi].v_.expr_->children_[0]->base_regs_.is_indirect_) {
-                      if (eps[epi].v_.expr_->children_[0]->base_regs_.local_frame_) {
-                        /* Child 0 registers are relative to the local frame, offset them to the global frame before we assign the register indices */
-                        for (;;) {
-                          int64_t col_index = INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0)[row];
-
-                          col_index = k + col_index * (int64_t)column_size;
-
-                          INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, k)[row] = exec->execution_frames_[exec->num_execution_frames_-1].local_float_offset_ + eps[epi].v_.expr_->children_[0]->base_regs_.v_.regs_[col_index];
-
-                          delta = exec->exec_chain_reg_[row];
-                          if (!delta) break;
-                          row += delta;
-                        }
-                      }
-                      else {
-                        /* Child 0 registers are already in the global frame, no further work. */
-                        for (;;) {
-                          int64_t col_index = INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0)[row];
-
-                          col_index = k + col_index * (int64_t)column_size;
-
-                          INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, k)[row] = eps[epi].v_.expr_->children_[0]->base_regs_.v_.regs_[col_index];
-
-                          delta = exec->exec_chain_reg_[row];
-                          if (!delta) break;
-                          row += delta;
-                        }
-                      }
-                    }
-                    else {
-                      /* Indirect; base_reg_ holds integer indices of the register that holds the actual index */
-                      for (;;) {
-                        int64_t col_index = INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0)[row];
-
-                        col_index = k + col_index * (int64_t)column_size;
-
-                        /* Copy from the indirect int holding the register to the indirect int holding the register. */
-                        INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, k)[row] = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[0]->base_regs_, col_index)[row];
-
-                        delta = exec->exec_chain_reg_[row];
-                        if (!delta) break;
-                        row += delta;
-                      }
-                    }
-                  }
-                  break;
-                }
-              }
+              sl_exec_load_effective_reg_index(exec, eps[epi].revisit_chain_, &eps[epi].v_.expr_->base_regs_, &eps[epi].v_.expr_->children_[0]->base_regs_, EXPR_RVALUE(eps[epi].v_.expr_->children_[1]));
             }
             break;
           }
