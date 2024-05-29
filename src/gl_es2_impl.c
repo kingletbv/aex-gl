@@ -5187,6 +5187,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(RenderbufferSt
     case GL_ES2_DEPTH_COMPONENT16:
       actual_format = gl_es2_renderbuffer_format_depth16;
       break;
+    case GL_ES2_DEPTH24_STENCIL8: /* XXX: THIS IS NOT PROPER! Buffer should include *BOTH* depth and stencil, not just stencil */
     case GL_ES2_DEPTH_COMPONENT24:
     case GL_ES2_DEPTH_COMPONENT32:
       actual_format = gl_es2_renderbuffer_format_depth32;

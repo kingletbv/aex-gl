@@ -231,6 +231,7 @@ extern "C" {
 #define GL_ES2_DEPTH_COMPONENT32 0x81A7 /* GL_OES_depth32; not in OpenGL ES 2.0/3.0 but happens to be one we support */
 #define GL_ES2_STENCIL_INDEX8  0x8D48
 #define GL_ES2_STENCIL_INDEX16 0x8D49
+#define GL_ES2_DEPTH24_STENCIL8 0x88F0
 
 #define GL_ES2_NEAREST                0x2600 
 #define GL_ES2_LINEAR                 0x2601
