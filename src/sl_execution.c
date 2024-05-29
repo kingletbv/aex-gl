@@ -4116,29 +4116,99 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
       else if (eps[epi].revisit_chain_ != SL_EXEC_NO_CHAIN) {
         switch (eps[epi].v_.expr_->op_) {
           case exop_array_subscript: {
-            // Take the fixed array size that this subscript indexes, if the array child has an offset_, multiply
-            // the offset value to form the new offset, then be done. We don't need to do anything on the lvalue
-            // itself as the register allocator has ensured it is the correct field subset.
-            if (eps[epi].v_.expr_->children_[0]->offset_reg_.kind_  != slrak_void) {
-              if (&eps[epi].v_.expr_->children_[1]->offset_reg_.kind_ != slrak_void) {
-                sl_exec_offset_load(exec, eps[epi].revisit_chain_, 
-                                    &eps[epi].v_.expr_->children_[1]->rvalue_,
-                                    &eps[epi].v_.expr_->children_[1]->base_regs_,
-                                    &eps[epi].v_.expr_->children_[1]->offset_reg_);
-              }
+            if (eps[epi].v_.expr_->children_[0]->base_regs_.kind_ == slrak_array) {
+              /* Take the fixed array size that this subscript indexes, if the array child has an offset_, multiply
+               * the offset value to form the new offset, then be done. We don't need to do anything on the lvalue
+               * itself as the register allocator has ensured it is the correct field subset. */
+              if (eps[epi].v_.expr_->children_[0]->offset_reg_.kind_  != slrak_void) {
+                if (&eps[epi].v_.expr_->children_[1]->offset_reg_.kind_ != slrak_void) {
+                  sl_exec_offset_load(exec, eps[epi].revisit_chain_, 
+                                      &eps[epi].v_.expr_->children_[1]->rvalue_,
+                                      &eps[epi].v_.expr_->children_[1]->base_regs_,
+                                      &eps[epi].v_.expr_->children_[1]->offset_reg_);
+                }
               
-              /* New offset = old-offset * array-size + array-subscript-index */
-              sl_exec_i_mul_constant_and_add(eps[epi].revisit_chain_, exec->exec_chain_reg_,
-                                             INT_REG_PTR_NRV(&eps[epi].v_.expr_->offset_reg_, 0),
-                                             INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[0]->offset_reg_, 0),
-                                             INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0),
-                                             (int64_t)eps[epi].v_.expr_->children_[0]->base_regs_.v_.array_.num_elements_);
+                /* New offset = old-offset * array-size + array-subscript-index */
+                sl_exec_i_mul_constant_and_add(eps[epi].revisit_chain_, exec->exec_chain_reg_,
+                                               INT_REG_PTR_NRV(&eps[epi].v_.expr_->offset_reg_, 0),
+                                               INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[0]->offset_reg_, 0),
+                                               INT_REG_PTR(eps[epi].v_.expr_->children_[1], 0),
+                                               (int64_t)eps[epi].v_.expr_->children_[0]->base_regs_.v_.array_.num_elements_);
 
+              }
+              else {
+                sl_reg_move(exec, eps[epi].revisit_chain_, 
+                            &eps[epi].v_.expr_->children_[1]->base_regs_, &eps[epi].v_.expr_->children_[1]->offset_reg_,
+                            &eps[epi].v_.expr_->offset_reg_, NULL);
+              }
             }
             else {
-              sl_reg_move(exec, eps[epi].revisit_chain_, 
-                          &eps[epi].v_.expr_->children_[1]->base_regs_, &eps[epi].v_.expr_->children_[1]->offset_reg_,
-                          &eps[epi].v_.expr_->offset_reg_, NULL);
+              /* Not an array, base must be indirect and this array subscript is to access components */
+              /* XXX: PLACEHOLDER CODE, NEEDS DEEPER THOUGHT ON PERFORMANCE AND COMPLETENESS OF CASES */
+              switch (eps[epi].v_.expr_->children_[0]->base_regs_.kind_) {
+                case slrak_vec2:
+                case slrak_vec3:
+                case slrak_vec4:
+                case slrak_ivec2:
+                case slrak_ivec3:
+                case slrak_ivec4:
+                case slrak_bvec2:
+                case slrak_bvec3:
+                case slrak_bvec4: {
+                  uint8_t delta;
+                  uint8_t row = eps[epi].revisit_chain_;
+                  if (!eps[epi].v_.expr_->children_[0]->base_regs_.is_indirect_) {
+                    if (eps[epi].v_.expr_->children_[0]->base_regs_.local_frame_) {
+                      /* Child 0 registers are relative to the local frame, offset them to the global frame before we assign the register indices */
+                      for (;;) {
+                        int64_t row_array_index = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[1]->base_regs_, 0)[row];
+
+                        // XXX: NOTE this breaks when expr_->children_[0]->base_regs_.local_frame_ != eps[epi].v_.expr_->base_regs_.local_frame_
+                        // XXX: NOTE this simply breaks outright, the indirection value stored inside teh register is ALWAYS in the global frame,
+                        //      so if expr_->children_[0]->base_regs_.local_frame_, then we must always correct for it.
+                        INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, 0)[row] = exec->execution_frames_[exec->num_execution_frames_-1].local_int_offset_ + eps[epi].v_.expr_->children_[0]->base_regs_.v_.regs_[ row_array_index ];
+
+                        delta = exec->exec_chain_reg_[row];
+                        if (!delta) break;
+                        row += delta;
+                      }
+                    }
+                    else {
+                      /* Child 0 registers are already in the global frame, no further work. */
+                      for (;;) {
+                        int64_t row_array_index = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[1]->base_regs_, 0)[row];
+
+                        // XXX: NOTE this breaks when expr_->children_[0]->base_regs_.local_frame_ != eps[epi].v_.expr_->base_regs_.local_frame_
+                        // XXX: NOTE this simply breaks outright, the indirection value stored inside teh register is ALWAYS in the global frame,
+                        //      so if expr_->children_[0]->base_regs_.local_frame_, then we must always correct for it.
+                        INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, 0)[row] = eps[epi].v_.expr_->children_[0]->base_regs_.v_.regs_[ row_array_index ];
+
+                        delta = exec->exec_chain_reg_[row];
+                        if (!delta) break;
+                        row += delta;
+                      }
+                    }
+                  }
+                  else {
+                    /* Indirect; base_reg_ holds integer indices of the register that holds the actual index */
+                    for (;;) {
+                      int64_t row_array_index = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[1]->base_regs_, 0)[row];
+
+                      /* Copy from the indirect int holding the register to the indirect int holding the register. */
+                      INT_REG_PTR_NRV(&eps[epi].v_.expr_->base_regs_, 0)[row] = INT_REG_PTR_NRV(&eps[epi].v_.expr_->children_[0]->base_regs_, row_array_index)[row];
+
+                      delta = exec->exec_chain_reg_[row];
+                      if (!delta) break;
+                      row += delta;
+                    }
+                  }
+                  break;
+                }
+                case slrak_mat2:
+                case slrak_mat3:
+                case slrak_mat4:
+                  break;
+              }
             }
             break;
           }
