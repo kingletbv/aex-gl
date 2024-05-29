@@ -688,7 +688,7 @@ int sl_expr_validate(struct diags *dx, struct sl_type_base *tb, const struct sl_
             break;
         }
         if (num_components) {
-          if (((uint64_t)index_value.v_.i_) >= array_type->array_size_) {
+          if (((uint64_t)index_value.v_.i_) >= num_components) {
             dx_error_loc(dx, &x->op_loc_, "Array subscript with index >= array size");
             sl_expr_temp_cleanup(&index_value);
             return r | SLXV_INVALID;
@@ -1207,10 +1207,80 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
         sl_expr_temp_cleanup(&index_value);
         return -1;
       }
-      if (sl_expr_temp_copy(r, array_value.v_.comp_.elements_ + index_value.v_.i_)) {
-        sl_expr_temp_cleanup(&array_value);
-        sl_expr_temp_cleanup(&index_value);
-        return -1;
+      if (array_value.kind_ == sletk_array) {
+        if (sl_expr_temp_copy(r, array_value.v_.comp_.elements_ + index_value.v_.i_)) {
+          sl_expr_temp_cleanup(&array_value);
+          sl_expr_temp_cleanup(&index_value);
+          return -1;
+        }
+      }
+      else {
+        int max_component = 0;
+        switch (array_value.kind_) {
+          case sletk_vec2: max_component = 2; break;
+          case sletk_vec3: max_component = 3; break;
+          case sletk_vec4: max_component = 4; break;
+          case sletk_mat2: max_component = 2; break;
+          case sletk_mat3: max_component = 3; break;
+          case sletk_mat4: max_component = 4; break;
+          case sletk_ivec2: max_component = 2; break;
+          case sletk_ivec3: max_component = 3; break;
+          case sletk_ivec4: max_component = 4; break;
+          case sletk_bvec2: max_component = 2; break;
+          case sletk_bvec3: max_component = 3; break;
+          case sletk_bvec4: max_component = 4; break;
+        }
+        if ((index_value.v_.i_ < 0) || (index_value.v_.i_ >= max_component)) {
+          /* Index out of range on vec or mat value, should already have been reported by sl_expr_validate() */
+          sl_expr_temp_cleanup(&array_value);
+          sl_expr_temp_cleanup(&index_value);
+          return -1;
+        }
+        
+        switch (array_value.kind_) {
+          case sletk_vec2:
+          case sletk_vec3:
+          case sletk_vec4:
+            r->kind_ = sletk_float;
+            r->v_.f_ = array_value.v_.v_[index_value.v_.i_];
+            break;
+          case sletk_mat2: {
+            r->kind_ = sletk_vec2;
+            size_t n;
+            for (n = 0; n < 2; ++n) {
+              r->v_.v_[n] = array_value.v_.m_[2 * index_value.v_.i_ + n];
+            }
+            break;
+          }
+          case sletk_mat3: {
+            r->kind_ = sletk_vec3;
+            size_t n;
+            for (n = 0; n < 3; ++n) {
+              r->v_.v_[n] = array_value.v_.m_[3 * index_value.v_.i_ + n];
+            }
+            break;
+          }
+          case sletk_mat4: {
+            r->kind_ = sletk_vec4;
+            size_t n;
+            for (n = 0; n < 4; ++n) {
+              r->v_.v_[n] = array_value.v_.m_[4 * index_value.v_.i_ + n];
+            }
+            break;
+          }
+          case sletk_ivec2:
+          case sletk_ivec3:
+          case sletk_ivec4:
+            r->kind_ = sletk_int;
+            r->v_.i_ = array_value.v_.iv_[index_value.v_.i_];
+            break;
+          case sletk_bvec2:
+          case sletk_bvec3:
+          case sletk_bvec4:
+            r->kind_ = sletk_bool;
+            r->v_.b_ = array_value.v_.bv_[index_value.v_.i_];
+            break;
+        }
       }
       sl_expr_temp_cleanup(&array_value);
       sl_expr_temp_cleanup(&index_value);
@@ -2332,7 +2402,7 @@ static int sl_expr_is_assignment(struct sl_expr *x) {
 }
 
 static int sl_expr_need_rvalue(struct sl_type_base *tb, struct sl_reg_allocator *ract, struct sl_expr *x) {
-  if (x->offset_reg_.kind_ == slrak_void) {
+  if ((x->offset_reg_.kind_ == slrak_void) && !x->base_regs_.is_indirect_) {
     /* No need for separate rvalue as the registers for x can be used directly,
      * (are not at an offset and so don't need a separate load.) */
     sl_reg_alloc_void(&x->rvalue_);
@@ -2538,44 +2608,80 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
       r = r ? r : sl_expr_alloc_register_main_pass(tb, ract, x->children_[n]);
       if (r) return r;
     }
-    /* Clone the array child into x, we'll be modifying the offset but keeping
-     * its base. */
-    assert((x->children_[0]->base_regs_.kind_ == slrak_array) && "array subscription should operate on array");
-    r = r ? r : sl_reg_alloc_clone(&x->base_regs_, x->children_[0]->base_regs_.v_.array_.head_);
-    if (r) return r;
+    if (x->children_[0]->base_regs_.kind_ == slrak_array) {
+      /* Clone the array child into x, we'll be modifying the offset but keeping
+       * its base. */
+      r = r ? r : sl_reg_alloc_clone(&x->base_regs_, x->children_[0]->base_regs_.v_.array_.head_);
+      if (r) return r;
     
-    if (x->children_[0]->offset_reg_.kind_ != slrak_void) {
-      /* There already is an offset value, allocate a new register so we can
-       * perform the calculation for this exop_array_subscript's offset changes. */
-      r = r ? r : sl_reg_alloc_set_type(&x->offset_reg_, &tb->int_, ract->local_frame_);
-      r = r ? r : sl_reg_allocator_alloc(ract, &x->offset_reg_);
-    }
-    else {
-      /* There is no offset value as of yet, take it from the array subscript index */
-      if (x->children_[1]->offset_reg_.kind_ == slrak_void) {
-        /* Can take the base reg of child 1 as a clone for the offset ..*/
-        r = r ? r : sl_reg_alloc_clone(&x->offset_reg_, &x->children_[1]->base_regs_);
-      }
-      else {
-        /* Cannot take the base reg of child 1 as a clone because it itself has an 
-         * offset. Instead, therefore, allocate a new register. This happens when we
-         * do things like a[b[2]] -- here the subscript for a, b[2], itself has an 
-         * offset. */
+      if (x->children_[0]->offset_reg_.kind_ != slrak_void) {
+        /* There already is an offset value, allocate a new register so we can
+         * perform the calculation for this exop_array_subscript's offset changes. */
         r = r ? r : sl_reg_alloc_set_type(&x->offset_reg_, &tb->int_, ract->local_frame_);
         r = r ? r : sl_reg_allocator_alloc(ract, &x->offset_reg_);
       }
-      r = r ? r : sl_reg_allocator_lock(ract, &x->offset_reg_);
-    }
-    /* Offset is locked, now also lock the base register */
-    x->offset_limit_ = x->children_[0]->offset_limit_ * x->children_[0]->base_regs_.v_.array_.num_elements_;
-    if (x->offset_limit_ > INT_MAX) return -1;
-    r = r ? r : sl_reg_allocator_lock_descend(ract, (int)x->offset_limit_, &x->base_regs_);
+      else {
+        /* There is no offset value as of yet, take it from the array subscript index */
+        if (x->children_[1]->offset_reg_.kind_ == slrak_void) {
+          /* Can take the base reg of child 1 as a clone for the offset ..*/
+          r = r ? r : sl_reg_alloc_clone(&x->offset_reg_, &x->children_[1]->base_regs_);
+        }
+        else {
+          /* Cannot take the base reg of child 1 as a clone because it itself has an 
+           * offset. Instead, therefore, allocate a new register. This happens when we
+           * do things like a[b[2]] -- here the subscript for a, b[2], itself has an 
+           * offset. */
+          r = r ? r : sl_reg_alloc_set_type(&x->offset_reg_, &tb->int_, ract->local_frame_);
+          r = r ? r : sl_reg_allocator_alloc(ract, &x->offset_reg_);
+        }
+        r = r ? r : sl_reg_allocator_lock(ract, &x->offset_reg_);
+      }
+      /* Offset is locked, now also lock the base register */
+      x->offset_limit_ = x->children_[0]->offset_limit_ * x->children_[0]->base_regs_.v_.array_.num_elements_;
+      if (x->offset_limit_ > INT_MAX) return -1;
+      r = r ? r : sl_reg_allocator_lock_descend(ract, (int)x->offset_limit_, &x->base_regs_);
 
-    /* The children are still locked, unlock those
-     * (note that the x->base_regs_ lock above and the unlock of x->children_[0] here will fully overlap, that's
-     *  fine, this way is hopefully more clear and worth it for the reader.) */
-    r = r ? r : sl_expr_regs_unlock(ract, x->children_[0]);
-    r = r ? r : sl_expr_regs_unlock(ract, x->children_[1]);
+      /* The children are still locked, unlock those
+       * (note that the x->base_regs_ lock above and the unlock of x->children_[0] here will fully overlap, that's
+       *  fine, this way is hopefully more clear and worth it for the reader.) */
+      r = r ? r : sl_expr_regs_unlock(ract, x->children_[0]);
+      r = r ? r : sl_expr_regs_unlock(ract, x->children_[1]);
+    }
+    else {
+      sl_reg_alloc_kind_t k = x->children_[0]->base_regs_.kind_;
+      assert((k == slrak_vec2 || k == slrak_vec3 || k == slrak_vec4 ||
+              k == slrak_mat2 || k == slrak_mat3 || k == slrak_mat4 ||
+              k == slrak_ivec2 || k == slrak_ivec3 || k == slrak_ivec4 ||
+              k == slrak_bvec2 || k == slrak_bvec3 || k == slrak_bvec4) && "array subscription should operate on either an array or an indexible type");
+      switch (k) {
+        case slrak_vec2:
+        case slrak_vec3:
+        case slrak_vec4:
+          sl_reg_alloc_set_type(&x->base_regs_, &tb->float_, ract->local_frame_);
+          break;
+        case slrak_mat2:
+          sl_reg_alloc_set_type(&x->base_regs_, &tb->vec2_, ract->local_frame_);
+          break;
+        case slrak_mat3:
+          sl_reg_alloc_set_type(&x->base_regs_, &tb->vec3_, ract->local_frame_);
+          break;
+        case slrak_mat4:
+          sl_reg_alloc_set_type(&x->base_regs_, &tb->vec4_, ract->local_frame_);
+          break;
+        case slrak_ivec2:
+        case slrak_ivec3:
+        case slrak_ivec4:
+          sl_reg_alloc_set_type(&x->base_regs_, &tb->int_, ract->local_frame_);
+          break;
+        case slrak_bvec2:
+        case slrak_bvec3:
+        case slrak_bvec4:
+          sl_reg_alloc_set_type(&x->base_regs_, &tb->bool_, ract->local_frame_);
+          break;
+      }
+      x->base_regs_.is_indirect_ = 1;
+      r = r ? r : sl_reg_allocator_alloc(ract, &x->base_regs_);
+    }
 
     if (r) return r;
 
