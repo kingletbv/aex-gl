@@ -3041,6 +3041,123 @@ static void sl_exec_sub(struct sl_execution *exec, uint8_t row, struct sl_expr *
 }
 
 
+/* 
+ * Goal: src_ra contains a multi-component scalar type (e.g. vec, mat, ivec, bvec); src_index_ra contains an integer.
+ *       We use the integer from src_index_ra to select which component from src_ra we need. However, we don't load
+ *       the component's value, rather, we store the component register holding the value in the integer pointed to
+ *       by dst_ra.
+ * Note: src_index_ra might be local ; if so we need to offset before we access...
+ *       src_ra might be local ; if so, we need to offset and convert the register index value to a global index before we store.
+ *       dst_ra might be local ; if so, we need to offset before we access...
+ */
+
+static void sl_exec_load_effective_reg_index(struct sl_execution *exec, uint8_t row, struct sl_reg_alloc *dst_ra, int64_t reg_base_offset, const struct sl_reg_alloc *src_ra, const struct sl_reg_alloc *src_index_ra) {
+  uint8_t * restrict chain_column = exec->exec_chain_reg_;
+  int64_t * restrict result_column = INT_REG_PTR_NRV(dst_ra, 0);
+  const int64_t * restrict opd_column = INT_REG_PTR_NRV(src_index_ra, 0);
+
+  if (!src_ra->is_indirect_) {
+    if (src_ra->local_frame_) {
+      int64_t global_offset = 0;
+      switch (dst_ra->kind_) {
+        case slrak_float:
+        case slrak_vec2:
+        case slrak_vec3:
+        case slrak_vec4:
+        case slrak_mat2:
+        case slrak_mat3:
+        case slrak_mat4:
+          global_offset = exec->execution_frames_[exec->num_execution_frames_ - 1].local_float_offset_;
+          break;
+        case slrak_int:
+        case slrak_ivec2:
+        case slrak_ivec3:
+        case slrak_ivec4:
+          global_offset = exec->execution_frames_[exec->num_execution_frames_ - 1].local_int_offset_;
+          break;
+        case slrak_bool:
+        case slrak_bvec2:
+        case slrak_bvec3:
+        case slrak_bvec4:
+          global_offset = exec->execution_frames_[exec->num_execution_frames_ - 1].local_bool_offset_;
+          break;
+        case slrak_sampler2D:
+          global_offset = exec->execution_frames_[exec->num_execution_frames_ - 1].local_sampler2D_offset_;
+          break;
+        case slrak_samplerCube:
+          global_offset = exec->execution_frames_[exec->num_execution_frames_ - 1].local_samplerCube_offset_;
+          break;
+      }
+#define UNOP_SNIPPET_TYPE int64_t
+#define UNOP_SNIPPET_OPERATOR(opd) reg_base_offset + src_ra->v_.regs_[ (opd) ];
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+    }
+    else {
+#define UNOP_SNIPPET_TYPE int64_t
+#define UNOP_SNIPPET_OPERATOR(opd) src_ra->v_.regs_[ (opd) ];
+#include "sl_unop_snippet_inc.h"
+#undef UNOP_SNIPPET_OPERATOR
+#undef UNOP_SNIPPET_TYPE
+    }
+  }
+  else {
+    int64_t * restrict component_indirect_columns[16];
+    size_t n;
+    int64_t global_offset = 0;
+    if (src_ra->local_frame_) {
+      global_offset = exec->execution_frames_[exec->num_execution_frames_ - 1].local_int_offset_;
+    }
+    for (n = 0; n < 16; ++n) {
+      component_indirect_columns[n] = exec->int_regs_[ global_offset + src_ra->v_.regs_[n] ];
+    }
+    for (;;) {
+      uint64_t chain;
+      uint8_t delta;
+      if (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101)) {
+        do {
+          int64_t *restrict result = result_column + row;
+          const int64_t *restrict opd = opd_column + row;
+          int n;
+          /* Try to elicit 8-wise SIMD instructions from auto-vectorization, e.g. AVX's VMULPS ymm0, ymm1, ymm2 */
+          for (n = 0; n < 8; n++) {
+            result[n] = (component_indirect_columns[(opd[n])])[n + row];
+          }
+
+          delta = (chain & 0xFF00000000000000) >> 56;
+          if (!delta) break;
+          row += 7 + delta;
+        } while (!(row & 7) && (((chain = *(uint64_t *)(chain_column + row)) & 0xFFFFFFFFFFFFFFULL) == 0x01010101010101));
+      }
+      else if (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101)) {
+        do {
+          int64_t *restrict result = result_column + row;
+          const int64_t *restrict opd = opd_column + row;
+          int n;
+          /* Try to elicit forth 4-wise SIMD instructions from auto-vectorization, e.g. SSE's MULPS xmm0, xmm1 */
+          for (n = 0; n < 4; n++) {
+            result[n] = (component_indirect_columns[(opd[n])])[n + row];
+          }
+          delta = (chain & 0xFF000000) >> 24;
+          if (!delta) break;
+          row += 3 + delta;
+        } while (!(row & 3) && (((chain = *(uint32_t *)(chain_column + row)) & 0xFFFFFF) == 0x010101));
+      }
+      else {
+        do {
+          /* Not trying to evoke auto-vectorization, just get it done. */
+          result_column[row] = (component_indirect_columns[(opd_column[row])])[row];
+          delta = chain_column[row];
+          if (!delta) break;
+          row += delta;
+        } while (row & 3);
+      }
+      if (!delta) break;
+    }
+  }
+}
+
 static int sl_exec_reserve_n(struct sl_execution *exec, size_t n) {
   size_t new_num_needed = exec->num_execution_points_ + n;
   if (new_num_needed > exec->num_execution_points_allocated_) {
