@@ -1923,6 +1923,7 @@ int sl_expr_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_exp
 }
 
 struct sl_type *sl_expr_type(struct sl_type_base *tb, struct sl_expr *x) {
+  if (!x) return NULL;
   switch (x->op_) {
     case exop_invalid:
       return NULL;
