@@ -4490,11 +4490,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f_indir_offset_to_indir_offset(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -4507,11 +4507,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f2i_indir_offset_to_indir_offset(exec,
                                                              row,
                                                              to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                              k,
                                                              to_offset_step_size,
                                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                              k,
                                                              from_offset_step_size);
               } /* end for n components */
@@ -4524,11 +4524,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f2b_indir_offset_to_indir_offset(exec,
                                                              row,
                                                              to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                              k,
                                                              to_offset_step_size,
                                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                              k,
                                                              from_offset_step_size);
               } /* end for n components */
@@ -4541,11 +4541,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i2f_indir_offset_to_indir_offset(exec,
                                                              row,
                                                              to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                              k,
                                                              to_offset_step_size,
                                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                              k,
                                                              from_offset_step_size);
               } /* end for n components */
@@ -4558,11 +4558,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i_indir_offset_to_indir_offset(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -4575,11 +4575,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i2b_indir_offset_to_indir_offset(exec,
                                                              row,
                                                              to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                              k,
                                                              to_offset_step_size,
                                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                              k,
                                                              from_offset_step_size);
               } /* end for n components */
@@ -4592,11 +4592,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b2f_indir_offset_to_indir_offset(exec,
                                                              row,
                                                              to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                              k,
                                                              to_offset_step_size,
                                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                              k,
                                                              from_offset_step_size);
               } /* end for n components */
@@ -4609,11 +4609,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b2i_indir_offset_to_indir_offset(exec,
                                                              row,
                                                              to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                              k,
                                                              to_offset_step_size,
                                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                              k,
                                                              from_offset_step_size);
               } /* end for n components */
@@ -4626,11 +4626,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b_indir_offset_to_indir_offset(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -4648,7 +4648,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f_indir_to_indir_offset(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -4663,7 +4663,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f2i_indir_to_indir_offset(exec,
                                                       row,
                                                       to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                       k,
                                                       to_offset_step_size,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -4678,7 +4678,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f2b_indir_to_indir_offset(exec,
                                                       row,
                                                       to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                       k,
                                                       to_offset_step_size,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -4693,7 +4693,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i2f_indir_to_indir_offset(exec,
                                                       row,
                                                       to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                       k,
                                                       to_offset_step_size,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -4708,7 +4708,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i_indir_to_indir_offset(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -4723,7 +4723,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i2b_indir_to_indir_offset(exec,
                                                       row,
                                                       to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                       k,
                                                       to_offset_step_size,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -4738,7 +4738,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b2f_indir_to_indir_offset(exec,
                                                       row,
                                                       to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                       k,
                                                       to_offset_step_size,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -4753,7 +4753,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b2i_indir_to_indir_offset(exec,
                                                       row,
                                                       to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                       k,
                                                       to_offset_step_size,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -4768,7 +4768,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b_indir_to_indir_offset(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -4790,10 +4790,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f_indir_offset_to_indir(exec,
                                                     row,
-                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -4805,10 +4805,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f2i_indir_offset_to_indir(exec,
                                                       row,
-                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                       k,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                       k,
                                                       from_offset_step_size);
               } /* end for n components */
@@ -4820,10 +4820,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f2b_indir_offset_to_indir(exec,
                                                       row,
-                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                       k,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                       k,
                                                       from_offset_step_size);
               } /* end for n components */
@@ -4835,10 +4835,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i2f_indir_offset_to_indir(exec,
                                                       row,
-                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                       k,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                       k,
                                                       from_offset_step_size);
               } /* end for n components */
@@ -4850,10 +4850,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i_indir_offset_to_indir(exec,
                                                     row,
-                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -4865,10 +4865,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i2b_indir_offset_to_indir(exec,
                                                       row,
-                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                       k,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                       k,
                                                       from_offset_step_size);
               } /* end for n components */
@@ -4880,10 +4880,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b2f_indir_offset_to_indir(exec,
                                                       row,
-                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                       k,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                       k,
                                                       from_offset_step_size);
               } /* end for n components */
@@ -4895,10 +4895,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b2i_indir_offset_to_indir(exec,
                                                       row,
-                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                       k,
                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                       k,
                                                       from_offset_step_size);
               } /* end for n components */
@@ -4910,10 +4910,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b_indir_offset_to_indir(exec,
                                                     row,
-                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -4930,7 +4930,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f_indir_to_indir(exec,
                                              row,
-                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                              k);
@@ -4943,7 +4943,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f2i_indir_to_indir(exec,
                                                row,
-                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                k,
                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                k);
@@ -4956,7 +4956,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f2b_indir_to_indir(exec,
                                                row,
-                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                k,
                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                k);
@@ -4969,7 +4969,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i2f_indir_to_indir(exec,
                                                row,
-                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                k,
                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                k);
@@ -4982,7 +4982,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i_indir_to_indir(exec,
                                              row,
-                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                              k);
@@ -4995,7 +4995,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i2b_indir_to_indir(exec,
                                                row,
-                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                k,
                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                k);
@@ -5008,7 +5008,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b2f_indir_to_indir(exec,
                                                row,
-                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                k,
                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                k);
@@ -5021,7 +5021,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b2i_indir_to_indir(exec,
                                                row,
-                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                k,
                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                                k);
@@ -5034,7 +5034,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b_indir_to_indir(exec,
                                              row,
-                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
                                              k);
@@ -5059,11 +5059,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f_offset_reg_to_indir_offset(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          k,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -5076,11 +5076,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f2i_offset_reg_to_indir_offset(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            0,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5093,11 +5093,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f2b_offset_reg_to_indir_offset(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            0,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5110,11 +5110,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i2f_offset_reg_to_indir_offset(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            0,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5127,11 +5127,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i_offset_reg_to_indir_offset(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          k,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -5144,11 +5144,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i2b_offset_reg_to_indir_offset(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            0,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5161,11 +5161,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b2f_offset_reg_to_indir_offset(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            0,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5178,11 +5178,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b2i_offset_reg_to_indir_offset(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            k,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            0,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5195,11 +5195,11 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b_offset_reg_to_indir_offset(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          k,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -5217,7 +5217,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f_reg_to_indir_offset(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   k,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -5231,7 +5231,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f2i_reg_to_indir_offset(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -5245,7 +5245,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_f2b_reg_to_indir_offset(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -5259,7 +5259,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i2f_reg_to_indir_offset(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -5273,7 +5273,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i_reg_to_indir_offset(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   k,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -5287,7 +5287,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_i2b_reg_to_indir_offset(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -5301,7 +5301,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b2f_reg_to_indir_offset(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -5315,7 +5315,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b2i_reg_to_indir_offset(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     k,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -5329,7 +5329,7 @@ if (to_ra->is_indirect_) {
                 sl_reg_move_b_reg_to_indir_offset(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   k,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -5350,10 +5350,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f_offset_reg_to_indir(exec,
                                                   row,
-                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                   k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -5365,10 +5365,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f2i_offset_reg_to_indir(exec,
                                                     row,
-                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     0,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5380,10 +5380,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f2b_offset_reg_to_indir(exec,
                                                     row,
-                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     0,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5395,10 +5395,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i2f_offset_reg_to_indir(exec,
                                                     row,
-                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     0,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5410,10 +5410,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i_offset_reg_to_indir(exec,
                                                   row,
-                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                   k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -5425,10 +5425,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i2b_offset_reg_to_indir(exec,
                                                     row,
-                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     0,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5440,10 +5440,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b2f_offset_reg_to_indir(exec,
                                                     row,
-                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     0,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5455,10 +5455,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b2i_offset_reg_to_indir(exec,
                                                     row,
-                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                     k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     0,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5470,10 +5470,10 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b_offset_reg_to_indir(exec,
                                                   row,
-                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                                   k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -5490,7 +5490,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f_reg_to_indir(exec,
                                            row,
-                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                            k,
                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
               } /* end for n components */
@@ -5502,7 +5502,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f2i_reg_to_indir(exec,
                                              row,
-                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
               } /* end for n components */
@@ -5514,7 +5514,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_f2b_reg_to_indir(exec,
                                              row,
-                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
               } /* end for n components */
@@ -5526,7 +5526,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i2f_reg_to_indir(exec,
                                              row,
-                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
               } /* end for n components */
@@ -5538,7 +5538,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i_reg_to_indir(exec,
                                            row,
-                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                            k,
                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
               } /* end for n components */
@@ -5550,7 +5550,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_i2b_reg_to_indir(exec,
                                              row,
-                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
               } /* end for n components */
@@ -5562,7 +5562,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b2f_reg_to_indir(exec,
                                              row,
-                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
               } /* end for n components */
@@ -5574,7 +5574,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b2i_reg_to_indir(exec,
                                              row,
-                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                              k,
                                              from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
               } /* end for n components */
@@ -5586,7 +5586,7 @@ if (to_ra->is_indirect_) {
               for (n = 0; n < num_components; ++n) {
                 sl_reg_move_b_reg_to_indir(exec,
                                            row,
-                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n],
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0],
                                            k,
                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
               } /* end for n components */
@@ -5613,11 +5613,11 @@ else {
                 sl_reg_move_f_indir_offset_to_offset_reg(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          k,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -5630,11 +5630,11 @@ else {
                 sl_reg_move_f2i_indir_offset_to_offset_reg(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            0,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5647,11 +5647,11 @@ else {
                 sl_reg_move_f2b_indir_offset_to_offset_reg(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            0,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5664,11 +5664,11 @@ else {
                 sl_reg_move_i2f_indir_offset_to_offset_reg(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            0,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5681,11 +5681,11 @@ else {
                 sl_reg_move_i_indir_offset_to_offset_reg(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          k,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -5698,11 +5698,11 @@ else {
                 sl_reg_move_i2b_indir_offset_to_offset_reg(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            0,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5715,11 +5715,11 @@ else {
                 sl_reg_move_b2f_indir_offset_to_offset_reg(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            0,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5732,11 +5732,11 @@ else {
                 sl_reg_move_b2i_indir_offset_to_offset_reg(exec,
                                                            row,
                                                            to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                            0,
                                                            to_offset_step_size,
                                                            from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                            k,
                                                            from_offset_step_size);
               } /* end for n components */
@@ -5749,11 +5749,11 @@ else {
                 sl_reg_move_b_indir_offset_to_offset_reg(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          k,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -5771,7 +5771,7 @@ else {
                 sl_reg_move_f_indir_to_offset_reg(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -5786,7 +5786,7 @@ else {
                 sl_reg_move_f2i_indir_to_offset_reg(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     0,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -5801,7 +5801,7 @@ else {
                 sl_reg_move_f2b_indir_to_offset_reg(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     0,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -5816,7 +5816,7 @@ else {
                 sl_reg_move_i2f_indir_to_offset_reg(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     0,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -5831,7 +5831,7 @@ else {
                 sl_reg_move_i_indir_to_offset_reg(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -5846,7 +5846,7 @@ else {
                 sl_reg_move_i2b_indir_to_offset_reg(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     0,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -5861,7 +5861,7 @@ else {
                 sl_reg_move_b2f_indir_to_offset_reg(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     0,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -5876,7 +5876,7 @@ else {
                 sl_reg_move_b2i_indir_to_offset_reg(exec,
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                     0,
                                                     to_offset_step_size,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -5891,7 +5891,7 @@ else {
                 sl_reg_move_b_indir_to_offset_reg(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
@@ -5915,7 +5915,7 @@ else {
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   k,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -5929,7 +5929,7 @@ else {
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5943,7 +5943,7 @@ else {
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5957,7 +5957,7 @@ else {
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5971,7 +5971,7 @@ else {
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   k,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -5985,7 +5985,7 @@ else {
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -5999,7 +5999,7 @@ else {
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -6013,7 +6013,7 @@ else {
                                                     row,
                                                     to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                     from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                     k,
                                                     from_offset_step_size);
               } /* end for n components */
@@ -6027,7 +6027,7 @@ else {
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n],
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   k,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -6164,11 +6164,11 @@ else {
                 sl_reg_move_f_offset_reg_to_offset_reg(exec,
                                                        row,
                                                        to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                       to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                       to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                        0,
                                                        to_offset_step_size,
                                                        from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                       from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                       from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                        0,
                                                        from_offset_step_size);
               } /* end for n components */
@@ -6181,11 +6181,11 @@ else {
                 sl_reg_move_f2i_offset_reg_to_offset_reg(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -6198,11 +6198,11 @@ else {
                 sl_reg_move_f2b_offset_reg_to_offset_reg(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -6215,11 +6215,11 @@ else {
                 sl_reg_move_i2f_offset_reg_to_offset_reg(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -6232,11 +6232,11 @@ else {
                 sl_reg_move_i_offset_reg_to_offset_reg(exec,
                                                        row,
                                                        to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                       to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                       to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                        0,
                                                        to_offset_step_size,
                                                        from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                       from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                       from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                        0,
                                                        from_offset_step_size);
               } /* end for n components */
@@ -6249,11 +6249,11 @@ else {
                 sl_reg_move_i2b_offset_reg_to_offset_reg(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -6266,11 +6266,11 @@ else {
                 sl_reg_move_b2f_offset_reg_to_offset_reg(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -6283,11 +6283,11 @@ else {
                 sl_reg_move_b2i_offset_reg_to_offset_reg(exec,
                                                          row,
                                                          to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                          0,
                                                          to_offset_step_size,
                                                          from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                          0,
                                                          from_offset_step_size);
               } /* end for n components */
@@ -6300,11 +6300,11 @@ else {
                 sl_reg_move_b_offset_reg_to_offset_reg(exec,
                                                        row,
                                                        to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                       to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                       to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                        0,
                                                        to_offset_step_size,
                                                        from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                       from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                       from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                        0,
                                                        from_offset_step_size);
               } /* end for n components */
@@ -6322,7 +6322,7 @@ else {
                 sl_reg_move_f_reg_to_offset_reg(exec,
                                                 row,
                                                 to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                 0,
                                                 to_offset_step_size,
                                                 from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -6336,7 +6336,7 @@ else {
                 sl_reg_move_f2i_reg_to_offset_reg(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -6350,7 +6350,7 @@ else {
                 sl_reg_move_f2b_reg_to_offset_reg(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -6364,7 +6364,7 @@ else {
                 sl_reg_move_i2f_reg_to_offset_reg(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -6378,7 +6378,7 @@ else {
                 sl_reg_move_i_reg_to_offset_reg(exec,
                                                 row,
                                                 to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                 0,
                                                 to_offset_step_size,
                                                 from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -6392,7 +6392,7 @@ else {
                 sl_reg_move_i2b_reg_to_offset_reg(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -6406,7 +6406,7 @@ else {
                 sl_reg_move_b2f_reg_to_offset_reg(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -6420,7 +6420,7 @@ else {
                 sl_reg_move_b2i_reg_to_offset_reg(exec,
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                   0,
                                                   to_offset_step_size,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -6434,7 +6434,7 @@ else {
                 sl_reg_move_b_reg_to_offset_reg(exec,
                                                 row,
                                                 to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
-                                                to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[n] : to_ra_offset->v_.regs_[n],
+                                                to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
                                                 0,
                                                 to_offset_step_size,
                                                 from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k);
@@ -6457,7 +6457,7 @@ else {
                                                 row,
                                                 to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                 from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                 0,
                                                 from_offset_step_size);
               } /* end for n components */
@@ -6471,7 +6471,7 @@ else {
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -6485,7 +6485,7 @@ else {
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -6499,7 +6499,7 @@ else {
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -6513,7 +6513,7 @@ else {
                                                 row,
                                                 to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                 from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                 0,
                                                 from_offset_step_size);
               } /* end for n components */
@@ -6527,7 +6527,7 @@ else {
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -6541,7 +6541,7 @@ else {
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -6555,7 +6555,7 @@ else {
                                                   row,
                                                   to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                   from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                   0,
                                                   from_offset_step_size);
               } /* end for n components */
@@ -6569,7 +6569,7 @@ else {
                                                 row,
                                                 to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k,
                                                 from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k,
-                                                from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[n] : from_ra_offset->v_.regs_[n],
+                                                from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
                                                 0,
                                                 from_offset_step_size);
               } /* end for n components */
