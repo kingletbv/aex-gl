@@ -55,6 +55,11 @@
 #include "gl_es2_impl.h"
 #endif
 
+#ifndef DEBUG_DUMP_H_INCLUDED
+#define DEBUG_DUMP_H_INCLUDED
+#include "debug_dump.h"
+#endif
+
 #define AEX_WSTRINGIZE_IMPL(x) L#x
 #define AEX_WSTRINGIZE(x) AEX_WSTRINGIZE_IMPL(x)
 
@@ -569,6 +574,18 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
   size_t rgba_stride;
   gl_es2_framebuffer_attachment_raw_ptr(&fb->color_attachment0_, &rgba_ptr, &rgba_stride);
 
+  char s[50];
+  static int snapshot = 0;
+  if ((GetAsyncKeyState(VK_F11) & 1) && (GetAsyncKeyState(VK_CONTROL) & 1)) {
+    snapshot++;
+    sprintf(s, "C:\\temp\\aex-debug\\scrn%d.bmp", snapshot);
+    FILE *fp = fopen(s, "wb");
+    if (fp) {
+      dd_write_rgba_bmp(fp, rgba_ptr, bmp_width, bmp_height, rgba_stride);
+      fclose(fp);
+    }
+  }
+
   /* Following code is pretty bad because we're allocating, and worse, we're allocating GDI objects. */
   HDC hdcwnd = GetDC(hwnd);
   HDC hdcmem = CreateCompatibleDC(hdcwnd);
@@ -594,7 +611,17 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
   }
   int row;
   for (row = 0; row < bmp_height; ++row) {
-    memcpy(rowbuffer, ((uint8_t *)rgba_ptr) + rgba_stride * row, bmp_width * 4);
+    size_t col;
+    uint8_t *prgba = ((uint8_t *)rgba_ptr) + rgba_stride * row;
+    uint8_t *pbgra = rowbuffer;
+    for (col = 0; col < bmp_width; ++col) {
+      pbgra[0] = prgba[2];
+      pbgra[1] = prgba[1];
+      pbgra[2] = prgba[0];
+      pbgra[3] = prgba[3];
+      pbgra += 4;
+      prgba += 4;
+    }
     SetDIBits(hdcmem, hbmp, bmp_height - 1 - row, 1, rowbuffer, &bmi, DIB_RGB_COLORS);
   }
   free(rowbuffer);
