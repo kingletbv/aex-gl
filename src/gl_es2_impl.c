@@ -2564,7 +2564,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawElements)(
     /* indices is an offset into te GL_ELEMENT_ARRAY_BUFFER and not a pointer itself */
     uintptr_t indices_offset = (uintptr_t)indices;
     char *indices_ptr = ((char *)c->element_array_buffer_->buf_.data_) + indices_offset;
-    perform_draw(pam, count, pait, 0, indices);
+    perform_draw(pam, count, pait, 0, indices_ptr);
 
     gl_es2_ctx_release(c);
     return;
