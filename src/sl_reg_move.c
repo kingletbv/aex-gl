@@ -4406,7 +4406,6 @@ void sl_reg_move_crossframe(struct sl_execution *exec,
   int scalar_to_scalar_conversion = 0;
   size_t n;
   int k;
-  if (from_ra->kind_ != to_ra->kind_) return;
   switch (from_ra->kind_) {
     case slrak_array: {
       if (from_ra->kind_ != to_ra->kind_) return;
@@ -4441,7 +4440,7 @@ void sl_reg_move_crossframe(struct sl_execution *exec,
     case slrak_bvec3: num_components = 3; scalar_to_scalar_conversion = 0x30; break;
     case slrak_bvec4: num_components = 4; scalar_to_scalar_conversion = 0x30; break;
   }
-  switch (from_ra->kind_) {
+  switch (to_ra->kind_) {
     case slrak_float: if (num_components != 1) return; scalar_to_scalar_conversion += 0x1; break;
     case slrak_vec2:  if (num_components != 2) return; scalar_to_scalar_conversion += 0x1; break;
     case slrak_vec3:  if (num_components != 3) return; scalar_to_scalar_conversion += 0x1; break;
@@ -7181,6 +7180,1977 @@ else {
     }
   }
 }
+void sl_reg_move_crossframe_c2c(struct sl_execution *exec,
+                              uint8_t row,
+                              int from_frame, struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset, int from_component,
+                              int to_frame, struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset, int to_component,
+                              int from_offset_step_size, int to_offset_step_size,
+                              int array_quantity) {
+  size_t num_components = 0;
+  int scalar_to_scalar_conversion = 0;
+  int k;
+  switch (from_ra->kind_) {
+    case slrak_array:
+    case slrak_struct: {
+      return;
+    }
+    case slrak_float: if (from_component >= 1) return; scalar_to_scalar_conversion = 0x10; break;
+    case slrak_vec2:  if (from_component >= 2) return; scalar_to_scalar_conversion = 0x10; break;
+    case slrak_vec3:  if (from_component >= 3) return; scalar_to_scalar_conversion = 0x10; break;
+    case slrak_vec4:  if (from_component >= 4) return; scalar_to_scalar_conversion = 0x10; break;
+    case slrak_mat2:  if (from_component >= 4) return; scalar_to_scalar_conversion = 0x10; break;
+    case slrak_mat3:  if (from_component >= 9) return; scalar_to_scalar_conversion = 0x10; break;
+    case slrak_mat4:  if (from_component >= 16) return; scalar_to_scalar_conversion = 0x10; break;
+    case slrak_int:   if (from_component >= 1) return; scalar_to_scalar_conversion = 0x20; break;
+    case slrak_ivec2: if (from_component >= 2) return; scalar_to_scalar_conversion = 0x20; break;
+    case slrak_ivec3: if (from_component >= 3) return; scalar_to_scalar_conversion = 0x20; break;
+    case slrak_ivec4: if (from_component >= 4) return; scalar_to_scalar_conversion = 0x20; break;
+    case slrak_bool:  if (from_component >= 1) return; scalar_to_scalar_conversion = 0x30; break;
+    case slrak_bvec2: if (from_component >= 2) return; scalar_to_scalar_conversion = 0x30; break;
+    case slrak_bvec3: if (from_component >= 3) return; scalar_to_scalar_conversion = 0x30; break;
+    case slrak_bvec4: if (from_component >= 4) return; scalar_to_scalar_conversion = 0x30; break;
+  }
+  switch (to_ra->kind_) {
+    case slrak_float: if (to_component >= 1) return; scalar_to_scalar_conversion += 0x1; break;
+    case slrak_vec2:  if (to_component >= 2) return; scalar_to_scalar_conversion += 0x1; break;
+    case slrak_vec3:  if (to_component >= 3) return; scalar_to_scalar_conversion += 0x1; break;
+    case slrak_vec4:  if (to_component >= 4) return; scalar_to_scalar_conversion += 0x1; break;
+    case slrak_mat2:  if (to_component >= 4) return; scalar_to_scalar_conversion += 0x1; break;
+    case slrak_mat3:  if (to_component >= 9) return; scalar_to_scalar_conversion += 0x1; break;
+    case slrak_mat4:  if (to_component >=16) return; scalar_to_scalar_conversion += 0x1; break;
+    case slrak_int:   if (to_component >= 1) return; scalar_to_scalar_conversion += 0x2; break;
+    case slrak_ivec2: if (to_component >= 2) return; scalar_to_scalar_conversion += 0x2; break;
+    case slrak_ivec3: if (to_component >= 3) return; scalar_to_scalar_conversion += 0x2; break;
+    case slrak_ivec4: if (to_component >= 4) return; scalar_to_scalar_conversion += 0x2; break;
+    case slrak_bool:  if (to_component >= 1) return; scalar_to_scalar_conversion += 0x3; break;
+    case slrak_bvec2: if (to_component >= 2) return; scalar_to_scalar_conversion += 0x3; break;
+    case slrak_bvec3: if (to_component >= 3) return; scalar_to_scalar_conversion += 0x3; break;
+    case slrak_bvec4: if (to_component >= 4) return; scalar_to_scalar_conversion += 0x3; break;
+    default: return;
+  }
+  if (to_ra->is_indirect_) {
+    /* to is indirect */
+    if (from_ra->is_indirect_) {
+      /* from is indirect */
+      if (to_ra_offset && (to_ra_offset->kind_ != slrak_void)) {
+        /* have a to offset */
+        if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
+          /* have a from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_indir_offset_to_indir_offset(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_indir_offset_to_indir_offset(exec,
+                                                             row,
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             to_offset_step_size,
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_indir_offset_to_indir_offset(exec,
+                                                             row,
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             to_offset_step_size,
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_indir_offset_to_indir_offset(exec,
+                                                             row,
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             to_offset_step_size,
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_indir_offset_to_indir_offset(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_indir_offset_to_indir_offset(exec,
+                                                             row,
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             to_offset_step_size,
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_indir_offset_to_indir_offset(exec,
+                                                             row,
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             to_offset_step_size,
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_indir_offset_to_indir_offset(exec,
+                                                             row,
+                                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                             to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             to_offset_step_size,
+                                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                             from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                             k,
+                                                             from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_indir_offset_to_indir_offset(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+        else {
+          /* no from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_indir_to_indir_offset(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_indir_to_indir_offset(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      to_offset_step_size,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_indir_to_indir_offset(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      to_offset_step_size,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_indir_to_indir_offset(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      to_offset_step_size,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_indir_to_indir_offset(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_indir_to_indir_offset(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      to_offset_step_size,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_indir_to_indir_offset(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      to_offset_step_size,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_indir_to_indir_offset(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      to_offset_step_size,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_indir_to_indir_offset(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+      }
+      else {
+        /* no to offset */
+        if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
+          /* have a from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_indir_offset_to_indir(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_indir_offset_to_indir(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      k,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_indir_offset_to_indir(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      k,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_indir_offset_to_indir(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      k,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_indir_offset_to_indir(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_indir_offset_to_indir(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      k,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_indir_offset_to_indir(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      k,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_indir_offset_to_indir(exec,
+                                                      row,
+                                                      to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                      k,
+                                                      from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                      from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                      k,
+                                                      from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_indir_offset_to_indir(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+        else {
+          /* no from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_indir_to_indir(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                             k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                             k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_indir_to_indir(exec,
+                                               row,
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                               k,
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                               k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_indir_to_indir(exec,
+                                               row,
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                               k,
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                               k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_indir_to_indir(exec,
+                                               row,
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                               k,
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                               k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_indir_to_indir(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                             k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                             k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_indir_to_indir(exec,
+                                               row,
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                               k,
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                               k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_indir_to_indir(exec,
+                                               row,
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                               k,
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                               k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_indir_to_indir(exec,
+                                               row,
+                                               to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                               k,
+                                               from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                               k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_indir_to_indir(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                             k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                             k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+      }
+    }
+    else {
+      /* from is direct */
+      if (to_ra_offset && (to_ra_offset->kind_ != slrak_void)) {
+        /* have a to offset */
+        if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
+          /* have a from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_offset_reg_to_indir_offset(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         k,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_offset_reg_to_indir_offset(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_offset_reg_to_indir_offset(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_offset_reg_to_indir_offset(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_offset_reg_to_indir_offset(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         k,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_offset_reg_to_indir_offset(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_offset_reg_to_indir_offset(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_offset_reg_to_indir_offset(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_offset_reg_to_indir_offset(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         k,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+        else {
+          /* no from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_reg_to_indir_offset(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  k,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_reg_to_indir_offset(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_reg_to_indir_offset(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_reg_to_indir_offset(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_reg_to_indir_offset(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  k,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_reg_to_indir_offset(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_reg_to_indir_offset(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_reg_to_indir_offset(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_reg_to_indir_offset(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  k,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+      }
+      else {
+        /* no to offset */
+        if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
+          /* have a from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_offset_reg_to_indir(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                  k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_offset_reg_to_indir(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_offset_reg_to_indir(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_offset_reg_to_indir(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_offset_reg_to_indir(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                  k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_offset_reg_to_indir(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_offset_reg_to_indir(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_offset_reg_to_indir(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                    k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_offset_reg_to_indir(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                                  k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+        else {
+          /* no from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_reg_to_indir(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                           k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_reg_to_indir(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                             k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_reg_to_indir(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                             k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_reg_to_indir(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                             k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_reg_to_indir(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                           k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_reg_to_indir(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                             k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_reg_to_indir(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                             k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_reg_to_indir(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                             k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_reg_to_indir(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component],
+                                           k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+      }
+    }
+  }
+  else {
+    /* to is direct */
+    if (from_ra->is_indirect_) {
+      /* from is indirect */
+      if (to_ra_offset && (to_ra_offset->kind_ != slrak_void)) {
+        /* have a to offset */
+        if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
+          /* have a from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_indir_offset_to_offset_reg(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         k,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_indir_offset_to_offset_reg(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_indir_offset_to_offset_reg(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_indir_offset_to_offset_reg(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_indir_offset_to_offset_reg(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         k,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_indir_offset_to_offset_reg(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_indir_offset_to_offset_reg(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_indir_offset_to_offset_reg(exec,
+                                                           row,
+                                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                           to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                           0,
+                                                           to_offset_step_size,
+                                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                           from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                           k,
+                                                           from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_indir_offset_to_offset_reg(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         k,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+        else {
+          /* no from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_indir_to_offset_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                  k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_indir_to_offset_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_indir_to_offset_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_indir_to_offset_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_indir_to_offset_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                  k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_indir_to_offset_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_indir_to_offset_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_indir_to_offset_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                    0,
+                                                    to_offset_step_size,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_indir_to_offset_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                  k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+      }
+      else {
+        /* no to offset */
+        if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
+          /* have a from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_indir_offset_to_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  k,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_indir_offset_to_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_indir_offset_to_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_indir_offset_to_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_indir_offset_to_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  k,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_indir_offset_to_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_indir_offset_to_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_indir_offset_to_reg(exec,
+                                                    row,
+                                                    to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                    from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                    from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                    k,
+                                                    from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_indir_offset_to_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  k,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+        else {
+          /* no from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_indir_to_reg(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                           k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_indir_to_reg(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                             k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_indir_to_reg(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                             k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_indir_to_reg(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                             k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_indir_to_reg(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                           k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_indir_to_reg(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                             k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_indir_to_reg(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                             k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_indir_to_reg(exec,
+                                             row,
+                                             to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                             from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                             k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_indir_to_reg(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component],
+                                           k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+      }
+    }
+    else {
+      /* from is direct */
+      if (to_ra_offset && (to_ra_offset->kind_ != slrak_void)) {
+        /* have a to offset */
+        if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
+          /* have a from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_offset_reg_to_offset_reg(exec,
+                                                       row,
+                                                       to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                       to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                       0,
+                                                       to_offset_step_size,
+                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                       from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                       0,
+                                                       from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_offset_reg_to_offset_reg(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_offset_reg_to_offset_reg(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_offset_reg_to_offset_reg(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_offset_reg_to_offset_reg(exec,
+                                                       row,
+                                                       to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                       to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                       0,
+                                                       to_offset_step_size,
+                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                       from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                       0,
+                                                       from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_offset_reg_to_offset_reg(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_offset_reg_to_offset_reg(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_offset_reg_to_offset_reg(exec,
+                                                         row,
+                                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                         to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         to_offset_step_size,
+                                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                         from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                         0,
+                                                         from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_offset_reg_to_offset_reg(exec,
+                                                       row,
+                                                       to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                       to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                       0,
+                                                       to_offset_step_size,
+                                                       from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                       from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                       0,
+                                                       from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+        else {
+          /* no from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_reg_to_offset_reg(exec,
+                                                row,
+                                                to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                0,
+                                                to_offset_step_size,
+                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_reg_to_offset_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_reg_to_offset_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_reg_to_offset_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_reg_to_offset_reg(exec,
+                                                row,
+                                                to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                0,
+                                                to_offset_step_size,
+                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_reg_to_offset_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_reg_to_offset_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_reg_to_offset_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  to_offset_step_size,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_reg_to_offset_reg(exec,
+                                                row,
+                                                to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                to_ra_offset->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0],
+                                                0,
+                                                to_offset_step_size,
+                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+      }
+      else {
+        /* no to offset */
+        if (from_ra_offset && (from_ra_offset->kind_ != slrak_void)) {
+          /* have a from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_offset_reg_to_reg(exec,
+                                                row,
+                                                to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                0,
+                                                from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_offset_reg_to_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_offset_reg_to_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_offset_reg_to_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_offset_reg_to_reg(exec,
+                                                row,
+                                                to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                0,
+                                                from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_offset_reg_to_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_offset_reg_to_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_offset_reg_to_reg(exec,
+                                                  row,
+                                                  to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                  from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                  from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                  0,
+                                                  from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_offset_reg_to_reg(exec,
+                                                row,
+                                                to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                                from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k,
+                                                from_ra_offset->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0],
+                                                0,
+                                                from_offset_step_size);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+        else {
+          /* no from offset */
+          switch (scalar_to_scalar_conversion) {
+            case 0x11: /* float to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f_reg_to_reg(exec,
+                                         row,
+                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x11: float to float */
+            case 0x12: /* float to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2i_reg_to_reg(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x12: float to int */
+            case 0x13: /* float to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_f2b_reg_to_reg(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x13: float to bool */
+            case 0x21: /* int to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2f_reg_to_reg(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x21: int to float */
+            case 0x22: /* int to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i_reg_to_reg(exec,
+                                         row,
+                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x22: int to int */
+            case 0x23: /* int to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_i2b_reg_to_reg(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x23: int to bool */
+            case 0x31: /* bool to float */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2f_reg_to_reg(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x31: bool to float */
+            case 0x32: /* bool to int */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b2i_reg_to_reg(exec,
+                                           row,
+                                           to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                           from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x32: bool to int */
+            case 0x33: /* bool to bool */ {
+              for (k = 0; k < array_quantity; ++k) {
+                sl_reg_move_b_reg_to_reg(exec,
+                                         row,
+                                         to_ra->local_frame_ ? exec->execution_frames_[to_frame].local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k,
+                                         from_ra->local_frame_ ? exec->execution_frames_[from_frame].local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k);
+              } /* end for k array_quantity */
+              break;
+            } /* end case 0x33: bool to bool */
+          } /* end scalar to scalar conversion switch */
+        }
+      }
+    }
+  }
+}
 void sl_reg_move(struct sl_execution *exec,
                  uint8_t row,
                  struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset,
@@ -7188,3 +9158,9 @@ void sl_reg_move(struct sl_execution *exec,
   sl_reg_move_crossframe(exec, row, (int)(exec->num_execution_frames_ - 1), from_ra, from_ra_offset, (int)(exec->num_execution_frames_ - 1), to_ra, to_ra_offset, 1, 1, 1);
 }
 
+void sl_reg_move_c2c(struct sl_execution *exec,
+                     uint8_t row,
+                     struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset, int from_component,
+                     struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset, int to_component) {
+  sl_reg_move_crossframe_c2c(exec, row, (int)(exec->num_execution_frames_ - 1), from_ra, from_ra_offset, from_component, (int)(exec->num_execution_frames_ - 1), to_ra, to_ra_offset, to_component, 1, 1, 1);
+}

@@ -13,6 +13,13 @@
  * limitations under the License.
  */
 
+#ifndef SL_REG_MOVE_H
+#define SL_REG_MOVE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef STDINT_H_INCLUDED
 #define STDINT_H_INCLUDED
 #include <stdint.h>
@@ -28,7 +35,25 @@ void sl_reg_move_crossframe(struct sl_execution *exec,
                             int from_offset_step_size, int to_offset_step_size,
                             int array_quantity);
 
+void sl_reg_move_crossframe_c2c(struct sl_execution *exec,
+                                uint8_t row,
+                                int from_frame, struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset, int from_component,
+                                int to_frame, struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset, int to_component,
+                                int from_offset_step_size, int to_offset_step_size,
+                                int array_quantity);
+
 void sl_reg_move(struct sl_execution *exec,
                  uint8_t row,
                  struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset,
                  struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset);
+
+void sl_reg_move_c2c(struct sl_execution *exec,
+                     uint8_t row,
+                     struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset, int from_component,
+                     struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset, int to_component);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* SL_REG_MOVE_H */
