@@ -278,7 +278,6 @@ static int sl_uniform_get_ra_location_info(struct sl_reg_alloc *ra, size_t locat
        * now we know the final type is an array */
       *pfinal_array_size = ra->v_.array_.num_elements_;
       *pentry_in_final_array = element_index;
-      return 0;
     }
     
     size_t element_slab_size;
@@ -287,8 +286,8 @@ static int sl_uniform_get_ra_location_info(struct sl_reg_alloc *ra, size_t locat
     if (r) return r;
 
     size_t offset_to_location;
-    /* XXX: Do this, but now check for every kind of overflow */
-    if ((SIZE_MAX / element_index) < element_slab_size) {
+
+    if ((SIZE_MAX / element_slab_size) < element_index) {
       return SL_ERR_OVERFLOW;
     }
     offset_to_location = element_index * element_slab_size;
