@@ -189,7 +189,11 @@ static void sampler_2d_update_completeness(struct sampler_2d *s2d) {
 
 
 static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, float lg2) {
-
+  if (!s2d->is_complete_ || !s2d->num_maps_) {
+    prgba[0] = prgba[1] = prgba[2] = 0.f;
+    prgba[3] = 1.f;
+    return;
+  }
   /* c as meant in section 3.7.8 texture magnification (OpenGL ES 2.0 full spec v2.0.25 page 82) */
   float c;
   if ((s2d->mag_filter_ == s2d_linear) &&
