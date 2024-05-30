@@ -4074,6 +4074,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           case exop_logical_or: {
             /* Now push the first child, its continuation returns here for a revisit */
             sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(eps[epi].revisit_chain_));
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
           }
 
@@ -4096,6 +4097,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
             /* Conditional evaluation: evaluate the first child first and, depending 
              * on the result, evaluate either the second or the third */
             sl_exec_push_expr(exec, eps[epi].v_.expr_->children_[0], eps[epi].enter_chain_, CHAIN_REF(eps[epi].revisit_chain_));
+            eps[epi].enter_chain_ = SL_EXEC_NO_CHAIN;
             break;
           }
         }
