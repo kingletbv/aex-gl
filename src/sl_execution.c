@@ -4767,6 +4767,8 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
           }
 
           case exop_component_selection:
+            /* exop_component_selection is already pre-assigned into the right registers at compile-time */
+            break;
           case exop_constructor: {
             size_t ci; 
             for (ci = 0; ci < eps[epi].v_.expr_->num_components_; ++ci) {
