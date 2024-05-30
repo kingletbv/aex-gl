@@ -277,14 +277,14 @@ int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_
           while (((pa->index_at_ + 3) <= num_indices) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
             if (pa->index_at_ & 0) {
-              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 1];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 0];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 2];
             }
             else {
-              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 0];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 2];
             }
             pa->index_at_++;
           }
@@ -307,9 +307,9 @@ int primitive_assembly_elements_u8(struct primitive_assembly *pa, struct attrib_
         for (;;) {
           while (((pa->index_at_ + 3) <= num_indices) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
-            pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[0];
-            pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
-            pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[0];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 1];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 2];
             pa->index_at_++;
           }
           while (pa->num_vertex_indices_) {
@@ -465,14 +465,14 @@ int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib
           while (((pa->index_at_ + 3) <= num_indices) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
             if (pa->index_at_ & 0) {
-              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 1];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 0];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 2];
             }
             else {
-              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 0];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 2];
             }
             pa->index_at_++;
           }
@@ -495,9 +495,9 @@ int primitive_assembly_elements_u16(struct primitive_assembly *pa, struct attrib
         for (;;) {
           while (((pa->index_at_ + 3) <= num_indices) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
-            pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[0];
-            pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
-            pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[0];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 1];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 2];
             pa->index_at_++;
           }
           while (pa->num_vertex_indices_) {
@@ -653,14 +653,14 @@ int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib
           while (((pa->index_at_ + 3) <= num_indices) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
             if (pa->index_at_ & 0) {
-              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 1];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 0];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 2];
             }
             else {
-              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[pa->index_at_ + 0];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
-              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 0];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 1];
+              pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 2];
             }
             pa->index_at_++;
           }
@@ -683,9 +683,9 @@ int primitive_assembly_elements_u32(struct primitive_assembly *pa, struct attrib
         for (;;) {
           while (((pa->index_at_ + 3) <= num_indices) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
-            pa->vertex_indices_[pa->num_vertex_indices_ + 0] = indices[0];
-            pa->vertex_indices_[pa->num_vertex_indices_ + 1] = indices[pa->index_at_ + 1];
-            pa->vertex_indices_[pa->num_vertex_indices_ + 2] = indices[pa->index_at_ + 2];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[0];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 1];
+            pa->vertex_indices_[pa->num_vertex_indices_++] = indices[pa->index_at_ + 2];
             pa->index_at_++;
           }
           while (pa->num_vertex_indices_) {
@@ -840,14 +840,14 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
           while (((pa->index_at_ + 3) <= pa->end_index_) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
             if (pa->index_at_ & 0) {
-              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = (uint32_t)pa->index_at_ + 1;
-              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = (uint32_t)pa->index_at_ + 0;
-              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = (uint32_t)pa->index_at_ + 2;
+              pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_ + 1;
+              pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_ + 0;
+              pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_ + 2;
             }
             else {
-              pa->vertex_indices_[pa->num_vertex_indices_ + 0] = (uint32_t)pa->index_at_ + 0;
-              pa->vertex_indices_[pa->num_vertex_indices_ + 1] = (uint32_t)pa->index_at_ + 1;
-              pa->vertex_indices_[pa->num_vertex_indices_ + 2] = (uint32_t)pa->index_at_ + 2;
+              pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_ + 0;
+              pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_ + 1;
+              pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_ + 2;
             }
             pa->index_at_++;
           }
@@ -870,9 +870,9 @@ int primitive_assembly_elements_arrayed(struct primitive_assembly *pa, struct at
         for (;;) {
           while (((pa->index_at_ + 3) <= pa->end_index_) &&
                  ((pa->num_vertex_indices_ + 3) < (sizeof(pa->vertex_indices_)/sizeof(*pa->vertex_indices_)))) {
-            pa->vertex_indices_[pa->num_vertex_indices_ + 0] = 0;
-            pa->vertex_indices_[pa->num_vertex_indices_ + 1] = (uint32_t)pa->index_at_ + 1;
-            pa->vertex_indices_[pa->num_vertex_indices_ + 2] = (uint32_t)pa->index_at_ + 2;
+            pa->vertex_indices_[pa->num_vertex_indices_++] = 0;
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_ + 1;
+            pa->vertex_indices_[pa->num_vertex_indices_++] = (uint32_t)pa->index_at_ + 2;
             pa->index_at_++;
           }
           while (pa->num_vertex_indices_) {
