@@ -72,6 +72,11 @@
 #include "glsl_es1_assist.h"
 #endif
 
+#ifndef SL_COMPILATION_UNIT_H_INCLUDED
+#define SL_COMPILATION_UNIT_H_INCLUDED
+#include "sl_compilation_unit.h"
+#endif
+
 %grammar%
 
 %prefix glsl_es1_
@@ -1361,10 +1366,17 @@ translation-unit: translation-unit external-declaration;
 external-declaration: function-definition;
 external-declaration: declaration;
 
-%type function-definition-setup: struct sl_function *
-%constructor $$ = NULL;
-%move $$ = $0; $0 = NULL;
-%destructor /* no destructor for sl_function, it is attached to the global frame */
+%type function-definition-setup: struct { struct sl_function *f_; struct glsl_es1_compiler *cc_; }
+%constructor $$.f_ = NULL; $$.cc_ = cc;
+%move $$.f_ = $0.f_; $$.cc_ = $0.cc_; $0.f_ = NULL;
+%destructor if ($$.f_) { \
+  $$.cc_->current_frame_ = &$$.cc_->cu_->global_frame_; \
+  /* pop scope */ \
+  if ($$.f_->body_ && $$.f_->body_->scope_) { \
+    assert(($$.cc_->current_scope_ == $$.f_->body_->scope_) && "scope should be set or restored to top-level scope of the function"); \
+    $$.cc_->current_scope_ = $$.f_->body_->scope_->parent_; \
+  } \
+}
 
 function-definition-setup: function-prototype {
   struct sl_function *f = $0;
@@ -1373,25 +1385,20 @@ function-definition-setup: function-prototype {
     int r = glsl_es1_process_function_prototype(cc, &$0, 1 /* function definition */);
     if (r == _GLSL_ES1_NO_MEMORY) return r;
     if (r) {
-      $$ = NULL;
+      $$.f_ = NULL;
     }
     else {
-      $$ = f;
+      $$.f_ = f;
     }
   }
 }
 
 function-definition: function-definition-setup compound-statement-no-new-scope {
-  if ($0) {
-    if ($0->body_) {
-      sl_stmt_set_list_parent($1, $0->body_);
-      $0->body_->true_branch_ = sl_stmt_append_list($0->body_->true_branch_, $1);
+  if ($0.f_) {
+    if ($0.f_->body_) {
+      sl_stmt_set_list_parent($1, $0.f_->body_);
+      $0.f_->body_->true_branch_ = sl_stmt_append_list($0.f_->body_->true_branch_, $1);
       $1 = NULL;
-    }
-    /* pop scope */
-    if ($0->body_ && $0->body_->scope_) {
-      assert((cc->current_scope_ == $0->body_->scope_) && "scope should be set or restored to top-level scope of the function");
-      cc->current_scope_ = $0->body_->scope_->parent_;
     }
   }
 }
