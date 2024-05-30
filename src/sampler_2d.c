@@ -53,6 +53,7 @@ void sampler_2d_init(struct sampler_2d *s2d) {
   s2d->wrap_t_ = s2d_repeat;
   s2d->min_filter_ = s2d_nearest_mipmap_linear;
   s2d->mag_filter_ = s2d_linear;
+  s2d->max_mipmap_level_ = 1000;
   s2d->num_maps_ = 0;
   s2d->mipmaps_ = NULL;
   
@@ -163,6 +164,10 @@ static void sampler_2d_update_completeness(struct sampler_2d *s2d) {
     int lg2_maxwh = (int)flg2_maxwh;
     int num_mipmaps_needed = lg2_maxwh + 1;
 
+    if (num_mipmaps_needed > s2d->max_mipmap_level_) {
+      num_mipmaps_needed = s2d->max_mipmap_level_ + 1;
+    }
+
     if (num_mipmaps_needed > s2d->num_maps_) {
       s2d->is_complete_ = 0;
       return;
@@ -230,12 +235,14 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
     }
     else if (filter == s2d_nearest_mipmap_nearest) {
       int last_mipmap = s2d->num_maps_ - 1;
+      if (last_mipmap > s2d->max_mipmap_level_) last_mipmap = s2d->max_mipmap_level_;
       int nearest_mipmap = (lg2 <= 0.5f) ? 0 : (lg2 > (0.5f + (float)last_mipmap)) ? last_mipmap : ((int)(ceilf(lg2 + 0.5f)) - 1);
       s2dm_levels[0] = s2d->mipmaps_ + nearest_mipmap;
       num_levels = 1;
     }
     else if (filter == s2d_nearest_mipmap_linear) {
       int last_mipmap = s2d->num_maps_ - 1;
+      if (last_mipmap > s2d->max_mipmap_level_) last_mipmap = s2d->max_mipmap_level_;
       float ffloor_lg2 = floorf(lg2);
       float ffract_lg2 = lg2 - ffloor_lg2;
       int floor_lg2 = (int)ffloor_lg2;
@@ -419,12 +426,14 @@ static void texture2D(float *prgba, struct sampler_2d *s2d, float s, float t, fl
     }
     if (filter == s2d_linear_mipmap_nearest) {
       int last_mipmap = s2d->num_maps_ - 1;
+      if (last_mipmap > s2d->max_mipmap_level_) last_mipmap = s2d->max_mipmap_level_;
       int nearest_mipmap = (lg2 <= 0.5f) ? 0 : (lg2 > (0.5f + (float)last_mipmap)) ? last_mipmap : ((int)(ceilf(lg2 + 0.5f)) - 1);
       s2dm_levels[0] = s2d->mipmaps_ + nearest_mipmap;
       num_levels = 1;
     }
     else if (filter == s2d_linear_mipmap_linear) {
       int last_mipmap = s2d->num_maps_ - 1;
+      if (last_mipmap > s2d->max_mipmap_level_) last_mipmap = s2d->max_mipmap_level_;
       float ffloor_lg2 = floorf(lg2);
       float ffract_lg2 = lg2 - ffloor_lg2;
       int floor_lg2 = (int)ffloor_lg2;

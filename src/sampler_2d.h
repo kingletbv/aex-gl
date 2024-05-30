@@ -86,6 +86,12 @@ struct sampler_2d {
    * this will be true.) */
   int is_power_of_two_:1;
 
+  /* Maximum number of mipmap levels available. This allows you to clamp
+   * the number of mipmap levels while still mipmapping. Default is 1000,
+   * models GL_TEXTURE_MAX_LEVEL and affects the "completeness" of a texture,
+   * as well as how deep it will sample. */
+  int max_mipmap_level_;
+
   int num_maps_;
   struct sampler_2d_map *mipmaps_;
 

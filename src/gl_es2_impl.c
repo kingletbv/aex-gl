@@ -53,6 +53,11 @@
 #include "sl_defs.h"
 #endif
 
+#ifndef DEBUG_DUMP_H_INCLUDED
+#define DEBUG_DUMP_H_INCLUDED
+#include "debug_dump.h"
+#endif
+
 static void set_gl_err(gl_es2_enum error_code) {
   struct gl_es2_context *c = gl_es2_ctx_dont_lock();
   if (c->current_error_ == GL_ES2_NO_ERROR) c->current_error_ = error_code;
@@ -1681,10 +1686,48 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D
   void *src_ptr;
   size_t src_stride;
 
+  int fbwidth = 0, fbheight = 0;
+  if (!gl_es2_framebuffer_get_dims(c->framebuffer_, &fbwidth, &fbheight)) {
+    return;
+  }
+
+  int xoffset = 0, yoffset = 0;
+
+  /* clamp rectangle to framebuffer dimensions before we go on */
+  if (x < 0) {
+    int dist = -x;
+    if (width <= dist) return;
+    x = 0;
+    xoffset += dist;
+    width -= dist;
+  }
+  if (y < 0) {
+    int dist = -y;
+    if (height <= dist) return;
+    y = 0;
+    yoffset += dist;
+    height -= dist;
+  }
+  if ((x + width) > fbwidth) {
+    int dist = (x + width) - fbwidth;
+    if (width <= dist) return;
+    width -= dist;
+  }
+  if ((y + height) > fbheight) {
+    int dist = (y + height) - fbheight;
+    if (height <= dist) return;
+    height -= dist;
+  }
+  /* Now convert from bottom-left y upwards to top-left y downwards coordinate scheme */
+  size_t fb_row_num = fbheight - (y + height);
+  /* same for texture */
+  size_t tex_row_num = s2d->mipmaps_[level].height_ - (yoffset + height);
+
   gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->color_attachment0_, &src_ptr, &src_stride);
   blitter_blit_format(s2d->mipmaps_[level].bitmap_, dst_format, src_ptr, src_format,
-                      s2d->mipmaps_[level].num_bytes_per_bitmap_row_, 0, 0,
-                      src_stride, x, gl_es2_framebuffer_get_bitmap_row_num(c->framebuffer_, y + height), width, height);
+                      s2d->mipmaps_[level].num_bytes_per_bitmap_row_, xoffset, tex_row_num,
+                      src_stride, x, fb_row_num, width, height);
+
   gl_es2_ctx_release(c);
 }
 
@@ -1832,7 +1875,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImag
       return;
   }
 
-  if ((x < 0) || (y < 0)) {
+  if ((xoffset < 0) || (yoffset < 0)) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
     return;
@@ -1844,8 +1887,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImag
     return;
   }
 
-  if (((x + width) > s2d->mipmaps_[level].width_) ||
-      ((y + height) > s2d->mipmaps_[level].height_)) {
+  if (((xoffset + width) > s2d->mipmaps_[level].width_) ||
+      ((yoffset + height) > s2d->mipmaps_[level].height_)) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
     return;
@@ -1854,10 +1897,44 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImag
   void *src_ptr;
   size_t src_stride;
 
+  int fbwidth = 0, fbheight = 0;
+  if (!gl_es2_framebuffer_get_dims(c->framebuffer_, &fbwidth, &fbheight)) {
+    return;
+  }
+  /* clamp rectangle to framebuffer dimensions before we go on */
+  if (x < 0) {
+    int dist = -x;
+    if (width <= dist) return;
+    x = 0;
+    xoffset += dist;
+    width -= dist;
+  }
+  if (y < 0) {
+    int dist = -y;
+    if (height <= dist) return;
+    y = 0;
+    yoffset += dist;
+    height -= dist;
+  }
+  if ((x + width) > fbwidth) {
+    int dist = (x + width) - fbwidth;
+    if (width <= dist) return;
+    width -= dist;
+  }
+  if ((y + height) > fbheight) {
+    int dist = (y + height) - fbheight;
+    if (height <= dist) return;
+    height -= dist;
+  }
+  /* Now convert from bottom-left y upwards to top-left y downwards coordinate scheme */
+  size_t fb_row_num = fbheight - (y + height);
+  /* same for texture */
+  size_t tex_row_num = s2d->mipmaps_[level].height_ - (yoffset + height);
+
   gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->color_attachment0_, &src_ptr, &src_stride);
   blitter_blit_format(s2d->mipmaps_[level].bitmap_, dst_format, src_ptr, src_format,
-                      s2d->mipmaps_[level].num_bytes_per_bitmap_row_, 0, 0,
-                      src_stride, x, gl_es2_framebuffer_get_bitmap_row_num(c->framebuffer_, y + height), width, height);
+                      s2d->mipmaps_[level].num_bytes_per_bitmap_row_, xoffset, tex_row_num,
+                      src_stride, x, fb_row_num, width, height);
   gl_es2_ctx_release(c);
 }
 
@@ -4221,6 +4298,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParamete
         case s2d_mirrored_repeat: *params = (gl_es2_float)GL_ES2_MIRRORED_REPEAT; break;
       }
       break;
+    case GL_ES2_TEXTURE_MAX_LEVEL:
+      *params = (gl_es2_float)s2d->max_mipmap_level_;
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       gl_es2_ctx_release(c);
@@ -4283,6 +4363,10 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParamete
         case s2d_mirrored_repeat: *params = (gl_es2_int)GL_ES2_MIRRORED_REPEAT; break;
       }
       break;
+    case GL_ES2_TEXTURE_MAX_LEVEL:
+      *params = (gl_es2_int)s2d->max_mipmap_level_;
+      break;
+
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       gl_es2_ctx_release(c);
@@ -5494,7 +5578,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl
     return;
   }
 
-  if (internalformat != format) {
+  if (0 && internalformat != format) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
     gl_es2_ctx_release(c);
     return;
@@ -5534,10 +5618,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl
       internal_blit_format = blit_format_luminance_alpha;
       break;
     case GL_ES2_RGB:
+    case GL_ES2_RGB8:
       internal_components = s2d_rgb;
       internal_blit_format = blit_format_rgb;
       break;
     case GL_ES2_RGBA:
+    case GL_ES2_RGBA8:
       internal_components = s2d_rgba;
       internal_blit_format = blit_format_rgba;
       break;
@@ -5572,6 +5658,10 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl
           src_bytes_per_pixel = 4;
           src_blit_format = blit_format_rgba;
           break;
+        default:
+          set_gl_err(GL_ES2_INVALID_ENUM);
+          gl_es2_ctx_release(c);
+          return;
       }
       break;
     case GL_ES2_UNSIGNED_SHORT_5_6_5:
@@ -5613,10 +5703,16 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl
   /* Invert the stride so it goes down the bitmap, and not up */
   size_t src_downwards_stride = (size_t)-(intptr_t)src_stride;
 
-  blitter_blit_format(s2d->mipmaps_[level].bitmap_, internal_blit_format, ((char *)pixels) + src_stride * (height - 1), src_blit_format,
-                      s2d->mipmaps_[level].num_bytes_per_bitmap_row_, 0, 0,
-                      src_downwards_stride,
-                      0, 0, width, height);
+  if (pixels) {
+    blitter_blit_format(s2d->mipmaps_[level].bitmap_, internal_blit_format, ((char *)pixels) + src_stride * (height - 1), src_blit_format,
+                        s2d->mipmaps_[level].num_bytes_per_bitmap_row_, 0, 0,
+                        src_downwards_stride,
+                        0, 0, width, height);
+
+    //char s[50];
+    //sprintf(s, "C:\\temp\\aex-debug\\tex%p.bmp", s2d);
+    //dd_write_bmp(s, s2d);
+  }
   gl_es2_ctx_release(c);
 }
 
@@ -5729,6 +5825,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterf)
           gl_es2_ctx_release(c);
           return;
       }
+      break;
+    case GL_ES2_TEXTURE_MAX_LEVEL:
+      for (n = 0; n < num_s2ds; ++n) s2ds[n].max_mipmap_level_ = (int)param;
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -5853,6 +5952,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterfv
           return;
       }
       break;
+    case GL_ES2_TEXTURE_MAX_LEVEL:
+      for (n = 0; n < num_s2ds; ++n) s2ds[n].max_mipmap_level_ = (int)params[0];
+      break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
       gl_es2_ctx_release(c);
@@ -5970,6 +6072,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteri)
           gl_es2_ctx_release(c);
           return;
       }
+      break;
+    case GL_ES2_TEXTURE_MAX_LEVEL:
+      for (n = 0; n < num_s2ds; ++n) s2ds[n].max_mipmap_level_ = (int)param;
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
@@ -6093,6 +6198,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteriv
           gl_es2_ctx_release(c);
           return;
       }
+      break;
+    case GL_ES2_TEXTURE_MAX_LEVEL:
+      for (n = 0; n < num_s2ds; ++n) s2ds[n].max_mipmap_level_ = (int)params[0];
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
