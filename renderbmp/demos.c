@@ -194,15 +194,20 @@ void write_rgba_bmp(FILE *fp, uint8_t *rgba32, int width, int height, size_t str
 
 /* Write the pixel data; start with bottom row and work our way up. */
   size_t row;
+  uint8_t *bmp = (uint8_t *)malloc(sizeof(uint8_t) * 4 * width);
+  if (!bmp) return;
   row = ((size_t)height) - 1;
   do {
     size_t col;
+    uint8_t *p = bmp;
     for (col = 0; col < width; col++) {
       uint8_t *rgba = rgba32 + row * stride + col * 4;
-      fpack(fp, "bbbb", rgba[2], rgba[1], rgba[0], rgba[3]);
+      *p++ = rgba[2]; *p++ = rgba[1]; *p++ = rgba[0]; *p++ = rgba[3];
+      //fpack(fp, "bbbb", rgba[2], rgba[1], rgba[0], rgba[3]);
     }
+    fwrite(bmp, sizeof(uint8_t), 4 * width, fp);
   } while (row--);
-
+  free(bmp);
 }
 
 int check_for_and_print_gl_err(FILE *fp) {
