@@ -576,6 +576,8 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
 
   char s[50];
   static int snapshot = 0;
+  c->is_detailed_debug_frame_ = 0;
+  c->debug_frame_op_ = 0;
   if ((GetAsyncKeyState(VK_F11) & 1) && (GetAsyncKeyState(VK_CONTROL) & 1)) {
     snapshot++;
     sprintf(s, "C:\\temp\\aex-debug\\scrn%d.bmp", snapshot);
@@ -583,6 +585,11 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
     if (fp) {
       dd_write_rgba_bmp(fp, rgba_ptr, bmp_width, bmp_height, rgba_stride);
       fclose(fp);
+    }
+    if ((GetAsyncKeyState(VK_SHIFT) & 1) && !c->is_detailed_debug_frame_) {
+      c->is_detailed_debug_frame_ = 1;
+      c->debug_frame_ordinal_ = snapshot;
+      c->debug_frame_op_ = 0;
     }
   }
 
@@ -634,6 +641,30 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
   DeleteObject(hbmp);
   DeleteDC(hdcmem);
   ReleaseDC(hwnd, hdcwnd);
+
+  /* Reconsider dimensions */
+  RECT client_rect;
+  GetClientRect(hwnd, &client_rect);
+  int client_width, client_height;
+  client_width = (int)(client_rect.right - client_rect.left);
+  client_height = (int)(client_rect.bottom - client_rect.top);
+
+  if ((bmp_width != client_width) || (bmp_height != client_height)) {
+    int sl_err = GL_ES2_FUNCTION_ID(context_set_framebuffer_storage)(32, 16, 16, client_width, client_height);
+    gl_es2_ctx_release(c);
+    switch (sl_err) {
+      case SL_ERR_OK:
+        return AEX_EGL_TRUE;
+      case SL_ERR_INVALID_ARG:
+        return set_egl_err(AEX_EGL_BAD_PARAMETER);
+      case SL_ERR_OVERFLOW:
+      case SL_ERR_NO_MEM:
+        return set_egl_err(AEX_EGL_BAD_ALLOC);
+      default:
+        return set_egl_err(AEX_EGL_CONTEXT_LOST);
+    }
+  }
+
 
   gl_es2_ctx_release(c);
   return AEX_EGL_TRUE;

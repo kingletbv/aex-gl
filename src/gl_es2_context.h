@@ -272,6 +272,11 @@ struct gl_es2_context {
   /* If non-zero, you can rely on this gl_es2_context to be a gl_es2_ctx_ field in a struct aex_gl_context. */
   int is_egl_context_:1;
 
+  /* If non-zero, the current frame should dump the drawing in great detail to disk. Debug flag. */
+  int is_detailed_debug_frame_:1;
+  int debug_frame_ordinal_; /* screenshot number of the debug frame */
+  int debug_frame_op_;      /* draw operation number of the debug frame */
+
   gl_es2_enum current_error_;
 
   /* If non-zero, then internals become accessible:

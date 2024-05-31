@@ -586,6 +586,9 @@ void gl_es2_shader_cleanup(struct gl_es2_shader *shad) {
 void gl_es2_ctx_init(struct gl_es2_context *c) {
   thread_mutex_init(&c->lock_);
   c->is_egl_context_ = 0; /* EGL will override this if we're called from there */
+  c->is_detailed_debug_frame_ = 0; /* Set to true by EGL */
+  c->debug_frame_ordinal_ = 0;
+  c->debug_frame_op_ = 0;
   c->current_error_ = GL_ES2_NO_ERROR;
 
   ref_range_allocator_init(&c->framebuffer_rra_);
