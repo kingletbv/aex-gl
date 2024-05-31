@@ -5578,10 +5578,16 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl
     return;
   }
 
-  if (0 && internalformat != format) {
-    set_gl_err(GL_ES2_INVALID_OPERATION);
-    gl_es2_ctx_release(c);
-    return;
+  if (internalformat != format) {
+    if (((format == GL_ES2_RGB) || (format == GL_ES2_RGB8) || (format == GL_ES2_RGBA) || (format == GL_ES2_RGBA8)) &&
+        ((internalformat == GL_ES2_RGB) || (internalformat == GL_ES2_RGB8) || (internalformat == GL_ES2_RGBA) || (internalformat == GL_ES2_RGBA8))) {
+      /* Passing through, these are ok */
+    }
+    else {
+      set_gl_err(GL_ES2_INVALID_OPERATION);
+      gl_es2_ctx_release(c);
+      return;
+    }
   }
 
   if ((width < 0) || (height < 0)) {
