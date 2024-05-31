@@ -3385,7 +3385,7 @@ uint32_t sl_exec_join_chains(struct sl_execution *exec, uint32_t a, uint32_t b) 
       
       /* No need to terminate ec[q] as it is guaranteed to be the tail of one or
        * the other list (and so is already 0) */
-      return q;
+      return r;
     }
   }
 }
