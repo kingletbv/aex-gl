@@ -62,6 +62,7 @@
     <ClCompile Include="..\src\thread_mutex_win32.c" />
     <ClCompile Include="..\src\sl_reg_move.c" />
     <ClCompile Include="..\src\debug_dump.c" />
+    <ClCompile Include="..\src\sha1.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -137,6 +138,7 @@
     <ClInclude Include="..\src\thread_mutex.h" />
     <ClInclude Include="..\src\sl_reg_move.h" />
     <ClInclude Include="..\src\debug_dump.h" />
+    <ClInclude Include="..\src\sha1.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
