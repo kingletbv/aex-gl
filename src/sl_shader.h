@@ -72,6 +72,10 @@ struct sl_shader {
   size_t source_length_;
   char *source_;
 
+  /* Hash for the sourcecode, to help identify shaders across executable invocations
+   * without having to string compare the entire source */
+  uint64_t hash_;
+
   /* The compilation unit for the shader; contains the AST and symbol tables */
   struct sl_compilation_unit cu_;
 

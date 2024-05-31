@@ -28,6 +28,11 @@
 #include <assert.h>
 #endif
 
+#ifndef INTTYPES_H_INCLUDED
+#define INTTYPES_H_INCLUDED
+#include <inttypes.h>
+#endif
+
 #ifndef SL_DEFS_H_INCLUDED
 #define SL_DEFS_H_INCLUDED
 #include "sl_defs.h"
@@ -58,10 +63,16 @@
 #include "glsl_es1_compiler.h"
 #endif
 
+#ifndef SHA1_H_INCLUDED
+#define SHA1_H_INCLUDED
+#include "sha1.h"
+#endif
+
 void sl_shader_init(struct sl_shader *sh) {
   sh->type_ = SLST_INVALID_SHADER;
   sh->source_length_ = 0;
   sh->source_ = NULL;
+  sh->hash_ = 0; /* filled in at compilation time */
   sl_type_base_init(&sh->tb_);
   sl_compilation_unit_init(&sh->cu_);
   sl_exec_init(&sh->exec_);
@@ -247,34 +258,67 @@ int sl_shader_compile(struct sl_shader *sh) {
     } while (v != cc.current_frame_->variables_);
   }
 
+  /* Develop a hash for the shader source and store in shader->hash_ */
+  union {
+    uint8_t sha1_digest[160/8];
+    uint64_t tokens[3];
+  } sha1_token;
+
+  struct sha1_inner_state sha1;
+  sha1_init(&sha1);
+  sha1_process(&sha1, sh->source_, sh->source_length_);
+  sha1_finish(&sha1, sha1_token.sha1_digest);
+  sh->hash_ = sha1_token.tokens[0];
+
+  const char *debug_file_extension = ".xunknown";
+  const char *debug_file_prefix = "x";
   const char *filename = "";
   switch (sh->type_) {
     case SLST_FRAGMENT_SHADER:
       filename = "fragment-shader";
+      debug_file_extension = ".frag";
+      debug_file_prefix = "f";
       break;
     case SLST_VERTEX_SHADER:
       filename = "vertex-shader";
+      debug_file_extension = ".vert";
+      debug_file_prefix = "v";
       break;
     case SLST_DEBUG_SHADER:
       filename = "debug-shader";
+      debug_file_extension = ".debug";
+      debug_file_prefix = "d";
       break;
   };
   cr = glsl_es1_compiler_compile_mem(&cc, filename, sh->source_, sh->source_length_);
+  const char *compilation_suffix = "";
   if (cr != GLSL_ES1_R_SUCCESS) {
     sh->gl_last_compile_status_ = 0;
     switch (cr) {
       case GLSL_ES1_R_HAVE_ERRORS:
         r = SL_ERR_HAD_ERRORS;
+        compilation_suffix = "-e";
         break;
       case GLSL_ES1_R_FAILED:
       default:
+        compilation_suffix = "-x";
         r = SL_ERR_INTERNAL;
         break;
     }
-    goto cleanup;
   }
   else {
     sh->gl_last_compile_status_ = 1;
+  }
+
+
+  if (0) {
+    char s[150];
+    sprintf(s, "C:\\temp\\aex-debug-shader\\%s%016" PRIX64 "%s%s", debug_file_prefix, sha1_token.tokens[0], compilation_suffix, debug_file_extension);
+    FILE *fp = fopen(s, "wb");
+    if (fp) {
+      fwrite(sh->source_, 1, sh->source_length_, fp);
+      fclose(fp);
+    }
   }
 
 cleanup:
