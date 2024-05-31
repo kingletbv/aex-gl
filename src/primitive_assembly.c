@@ -2066,7 +2066,7 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
             size_t attrib_route_index;
             for (attrib_route_index = 0; attrib_route_index < ar->num_attribs_routed_; ++attrib_route_index) {
               iv0[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
-                (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[pa_row_index];
+                (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[pa_row_index + 0];
               iv1[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
                 (vertex_shader->exec_.float_regs_[ar->attribs_routed_[attrib_route_index].from_source_reg_])[pa_row_index + 1];
               iv2[CLIPPING_STAGE_IDX_GENERIC + attrib_route_index] =
@@ -3414,6 +3414,53 @@ void primitive_assembly_process_fragments(struct primitive_assembly *pa,
   fragbuf->num_rows_ = 0;
 }
 
+uint64_t shader_blacklist_[] = {
+  /* Fragment shaders */
+#if 0
+  0x19EB6F9FDC3DB6A1,
+  0x555A65AF15B66C67,
+#endif
+  // 0x6FD47EA9E6F41970,  // <-- this is the main fragment shader.
+#if 0
+  0x96DFD67ADF173F9A,
+  0x99F100749B71D60E,
+  0xA598C6ADAA8B0DA3,
+  0xAEF419E6472F4E51,
+  0xBD75BD3015B68578,
+  0xD070BFCECD398EDB,
+  0xE3A02E700F9359C1,
+  0xFD31B4CFA2F0B0BB,
+#endif
+
+  /* Vertex shaders */
+#if 0
+  0x00997A9B7232E7FD,
+  0x054C105C4DCFD7E3,
+  0x0634229D3EAFE565,
+  0x1225FD504BCA38DD,
+  0x1426142EB72D898A,
+  0x1643B72A38634E92,
+  0x2F5843FE6CA04FFF,
+  0x34FD42ECAC1627AE,
+  0x5F2A0F9B934D44E6,
+#endif
+
+#if 0
+  0x66544151149F8A8E,
+#endif
+
+#if 0
+  0x6D58F1BBF3E956AA,
+  0x6E8490A7112C7EE8,
+  0x829313213F448939,
+  0xB4E1FFAAD9670225,
+  0xF08021F046D68DC3,
+#endif
+  ~0
+};
+
+extern int g_this_is_it_;
+
 void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       struct attrib_set *as,
                                       struct sl_shader *vertex_shader,
@@ -3462,6 +3509,22 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       primitive_assembly_index_type_t index_type,
                                       size_t arrayed_starting_index,
                                       const void *indices) {
+  /* Check if either vertex_shader or fragment_shader are blacklisted. */
+  size_t idx;
+  int vmarked = 0;
+  int fmarked = 0;
+  for (idx = 0; idx < sizeof(shader_blacklist_)/sizeof(*shader_blacklist_); ++idx) {
+    uint64_t hash = shader_blacklist_[idx];
+    if (hash == vertex_shader->hash_) {
+      vmarked = 1;
+    }
+    if (hash == fragment_shader->hash_) {
+      fmarked = 1;
+    }
+  }
+  if (vmarked) return;
+  //if (fmarked) return;
+
   while (primitive_assembly_process_primitives(pa, as, vertex_shader, ar, cs, ras, fragbuf, fragment_shader, 
                                                vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,
                                                screen_width, screen_height,
@@ -3499,7 +3562,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                          constant_red, constant_grn, constant_blu, constant_alpha,
                                          offset_factor, offset_units,
                                          mode, num_elements, index_type, arrayed_starting_index, indices,
-                                         0, 255, 192, 192);
+                                         g_this_is_it_, 255, 192, 192);
   }
 }
 
