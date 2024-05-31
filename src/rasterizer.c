@@ -661,19 +661,6 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       if (permitted_orientations & RASTERIZER_COUNTERCLOCKWISE) {
         orientation = RASTERIZER_COUNTERCLOCKWISE;
         D012 = -D012;
-        // Swap vertices 0 and 1, this is the same as swapping two rows in the various
-        // determinants that follow, which has the effect of negating the sign. We could
-        // keep a separate flag around to do it that way (negating signs) but this swapping
-        // around is actually an effective way of accomplishing the same thing.
-        x0 = px1;
-        y0 = py1;
-        z0 = pz1;
-        x1 = px0;
-        y1 = py0;
-        z1 = pz0;
-        x2 = px2;
-        y2 = py2;
-        z2 = pz2;
       }
       else {
         // Counterclockwise not permitted, reject
@@ -685,15 +672,6 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       if (permitted_orientations & RASTERIZER_CLOCKWISE) {
         // Adopt xyz012 as is.
         orientation = RASTERIZER_CLOCKWISE;
-        x0 = px0;
-        y0 = py0;
-        z0 = pz0;
-        x1 = px1;
-        y1 = py1;
-        z1 = pz1;
-        x2 = px2;
-        y2 = py2;
-        z2 = pz2;
       }
       else {
         // Clockwise not permitted, reject.
@@ -703,6 +681,16 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       // Colinear, reject.
       return 0;
     }
+
+    x0 = px0;
+    y0 = py0;
+    z0 = pz0;
+    x1 = px1;
+    y1 = py1;
+    z1 = pz1;
+    x2 = px2;
+    y2 = py2;
+    z2 = pz2;
 
     if (fragbf->num_rows_ && fragbf->fragment_orientation_ != orientation) {
       /* Mismatch of triangle orientation with other existing fragments in the buffer.
@@ -1185,16 +1173,31 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       for (px = left; px < right; px += 2) {
         // Compute the masks for each determinant at each of the four pixels
         // The idea is that if the determinant is positive, then the pixel is
-        // inside the triangle; consequently, if the MSB sign bit is zero, then
-        // the mask should be all 1's.
+        // inside the triangle because all barycentric sub-triangles will be clockwise;
+        // consequently, if the MSB sign bit is zero, then the mask should be all
+        // 1's.
         // Because the test is >= 0, we can OR together the sign bits and create
         // a unified mask (if any sign bit is set, then the mask is all zeroes,
         // otherwise it is all ones.)
-        TL_Mask = ~((Dp01_TL | Dp12_TL | Dp20_TL) >> 63);
-        TR_Mask = ~((Dp01_TR | Dp12_TR | Dp20_TR) >> 63);
-        BL_Mask = ~((Dp01_BL | Dp12_BL | Dp20_BL) >> 63);
-        BR_Mask = ~((Dp01_BR | Dp12_BR | Dp20_BR) >> 63);
-            
+        // Now also consider the counter-clockwise case, then, for the point to
+        // be inside the triangle, all the barycentric sub-triangles have to be
+        // counterclockwise (negative).
+        // So there are two cases: either all positive, or all negative. In the
+        // case of a clockwise triangle, it is impossible for all barycentric
+        // sub-triangles to be negative (because there is no area outside all
+        // three edges.) Similarly, for the counterclockwise triangle, the only
+        // way we can be on the same side of all three edges (in this case the
+        // negative side) is if we're on the triangle.
+        // So, in summary, we only need to check if we are on the same side of
+        // all three edges. Irrespective of the actual side that the edges agree
+        // on, we'll be inside the triangle.
+        TL_Mask = ((Dp01_TL & Dp12_TL & Dp20_TL) | ~(Dp01_TL | Dp12_TL | Dp20_TL)) >> 63;
+        TR_Mask = ((Dp01_TR & Dp12_TR & Dp20_TR) | ~(Dp01_TR | Dp12_TR | Dp20_TR)) >> 63;
+        BL_Mask = ((Dp01_BL & Dp12_BL & Dp20_BL) | ~(Dp01_BL | Dp12_BL | Dp20_BL)) >> 63;
+        BR_Mask = ((Dp01_BR & Dp12_BR & Dp20_BR) | ~(Dp01_BR | Dp12_BR | Dp20_BR)) >> 63;
+
+      //  counterclockwise_edge_area_mask_inverter
+
         // ((px + 1) - scissor_right)
         // positive when the right side column of fragment quadruples are to 
         // the right of the scissor window, negative otherwise.
