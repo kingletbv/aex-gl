@@ -329,8 +329,8 @@ enum gl_es2_framebuffer_completeness gl_es2_framebuffer_check_completeness(struc
   }
   else if (fb->color_attachment0_.kind_ == gl_es2_faot_texture) {
     struct gl_es2_texture *tex = fb->color_attachment0_.v_.tex_;
-    format_ok = format_ok && ((tex->texture_2d_.components_ == s2d_rgb) ||
-                              (tex->texture_2d_.components_ == s2d_rgba));
+    format_ok = format_ok && ((tex->texture_2d_.num_maps_ && tex->texture_2d_.mipmaps_[0].components_ == s2d_rgb) ||
+                              (tex->texture_2d_.num_maps_ && tex->texture_2d_.mipmaps_[0].components_ == s2d_rgba));
   }
   if (fb->depth_attachment_.kind_ == gl_es2_faot_renderbuffer) {
     struct gl_es2_renderbuffer *rb = fb->depth_attachment_.v_.rb_;

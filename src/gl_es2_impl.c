@@ -1619,7 +1619,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D
       gl_es2_ctx_release(c);
       return;
     }
-    switch (src->components_) {
+    switch (src->mipmaps_[0].components_) {
       case s2d_alpha:           src_format = blit_format_alpha; break;
       case s2d_luminance:       src_format = blit_format_alpha; break;
       case s2d_luminance_alpha: src_format = blit_format_luminance_alpha; break;
@@ -1834,7 +1834,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImag
       gl_es2_ctx_release(c);
       return;
     }
-    switch (src->components_) {
+    switch (src->mipmaps_[0].components_) {
       case s2d_alpha:           src_format = blit_format_alpha; break;
       case s2d_luminance:       src_format = blit_format_alpha; break;
       case s2d_luminance_alpha: src_format = blit_format_luminance_alpha; break;
