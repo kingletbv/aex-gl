@@ -58,6 +58,11 @@
 #include "debug_dump.h"
 #endif
 
+#ifndef GL_ES2_LOG_H_INCLUDED
+#define GL_ES2_LOG_H_INCLUDED
+#include "gl_es2_log.h"
+#endif
+
 static void set_gl_err(gl_es2_enum error_code) {
   struct gl_es2_context *c = gl_es2_ctx_dont_lock();
   if (c->current_error_ == GL_ES2_NO_ERROR) c->current_error_ = error_code;
@@ -253,6 +258,8 @@ static enum gl_es2_cube_map_face tex_target_gl_to_cubemap_face(gl_es2_enum texta
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)(gl_es2_enum texture) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_ActiveTexture(c, texture);
+
   size_t texture_unit_index = (size_t)texture - GL_ES2_TEXTURE0;
   if (texture_unit_index >= c->num_active_texture_units_) {
     set_gl_err(GL_ES2_INVALID_ENUM);
@@ -265,6 +272,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ActiveTexture)
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(AttachShader)(gl_es2_uint program, gl_es2_uint shader) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_AttachShader(c, program, shader);
   uintptr_t shad_name = (uintptr_t)shader;
   struct gl_es2_shader *shad = NULL;
   shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
@@ -309,6 +317,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(AttachShader)(
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindAttribLocation)(gl_es2_uint program, gl_es2_uint index, const gl_es2_char *name) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BindAttribLocation(c, program, index, name);
   if (!name) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -353,6 +362,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindAttribLoca
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindBuffer)(gl_es2_enum target, gl_es2_uint buffer) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BindBuffer(c, target, buffer);
   if ((target != GL_ES2_ARRAY_BUFFER) && (target != GL_ES2_ELEMENT_ARRAY_BUFFER)) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     gl_es2_ctx_release(c);
@@ -418,6 +428,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindBuffer)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindFramebuffer)(gl_es2_enum target, gl_es2_uint framebuffer) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BindFramebuffer(c, target, framebuffer);
   if (target != GL_ES2_FRAMEBUFFER) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     gl_es2_ctx_release(c);
@@ -463,6 +474,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindFramebuffe
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuffer)(gl_es2_enum target, gl_es2_uint renderbuffer) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BindRenderbuffer(c, target, renderbuffer);
+
   if (target != GL_ES2_RENDERBUFFER) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     gl_es2_ctx_release(c);
@@ -512,6 +525,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindRenderbuff
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindTexture)(gl_es2_enum target, gl_es2_uint texture) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BindTexture(c, target, texture);
   if ((target != GL_ES2_TEXTURE_2D) && (target != GL_ES2_TEXTURE_CUBE_MAP)) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     gl_es2_ctx_release(c);
@@ -599,6 +613,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BindTexture)(g
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendColor)(gl_es2_float red, gl_es2_float green, gl_es2_float blue, gl_es2_float alpha) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BlendColor(c, red, green, blue, alpha);
   if (red < 0.f) red = 0.f;
   if (red > 1.f) red = 1.f;
   if (green < 0.f) green = 0.f;
@@ -634,6 +649,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendColor)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquation)(gl_es2_enum mode) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BlendEquation(c, mode);
   switch (mode) {
     case GL_ES2_FUNC_ADD:
       c->blend_rgb_eq_ = BEQ_FUNC_ADD;
@@ -657,6 +673,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquation)
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquationSeparate)(gl_es2_enum modeRGB, gl_es2_enum modeAlpha) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BlendEquationSeparate(c, modeRGB, modeAlpha);
 
   switch (modeRGB) {
     case GL_ES2_FUNC_ADD:
@@ -707,6 +724,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendEquationS
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendFunc)(gl_es2_enum sfactor, gl_es2_enum dfactor) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BlendFunc(c, sfactor, dfactor);
 
   switch (sfactor) {
     case GL_ES2_ZERO:
@@ -854,6 +872,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendFunc)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendFuncSeparate)(gl_es2_enum sfactorRGB, gl_es2_enum dfactorRGB, gl_es2_enum sfactorAlpha, gl_es2_enum dfactorAlpha) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BlendFuncSeparate(c, sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
 
   switch (sfactorRGB) {
     case GL_ES2_ZERO:
@@ -1143,6 +1162,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BlendFuncSepar
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BufferData)(gl_es2_enum target, gl_es2_sizeiptr size, const void *data, gl_es2_enum usage) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BufferData(c, target, size, data, usage);
   struct gl_es2_buffer *buf = NULL;
   switch (target) {
     case GL_ES2_ARRAY_BUFFER:
@@ -1186,6 +1206,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BufferData)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BufferSubData)(gl_es2_enum target, gl_es2_intptr offset, gl_es2_sizeiptr size, const void *data) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_BufferSubData(c, target, offset, size, data);
   struct gl_es2_buffer *buf = NULL;
   switch (target) {
     case GL_ES2_ARRAY_BUFFER:
@@ -1239,6 +1260,7 @@ GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CheckFr
   struct gl_es2_context *c = gl_es2_ctx();
   if (target != GL_ES2_FRAMEBUFFER) {
     set_gl_err(GL_ES2_INVALID_ENUM);
+    gl_es2_log_CheckFramebufferStatus(c, target, 0);
     gl_es2_ctx_release(c);
     return 0;
   }
@@ -1247,30 +1269,42 @@ GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CheckFr
     /* Initialization failure, should always have a framebuffer set, the default window-system-provided framebuffer
      * of "0" is an actual framebuffer that should have been initialized. framebuffer_ should therefore never be NULL */
     set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+    gl_es2_log_CheckFramebufferStatus(c, target, 0);
     gl_es2_ctx_release(c);
     return 0;
   }
 
   enum gl_es2_framebuffer_completeness fbcomp = gl_es2_framebuffer_check_completeness(c->framebuffer_);
-  gl_es2_ctx_release(c);
+  gl_es2_enum r;
   switch (fbcomp) {
     case gl_es2_framebuffer_complete:
-      return GL_ES2_FRAMEBUFFER_COMPLETE;
+      r = GL_ES2_FRAMEBUFFER_COMPLETE;
+      break;
     case gl_es2_framebuffer_incomplete_attachment:
-      return GL_ES2_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+      r = GL_ES2_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+      break;
     case gl_es2_framebuffer_incomplete_dimensions:
-      return GL_ES2_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
+      r = GL_ES2_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
+      break;
     case gl_es2_framebuffer_incomplete_missing_attachment:
-      return GL_ES2_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+      r = GL_ES2_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+      break;
     case gl_es2_framebuffer_incomplete_unsupported:
-      return GL_ES2_FRAMEBUFFER_UNSUPPORTED;
+      r = GL_ES2_FRAMEBUFFER_UNSUPPORTED;
+      break;
+    default:
+      r = 0;
+      break;
   }
-  set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
-  return 0;
+
+  gl_es2_log_CheckFramebufferStatus(c, target, r);
+  gl_es2_ctx_release(c);
+  return r;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Clear)(gl_es2_bitfield mask) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Clear(c, mask);
   if (gl_es2_framebuffer_complete != gl_es2_framebuffer_check_completeness(c->framebuffer_)) {
     set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
     gl_es2_ctx_release(c);
@@ -1431,6 +1465,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Clear)(gl_es2_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ClearColor)(gl_es2_float red, gl_es2_float green, gl_es2_float blue, gl_es2_float alpha) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_ClearColor(c, red, green, blue, alpha);
   if (red < 0.f) red = 0.f;
   if (red > 1.f) red = 1.f;
   if (green < 0.f) green = 0.f;
@@ -1452,6 +1487,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ClearColor)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ClearDepthf)(gl_es2_float d) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_ClearDepthf(c, d);
   /* Clamping occurs inside glClear() */
   c->clear_depth_ = d;
   gl_es2_ctx_release(c);
@@ -1459,12 +1495,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ClearDepthf)(g
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ClearStencil)(gl_es2_int s) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_ClearStencil(c, s);
   c->clear_stencil_ = (uint16_t)s;
   gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ColorMask)(gl_es2_boolean red, gl_es2_boolean green, gl_es2_boolean blue, gl_es2_boolean alpha) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_ColorMask(c, red, green, blue, alpha);
   c->red_mask_ = !!red;
   c->green_mask_ = !!green;
   c->blue_mask_ = !!blue;
@@ -1474,6 +1512,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ColorMask)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompileShader)(gl_es2_uint shader) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_CompileShader(c, shader);
 
   uintptr_t shad_name = (uintptr_t)shader;
   struct gl_es2_shader *shad = NULL;
@@ -1532,6 +1571,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompileShader)
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompressedTexImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_enum internalformat, gl_es2_sizei width, gl_es2_sizei height, gl_es2_int border, gl_es2_sizei imageSize, const void *data) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_CompressedTexImage2D(c, target, level, internalformat, width, height, border, imageSize, data);
   /* Don't support compressed textures */
   set_gl_err(GL_ES2_INVALID_ENUM);
   gl_es2_ctx_release(c);
@@ -1539,6 +1579,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompressedTexI
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompressedTexSubImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_int xoffset, gl_es2_int yoffset, gl_es2_sizei width, gl_es2_sizei height, gl_es2_enum format, gl_es2_sizei imageSize, const void *data) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_CompressedTexSubImage2D(c, target, level, xoffset, yoffset, width, height, format, imageSize, data);
   /* Don't support compressed textures */
   set_gl_err(GL_ES2_INVALID_ENUM);
   gl_es2_ctx_release(c);
@@ -1546,6 +1587,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CompressedTexS
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_enum internalformat, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height, gl_es2_int border) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_CopyTexImage2D(c, target, level, internalformat, x, y, width, height, border);
   struct gl_es2_texture *tex = NULL;
   struct sampler_2d *s2d = NULL;;
   struct gl_es2_texture_unit *tu = &c->active_texture_units_[c->current_active_texture_unit_];
@@ -1733,6 +1775,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexImage2D
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CopyTexSubImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_int xoffset, gl_es2_int yoffset, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_CopyTexSubImage2D(c, target, level, xoffset, yoffset, x, y, width, height);
   struct gl_es2_texture *tex = NULL;
   struct sampler_2d *s2d = NULL;;
   struct gl_es2_texture_unit *tu = &c->active_texture_units_[c->current_active_texture_unit_];
@@ -1943,6 +1986,7 @@ GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateP
   gl_es2_uint prog_name = 0;
   generic_name_gen(&c->program_rra_, 1, &prog_name);
   if (!prog_name) {
+    gl_es2_log_CreateProgram(c, 0);
     gl_es2_ctx_release(c);
     return 0;
   }
@@ -1952,17 +1996,20 @@ GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateP
   r = not_find_or_insert(&c->program_not_, prog_name, sizeof(struct gl_es2_program), (struct named_object **)&prog);
   if (r == NOT_NOMEM) {
     set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    gl_es2_log_CreateProgram(c, 0);
     gl_es2_ctx_release(c);
     return 0;
   }
   else if (r == NOT_DUPLICATE) {
     /* Should never be returned as we just allocated the program anew */
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_CreateProgram(c, 0);
     gl_es2_ctx_release(c);
     return 0;
   }
   /* else not_ok */
   gl_es2_program_init(prog);
+  gl_es2_log_CreateProgram(c, prog_name);
 
   gl_es2_ctx_release(c);
   return prog_name;
@@ -1970,14 +2017,17 @@ GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateP
 
 GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateShader)(gl_es2_enum type) {
   struct gl_es2_context *c = gl_es2_ctx();
+
   if ((type != GL_ES2_VERTEX_SHADER) && (type != GL_ES2_FRAGMENT_SHADER) && (type != AEX_GL_DEBUG_SHADER)) {
     set_gl_err(GL_ES2_INVALID_ENUM);
+    gl_es2_log_CreateShader(c, type, 0);
     gl_es2_ctx_release(c);
     return 0;
   }
   gl_es2_uint shad_name = 0;
   generic_name_gen(&c->shader_rra_, 1, &shad_name);
   if (!shad_name) {
+    gl_es2_log_CreateShader(c, type, 0);
     gl_es2_ctx_release(c);
     return 0;
   }
@@ -1987,12 +2037,14 @@ GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateS
   r = not_find_or_insert(&c->shader_not_, shad_name, sizeof(struct gl_es2_shader), (struct named_object **)&shad);
   if (r == NOT_NOMEM) {
     set_gl_err(GL_ES2_OUT_OF_MEMORY);
+    gl_es2_log_CreateShader(c, type, 0);
     gl_es2_ctx_release(c);
     return 0;
   }
   else if (r == NOT_DUPLICATE) {
     /* Should never be returned as we just allocated the program anew */
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_CreateShader(c, type, 0);
     gl_es2_ctx_release(c);
     return 0;
   }
@@ -2012,12 +2064,14 @@ GL_ES2_DECL_SPEC gl_es2_uint GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CreateS
       break;
   }
 
+  gl_es2_log_CreateShader(c, type, shad_name);
   gl_es2_ctx_release(c);
   return shad_name;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CullFace)(gl_es2_enum mode) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_CullFace(c, mode);
   switch (mode) {
     case GL_ES2_FRONT:
       c->cull_face_mode_ = gl_es2_cull_face_front;
@@ -2038,6 +2092,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(CullFace)(gl_e
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteBuffers)(gl_es2_sizei n, const gl_es2_uint *buffers) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DeleteBuffers(c, n, buffers);
   if (n < 0) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -2080,6 +2135,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteBuffers)
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteFramebuffers)(gl_es2_sizei n, const gl_es2_uint *framebuffers) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DeleteFramebuffers(c, n, framebuffers);
   if (n < 0) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -2123,6 +2179,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteFramebuf
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteProgram)(gl_es2_uint program) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DeleteProgram(c, program);
   uintptr_t prog_name = (uintptr_t)program;
   int is_allocated = ref_range_get_ref_at(&c->program_rra_, prog_name);
   if (is_allocated) {
@@ -2150,6 +2207,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteProgram)
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteRenderbuffers)(gl_es2_sizei n, const gl_es2_uint *renderbuffers) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DeleteRenderbuffers(c, n, renderbuffers);
   if (n < 0) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -2187,6 +2245,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteRenderbu
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteShader)(gl_es2_uint shader) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DeleteShader(c, shader);
   uintptr_t shad_name = (uintptr_t)shader;
   int is_allocated = ref_range_get_ref_at(&c->shader_rra_, shad_name);
   if (is_allocated) {
@@ -2212,6 +2271,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteShader)(
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteTextures)(gl_es2_sizei n, const gl_es2_uint *textures) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DeleteTextures(c, n, textures);
   if (n < 0) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -2256,6 +2316,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteTextures
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthFunc)(gl_es2_enum func) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DepthFunc(c, func);
   primitive_assembly_zbuf_func_t zbuf_func;
   switch (func) {
     case GL_ES2_NEVER:    zbuf_func = PAZF_NEVER; break;
@@ -2277,12 +2338,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthFunc)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthMask)(gl_es2_boolean flag) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DepthMask(c, flag);
   c->depth_mask_ = !!flag;
   gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthRangef)(gl_es2_float n, gl_es2_float f) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DepthRangef(c, n, f);
   if (n < 0.f) n = 0.f;
   if (n > 1.f) n = 1.f;
   if (f < 0.f) f = 0.f;
@@ -2294,6 +2357,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DepthRangef)(g
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DetachShader)(gl_es2_uint program, gl_es2_uint shader) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DetachShader(c, program, shader);
   struct gl_es2_program *prog = NULL;
   prog = (struct gl_es2_program *)not_find(&c->program_not_, (uintptr_t)program);
   if (!prog) {
@@ -2323,6 +2387,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DetachShader)(
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Disable)(gl_es2_enum cap) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Disable(c, cap);
   switch (cap) {
     case GL_ES2_BLEND:
       c->is_blend_enabled_ = 0;
@@ -2361,6 +2426,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Disable)(gl_es
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DisableVertexAttribArray)(gl_es2_uint index) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DisableVertexAttribArray(c, index);
   if (index > UINT_MAX) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -2601,6 +2667,7 @@ static void perform_draw(primitive_assembly_mode_t mode,
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl_es2_enum mode, gl_es2_int first, gl_es2_sizei count) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DrawArrays(c, mode, first, count);
   primitive_assembly_mode_t pam;
   if (!gl_mode_to_pam(mode, &pam)) {
     gl_es2_ctx_release(c);
@@ -2613,6 +2680,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawElements)(gl_es2_enum mode, gl_es2_sizei count, gl_es2_enum type, const void *indices) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_DrawElements(c, mode, count, type, indices);
   primitive_assembly_mode_t pam;
   if (!gl_mode_to_pam(mode, &pam)) {
     gl_es2_ctx_release(c);
@@ -2653,6 +2721,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawElements)(
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Enable)(gl_es2_enum cap) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Enable(c, cap);
   switch (cap) {
     case GL_ES2_BLEND:
       c->is_blend_enabled_ = 1;
@@ -2691,6 +2760,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Enable)(gl_es2
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(EnableVertexAttribArray)(gl_es2_uint index) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_EnableVertexAttribArray(c, index);
   if (index > UINT_MAX) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -2708,15 +2778,22 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(EnableVertexAt
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Finish)(void) {
   /* Would wait for the drawing to complete, however: all drawing starts and completes immediately at the draw call. So we're done. */
+  struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Finish(c);
+  gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Flush)(void) {
   /* Would flush for execution all accummulated draw commands, however: all drawing completes immediately at the draw call, so there's
    * nothing to flush. */
+  struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Flush(c);
+  gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferRenderbuffer)(gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum renderbuffertarget, gl_es2_uint renderbuffer) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_FramebufferRenderbuffer(c, target, attachment, renderbuffertarget, renderbuffer);
   if (target != GL_ES2_FRAMEBUFFER) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     gl_es2_ctx_release(c);
@@ -2772,6 +2849,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferRen
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferTexture2D)(gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum textarget, gl_es2_uint texture, gl_es2_int level) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_FramebufferTexture2D(c, target, attachment, textarget, texture, level);
   if (target != GL_ES2_FRAMEBUFFER) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     gl_es2_ctx_release(c);
@@ -2838,6 +2916,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FramebufferTex
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FrontFace)(gl_es2_enum mode) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_FrontFace(c, mode);
   switch (mode) {
     case GL_ES2_CW:
       c->front_face_ = gl_es2_front_face_clockwise;
@@ -2856,11 +2935,13 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(FrontFace)(gl_
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenBuffers)(gl_es2_sizei n, gl_es2_uint *buffers) {
   struct gl_es2_context *c = gl_es2_ctx();
   generic_name_gen(&c->buffer_rra_, n, buffers);
+  gl_es2_log_GenBuffers(c, n, buffers);
   gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenerateMipmap)(gl_es2_enum target) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_GenerateMipmap(c, target);
 
   gl_es2_enum t2d_targets[] = { GL_ES2_TEXTURE_2D };
   gl_es2_enum cube_targets[] = { GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X, GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X,
@@ -2917,18 +2998,21 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenerateMipmap
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenFramebuffers)(gl_es2_sizei n, gl_es2_uint *framebuffers) {
   struct gl_es2_context *c = gl_es2_ctx();
   generic_name_gen(&c->framebuffer_rra_, n, framebuffers);
+  gl_es2_log_GenFramebuffers(c, n, framebuffers);
   gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenRenderbuffers)(gl_es2_sizei n, gl_es2_uint *renderbuffers) {
   struct gl_es2_context *c = gl_es2_ctx();
   generic_name_gen(&c->renderbuffer_rra_, n, renderbuffers);
+  gl_es2_log_GenRenderbuffers(c, n, renderbuffers);
   gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GenTextures)(gl_es2_sizei n, gl_es2_uint *textures) {
   struct gl_es2_context *c = gl_es2_ctx();
   generic_name_gen(&c->texture_rra_, n, textures);
+  gl_es2_log_GenTextures(c, n, textures);
   gl_es2_ctx_release(c);
 }
 
@@ -2938,16 +3022,19 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveAttri
   struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetActiveAttrib(c, program, index, bufsize, length, size, type, name);
     gl_es2_ctx_release(c);
     return;
   }
   if (bufsize < 0) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetActiveAttrib(c, program, index, bufsize, length, size, type, name);
     gl_es2_ctx_release(c);
     return;
   }
   if (((size_t)index) >= prog->program_.abt_.num_attrib_bindings_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetActiveAttrib(c, program, index, bufsize, length, size, type, name);
     gl_es2_ctx_release(c);
     return;
   }
@@ -2968,6 +3055,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveAttri
       num_elements_in_array = t->array_size_;
       if (num_elements_in_array > INT_MAX) {
         set_gl_err(GL_ES2_INVALID_OPERATION);
+        gl_es2_log_GetActiveAttrib(c, program, index, bufsize, length, size, type, name);
         gl_es2_ctx_release(c);
         return;
       }
@@ -2997,6 +3085,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveAttri
         break;
       default:
         set_gl_err(GL_ES2_INVALID_OPERATION);
+        gl_es2_log_GetActiveAttrib(c, program, index, bufsize, length, size, type, name);
         gl_es2_ctx_release(c);
         return;
     }
@@ -3013,6 +3102,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveAttri
       name[bufsize - 1] = '\0';
     }
   }
+  gl_es2_log_GetActiveAttrib(c, program, index, bufsize, length, size, type, name);
   gl_es2_ctx_release(c);
 }
 
@@ -3022,11 +3112,13 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveUnifo
   struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetActiveUniform(c, program, index, bufsize, length, size, type, name);
     gl_es2_ctx_release(c);
     return;
   }
   if (bufsize < 0) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetActiveUniform(c, program, index, bufsize, length, size, type, name);
     gl_es2_ctx_release(c);
     return;
   }
@@ -3041,6 +3133,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveUnifo
   switch (r) {
     case SL_ERR_INVALID_ARG:
       set_gl_err(GL_ES2_INVALID_VALUE);
+      gl_es2_log_GetActiveUniform(c, program, index, bufsize, length, size, type, name);
       gl_es2_ctx_release(c);
       return;
     case SL_ERR_OVERFLOW:
@@ -3048,6 +3141,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveUnifo
     case SL_ERR_INTERNAL:
     default:
       set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      gl_es2_log_GetActiveUniform(c, program, index, bufsize, length, size, type, name);
       gl_es2_ctx_release(c);
       return;
     case SL_ERR_OK:
@@ -3063,6 +3157,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveUnifo
       char *fullnamebuf = (char *)malloc(name_length + 1);
       if (!fullnamebuf) {
         set_gl_err(GL_ES2_OUT_OF_MEMORY);
+        gl_es2_log_GetActiveUniform(c, program, index, bufsize, length, size, type, name);
         gl_es2_ctx_release(c);
         return;
       }
@@ -3105,10 +3200,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetActiveUnifo
       case slrak_samplerCube: *type = GL_ES2_SAMPLER_CUBE; break;
       default:
         set_gl_err(GL_ES2_INVALID_OPERATION);
+        gl_es2_log_GetActiveUniform(c, program, index, bufsize, length, size, type, name);
         gl_es2_ctx_release(c);
         return;
     }
   }
+  gl_es2_log_GetActiveUniform(c, program, index, bufsize, length, size, type, name);
   gl_es2_ctx_release(c);
 }
 
@@ -3118,6 +3215,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttachedSha
   struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetAttachedShaders(c, program, maxCount, count, shaders);
     gl_es2_ctx_release(c);
     return;
   }
@@ -3132,6 +3230,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttachedSha
     num_shaders++;
   }
   if (count) *count = (gl_es2_sizei)num_shaders;
+  gl_es2_log_GetAttachedShaders(c, program, maxCount, count, shaders);
   gl_es2_ctx_release(c);
 }
 
@@ -3141,18 +3240,21 @@ GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttri
   struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetAttribLocation(c, program, name, -1);
     gl_es2_ctx_release(c);
     return -1;
   }
 
   if (!prog->program_.gl_last_link_status_) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetAttribLocation(c, program, name, -1);
     gl_es2_ctx_release(c);
     return -1;
   }
 
   if (!c->allow_internals_ && !memcmp(name, "gl_", 3)) {
     /* Not a name we are allowed to find */
+    gl_es2_log_GetAttribLocation(c, program, name, -1);
     gl_es2_ctx_release(c);
     return -1;
   }
@@ -3161,11 +3263,13 @@ GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetAttri
 
   if (!ab) {
     /* Not a name we could find */
+    gl_es2_log_GetAttribLocation(c, program, name, -1);
     gl_es2_ctx_release(c);
     return -1;
   }
 
   gl_es2_int ac_idx = (gl_es2_int)ab->active_index_;
+  gl_es2_log_GetAttribLocation(c, program, name, ac_idx);
   gl_es2_ctx_release(c);
 
   return ac_idx;
@@ -3331,9 +3435,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBooleanv)(g
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetBooleanv(c, pname, data);
       gl_es2_ctx_release(c);
-      break;
+      return;
   }
+  gl_es2_log_GetBooleanv(c, pname, data);
   gl_es2_ctx_release(c);
 }
 
@@ -3350,12 +3456,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBufferParam
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetBufferParameteriv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
   }
 
   if (!buf) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetBufferParameteriv(c, target, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -3363,14 +3471,17 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetBufferParam
   switch (pname) {
     case GL_ES2_BUFFER_SIZE:
       *params = (gl_es2_int)buf->buf_.size_;
+      gl_es2_log_GetBufferParameteriv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
     case GL_ES2_BUFFER_USAGE:
       *params = (gl_es2_int)buf->usage_;
+      gl_es2_log_GetBufferParameteriv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetBufferParameteriv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
   }
@@ -3380,6 +3491,7 @@ GL_ES2_DECL_SPEC gl_es2_enum GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetErro
   struct gl_es2_context *c = gl_es2_ctx();
   gl_es2_enum err = c->current_error_;
   c->current_error_ = GL_ES2_NO_ERROR;
+  gl_es2_log_GetError(c, err);
   gl_es2_ctx_release(c);
   return err;
 }
@@ -3542,9 +3654,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFloatv)(gl_
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetFloatv(c, pname, data);
       gl_es2_ctx_release(c);
-      break;
+      return;
   }
+  gl_es2_log_GetFloatv(c, pname, data);
   gl_es2_ctx_release(c);
 }
 
@@ -3552,12 +3666,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
   struct gl_es2_context *c = gl_es2_ctx();
   if (target != GL_ES2_FRAMEBUFFER) {
     set_gl_err(GL_ES2_INVALID_ENUM);
+    gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
 
   if (!c->framebuffer_) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -3567,6 +3683,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
      * (The default renderbuffers don't exist in the namespace of the user created
      *  renderbuffers, so there are no good values to return.) */
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -3584,6 +3701,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
       gl_es2_ctx_release(c);
       return;
   }
@@ -3593,14 +3711,17 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
       switch (fa->kind_) {
         case gl_es2_faot_none:
           *params = GL_ES2_NONE;
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
         case gl_es2_faot_renderbuffer:
           *params = GL_ES2_RENDERBUFFER;
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
         case gl_es2_faot_texture:
           *params = GL_ES2_TEXTURE;
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
       }
@@ -3608,14 +3729,17 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
       switch (fa->kind_) {
         case gl_es2_faot_none:
           set_gl_err(GL_ES2_INVALID_ENUM);
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
         case gl_es2_faot_renderbuffer:
           *params = (gl_es2_int)fa->v_.rb_->no_.name_;
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
         case gl_es2_faot_texture:
           *params = (gl_es2_int)fa->v_.tex_->no_.name_;
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
       }
@@ -3624,10 +3748,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
         case gl_es2_faot_none:
         case gl_es2_faot_renderbuffer:
           set_gl_err(GL_ES2_INVALID_ENUM);
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
         case gl_es2_faot_texture:
           *params = (gl_es2_int)fa->level_;
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
       }
@@ -3636,6 +3762,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
         case gl_es2_faot_none:
         case gl_es2_faot_renderbuffer:
           set_gl_err(GL_ES2_INVALID_ENUM);
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
         case gl_es2_faot_texture:
@@ -3659,10 +3786,12 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetFramebuffer
               *params = GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z;
               break;
           }
+          gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
           gl_es2_ctx_release(c);
           return;
       }
   }
+  gl_es2_log_GetFramebufferAttachmentParameteriv(c, target, attachment, pname, params);
   gl_es2_ctx_release(c);
 }
 
@@ -3826,6 +3955,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetIntegerv)(g
       set_gl_err(GL_ES2_INVALID_ENUM);
       break;
   }
+  gl_es2_log_GetIntegerv(c, pname, data);
   gl_es2_ctx_release(c);
 }
 
@@ -3835,22 +3965,26 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramiv)(
   struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetProgramiv(c, program, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
   switch (pname) {
     case GL_ES2_DELETE_STATUS: {
       *params = prog->flagged_for_deletion_ ? GL_ES2_TRUE : GL_ES2_FALSE;
+      gl_es2_log_GetProgramiv(c, program, pname, params);
       gl_es2_ctx_release(c);
       return;
     }
     case GL_ES2_LINK_STATUS: {
       *params = prog->program_.gl_last_link_status_ ? GL_ES2_TRUE : GL_ES2_FALSE;
+      gl_es2_log_GetProgramiv(c, program, pname, params);
       gl_es2_ctx_release(c);
       return;
     }
     case GL_ES2_VALIDATE_STATUS: {
       /* XXX: IMPLEMENT THIS */
+      gl_es2_log_GetProgramiv(c, program, pname, params);
       gl_es2_ctx_release(c);
       return;
     }
@@ -3893,16 +4027,19 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramiv)(
       r = sl_uniform_table_num_locations(&prog->program_.uniforms_, &num_locations);
       if (r == SL_ERR_NO_MEM) {
         set_gl_err(GL_ES2_OUT_OF_MEMORY);
+        gl_es2_log_GetProgramiv(c, program, pname, params);
         gl_es2_ctx_release(c);
         return;
       }
       else if (r) {
         set_gl_err(GL_ES2_INVALID_OPERATION);
+        gl_es2_log_GetProgramiv(c, program, pname, params);
         gl_es2_ctx_release(c);
         return;
       }
       if (num_locations > INT_MAX) {
         set_gl_err(GL_ES2_INVALID_VALUE);
+        gl_es2_log_GetProgramiv(c, program, pname, params);
         gl_es2_ctx_release(c);
         return;
       }
@@ -3915,16 +4052,19 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramiv)(
       r = sl_uniform_table_max_name_length(&prog->program_.uniforms_, &max_name_length);
       if (r == SL_ERR_NO_MEM) {
         set_gl_err(GL_ES2_OUT_OF_MEMORY);
+        gl_es2_log_GetProgramiv(c, program, pname, params);
         gl_es2_ctx_release(c);
         return;
       }
       else if (r) {
         set_gl_err(GL_ES2_INVALID_OPERATION);
+        gl_es2_log_GetProgramiv(c, program, pname, params);
         gl_es2_ctx_release(c);
         return;
       }
       if (max_name_length > INT_MAX) {
         set_gl_err(GL_ES2_INVALID_VALUE);
+        gl_es2_log_GetProgramiv(c, program, pname, params);
         gl_es2_ctx_release(c);
         return;
       }
@@ -3932,6 +4072,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramiv)(
       break;
     }
   }
+  gl_es2_log_GetProgramiv(c, program, pname, params);
   gl_es2_ctx_release(c);
 }
 
@@ -3941,12 +4082,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetProgramInfo
   struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetProgramInfoLog(c, program, bufsize, length, infoLog);
     gl_es2_ctx_release(c);
     return;
   }
   size_t slength = 0;
   sl_info_log_get_log(&prog->program_.log_, bufsize, &slength, (char *)infoLog);
   if (length) *length = (gl_es2_sizei)slength;
+  gl_es2_log_GetProgramInfoLog(c, program, bufsize, length, infoLog);
   gl_es2_ctx_release(c);
 }
 
@@ -3954,22 +4097,26 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetRenderbuffe
   struct gl_es2_context *c = gl_es2_ctx();
   if (target != GL_ES2_RENDERBUFFER) {
     set_gl_err(GL_ES2_INVALID_ENUM);
+    gl_es2_log_GetRenderbufferParameteriv(c, target, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
   struct gl_es2_renderbuffer *rb = c->renderbuffer_;
   if (!rb) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetRenderbufferParameteriv(c, target, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
   switch (pname) {
     case GL_ES2_RENDERBUFFER_WIDTH:
       *params = (gl_es2_int)rb->width_;
+      gl_es2_log_GetRenderbufferParameteriv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
     case GL_ES2_RENDERBUFFER_HEIGHT:
       *params = (gl_es2_int)rb->height_;
+      gl_es2_log_GetRenderbufferParameteriv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
     case GL_ES2_RENDERBUFFER_INTERNAL_FORMAT:
@@ -4118,6 +4265,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetRenderbuffe
       break;
     }
   }
+  gl_es2_log_GetRenderbufferParameteriv(c, target, pname, params);
   gl_es2_ctx_release(c);
 }
 
@@ -4127,6 +4275,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderiv)(g
   struct gl_es2_shader *shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
   if (!shad) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetShaderiv(c, shader, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4151,6 +4300,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderiv)(g
       *params = (gl_es2_int)shad->shader_.source_length_;
       break;
   }
+  gl_es2_log_GetShaderiv(c, shader, pname, params);
   gl_es2_ctx_release(c);
 }
 
@@ -4160,12 +4310,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderInfoL
   struct gl_es2_shader *shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
   if (!shad) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetShaderInfoLog(c, shader, bufsize, length, infoLog);
     gl_es2_ctx_release(c);
     return;
   }
   size_t slength = 0;
   sl_info_log_get_log(&shad->shader_.gl_info_log_, bufsize, &slength, (char *)infoLog);
   if (length) *length = (gl_es2_sizei)slength;
+  gl_es2_log_GetShaderInfoLog(c, shader, bufsize, length, infoLog);
   gl_es2_ctx_release(c);
 }
 
@@ -4173,6 +4325,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderPreci
   struct gl_es2_context *c = gl_es2_ctx();
   if ((shadertype != GL_ES2_VERTEX_SHADER) && (shadertype != GL_ES2_FRAGMENT_SHADER)) {
     set_gl_err(GL_ES2_INVALID_ENUM);
+    gl_es2_log_GetShaderPrecisionFormat(c, shadertype, precisiontype, range, precision);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4195,9 +4348,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderPreci
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetShaderPrecisionFormat(c, shadertype, precisiontype, range, precision);
       gl_es2_ctx_release(c);
       return;
   }
+  gl_es2_log_GetShaderPrecisionFormat(c, shadertype, precisiontype, range, precision);
   gl_es2_ctx_release(c);
 }
 
@@ -4207,6 +4362,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderSourc
   struct gl_es2_shader *shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
   if (!shad) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetShaderSource(c, shader, bufsize, length, source);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4214,6 +4370,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderSourc
     memcpy(source, shad->shader_.source_, shad->shader_.source_length_);
     source[shad->shader_.source_length_] = '\0';
     if (length) *length = (gl_es2_sizei)shad->shader_.source_length_;
+    gl_es2_log_GetShaderSource(c, shader, bufsize, length, source);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4221,27 +4378,42 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetShaderSourc
     memcpy(source, shad->shader_.source_, bufsize - 1);
     source[bufsize - 1] = '\0';
     if (length) *length = (gl_es2_sizei)(bufsize - 1);
+    gl_es2_log_GetShaderSource(c, shader, bufsize, length, source);
     gl_es2_ctx_release(c);
     return;
   }
   if (length) *length = 0;
+  gl_es2_log_GetShaderSource(c, shader, bufsize, length, source);
   gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC const gl_es2_ubyte *GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetString)(gl_es2_enum name) {
+  const char *cs = NULL;
   switch (name) {
     case GL_ES2_VENDOR:
-      return "Kinglet B.V.";
+      cs = "Kinglet B.V.";
+      break;
     case GL_ES2_RENDERER:
-      return "Aex";
+      cs = "Aex";
+      break;
     case GL_ES2_VERSION:
-      return "OpenGL ES 2.0.0 Aex 0.01";
+      cs = "OpenGL ES 2.0.0 Aex 0.01";
+      break;
     case GL_ES2_SHADING_LANGUAGE_VERSION:
-      return "OpenGL ES GLSL ES 1.00 (Aex 0.01)";
+      cs = "OpenGL ES GLSL ES 1.00 (Aex 0.01)";
+      break;
     case GL_ES2_EXTENSIONS:
-      return "GL_OES_depth32";
+      cs = "GL_OES_depth32";
+      break;
+    default:
+      cs = NULL;
+      break;
   }
-  return NULL;
+  struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_GetString(c, name, cs);
+  gl_es2_ctx_release(c);
+
+  return cs;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParameterfv)(gl_es2_enum target, gl_es2_enum pname, gl_es2_float *params) {
@@ -4259,6 +4431,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParamete
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetTexParameterfv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
   }
@@ -4303,9 +4476,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParamete
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetTexParameterfv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
   }
+  gl_es2_log_GetTexParameterfv(c, target, pname, params);
   gl_es2_ctx_release(c);
 }
 
@@ -4324,6 +4499,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParamete
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetTexParameteriv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
   }
@@ -4369,9 +4545,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetTexParamete
 
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetTexParameteriv(c, target, pname, params);
       gl_es2_ctx_release(c);
       return;
   }
+  gl_es2_log_GetTexParameteriv(c, target, pname, params);
   gl_es2_ctx_release(c);
 }
 
@@ -4381,12 +4559,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformfv)(
   struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetUniformfv(c, program, location, params);
     gl_es2_ctx_release(c);
     return;
   }
   if (!prog->program_.gl_last_link_status_) {
     /* program has not been successfully linked */
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetUniformfv(c, program, location, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4397,22 +4577,26 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformfv)(
   if (r != SL_ERR_OK) {
     if (r == SL_ERR_NO_MEM) {
       set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      gl_es2_log_GetUniformfv(c, program, location, params);
       gl_es2_ctx_release(c);
       return;
     }
     else if (r == SL_ERR_INVALID_ARG) {
       /* invalid location */
       set_gl_err(GL_ES2_INVALID_OPERATION);
+      gl_es2_log_GetUniformfv(c, program, location, params);
       gl_es2_ctx_release(c);
       return;
     }
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetUniformfv(c, program, location, params);
     gl_es2_ctx_release(c);
     return;
   }
   if (!mem) {
     /* Never got the mem ?? */
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetUniformfv(c, program, location, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4505,6 +4689,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformfv)(
       break;
     }
   }
+  gl_es2_log_GetUniformfv(c, program, location, params);
   gl_es2_ctx_release(c);
 }
 
@@ -4514,12 +4699,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformiv)(
   struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetUniformiv(c, program, location, params);
     gl_es2_ctx_release(c);
     return;
   }
   if (!prog->program_.gl_last_link_status_) {
     /* program has not been successfully linked */
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetUniformiv(c, program, location, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4530,22 +4717,26 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformiv)(
   if (r != SL_ERR_OK) {
     if (r == SL_ERR_NO_MEM) {
       set_gl_err(GL_ES2_OUT_OF_MEMORY);
+      gl_es2_log_GetUniformiv(c, program, location, params);
       gl_es2_ctx_release(c);
       return;
     }
     else if (r == SL_ERR_INVALID_ARG) {
       /* invalid location */
       set_gl_err(GL_ES2_INVALID_OPERATION);
+      gl_es2_log_GetUniformiv(c, program, location, params);
       gl_es2_ctx_release(c);
       return;
     }
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetUniformiv(c, program, location, params);
     gl_es2_ctx_release(c);
     return;
   }
   if (!mem) {
     /* Never got the mem ?? */
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetUniformiv(c, program, location, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4638,6 +4829,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUniformiv)(
       break;
     }
   }
+  gl_es2_log_GetUniformiv(c, program, location, params);
   gl_es2_ctx_release(c);
 }
 
@@ -4647,16 +4839,19 @@ GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUnifo
   struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetUniformLocation(c, program, name, -1);
     gl_es2_ctx_release(c);
     return -1;
   }
   if (!prog->program_.gl_last_link_status_) {
     /* program has not been successfully linked */
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_GetUniformLocation(c, program, name, -1);
     gl_es2_ctx_release(c);
     return -1;
   }
   if (!c->allow_internals_ && !memcmp(name, "gl_", 3)) {
+    gl_es2_log_GetUniformLocation(c, program, name, -1);
     gl_es2_ctx_release(c);
     return -1;
   }
@@ -4665,9 +4860,11 @@ GL_ES2_DECL_SPEC gl_es2_int GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetUnifo
   r = sl_uniform_get_named_location(&prog->program_.uniforms_, name, &location);
   if (r == SL_ERR_INVALID_ARG) {
     /* No corresponding uniform was found. */
+    gl_es2_log_GetUniformLocation(c, program, name, -1);
     gl_es2_ctx_release(c);
     return -1;
   }
+  gl_es2_log_GetUniformLocation(c, program, name, (gl_es2_int)location);
   gl_es2_ctx_release(c);
   return (gl_es2_int)location;
 }
@@ -4676,6 +4873,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
   struct gl_es2_context *c = gl_es2_ctx();
   if (index >= c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetVertexAttribfv(c, index, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4685,6 +4883,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
     case GL_ES2_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: {
       if (!ab->buf_) {
         *params = (float)0;
+        gl_es2_log_GetVertexAttribfv(c, index, pname, params);
         gl_es2_ctx_release(c);
         return;
       }
@@ -4748,9 +4947,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetVertexAttribfv(c, index, pname, params);
       gl_es2_ctx_release(c);
       return;
   }
+  gl_es2_log_GetVertexAttribfv(c, index, pname, params);
   gl_es2_ctx_release(c);
 }
 
@@ -4758,6 +4959,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
   struct gl_es2_context *c = gl_es2_ctx();
   if (index >= c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetVertexAttribiv(c, index, pname, params);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4768,6 +4970,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
       if (!ab->buf_) {
         *params = 0;
         gl_es2_ctx_release(c);
+        gl_es2_log_GetVertexAttribiv(c, index, pname, params);
         return;
       }
       /* All buffers are a struct data_buffer sitting as a "struct data_buffer buf_"
@@ -4830,9 +5033,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetVertexAttribiv(c, index, pname, params);
       gl_es2_ctx_release(c);
       return;
   }
+  gl_es2_log_GetVertexAttribiv(c, index, pname, params);
   gl_es2_ctx_release(c);
 }
 
@@ -4840,6 +5045,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
   struct gl_es2_context *c = gl_es2_ctx();
   if (index >= c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_GetVertexAttribPointerv(c, index, pname, pointer);
     gl_es2_ctx_release(c);
     return;
   }
@@ -4852,9 +5058,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(GetVertexAttri
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_GetVertexAttribPointerv(c, index, pname, pointer);
       gl_es2_ctx_release(c);
       return;
   }
+  gl_es2_log_GetVertexAttribPointerv(c, index, pname, pointer);
   gl_es2_ctx_release(c);
 }
 
@@ -4870,21 +5078,25 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Hint)(gl_es2_e
           break;
         default:
           set_gl_err(GL_ES2_INVALID_ENUM);
+          gl_es2_log_Hint(c, target, mode);
           gl_es2_ctx_release(c);
           return;
       }
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_Hint(c, target, mode);
       gl_es2_ctx_release(c);
       return;
   }
+  gl_es2_log_Hint(c, target, mode);
   gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsBuffer)(gl_es2_uint buffer) {
   struct gl_es2_context *c = gl_es2_ctx();
   if (!buffer) {
+    gl_es2_log_IsBuffer(c, buffer, GL_ES2_FALSE);
     gl_es2_ctx_release(c);
     return GL_ES2_FALSE;
   }
@@ -4892,9 +5104,11 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsBu
    * we must use the buffer named object table buffer_not_ and not the ref-range allocator buffer_rra_ to perform this
    * check */
   if (not_find(&c->buffer_not_, buffer)) {
+    gl_es2_log_IsBuffer(c, buffer, GL_ES2_TRUE);
     gl_es2_ctx_release(c);
     return GL_ES2_TRUE;
   }
+  gl_es2_log_IsBuffer(c, buffer, GL_ES2_FALSE);
   gl_es2_ctx_release(c);
   return GL_ES2_FALSE;
 }
@@ -4933,10 +5147,12 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsEn
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_IsEnabled(c, cap, GL_ES2_FALSE);
       gl_es2_ctx_release(c);
       return 0;
   }
 
+  gl_es2_log_IsEnabled(c, cap, result ? GL_ES2_TRUE : GL_ES2_FALSE);
   gl_es2_ctx_release(c);
   return result ? GL_ES2_TRUE : GL_ES2_FALSE;
 }
@@ -4944,6 +5160,7 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsEn
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsFramebuffer)(gl_es2_uint framebuffer) {
   struct gl_es2_context *c = gl_es2_ctx();
   if (!framebuffer) {
+    gl_es2_log_IsFramebuffer(c, framebuffer, GL_ES2_FALSE);
     gl_es2_ctx_release(c);
     return GL_ES2_FALSE;
   }
@@ -4951,9 +5168,12 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsFr
    * Consequently, we must use the framebuffer named object table framebuffer_not_ and not the ref-range allocator 
    * framebuffer_rra_ to perform this check */
   if (not_find(&c->framebuffer_not_, framebuffer)) {
+    gl_es2_log_IsFramebuffer(c, framebuffer, GL_ES2_TRUE);
     gl_es2_ctx_release(c);
     return GL_ES2_TRUE;
   }
+  gl_es2_log_IsFramebuffer(c, framebuffer, GL_ES2_FALSE);
+
   gl_es2_ctx_release(c);
   return GL_ES2_FALSE;
 }
@@ -4961,13 +5181,16 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsFr
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsProgram)(gl_es2_uint program) {
   struct gl_es2_context *c = gl_es2_ctx();
   if (!program) {
+    gl_es2_log_IsProgram(c, program, GL_ES2_FALSE);
     gl_es2_ctx_release(c);
     return GL_ES2_FALSE;
   }
   if (not_find(&c->program_not_, program)) {
+    gl_es2_log_IsProgram(c, program, GL_ES2_TRUE);
     gl_es2_ctx_release(c);
     return GL_ES2_TRUE;
   }
+  gl_es2_log_IsProgram(c, program, GL_ES2_FALSE);
   gl_es2_ctx_release(c);
   return GL_ES2_FALSE;
 }
@@ -4975,6 +5198,7 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsPr
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsRenderbuffer)(gl_es2_uint renderbuffer) {
   struct gl_es2_context *c = gl_es2_ctx();
   if (!renderbuffer) {
+    gl_es2_log_IsRenderbuffer(c, renderbuffer, GL_ES2_FALSE);
     gl_es2_ctx_release(c);
     return GL_ES2_FALSE;
   }
@@ -4982,9 +5206,11 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsRe
    * Consequently, we must use the renderbuffer named object table renderbuffer_not_ and not the ref-range allocator
    * renderbuffer_rra_ to perform this check */
   if (not_find(&c->renderbuffer_not_, renderbuffer)) {
+    gl_es2_log_IsRenderbuffer(c, renderbuffer, GL_ES2_TRUE);
     gl_es2_ctx_release(c);
     return GL_ES2_TRUE;
   }
+  gl_es2_log_IsRenderbuffer(c, renderbuffer, GL_ES2_FALSE);
   gl_es2_ctx_release(c);
   return GL_ES2_FALSE;
 }
@@ -4992,13 +5218,16 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsRe
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsShader)(gl_es2_uint shader) {
   struct gl_es2_context *c = gl_es2_ctx();
   if (!shader) {
+    gl_es2_log_IsShader(c, shader, GL_ES2_FALSE);
     gl_es2_ctx_release(c);
     return GL_ES2_FALSE;
   }
   if (not_find(&c->shader_not_, shader)) {
+    gl_es2_log_IsShader(c, shader, GL_ES2_TRUE);
     gl_es2_ctx_release(c);
     return GL_ES2_TRUE;
   }
+  gl_es2_log_IsShader(c, shader, GL_ES2_FALSE);
   gl_es2_ctx_release(c);
   return GL_ES2_FALSE;
 }
@@ -5006,6 +5235,7 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsSh
 GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsTexture)(gl_es2_uint texture) {
   struct gl_es2_context *c = gl_es2_ctx();
   if (!texture) {
+    gl_es2_log_IsTexture(c, texture, GL_ES2_FALSE);
     gl_es2_ctx_release(c);
     return GL_ES2_FALSE;
   }
@@ -5013,21 +5243,25 @@ GL_ES2_DECL_SPEC gl_es2_boolean GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(IsTe
    * Consequently, we must use the texture named object table texture_not_ and not the ref-range allocator
    * texture_rra_ to perform this check */
   if (not_find(&c->texture_not_, texture)) {
+    gl_es2_log_IsTexture(c, texture, GL_ES2_TRUE);
     gl_es2_ctx_release(c);
     return GL_ES2_TRUE;
   }
+  gl_es2_log_IsTexture(c, texture, GL_ES2_FALSE);
   gl_es2_ctx_release(c);
   return GL_ES2_FALSE;
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(LineWidth)(gl_es2_float width) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_LineWidth(c, width);
   c->line_width_ = width;
   gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(LinkProgram)(gl_es2_uint program) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_LinkProgram(c, program);
 
   uintptr_t prog_name = (uintptr_t)program;
   struct gl_es2_program *prog = NULL;
@@ -5064,6 +5298,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(LinkProgram)(g
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(PixelStorei)(gl_es2_enum pname, gl_es2_int param) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_PixelStorei(c, pname, param);
 
   switch (param) {
     case 1:
@@ -5095,6 +5330,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(PixelStorei)(g
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(PolygonOffset)(gl_es2_float factor, gl_es2_float units) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_PolygonOffset(c, factor, units);
   c->polygon_offset_factor_ = factor;
   c->polygon_offset_units_ = units;
   gl_es2_ctx_release(c);
@@ -5105,18 +5341,21 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReadPixels)(gl
 
   if (gl_es2_framebuffer_complete != gl_es2_framebuffer_check_completeness(c->framebuffer_)) {
     set_gl_err(GL_ES2_INVALID_FRAMEBUFFER_OPERATION);
+    gl_es2_log_ReadPixels(c, x, y, width, height, format, type, pixels);
     gl_es2_ctx_release(c);
     return;
   }
 
   if ((width < 0) || (height < 0)) {
     set_gl_err(GL_ES2_INVALID_VALUE);
+    gl_es2_log_ReadPixels(c, x, y, width, height, format, type, pixels);
     gl_es2_ctx_release(c);
     return;
   }
 
   if ((type == GL_ES2_UNSIGNED_SHORT_5_6_5) && (format != GL_ES2_RGB)) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_ReadPixels(c, x, y, width, height, format, type, pixels);
     gl_es2_ctx_release(c);
     return;
   }
@@ -5125,6 +5364,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReadPixels)(gl
        (type == GL_ES2_UNSIGNED_SHORT_5_5_5_1)) &&
       (format != GL_ES2_RGBA)) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_ReadPixels(c, x, y, width, height, format, type, pixels);
     gl_es2_ctx_release(c);
     return;
   }
@@ -5162,6 +5402,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReadPixels)(gl
       break;
     default:
       set_gl_err(GL_ES2_INVALID_ENUM);
+      gl_es2_log_ReadPixels(c, x, y, width, height, format, type, pixels);
       gl_es2_ctx_release(c);
       return;
   }
@@ -5226,15 +5467,20 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReadPixels)(gl
       /* nothing to mask, keep all the bits */
       break;
   }
+  gl_es2_log_ReadPixels(c, x, y, width, height, format, type, pixels);
   gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReleaseShaderCompiler)(void) {
   /* The hint is taken ... and ignored. */
+  struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_ReleaseShaderCompiler(c);
+  gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(RenderbufferStorage)(gl_es2_enum target, gl_es2_enum internalformat, gl_es2_sizei width, gl_es2_sizei height) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_RenderbufferStorage(c, target, internalformat, width, height);
   if (target != GL_ES2_RENDERBUFFER) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     gl_es2_ctx_release(c);
@@ -5299,6 +5545,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(RenderbufferSt
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(SampleCoverage)(gl_es2_float value, gl_es2_boolean invert) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_SampleCoverage(c, value, invert);
   if (value < 0.f) value = 0.f;
   if (value > 1.f) value = 1.f;
   c->sample_coverage_value_ = value;
@@ -5308,6 +5555,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(SampleCoverage
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Scissor)(gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Scissor(c, x, y, width, height);
   if ((width < 0) || (height < 0)) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -5351,6 +5599,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Scissor)(gl_es
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderBinary)(gl_es2_sizei count, const gl_es2_uint *shaders, gl_es2_enum binaryformat, const void *binary, gl_es2_sizei length) {
   struct gl_es2_context *c = gl_es2_ctx(); /* we lock because set_gl_err won't */
+  gl_es2_log_ShaderBinary(c, count, shaders, binaryformat, binary, length);
   /* No shader binary support */
   set_gl_err(GL_ES2_INVALID_OPERATION);
   gl_es2_ctx_release(c);
@@ -5358,6 +5607,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderBinary)(
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderSource)(gl_es2_uint shader, gl_es2_sizei count, const gl_es2_char *const *string, const gl_es2_int *length) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_ShaderSource(c, shader, count, string, length);
   uintptr_t shad_name = (uintptr_t)shader;
   struct gl_es2_shader *shad = NULL;
   shad = (struct gl_es2_shader *)not_find(&c->shader_not_, shad_name);
@@ -5400,6 +5650,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ShaderSource)(
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFunc)(gl_es2_enum func, gl_es2_int ref, gl_es2_uint mask) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_StencilFunc(c, func, ref, mask);
   primitive_assembly_stencil_func_t stencil_func;
   switch (func) {
     case GL_ES2_NEVER:    stencil_func = PASF_NEVER; break;
@@ -5427,6 +5678,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFunc)(g
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFuncSeparate)(gl_es2_enum face, gl_es2_enum func, gl_es2_int ref, gl_es2_uint mask) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_StencilFuncSeparate(c, face, func, ref, mask);
   primitive_assembly_stencil_func_t stencil_func;
   switch (func) {
     case GL_ES2_NEVER:    stencil_func = PASF_NEVER; break;
@@ -5464,6 +5716,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilFuncSep
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMask)(gl_es2_uint mask) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_StencilMask(c, mask);
   c->stencil_writemask_ = (uint32_t)mask;
   c->stencil_back_writemask_ = (uint32_t)mask;
   gl_es2_ctx_release(c);
@@ -5471,6 +5724,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMask)(g
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMaskSeparate)(gl_es2_enum face, gl_es2_uint mask) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_StencilMaskSeparate(c, face, mask);
   switch (face) {
     case GL_ES2_FRONT_AND_BACK:
       c->stencil_writemask_ = (uint32_t)mask;
@@ -5492,6 +5746,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilMaskSep
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilOp)(gl_es2_enum sfail, gl_es2_enum dpfail, gl_es2_enum dppass) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_StencilOp(c, sfail, dpfail, dppass);
   primitive_assembly_stencil_op_t sfail_op, dpfail_op, dppass_op;
   if (!stencil_op_gl_to_paso(sfail, &sfail_op) ||
     !stencil_op_gl_to_paso(dpfail, &dpfail_op) ||
@@ -5512,6 +5767,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilOp)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilOpSeparate)(gl_es2_enum face, gl_es2_enum sfail, gl_es2_enum dpfail, gl_es2_enum dppass) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_StencilOpSeparate(c, face, sfail, dpfail, dppass);
   if ((face != GL_ES2_FRONT) && (face != GL_ES2_BACK) && (face != GL_ES2_FRONT_AND_BACK)) {
     set_gl_err(GL_ES2_INVALID_ENUM);
     gl_es2_ctx_release(c);
@@ -5541,6 +5797,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(StencilOpSepar
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl_es2_enum target, gl_es2_int level, gl_es2_int internalformat, gl_es2_sizei width, gl_es2_sizei height, gl_es2_int border, gl_es2_enum format, gl_es2_enum type, const void *pixels) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_TexImage2D(c, target, level, internalformat, width, height, border, format, type, pixels);
   int r;
   struct gl_es2_texture *tex = NULL;
   struct sampler_2d *s2d = NULL;
@@ -5724,6 +5981,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexImage2D)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterf)(gl_es2_enum target, gl_es2_enum pname, gl_es2_float param) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_TexParameterf(c, target, pname, param);
 
   size_t num_s2ds = 0;
   struct sampler_2d *s2ds = NULL;
@@ -5845,6 +6103,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterf)
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterfv)(gl_es2_enum target, gl_es2_enum pname, const gl_es2_float *params) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_TexParameterfv(c, target, pname, params);
+
   if (!params) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -5971,6 +6231,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterfv
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteri)(gl_es2_enum target, gl_es2_enum pname, gl_es2_int param) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_TexParameteri(c, target, pname, param);
 
   size_t num_s2ds = 0;
   struct sampler_2d *s2ds = NULL;
@@ -6092,6 +6353,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteri)
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteriv)(gl_es2_enum target, gl_es2_enum pname, const gl_es2_int *params) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_TexParameteriv(c, target, pname, params);
   if (!params) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -6221,6 +6483,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexSubImage2D)
                                                                                  gl_es2_sizei width, gl_es2_sizei height, 
                                                                                  gl_es2_enum format, gl_es2_enum type, const void *pixels) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_TexSubImage2D(c, target, level, x, y, width, height, format, type, pixels);
   struct gl_es2_texture *tex = NULL;
   struct sampler_2d *s2d = NULL;
   if (!get_active_tex_target(target, &tex, &s2d)) {
@@ -6371,6 +6634,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexSubImage2D)
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1f)(gl_es2_int location, gl_es2_float v0) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform1f(c, location, v0);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -6427,6 +6691,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1f)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1fv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform1fv(c, location, count, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -6516,6 +6781,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1fv)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1i)(gl_es2_int location, gl_es2_int v0) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform1i(c, location, v0);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -6574,6 +6840,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1i)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1iv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform1iv(c, location, count, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -6674,6 +6941,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform1iv)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2f)(gl_es2_int location, gl_es2_float v0, gl_es2_float v1) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform2f(c, location, v0, v1);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -6736,6 +7004,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2f)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2fv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform2fv(c, location, count, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -6827,6 +7096,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2fv)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2i)(gl_es2_int location, gl_es2_int v0, gl_es2_int v1) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform2i(c, location, v0, v1);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -6889,6 +7159,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2i)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2iv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform2iv(c, location, count, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -6980,6 +7251,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform2iv)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3f)(gl_es2_int location, gl_es2_float v0, gl_es2_float v1, gl_es2_float v2) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform3f(c, location, v0, v1, v2);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7044,6 +7316,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3f)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3fv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform3fv(c, location, count, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7137,6 +7410,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3fv)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3i)(gl_es2_int location, gl_es2_int v0, gl_es2_int v1, gl_es2_int v2) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform3i(c, location, v0, v1, v2);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7201,6 +7475,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3i)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3iv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform3iv(c, location, count, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7294,6 +7569,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform3iv)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4f)(gl_es2_int location, gl_es2_float v0, gl_es2_float v1, gl_es2_float v2, gl_es2_float v3) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform4f(c, location, v0, v1, v2, v3);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7360,6 +7636,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4f)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4fv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform4fv(c, location, count, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7455,6 +7732,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4fv)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4i)(gl_es2_int location, gl_es2_int v0, gl_es2_int v1, gl_es2_int v2, gl_es2_int v3) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform4i(c, location, v0, v1, v2, v3);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7521,6 +7799,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4i)(gl_
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4iv)(gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_Uniform4iv(c, location, count, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7616,6 +7895,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Uniform4iv)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix2fv)(gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_UniformMatrix2fv(c, location, count, transpose, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7707,6 +7987,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix2
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix3fv)(gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_UniformMatrix3fv(c, location, count, transpose, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7803,6 +8084,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix3
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix4fv)(gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_UniformMatrix4fv(c, location, count, transpose, value);
   struct gl_es2_program *prog = c->current_program_;
   if (!prog) {
     set_gl_err(GL_ES2_INVALID_OPERATION);
@@ -7906,6 +8188,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UniformMatrix4
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UseProgram)(gl_es2_uint program) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_UseProgram(c, program);
   uintptr_t prog_name = (uintptr_t)program;
   if (!prog_name) {
     check_old_program_for_deletion(c->current_program_);
@@ -7927,10 +8210,14 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(UseProgram)(gl
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ValidateProgram)(gl_es2_uint program) {
   /* XXX: Don't forget GL_ES2_VALIDATE_STATUS on glGetProgramiv() */
+  struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_ValidateProgram(c, program);
+  gl_es2_ctx_release(c);
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib1f)(gl_es2_uint index, gl_es2_float x) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_VertexAttrib1f(c, index, x);
   if (index >= c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -7945,6 +8232,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib1f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib1fv)(gl_es2_uint index, const gl_es2_float *v) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_VertexAttrib1fv(c, index, v);
   if (index >= c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -7959,6 +8247,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib1f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib2f)(gl_es2_uint index, gl_es2_float x, gl_es2_float y) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_VertexAttrib2f(c, index, x, y);
   if (index >= c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -7973,6 +8262,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib2f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib2fv)(gl_es2_uint index, const gl_es2_float *v) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_VertexAttrib2fv(c, index, v);
   if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -7987,6 +8277,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib2f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3f)(gl_es2_uint index, gl_es2_float x, gl_es2_float y, gl_es2_float z) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_VertexAttrib3f(c, index, x, y, z);
   if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -8001,6 +8292,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3fv)(gl_es2_uint index, const gl_es2_float *v) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_VertexAttrib3fv(c, index, v);
   if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -8015,6 +8307,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib3f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4f)(gl_es2_uint index, gl_es2_float x, gl_es2_float y, gl_es2_float z, gl_es2_float w) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_VertexAttrib4f(c, index, x, y, z, w);
   if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -8029,6 +8322,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4fv)(gl_es2_uint index, const gl_es2_float *v) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_VertexAttrib4fv(c, index, v);
   if (index > c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -8043,6 +8337,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttrib4f
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttribPointer)(gl_es2_uint index, gl_es2_int size, gl_es2_enum type, gl_es2_boolean normalized, gl_es2_sizei stride, const void *pointer) {
   struct gl_es2_context *c = gl_es2_ctx();
+  gl_es2_log_VertexAttribPointer(c, index, size, type, normalized, stride, pointer);
   if (index >= c->attribs_.num_attribs_) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
@@ -8125,7 +8420,8 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(VertexAttribPo
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(Viewport)(gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {
   struct gl_es2_context *c = gl_es2_ctx();
-  
+  gl_es2_log_Viewport(c, x, y, width, height);
+
   if ((width < 0) || (height < 0)) {
     set_gl_err(GL_ES2_INVALID_VALUE);
     gl_es2_ctx_release(c);
