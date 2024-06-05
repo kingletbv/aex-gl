@@ -32,7 +32,7 @@ static void log(struct gl_es2_context *c, const char *fmt, ...) {
   va_list args;
   if (!c->log_file_) return;
   va_start(args, fmt);
-  vfprintf(stderr, fmt, args);
+  vfprintf(c->log_file_, fmt, args);
   va_end(args);
 }
 
@@ -53,8 +53,22 @@ void gl_es2_log_BindAttribLocation(struct gl_es2_context *c, gl_es2_uint program
   log(c, "glBindAttribLocation(%d, %d, %s);\n", program, index, name ? name : "NULL");
 }
 
+static const char *buffer_target(gl_es2_enum target) {
+  switch (target) {
+    case GL_ES2_ARRAY_BUFFER: return "GL_ARRAY_BUFFER";
+    case GL_ES2_ELEMENT_ARRAY_BUFFER: return "GL_ELEMENT_ARRAY_BUFFER";
+    default: return NULL;
+  }
+}
+
 void gl_es2_log_BindBuffer(struct gl_es2_context *c, gl_es2_enum target, gl_es2_uint buffer) { 
-  log(c, "glBindBuffer(%d, %d);\n", target, buffer);
+  const char *mtgt = buffer_target(target);
+  if (mtgt) {
+    log(c, "glBindBuffer(%s, %d);\n", mtgt, buffer);
+  }
+  else {
+    log(c, "glBindBuffer(0x%04X, %d);\n", target, buffer);
+  }
 }
 
 void gl_es2_log_BindFramebuffer(struct gl_es2_context *c, gl_es2_enum target, gl_es2_uint framebuffer) { 
@@ -175,14 +189,6 @@ void gl_es2_log_BlendFuncSeparate(struct gl_es2_context *c, gl_es2_enum sfactorR
   }
 }
 
-static const char *buffer_target(gl_es2_enum target) {
-  switch (target) {
-    case GL_ES2_ARRAY_BUFFER: return "GL_ARRAY_BUFFER";
-    case GL_ES2_ELEMENT_ARRAY_BUFFER: return "GL_ELEMENT_ARRAY_BUFFER";
-    default: return NULL;
-  }
-}
-
 static const char *usagem(gl_es2_enum usage) {
   switch (usage) {
     case GL_ES2_STREAM_DRAW: return "GL_STREAM_DRAW";
@@ -196,10 +202,16 @@ void gl_es2_log_BufferData(struct gl_es2_context *c, gl_es2_enum target, gl_es2_
   const char *mtarget = buffer_target(target);
   const char *musage = usagem(usage);
   if (mtarget) {
-    log(c, "glBufferData(%s, %zu, %p, ", mtarget, size, data);
+    log(c, "glBufferData(%s, %zu, ", mtarget, size);
   }
   else {
-    log(c, "glBufferData(0x%04X, %zu, %p, ", target, size, data);
+    log(c, "glBufferData(0x%04X, %zu, ", target, size);
+  }
+  if (data) {
+    log(c, "0x%p, ", data);
+  }
+  else {
+    log(c, "NULL, ");
   }
   if (musage) {
     log(c, "%s);\n", musage);
@@ -212,10 +224,16 @@ void gl_es2_log_BufferData(struct gl_es2_context *c, gl_es2_enum target, gl_es2_
 void gl_es2_log_BufferSubData(struct gl_es2_context *c, gl_es2_enum target, gl_es2_intptr offset, gl_es2_sizeiptr size, const void *data) { 
   const char *mtarget = buffer_target(target);
   if (mtarget) {
-    log(c, "glBufferSubData(%s, 0x%" PRIx64 ", %zu, %p, ", mtarget, (uint64_t)offset, size, data);
+    log(c, "glBufferSubData(%s, 0x%" PRIx64 ", %zu, ", mtarget, (uint64_t)offset, size);
   }
   else {
-    log(c, "glBufferSubData(0x%04X, 0x%" PRIx64 ", %zu, %p, ", target, (uint64_t)offset, size, data);
+    log(c, "glBufferSubData(0x%04X, 0x%" PRIx64 ", %zu, ", target, (uint64_t)offset, size);
+  }
+  if (data) {
+    log(c, "0x%p);\n", data);
+  }
+  else {
+    log(c, "NULL);\n");
   }
 }
 
@@ -581,13 +599,44 @@ void gl_es2_log_DrawArrays(struct gl_es2_context *c, gl_es2_enum mode, gl_es2_in
   }
 }
 
+static const char *index_type(gl_es2_enum type) {
+  switch (type) {
+    case GL_ES2_UNSIGNED_BYTE: return "GL_UNSIGNED_BYTE";
+    case GL_ES2_UNSIGNED_SHORT: return "GL_UNSIGNED_SHORT";
+    case GL_ES2_UNSIGNED_INT: return "GL_UNSIGNED_INT";
+    default:
+      return NULL;
+  }
+}
+
 void gl_es2_log_DrawElements(struct gl_es2_context *c, gl_es2_enum mode, gl_es2_sizei count, gl_es2_enum type, const void *indices) { 
+  const char *mmode = draw_mode(mode);
+  const char *mtype = index_type(type);
+  if (mmode) {
+    log(c, "glDrawElements(%s, %d, ", mmode, count);
+  }
+  else {
+    log(c, "glDrawElements(0x%04X, %d, ", mode, count);
+  }
+  if (mtype) {
+    log(c, "%s, ", mtype);
+  }
+  else {
+    log(c, "0x%04X, ", type);
+  }
+  if (indices) {
+    log(c, "0x%p);\n", indices);
+  }
+  else {
+    log(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_Enable(struct gl_es2_context *c, gl_es2_enum cap) { 
 }
 
 void gl_es2_log_EnableVertexAttribArray(struct gl_es2_context *c, gl_es2_uint index) { 
+  log(c, "glEnableVertexAttribArray(%u);\n", index);
 }
 
 void gl_es2_log_Finish(struct gl_es2_context *c) { 
@@ -878,7 +927,43 @@ void gl_es2_log_VertexAttrib4f(struct gl_es2_context *c, gl_es2_uint index, gl_e
 void gl_es2_log_VertexAttrib4fv(struct gl_es2_context *c, gl_es2_uint index, const gl_es2_float *v) { 
 }
 
+static const char *vtx_attrib_type(gl_es2_enum type) {
+  switch (type) {
+    case GL_ES2_BYTE: return "GL_BYTE";
+    case GL_ES2_UNSIGNED_BYTE: return "GL_UNSIGNED_BYTE";
+    case GL_ES2_SHORT: return "GL_SHORT";
+    case GL_ES2_UNSIGNED_SHORT: return "GL_UNSIGNED_SHORT";
+    case GL_ES2_FIXED: return "GL_FIXED";
+    case GL_ES2_FLOAT: return "GL_FLOAT";
+    default:
+      return NULL;
+  }
+}
+
 void gl_es2_log_VertexAttribPointer(struct gl_es2_context *c, gl_es2_uint index, gl_es2_int size, gl_es2_enum type, gl_es2_boolean normalized, gl_es2_sizei stride, const void *pointer) { 
+  const char *mtype = vtx_attrib_type(type);
+  if (type) {
+    log(c, "glVertexAttribPointer(%u, %d, %s, ", index, size, mtype);
+  }
+  else {
+    log(c, "glVertexAttribPointer(%u, %d, 0x%04X, ", index, size, type);
+  }
+  if (normalized == GL_ES2_TRUE) {
+    log(c, "GL_TRUE, ");
+  }
+  else if (normalized == GL_ES2_FALSE) {
+    log(c, "GL_FALSE, ");
+  }
+  else {
+    log(c, "%d, ", normalized);
+  }
+  log(c, "%d, ", stride);
+  if (pointer) {
+    log(c, "0x%p);\n", pointer);
+  }
+  else {
+    log(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_Viewport(struct gl_es2_context *c, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {
