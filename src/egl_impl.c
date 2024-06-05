@@ -578,6 +578,10 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
   static int snapshot = 0;
   c->is_detailed_debug_frame_ = 0;
   c->debug_frame_op_ = 0;
+  if (c->log_file_) {
+    fclose(c->log_file_);
+    c->log_file_ = NULL;
+  }
   if ((GetAsyncKeyState(VK_F11) & 1) && (GetAsyncKeyState(VK_CONTROL) & 1)) {
     snapshot++;
     sprintf(s, "C:\\temp\\aex-debug\\scrn%d.bmp", snapshot);
@@ -620,6 +624,8 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
       c->is_detailed_debug_frame_ = 1;
       c->debug_frame_ordinal_ = snapshot;
       c->debug_frame_op_ = 0;
+      sprintf(s, "C:\\temp\\aex-debug\\log%d.c", snapshot);
+      c->log_file_ = fopen(s, "wb");
     }
   }
 
