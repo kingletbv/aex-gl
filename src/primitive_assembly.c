@@ -3459,8 +3459,6 @@ uint64_t shader_blacklist_[] = {
   ~0
 };
 
-extern int g_this_is_it_;
-
 void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                       struct attrib_set *as,
                                       struct sl_shader *vertex_shader,
@@ -3562,7 +3560,7 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
                                          constant_red, constant_grn, constant_blu, constant_alpha,
                                          offset_factor, offset_units,
                                          mode, num_elements, index_type, arrayed_starting_index, indices,
-                                         g_this_is_it_, 255, 192, 192);
+                                         0, 255, 192, 192);
   }
 }
 
