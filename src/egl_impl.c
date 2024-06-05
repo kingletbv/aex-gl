@@ -593,22 +593,22 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
 
         switch (tex->kind_) {
           case gl_es2_texture_2d:
-            sprintf(s, "C:\\temp\\aex-debug\\tex%d.png", (int)tex->no_.name_);
-            dd_write_png(s, &tex->texture_2d_);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d.bmp", (int)tex->no_.name_);
+            dd_write_bmp(s, &tex->texture_2d_);
             break;
           case gl_es2_texture_cube_map:
-            sprintf(s, "C:\\temp\\aex-debug\\tex%d-0.png", (int)tex->no_.name_);
-            dd_write_png(s, tex->texture_cube_maps_ + 0);
-            sprintf(s, "C:\\temp\\aex-debug\\tex%d-1.png", (int)tex->no_.name_);
-            dd_write_png(s, tex->texture_cube_maps_ + 1);
-            sprintf(s, "C:\\temp\\aex-debug\\tex%d-2.png", (int)tex->no_.name_);
-            dd_write_png(s, tex->texture_cube_maps_ + 2);
-            sprintf(s, "C:\\temp\\aex-debug\\tex%d-3.png", (int)tex->no_.name_);
-            dd_write_png(s, tex->texture_cube_maps_ + 3);
-            sprintf(s, "C:\\temp\\aex-debug\\tex%d-4.png", (int)tex->no_.name_);
-            dd_write_png(s, tex->texture_cube_maps_ + 4);
-            sprintf(s, "C:\\temp\\aex-debug\\tex%d-5.png", (int)tex->no_.name_);
-            dd_write_png(s, tex->texture_cube_maps_ + 5);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-0.bmp", (int)tex->no_.name_);
+            dd_write_bmp(s, tex->texture_cube_maps_ + 0);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-1.bmp", (int)tex->no_.name_);
+            dd_write_bmp(s, tex->texture_cube_maps_ + 1);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-2.bmp", (int)tex->no_.name_);
+            dd_write_bmp(s, tex->texture_cube_maps_ + 2);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-3.bmp", (int)tex->no_.name_);
+            dd_write_bmp(s, tex->texture_cube_maps_ + 3);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-4.bmp", (int)tex->no_.name_);
+            dd_write_bmp(s, tex->texture_cube_maps_ + 4);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-5.bmp", (int)tex->no_.name_);
+            dd_write_bmp(s, tex->texture_cube_maps_ + 5);
             break;
         }
 
