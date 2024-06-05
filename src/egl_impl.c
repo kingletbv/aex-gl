@@ -586,6 +586,36 @@ AEX_EGL_DECL_SPEC aex_egl_boolean_t AEX_EGL_DECLARATOR_ATTRIB AEX_EGL_FUNCTION_I
       dd_write_rgba_bmp(fp, rgba_ptr, bmp_width, bmp_height, rgba_stride);
       fclose(fp);
     }
+    struct gl_es2_texture *tex;
+    tex = (struct gl_es2_texture *)c->texture_not_.seq_;
+    if (tex) {
+      do {
+
+        switch (tex->kind_) {
+          case gl_es2_texture_2d:
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d.png", (int)tex->no_.name_);
+            dd_write_png(s, &tex->texture_2d_);
+            break;
+          case gl_es2_texture_cube_map:
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-0.png", (int)tex->no_.name_);
+            dd_write_png(s, tex->texture_cube_maps_ + 0);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-1.png", (int)tex->no_.name_);
+            dd_write_png(s, tex->texture_cube_maps_ + 1);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-2.png", (int)tex->no_.name_);
+            dd_write_png(s, tex->texture_cube_maps_ + 2);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-3.png", (int)tex->no_.name_);
+            dd_write_png(s, tex->texture_cube_maps_ + 3);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-4.png", (int)tex->no_.name_);
+            dd_write_png(s, tex->texture_cube_maps_ + 4);
+            sprintf(s, "C:\\temp\\aex-debug\\tex%d-5.png", (int)tex->no_.name_);
+            dd_write_png(s, tex->texture_cube_maps_ + 5);
+            break;
+        }
+
+        tex = (struct gl_es2_texture *)tex->no_.next_;
+      } while (tex != (struct gl_es2_texture *)c->texture_not_.seq_);
+    }
+
     if ((GetAsyncKeyState(VK_SHIFT) & 1) && !c->is_detailed_debug_frame_) {
       c->is_detailed_debug_frame_ = 1;
       c->debug_frame_ordinal_ = snapshot;
