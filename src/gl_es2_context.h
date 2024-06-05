@@ -277,6 +277,9 @@ struct gl_es2_context {
   int debug_frame_ordinal_; /* screenshot number of the debug frame */
   int debug_frame_op_;      /* draw operation number of the debug frame */
 
+  /* If non-NULL, the output file for the log */
+  FILE *log_file_;
+
   gl_es2_enum current_error_;
 
   /* If non-zero, then internals become accessible:
