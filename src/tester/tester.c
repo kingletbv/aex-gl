@@ -44,6 +44,10 @@
 #include "gl_es2_aex_func_map.c"
 #endif
 
+/* xx(name, description) */
+#define CODE_TESTS \
+  xx(codetest1, "Clipping test")
+
 struct shader_test_code {
   const char *code_;
   const char *expected_dump_;
@@ -161,6 +165,24 @@ struct shader_test_code {
   }
 };
 
+#define xx(name, desc) int name(void);
+CODE_TESTS
+#undef xx
+
+int run_codetests(void) {
+  int num_tests_success = 0;
+  int num_tests_total = 0;
+  int rv;
+#define xx(name, desc) num_tests_total++;
+  CODE_TESTS
+#undef xx
+#define xx(name, desc) rv = name(); if (rv) fprintf(stderr, "Failed test " #name " with return value %d\n", rv); else num_tests_success++;
+  CODE_TESTS
+#undef xx
+  fprintf(stdout, "%d/%d tests ran successfully\n", num_tests_success, num_tests_total);
+  return (num_tests_success != num_tests_total);
+}
+
 int check_for_and_print_gl_err(FILE *fp) {
   GLenum errcode = glGetError();
   const char *errmsg = "Unknown error!";
@@ -218,10 +240,16 @@ int print_program_log(FILE *fp, GLuint program) {
 int main(int argc, char **argv) {
   int num_successes = 0;
 
+  int rv;
+  rv = run_codetests();
+  if (rv) {
+    return EXIT_FAILURE;
+  }
+
   size_t first_selected_test = 0;
   size_t end_selected_test = sizeof(shader_tests) / sizeof(*shader_tests);
 
-  //end_selected_test = 1 + (first_selected_test = 9);
+  //end_selected_test = 1 + (first_selected_test = 0);
 
   size_t n;
   for (n = first_selected_test; n < end_selected_test; ++n) {
