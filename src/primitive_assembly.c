@@ -103,6 +103,12 @@
 #include "sl_reg_alloc.h"
 #endif
 
+/* EMIT_TRIANGLE_BY_TRIANGLE - Set to non-zero to emit all fragments for a single triangle, 
+ * and then execute the framebuffer. Set to zero to bundle up all fragments for multiple triangles
+ * together for best efficiency. The former is useful for debugging. The latter is better for
+ * performance. */
+#define EMIT_TRIANGLE_BY_TRIANGLE 1
+
 void primitive_assembly_init(struct primitive_assembly *pa) {
   pa->num_rows_ = 0;
   pa->num_cols_ = 0;
@@ -1323,6 +1329,8 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
         goto continue_from_tail_end;
       case 3:
         goto continue_from_lineseg_fragments;
+      case 4:
+        goto continue_from_single_triangle;
     }
     
   }
@@ -2015,8 +2023,6 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                     }
                   }
 
-#define I_FOUND_AND_FIXED_THIS_BUG 1
-#if I_FOUND_AND_FIXED_THIS_BUG
                   while ((fragbuf->num_rows_ == FRAGMENT_BUFFER_MAX_ROWS) ||
                          (fragbuf->num_rows_ && (fragbuf->fragment_orientation_ != orientation))) {
                      /* Full, or stalled because of an triangle - fragbuf orientation mismatch.
@@ -2028,12 +2034,6 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                   continue_from_lineseg_fragments:
                     pa->continue_from_fragments_ = 0;
                   }
-#else
-                  pa->continue_from_fragments_ = 3;
-                  goto return_for_continuation;
-                continue_from_lineseg_fragments:
-                  pa->continue_from_fragments_ = 0;
-#endif
 
                   prior_num_rows_in_fragbuf = fragbuf->num_rows_;
                 }
@@ -2213,6 +2213,15 @@ continue_from_fragments:
                     pa->continue_from_fragments_ = 0;
                   }
                   prior_num_rows_in_fragbuf = fragbuf->num_rows_;
+                }
+                /* We have a triangle */
+                if (EMIT_TRIANGLE_BY_TRIANGLE && fragbuf->num_rows_) {
+                  while (fragbuf->num_rows_) {
+                    pa->continue_from_fragments_ = 4;
+                    goto return_for_continuation;
+continue_from_single_triangle:
+                    pa->continue_from_fragments_ = 0;
+                  }
                 }
               }
             }
