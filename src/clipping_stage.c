@@ -303,7 +303,7 @@ size_t clipping_stage_process_triangle(struct clipping_stage *cs) {
     d1 = v1[CLIPPING_STAGE_IDX_Z] + v1[CLIPPING_STAGE_IDX_W];
     d2 = v2[CLIPPING_STAGE_IDX_Z] + v2[CLIPPING_STAGE_IDX_W];
 
-    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_b_ + next_num_tris);
+    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_b_ + tri_stride * next_num_tris);
     next_num_tris += num_tris_passed;
   }
 
@@ -320,7 +320,7 @@ size_t clipping_stage_process_triangle(struct clipping_stage *cs) {
     d1 = -v1[CLIPPING_STAGE_IDX_Y] + v1[CLIPPING_STAGE_IDX_W];
     d2 = -v2[CLIPPING_STAGE_IDX_Y] + v2[CLIPPING_STAGE_IDX_W];
 
-    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_a_ + next_num_tris);
+    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_a_ + tri_stride * next_num_tris);
     next_num_tris += num_tris_passed;
   }
 
@@ -338,7 +338,7 @@ size_t clipping_stage_process_triangle(struct clipping_stage *cs) {
     d1 = v1[CLIPPING_STAGE_IDX_Y] + v1[CLIPPING_STAGE_IDX_W];
     d2 = v2[CLIPPING_STAGE_IDX_Y] + v2[CLIPPING_STAGE_IDX_W];
 
-    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_b_ + next_num_tris);
+    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_b_ + tri_stride * next_num_tris);
     next_num_tris += num_tris_passed;
   }
 
@@ -356,7 +356,7 @@ size_t clipping_stage_process_triangle(struct clipping_stage *cs) {
     d1 = -v1[CLIPPING_STAGE_IDX_X] + v1[CLIPPING_STAGE_IDX_W];
     d2 = -v2[CLIPPING_STAGE_IDX_X] + v2[CLIPPING_STAGE_IDX_W];
 
-    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_a_ + next_num_tris);
+    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_a_ + tri_stride * next_num_tris);
     next_num_tris += num_tris_passed;
   }
 
@@ -374,7 +374,7 @@ size_t clipping_stage_process_triangle(struct clipping_stage *cs) {
     d1 = v1[CLIPPING_STAGE_IDX_X] + v1[CLIPPING_STAGE_IDX_W];
     d2 = v2[CLIPPING_STAGE_IDX_X] + v2[CLIPPING_STAGE_IDX_W];
 
-    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_b_ + next_num_tris);
+    size_t num_tris_passed = clipping_stage_process_triangle_plane(cs, d0, d1, d2, v0, cs->triangle_varyings_b_ + tri_stride * next_num_tris);
     next_num_tris += num_tris_passed;
   }
 
