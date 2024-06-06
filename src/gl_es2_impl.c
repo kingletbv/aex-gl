@@ -1207,6 +1207,7 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BufferData)(gl
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(BufferSubData)(gl_es2_enum target, gl_es2_intptr offset, gl_es2_sizeiptr size, const void *data) {
   struct gl_es2_context *c = gl_es2_ctx();
   gl_es2_log_BufferSubData(c, target, offset, size, data);
+
   struct gl_es2_buffer *buf = NULL;
   switch (target) {
     case GL_ES2_ARRAY_BUFFER:
@@ -2663,6 +2664,24 @@ static void perform_draw(primitive_assembly_mode_t mode,
                                    c->is_polygon_offset_fill_enabled_ ? c->polygon_offset_factor_ : 0.f, 
                                    c->is_polygon_offset_fill_enabled_ ? c->polygon_offset_units_ : 0.f,
                                    mode, num_elements, index_type, arrayed_starting_index, indices);
+
+  if (c->is_detailed_debug_frame_) {
+    char s[150];
+    sprintf(s, "C:\\temp\\aex-debug\\draw-%d.bmp", c->debug_frame_op_);
+    void *rgba_ptr = NULL;
+    size_t rgba_stride;
+    int bmp_width, bmp_height;
+  
+    if (gl_es2_framebuffer_get_dims(c->framebuffer_, &bmp_width, &bmp_height)) {
+      gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->color_attachment0_, &rgba_ptr, &rgba_stride);
+      FILE *fp = fopen(s, "wb");
+      if (fp) {
+        dd_write_rgba_bmp(fp, rgba_ptr, bmp_width, bmp_height, rgba_stride);
+        fclose(fp);
+      }
+    }
+    c->debug_frame_op_++;
+  }
 }
 
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl_es2_enum mode, gl_es2_int first, gl_es2_sizei count) {
@@ -2681,6 +2700,11 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawArrays)(gl
 GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DrawElements)(gl_es2_enum mode, gl_es2_sizei count, gl_es2_enum type, const void *indices) {
   struct gl_es2_context *c = gl_es2_ctx();
   gl_es2_log_DrawElements(c, mode, count, type, indices);
+  if ((mode == GL_ES2_TRIANGLES) && (count == 456)) {
+    fprintf(stderr, "Area of interest reached.\n");
+    int x = 0;
+    if (!x) return;
+  }
   primitive_assembly_mode_t pam;
   if (!gl_mode_to_pam(mode, &pam)) {
     gl_es2_ctx_release(c);
