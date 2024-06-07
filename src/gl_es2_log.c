@@ -28,7 +28,7 @@
 #include "gl_es2_log.h"
 #endif
 
-static void log(struct gl_es2_context *c, const char *fmt, ...) {
+static void apilog(struct gl_es2_context *c, const char *fmt, ...) {
   va_list args;
   if (!c->log_file_) return;
   va_start(args, fmt);
@@ -38,19 +38,19 @@ static void log(struct gl_es2_context *c, const char *fmt, ...) {
 
 void gl_es2_log_ActiveTexture(struct gl_es2_context *c, gl_es2_enum texture) {
   if ((texture >= GL_ES2_TEXTURE0) && (texture < GL_ES2_MAX_COMBINED_TEXTURE_IMAGE_UNITS)) {
-    log(c, "glActiveTexture(GL_ES2_TEXTURE%d);\n", (int)(texture - GL_ES2_TEXTURE0));
+    apilog(c, "glActiveTexture(GL_ES2_TEXTURE%d);\n", (int)(texture - GL_ES2_TEXTURE0));
   }
   else {
-    log(c, "glActiveTexture(0x%04X);\n", texture);
+    apilog(c, "glActiveTexture(0x%04X);\n", texture);
   }
 }
 
 void gl_es2_log_AttachShader(struct gl_es2_context *c, gl_es2_uint program, gl_es2_uint shader) {
-  log(c, "glAttachShader(%d, %d);\n", program, shader);
+  apilog(c, "glAttachShader(%d, %d);\n", program, shader);
 }
 
 void gl_es2_log_BindAttribLocation(struct gl_es2_context *c, gl_es2_uint program, gl_es2_uint index, const gl_es2_char *name) { 
-  log(c, "glBindAttribLocation(%d, %d, %s);\n", program, index, name ? name : "NULL");
+  apilog(c, "glBindAttribLocation(%d, %d, %s);\n", program, index, name ? name : "NULL");
 }
 
 static const char *buffer_target(gl_es2_enum target) {
@@ -64,27 +64,27 @@ static const char *buffer_target(gl_es2_enum target) {
 void gl_es2_log_BindBuffer(struct gl_es2_context *c, gl_es2_enum target, gl_es2_uint buffer) { 
   const char *mtgt = buffer_target(target);
   if (mtgt) {
-    log(c, "glBindBuffer(%s, %d);\n", mtgt, buffer);
+    apilog(c, "glBindBuffer(%s, %d);\n", mtgt, buffer);
   }
   else {
-    log(c, "glBindBuffer(0x%04X, %d);\n", target, buffer);
+    apilog(c, "glBindBuffer(0x%04X, %d);\n", target, buffer);
   }
 }
 
 void gl_es2_log_BindFramebuffer(struct gl_es2_context *c, gl_es2_enum target, gl_es2_uint framebuffer) { 
-  log(c, "glBindFramebuffer(%d, %d);\n", target, framebuffer);
+  apilog(c, "glBindFramebuffer(%d, %d);\n", target, framebuffer);
 }
 
 void gl_es2_log_BindRenderbuffer(struct gl_es2_context *c, gl_es2_enum target, gl_es2_uint renderbuffer) { 
-  log(c, "glBindRenderbuffer(%d, %d);\n", target, renderbuffer);
+  apilog(c, "glBindRenderbuffer(%d, %d);\n", target, renderbuffer);
 }
 
 void gl_es2_log_BindTexture(struct gl_es2_context *c, gl_es2_enum target, gl_es2_uint texture) { 
-  log(c, "glBindTexture(%d, %d);\n", target, texture);
+  apilog(c, "glBindTexture(%d, %d);\n", target, texture);
 }
 
 void gl_es2_log_BlendColor(struct gl_es2_context *c, gl_es2_float red, gl_es2_float green, gl_es2_float blue, gl_es2_float alpha) { 
-  log(c, "glBlendColor(%f, %f, %f, %f);\n", red, green, blue, alpha);
+  apilog(c, "glBlendColor(%f, %f, %f, %f);\n", red, green, blue, alpha);
 }
 
 static const char *blend_eq_mode(gl_es2_enum mode) {
@@ -99,10 +99,10 @@ static const char *blend_eq_mode(gl_es2_enum mode) {
 void gl_es2_log_BlendEquation(struct gl_es2_context *c, gl_es2_enum mode) { 
   const char *m = blend_eq_mode(mode);
   if (m) {
-    log(c, "glBlendEquation(%s);\n", m);
+    apilog(c, "glBlendEquation(%s);\n", m);
   }
   else {
-    log(c, "glBlendEquation(0x%04X);\n", mode);
+    apilog(c, "glBlendEquation(0x%04X);\n", mode);
   }
 }
 
@@ -110,16 +110,16 @@ void gl_es2_log_BlendEquationSeparate(struct gl_es2_context *c, gl_es2_enum mode
   const char *mrgb = blend_eq_mode(modeRGB);
   const char *malpha = blend_eq_mode(modeAlpha);
   if (mrgb) {
-    log(c, "glBlendEquationSeparate(%s, ", mrgb);
+    apilog(c, "glBlendEquationSeparate(%s, ", mrgb);
   }
   else {
-    log(c, "glBlendEquationSeperate(0x%04X, ", modeRGB);
+    apilog(c, "glBlendEquationSeperate(0x%04X, ", modeRGB);
   }
   if (malpha) {
-    log(c, "%s);\n", malpha);
+    apilog(c, "%s);\n", malpha);
   }
   else {
-    log(c, "0x%04X);\n", malpha);
+    apilog(c, "0x%04X);\n", malpha);
   }
 }
 
@@ -147,16 +147,16 @@ static const char *blend_func(gl_es2_enum fac) {
 void gl_es2_log_BlendFunc(struct gl_es2_context *c, gl_es2_enum sfactor, gl_es2_enum dfactor) { 
   const char *msfactor = blend_func(sfactor), *mdfactor = blend_func(dfactor);
   if (msfactor) {
-    log(c, "glBlendFunc(%s, ", msfactor);
+    apilog(c, "glBlendFunc(%s, ", msfactor);
   }
   else {
-    log(c, "glBlendFunc(0x%04X, ", sfactor);
+    apilog(c, "glBlendFunc(0x%04X, ", sfactor);
   }
   if (mdfactor) {
-    log(c, "%s);\n", mdfactor);
+    apilog(c, "%s);\n", mdfactor);
   }
   else {
-    log(c, "0x%04X);\n", dfactor);
+    apilog(c, "0x%04X);\n", dfactor);
   }
 }
 
@@ -164,28 +164,28 @@ void gl_es2_log_BlendFuncSeparate(struct gl_es2_context *c, gl_es2_enum sfactorR
   const char *msfactorrgb = blend_func(sfactorRGB), *mdfactorrgb = blend_func(dfactorRGB);
   const char *msfactoralpha = blend_func(sfactorAlpha), *mdfactoralpha = blend_func(dfactorAlpha);
   if (msfactorrgb) {
-    log(c, "glBlendFunc(%s, ", msfactorrgb);
+    apilog(c, "glBlendFunc(%s, ", msfactorrgb);
   }
   else {
-    log(c, "glBlendFunc(0x%04X, ", sfactorRGB);
+    apilog(c, "glBlendFunc(0x%04X, ", sfactorRGB);
   }
   if (mdfactorrgb) {
-    log(c, "%s, ", mdfactorrgb);
+    apilog(c, "%s, ", mdfactorrgb);
   }
   else {
-    log(c, "0x%04X, ", dfactorRGB);
+    apilog(c, "0x%04X, ", dfactorRGB);
   }
   if (msfactoralpha) {
-    log(c, "%s, ", msfactoralpha);
+    apilog(c, "%s, ", msfactoralpha);
   }
   else {
-    log(c, "0x%04X, ", sfactorAlpha);
+    apilog(c, "0x%04X, ", sfactorAlpha);
   }
   if (mdfactoralpha) {
-    log(c, "%s);\n", mdfactoralpha);
+    apilog(c, "%s);\n", mdfactoralpha);
   }
   else {
-    log(c, "0x%04X);\n", dfactorAlpha);
+    apilog(c, "0x%04X);\n", dfactorAlpha);
   }
 }
 
@@ -202,38 +202,38 @@ void gl_es2_log_BufferData(struct gl_es2_context *c, gl_es2_enum target, gl_es2_
   const char *mtarget = buffer_target(target);
   const char *musage = usagem(usage);
   if (mtarget) {
-    log(c, "glBufferData(%s, %zu, ", mtarget, size);
+    apilog(c, "glBufferData(%s, %zu, ", mtarget, size);
   }
   else {
-    log(c, "glBufferData(0x%04X, %zu, ", target, size);
+    apilog(c, "glBufferData(0x%04X, %zu, ", target, size);
   }
   if (data) {
-    log(c, "0x%p, ", data);
+    apilog(c, "0x%p, ", data);
   }
   else {
-    log(c, "NULL, ");
+    apilog(c, "NULL, ");
   }
   if (musage) {
-    log(c, "%s);\n", musage);
+    apilog(c, "%s);\n", musage);
   }
   else {
-    log(c, "0x%04X);\n", usage);
+    apilog(c, "0x%04X);\n", usage);
   }
 }
 
 void gl_es2_log_BufferSubData(struct gl_es2_context *c, gl_es2_enum target, gl_es2_intptr offset, gl_es2_sizeiptr size, const void *data) { 
   const char *mtarget = buffer_target(target);
   if (mtarget) {
-    log(c, "glBufferSubData(%s, 0x%" PRIx64 ", %zu, ", mtarget, (uint64_t)offset, size);
+    apilog(c, "glBufferSubData(%s, 0x%" PRIx64 ", %zu, ", mtarget, (uint64_t)offset, size);
   }
   else {
-    log(c, "glBufferSubData(0x%04X, 0x%" PRIx64 ", %zu, ", target, (uint64_t)offset, size);
+    apilog(c, "glBufferSubData(0x%04X, 0x%" PRIx64 ", %zu, ", target, (uint64_t)offset, size);
   }
   if (data) {
-    log(c, "0x%p);\n", data);
+    apilog(c, "0x%p);\n", data);
   }
   else {
-    log(c, "NULL);\n");
+    apilog(c, "NULL);\n");
   }
 }
 
@@ -255,80 +255,80 @@ static const char *framebuffer_status(gl_es2_enum framebuffer_status) {
 void gl_es2_log_CheckFramebufferStatus(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum framebuffer_status_assessed) {
   const char *mstatus = framebuffer_status(framebuffer_status_assessed);
   if (target == GL_ES2_FRAMEBUFFER) {
-    log(c, "glCheckFramebufferStatus(GL_FRAMEBUFFER) = ");
+    apilog(c, "glCheckFramebufferStatus(GL_FRAMEBUFFER) = ");
   }
   else {
-    log(c, "glCheckFramebufferStatus(0x%04X) = ", target);
+    apilog(c, "glCheckFramebufferStatus(0x%04X) = ", target);
   }
   if (mstatus) {
-    log(c, "%s);\n", mstatus);
+    apilog(c, "%s);\n", mstatus);
   }
   else {
-    log(c, "0x%04X);\n", framebuffer_status_assessed);
+    apilog(c, "0x%04X);\n", framebuffer_status_assessed);
   }
 }
 
 void gl_es2_log_Clear(struct gl_es2_context *c, gl_es2_bitfield mask) {
   int have_any_flag = 0;
-  log(c, "glClear(");
+  apilog(c, "glClear(");
   if ((mask & GL_ES2_COLOR_BUFFER_BIT) == GL_ES2_COLOR_BUFFER_BIT) {
-    log(c, "%sGL_COLOR_BUFFER_BIT", have_any_flag ? " | " : "");
+    apilog(c, "%sGL_COLOR_BUFFER_BIT", have_any_flag ? " | " : "");
     mask &= ~GL_ES2_COLOR_BUFFER_BIT;
     have_any_flag = 1;
   }
   if ((mask & GL_ES2_DEPTH_BUFFER_BIT) == GL_ES2_DEPTH_BUFFER_BIT) {
-    log(c, "%sGL_DEPTH_BUFFER_BIT", have_any_flag ? " | " : "");
+    apilog(c, "%sGL_DEPTH_BUFFER_BIT", have_any_flag ? " | " : "");
     mask &= ~GL_ES2_DEPTH_BUFFER_BIT;
     have_any_flag = 1;
   }
   if ((mask & GL_ES2_STENCIL_BUFFER_BIT) == GL_ES2_STENCIL_BUFFER_BIT) {
-    log(c, "%sGL_STENCIL_BUFFER_BIT", have_any_flag ? " | " : "");
+    apilog(c, "%sGL_STENCIL_BUFFER_BIT", have_any_flag ? " | " : "");
     mask &= ~GL_ES2_STENCIL_BUFFER_BIT;
     have_any_flag = 1;
   }
   if (mask) {
-    log(c, "%s0x%04X", have_any_flag ? " | " : "", mask);
+    apilog(c, "%s0x%04X", have_any_flag ? " | " : "", mask);
     have_any_flag = 1;
   }
   if (!have_any_flag) {
-    log(c, "0");
+    apilog(c, "0");
   }
-  log(c, ");\n");
+  apilog(c, ");\n");
 }
 
 void gl_es2_log_ClearColor(struct gl_es2_context *c, gl_es2_float red, gl_es2_float green, gl_es2_float blue, gl_es2_float alpha) { 
-  log(c, "glClearColor(%f, %f, %f, %f);\n", red, green, blue, alpha);
+  apilog(c, "glClearColor(%f, %f, %f, %f);\n", red, green, blue, alpha);
 }
 
 void gl_es2_log_ClearDepthf(struct gl_es2_context *c, gl_es2_float d) {
-  log(c, "glClearDepthf(%f);\n", d);
+  apilog(c, "glClearDepthf(%f);\n", d);
 }
 
 void gl_es2_log_ClearStencil(struct gl_es2_context *c, gl_es2_int s) { 
-  log(c, "glClearStencil(0x%04X);\n", s);
+  apilog(c, "glClearStencil(0x%04X);\n", s);
 }
 
 void gl_es2_log_ColorMask(struct gl_es2_context *c, gl_es2_boolean red, gl_es2_boolean green, gl_es2_boolean blue, gl_es2_boolean alpha) { 
-  log(c, "glColorMask(");
-  if (red == GL_ES2_TRUE) log(c, "GL_TRUE, ");
-  else if (red == GL_ES2_FALSE) log(c, "GL_FALSE, ");
-  else log(c, "0x%04X, ", red);
+  apilog(c, "glColorMask(");
+  if (red == GL_ES2_TRUE) apilog(c, "GL_TRUE, ");
+  else if (red == GL_ES2_FALSE) apilog(c, "GL_FALSE, ");
+  else apilog(c, "0x%04X, ", red);
 
-  if (green == GL_ES2_TRUE) log(c, "GL_TRUE, ");
-  else if (green == GL_ES2_FALSE) log(c, "GL_FALSE, ");
-  else log(c, "0x%04X, ", green);
+  if (green == GL_ES2_TRUE) apilog(c, "GL_TRUE, ");
+  else if (green == GL_ES2_FALSE) apilog(c, "GL_FALSE, ");
+  else apilog(c, "0x%04X, ", green);
 
-  if (blue == GL_ES2_TRUE) log(c, "GL_TRUE, ");
-  else if (blue == GL_ES2_FALSE) log(c, "GL_FALSE, ");
-  else log(c, "0x%04X, ", blue);
+  if (blue == GL_ES2_TRUE) apilog(c, "GL_TRUE, ");
+  else if (blue == GL_ES2_FALSE) apilog(c, "GL_FALSE, ");
+  else apilog(c, "0x%04X, ", blue);
 
-  if (alpha == GL_ES2_TRUE) log(c, "GL_TRUE);");
-  else if (alpha == GL_ES2_FALSE) log(c, "GL_FALSE);");
-  else log(c, "0x%04X);", alpha);
+  if (alpha == GL_ES2_TRUE) apilog(c, "GL_TRUE);");
+  else if (alpha == GL_ES2_FALSE) apilog(c, "GL_FALSE);");
+  else apilog(c, "0x%04X);", alpha);
 }
 
 void gl_es2_log_CompileShader(struct gl_es2_context *c, gl_es2_uint shader) { 
-  log(c, "glCompileShader(%u);\n", shader);
+  apilog(c, "glCompileShader(%u);\n", shader);
 }
 
 static const char *tex_target(gl_es2_enum tgt) {
@@ -362,76 +362,76 @@ void gl_es2_log_CompressedTexImage2D(struct gl_es2_context *c, gl_es2_enum targe
   const char *mtgt = tex_target(target);
   const char *mifmt = tex_format(internalformat);
   if (mtgt) {
-    log(c, "glCompressedTexImage2D(%s, ", mtgt);
+    apilog(c, "glCompressedTexImage2D(%s, ", mtgt);
   }
   else {
-    log(c, "glCompressedTexImage2D(0x%04X, ", target);
+    apilog(c, "glCompressedTexImage2D(0x%04X, ", target);
   }
-  log(c, "%d, ", level);
+  apilog(c, "%d, ", level);
   if (mifmt) {
-    log(c, "%s, ", mifmt);
+    apilog(c, "%s, ", mifmt);
   }
   else {
-    log(c, "0x%04X, ", internalformat);
+    apilog(c, "0x%04X, ", internalformat);
   }
-  log(c, "%d, %d, %d, %d, %p);\n", width, height, border, imageSize, data);
+  apilog(c, "%d, %d, %d, %d, %p);\n", width, height, border, imageSize, data);
 }
 
 void gl_es2_log_CompressedTexSubImage2D(struct gl_es2_context *c, gl_es2_enum target, gl_es2_int level, gl_es2_int xoffset, gl_es2_int yoffset, gl_es2_sizei width, gl_es2_sizei height, gl_es2_enum format, gl_es2_sizei imageSize, const void *data) { 
   const char *mtgt = tex_target(target);
   const char *mfmt = tex_format(format);
   if (mtgt) {
-    log(c, "glCompressedTexImage2D(%s, ", mtgt);
+    apilog(c, "glCompressedTexImage2D(%s, ", mtgt);
   }
   else {
-    log(c, "glCompressedTexImage2D(0x%04X, ", target);
+    apilog(c, "glCompressedTexImage2D(0x%04X, ", target);
   }
-  log(c, "%d, %d, %d, %d, %d, ", level, xoffset, yoffset, width, height);
+  apilog(c, "%d, %d, %d, %d, %d, ", level, xoffset, yoffset, width, height);
   if (mfmt) {
-    log(c, "%s, ", mfmt);
+    apilog(c, "%s, ", mfmt);
   }
   else {
-    log(c, "0x%04X, ", format);
+    apilog(c, "0x%04X, ", format);
   }
-  log(c, "%d, %p);\n", imageSize, data);
+  apilog(c, "%d, %p);\n", imageSize, data);
 }
 
 void gl_es2_log_CopyTexImage2D(struct gl_es2_context *c, gl_es2_enum target, gl_es2_int level, gl_es2_enum internalformat, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height, gl_es2_int border) { 
   const char *mtgt = tex_target(target);
   const char *mifmt = tex_format(internalformat);
   if (mtgt) {
-    log(c, "glCopyTexImage2D(%s, ", mtgt);
+    apilog(c, "glCopyTexImage2D(%s, ", mtgt);
   }
   else {
-    log(c, "glCopyTexImage2D(0x%04X, ", target);
+    apilog(c, "glCopyTexImage2D(0x%04X, ", target);
   }
-  log(c, "%d, ", level);
+  apilog(c, "%d, ", level);
   if (mifmt) {
-    log(c, "%s, ", mifmt);
+    apilog(c, "%s, ", mifmt);
   }
   else {
-    log(c, "0x%04X, ", internalformat);
+    apilog(c, "0x%04X, ", internalformat);
   }
-  log(c, "%d, %d, %d, %d, %d);\n", x, y, width, height, border);
+  apilog(c, "%d, %d, %d, %d, %d);\n", x, y, width, height, border);
 }
 
 void gl_es2_log_CopyTexSubImage2D(struct gl_es2_context *c, gl_es2_enum target, gl_es2_int level, gl_es2_int xoffset, gl_es2_int yoffset, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) { 
   const char *mtgt = tex_target(target);
   if (mtgt) {
-    log(c, "glCopyTexSubImage2D(%s, ", mtgt);  
+    apilog(c, "glCopyTexSubImage2D(%s, ", mtgt);  
   }
   else {
-    log(c, "glCopyTexSubImage2D(0x%04X, ", target);
+    apilog(c, "glCopyTexSubImage2D(0x%04X, ", target);
   }
-  log(c, "%d, %d, %d, %d, %d, %d, %d);\n", level, xoffset, yoffset, x, y, width, height);
+  apilog(c, "%d, %d, %d, %d, %d, %d, %d);\n", level, xoffset, yoffset, x, y, width, height);
 }
 
 void gl_es2_log_CreateProgram(struct gl_es2_context *c, gl_es2_uint program_created) {
-  log(c, "glCreateProgram() = %d\n", program_created);
+  apilog(c, "glCreateProgram() = %d\n", program_created);
 }
 
 void gl_es2_log_CreateShader(struct gl_es2_context *c, gl_es2_enum type, gl_es2_uint shader_created) {
-  log(c, "glCreateShader() = %d\n", shader_created);
+  apilog(c, "glCreateShader() = %d\n", shader_created);
 }
 
 static const char *cull_face_mode(gl_es2_enum mode) {
@@ -446,59 +446,59 @@ static const char *cull_face_mode(gl_es2_enum mode) {
 void gl_es2_log_CullFace(struct gl_es2_context *c, gl_es2_enum mode) { 
   const char *mmode = cull_face_mode(mode);
   if (mmode) {
-    log(c, "glCullFace(%s);\n", mmode);
+    apilog(c, "glCullFace(%s);\n", mmode);
   }
   else {
-    log(c, "glCullFace(0x%04X);\n", mode);
+    apilog(c, "glCullFace(0x%04X);\n", mode);
   }
 }
 
 void gl_es2_log_DeleteBuffers(struct gl_es2_context *c, gl_es2_sizei n, const gl_es2_uint *buffers) {
   size_t k;
-  log(c, "glDeleteBuffers(%d, {", n);
+  apilog(c, "glDeleteBuffers(%d, {", n);
   for (k = 0; k < n; ++k) {
-    if (k) log(c, ", ");
-    log(c, "%u", buffers[n]);
+    if (k) apilog(c, ", ");
+    apilog(c, "%u", buffers[n]);
   }
-  log(c, "});\n");
+  apilog(c, "});\n");
 }
 
 void gl_es2_log_DeleteFramebuffers(struct gl_es2_context *c, gl_es2_sizei n, const gl_es2_uint *framebuffers) { 
   size_t k;
-  log(c, "glDeleteFramebuffers(%d, {", n);
+  apilog(c, "glDeleteFramebuffers(%d, {", n);
   for (k = 0; k < n; ++k) {
-    if (k) log(c, ", ");
-    log(c, "%u", framebuffers[n]);
+    if (k) apilog(c, ", ");
+    apilog(c, "%u", framebuffers[n]);
   }
-  log(c, "});\n");
+  apilog(c, "});\n");
 }
 
 void gl_es2_log_DeleteProgram(struct gl_es2_context *c, gl_es2_uint program) { 
-  log(c, "glDeleteProgram(%u);\n", program);
+  apilog(c, "glDeleteProgram(%u);\n", program);
 }
 
 void gl_es2_log_DeleteRenderbuffers(struct gl_es2_context *c, gl_es2_sizei n, const gl_es2_uint *renderbuffers) { 
   size_t k;
-  log(c, "glDeleteRenderbuffers(%d, {", n);
+  apilog(c, "glDeleteRenderbuffers(%d, {", n);
   for (k = 0; k < n; ++k) {
-    if (k) log(c, ", ");
-    log(c, "%u", renderbuffers[n]);
+    if (k) apilog(c, ", ");
+    apilog(c, "%u", renderbuffers[n]);
   }
-  log(c, "});\n");
+  apilog(c, "});\n");
 }
 
 void gl_es2_log_DeleteShader(struct gl_es2_context *c, gl_es2_uint shader) { 
-  log(c, "glDeleteShader(%u);\n", shader);
+  apilog(c, "glDeleteShader(%u);\n", shader);
 }
 
 void gl_es2_log_DeleteTextures(struct gl_es2_context *c, gl_es2_sizei n, const gl_es2_uint *textures) { 
   size_t k;
-  log(c, "glDeleteTextures(%d, {", n);
+  apilog(c, "glDeleteTextures(%d, {", n);
   for (k = 0; k < n; ++k) {
-    if (k) log(c, ", ");
-    log(c, "%u", textures[n]);
+    if (k) apilog(c, ", ");
+    apilog(c, "%u", textures[n]);
   }
-  log(c, "});\n");
+  apilog(c, "});\n");
 }
 
 static const char *depth_func(gl_es2_enum func) {
@@ -519,31 +519,31 @@ static const char *depth_func(gl_es2_enum func) {
 void gl_es2_log_DepthFunc(struct gl_es2_context *c, gl_es2_enum func) { 
   const char *mdf = depth_func(func);
   if (mdf) {
-    log(c, "glDepthFunc(%s);\n", mdf);
+    apilog(c, "glDepthFunc(%s);\n", mdf);
   }
   else {
-    log(c, "glDepthFunc(0x%04X);\n", func);
+    apilog(c, "glDepthFunc(0x%04X);\n", func);
   }
 }
 
 void gl_es2_log_DepthMask(struct gl_es2_context *c, gl_es2_boolean flag) { 
   if (flag == GL_ES2_TRUE) {
-    log(c, "glDepthMask(GL_TRUE);\n");
+    apilog(c, "glDepthMask(GL_TRUE);\n");
   }
   else if (flag == GL_ES2_FALSE) {
-    log(c, "glDepthMask(GL_FALSE);\n");
+    apilog(c, "glDepthMask(GL_FALSE);\n");
   }
   else {
-    log(c, "glDepthMask(0x%04X);\n", flag);
+    apilog(c, "glDepthMask(0x%04X);\n", flag);
   }
 }
 
 void gl_es2_log_DepthRangef(struct gl_es2_context *c, gl_es2_float n, gl_es2_float f) { 
-  log(c, "glDepthRangef(%f, %f);\n", n, f);
+  apilog(c, "glDepthRangef(%f, %f);\n", n, f);
 }
 
 void gl_es2_log_DetachShader(struct gl_es2_context *c, gl_es2_uint program, gl_es2_uint shader) { 
-  log(c, "glDetachShader(%u, %u);\n", program, shader);
+  apilog(c, "glDetachShader(%u, %u);\n", program, shader);
 }
 
 static const char *mcap(gl_es2_enum cap) {
@@ -565,15 +565,15 @@ static const char *mcap(gl_es2_enum cap) {
 void gl_es2_log_Disable(struct gl_es2_context *c, gl_es2_enum cap) {
   const char *mc = mcap(cap);
   if (mc) {
-    log(c, "glDisable(%s);\n", mc);
+    apilog(c, "glDisable(%s);\n", mc);
   }
   else {
-    log(c, "glDisable(0x%04X);\n", cap);
+    apilog(c, "glDisable(0x%04X);\n", cap);
   }
 }
 
 void gl_es2_log_DisableVertexAttribArray(struct gl_es2_context *c, gl_es2_uint index) { 
-  log(c, "glDisableVertexAttribArray(%u);\n", index);
+  apilog(c, "glDisableVertexAttribArray(%u);\n", index);
 }
 
 static const char *draw_mode(gl_es2_enum mode) {
@@ -592,10 +592,10 @@ static const char *draw_mode(gl_es2_enum mode) {
 void gl_es2_log_DrawArrays(struct gl_es2_context *c, gl_es2_enum mode, gl_es2_int first, gl_es2_sizei count) { 
   const char *mmode = draw_mode(mode);
   if (mmode) {
-    log(c, "glDrawArrays(%s, %d, %d);\n", mmode, first, count);
+    apilog(c, "glDrawArrays(%s, %d, %d);\n", mmode, first, count);
   }
   else {
-    log(c, "glDrawArrays(0x%04X, %d, %d);\n", mode, first, count);
+    apilog(c, "glDrawArrays(0x%04X, %d, %d);\n", mode, first, count);
   }
 }
 
@@ -613,54 +613,54 @@ void gl_es2_log_DrawElements(struct gl_es2_context *c, gl_es2_enum mode, gl_es2_
   const char *mmode = draw_mode(mode);
   const char *mtype = index_type(type);
   if (mmode) {
-    log(c, "glDrawElements(%s, %d, ", mmode, count);
+    apilog(c, "glDrawElements(%s, %d, ", mmode, count);
   }
   else {
-    log(c, "glDrawElements(0x%04X, %d, ", mode, count);
+    apilog(c, "glDrawElements(0x%04X, %d, ", mode, count);
   }
   if (mtype) {
-    log(c, "%s, ", mtype);
+    apilog(c, "%s, ", mtype);
   }
   else {
-    log(c, "0x%04X, ", type);
+    apilog(c, "0x%04X, ", type);
   }
   if (indices) {
-    log(c, "0x%p); // # %d", indices, c->debug_frame_op_);
+    apilog(c, "0x%p); // # %d", indices, c->debug_frame_op_);
   }
   else {
-    log(c, "NULL); // # %d", c->debug_frame_op_);
+    apilog(c, "NULL); // # %d", c->debug_frame_op_);
   }
-  log(c, ", prog#%d", c->current_program_ ? c->current_program_->no_.name_: -1);
+  apilog(c, ", prog#%d", c->current_program_ ? c->current_program_->no_.name_: -1);
   if (c->current_program_) {
-    log(c, ", vs#%d, fs#%d\n", 
+    apilog(c, ", vs#%d, fs#%d\n", 
       c->current_program_->vertex_shader_.shader_ ? c->current_program_->vertex_shader_.shader_->no_.name_ : -1, 
       c->current_program_->fragment_shader_.shader_ ? c->current_program_->fragment_shader_.shader_->no_.name_ : -1);
   }
   else {
-    log(c, "\n");
+    apilog(c, "\n");
   }
 }
 
 void gl_es2_log_Enable(struct gl_es2_context *c, gl_es2_enum cap) { 
   const char *mc = mcap(cap);
   if (mc) {
-    log(c, "glEnable(%s);\n", mc);
+    apilog(c, "glEnable(%s);\n", mc);
   }
   else {
-    log(c, "glEnable(0x%04X);\n", cap);
+    apilog(c, "glEnable(0x%04X);\n", cap);
   }
 }
 
 void gl_es2_log_EnableVertexAttribArray(struct gl_es2_context *c, gl_es2_uint index) { 
-  log(c, "glEnableVertexAttribArray(%u);\n", index);
+  apilog(c, "glEnableVertexAttribArray(%u);\n", index);
 }
 
 void gl_es2_log_Finish(struct gl_es2_context *c) { 
-  log(c, "glFinish();\n");
+  apilog(c, "glFinish();\n");
 }
 
 void gl_es2_log_Flush(struct gl_es2_context *c) { 
-  log(c, "glFlush();\n");
+  apilog(c, "glFlush();\n");
 }
 
 static const char *fb_attachment(gl_es2_enum attachment) {
@@ -679,48 +679,48 @@ static const char *fb_attachment(gl_es2_enum attachment) {
 void gl_es2_log_FramebufferRenderbuffer(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum renderbuffertarget, gl_es2_uint renderbuffer) {
   const char *mfba = fb_attachment(attachment);
   if (target == GL_ES2_FRAMEBUFFER) {
-    log(c, "glFramebufferRenderbuffer(GL_FRAMEBUFFER, ");
+    apilog(c, "glFramebufferRenderbuffer(GL_FRAMEBUFFER, ");
   }
   else {
-    log(c, "glFramebufferRenderbuffer(0x%04X, ", target);
+    apilog(c, "glFramebufferRenderbuffer(0x%04X, ", target);
   }
   if (mfba) {
-    log(c, "%s, ", mfba);
+    apilog(c, "%s, ", mfba);
   }
   else {
-    log(c, "0x%04X, ", attachment);
+    apilog(c, "0x%04X, ", attachment);
   }
   if (renderbuffertarget == GL_ES2_RENDERBUFFER) {
-    log(c, "GL_RENDERBUFFER, ");
+    apilog(c, "GL_RENDERBUFFER, ");
   }
   else {
-    log(c, "0x%04X, ", renderbuffertarget);
+    apilog(c, "0x%04X, ", renderbuffertarget);
   }
-  log(c, "%u);\n", renderbuffer);
+  apilog(c, "%u);\n", renderbuffer);
 }
 
 void gl_es2_log_FramebufferTexture2D(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum textarget, gl_es2_uint texture, gl_es2_int level) { 
   const char *mfba = fb_attachment(attachment);
   const char *mtext = tex_target(textarget);
   if (target == GL_ES2_FRAMEBUFFER) {
-    log(c, "glFramebufferRenderbuffer(GL_FRAMEBUFFER, ");
+    apilog(c, "glFramebufferRenderbuffer(GL_FRAMEBUFFER, ");
   }
   else {
-    log(c, "glFramebufferRenderbuffer(0x%04X, ", target);
+    apilog(c, "glFramebufferRenderbuffer(0x%04X, ", target);
   }
   if (mfba) {
-    log(c, "%s, ", mfba);
+    apilog(c, "%s, ", mfba);
   }
   else {
-    log(c, "0x%04X, ", attachment);
+    apilog(c, "0x%04X, ", attachment);
   }
   if (mtext) {
-    log(c, "%s, ", mtext);
+    apilog(c, "%s, ", mtext);
   }
   else {
-    log(c, "0x%04X, ", textarget);
+    apilog(c, "0x%04X, ", textarget);
   }
-  log(c, "%u, %d);\n", texture, level);
+  apilog(c, "%u, %d);\n", texture, level);
 }
 
 const char *face_mode(gl_es2_enum mode) {
@@ -735,57 +735,57 @@ const char *face_mode(gl_es2_enum mode) {
 void gl_es2_log_FrontFace(struct gl_es2_context *c, gl_es2_enum mode) {
   const char *mmode = face_mode(mode);
   if (mmode) {
-    log(c, "glFrontFace(%s);\n", mmode);
+    apilog(c, "glFrontFace(%s);\n", mmode);
   }
   else {
-    log(c, "glFrontFace(0x%04X);\n", mode);
+    apilog(c, "glFrontFace(0x%04X);\n", mode);
   }
 }
 
 void gl_es2_log_GenBuffers(struct gl_es2_context *c, gl_es2_sizei n, gl_es2_uint *buffers) { 
   size_t k;
-  log(c, "glGenBuffers(%d, { ", n);
+  apilog(c, "glGenBuffers(%d, { ", n);
   for (k = 0; k < n; ++k) {
-    log(c, "%s%u", k ? ", " : "", buffers[k]);
+    apilog(c, "%s%u", k ? ", " : "", buffers[k]);
   }
-  log(c, " });\n");
+  apilog(c, " });\n");
 }
 
 void gl_es2_log_GenerateMipmap(struct gl_es2_context *c, gl_es2_enum target) { 
   const char *mtgt = tex_target(target);
   if (mtgt) {
-    log(c, "glGenerateMipmap(%s);\n", mtgt);
+    apilog(c, "glGenerateMipmap(%s);\n", mtgt);
   }
   else {
-    log(c, "glGenerateMipmap(0x%04X);\n", target);
+    apilog(c, "glGenerateMipmap(0x%04X);\n", target);
   }
 }
 
 void gl_es2_log_GenFramebuffers(struct gl_es2_context *c, gl_es2_sizei n, gl_es2_uint *framebuffers) { 
   size_t k;
-  log(c, "glGenFramebuffers(%d, { ", n);
+  apilog(c, "glGenFramebuffers(%d, { ", n);
   for (k = 0; k < n; ++k) {
-    log(c, "%s%u", k ? ", " : "", framebuffers[k]);
+    apilog(c, "%s%u", k ? ", " : "", framebuffers[k]);
   }
-  log(c, " });\n");
+  apilog(c, " });\n");
 }
 
 void gl_es2_log_GenRenderbuffers(struct gl_es2_context *c, gl_es2_sizei n, gl_es2_uint *renderbuffers) { 
   size_t k;
-  log(c, "glGenRenderbuffers(%d, { ", n);
+  apilog(c, "glGenRenderbuffers(%d, { ", n);
   for (k = 0; k < n; ++k) {
-    log(c, "%s%u", k ? ", " : "", renderbuffers[k]);
+    apilog(c, "%s%u", k ? ", " : "", renderbuffers[k]);
   }
-  log(c, " });\n");
+  apilog(c, " });\n");
 }
 
 void gl_es2_log_GenTextures(struct gl_es2_context *c, gl_es2_sizei n, gl_es2_uint *textures) { 
   size_t k;
-  log(c, "glGenTextures(%d, { ", n);
+  apilog(c, "glGenTextures(%d, { ", n);
   for (k = 0; k < n; ++k) {
-    log(c, "%s%u", k ? ", " : "", textures[k]);
+    apilog(c, "%s%u", k ? ", " : "", textures[k]);
   }
-  log(c, " });\n");
+  apilog(c, " });\n");
 }
 
 void gl_es2_log_GetActiveAttrib(struct gl_es2_context *c, gl_es2_uint program, gl_es2_uint index, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_int *size, gl_es2_enum *type, gl_es2_char *name) { 
@@ -1062,26 +1062,26 @@ static const char *vtx_attrib_type(gl_es2_enum type) {
 void gl_es2_log_VertexAttribPointer(struct gl_es2_context *c, gl_es2_uint index, gl_es2_int size, gl_es2_enum type, gl_es2_boolean normalized, gl_es2_sizei stride, const void *pointer) { 
   const char *mtype = vtx_attrib_type(type);
   if (type) {
-    log(c, "glVertexAttribPointer(%u, %d, %s, ", index, size, mtype);
+    apilog(c, "glVertexAttribPointer(%u, %d, %s, ", index, size, mtype);
   }
   else {
-    log(c, "glVertexAttribPointer(%u, %d, 0x%04X, ", index, size, type);
+    apilog(c, "glVertexAttribPointer(%u, %d, 0x%04X, ", index, size, type);
   }
   if (normalized == GL_ES2_TRUE) {
-    log(c, "GL_TRUE, ");
+    apilog(c, "GL_TRUE, ");
   }
   else if (normalized == GL_ES2_FALSE) {
-    log(c, "GL_FALSE, ");
+    apilog(c, "GL_FALSE, ");
   }
   else {
-    log(c, "%d, ", normalized);
+    apilog(c, "%d, ", normalized);
   }
-  log(c, "%d, ", stride);
+  apilog(c, "%d, ", stride);
   if (pointer) {
-    log(c, "0x%p);\n", pointer);
+    apilog(c, "0x%p);\n", pointer);
   }
   else {
-    log(c, "NULL);\n");
+    apilog(c, "NULL);\n");
   }
 }
 
