@@ -167,6 +167,8 @@ static size_t clipping_stage_process_triangle_plane(struct clipping_stage *cs,
           output_v[varying_index] = (-d1 * v0[varying_index] + d0 * v1[varying_index]) * ood01;
         }
         output_v += cs->num_varyings_;
+        memcpy(output_v, v2, sizeof(float) * cs->num_varyings_);
+        output_v += cs->num_varyings_;
         // form 2-c-d
         memcpy(output_v, v2, sizeof(float) * cs->num_varyings_);
         output_v += cs->num_varyings_;
