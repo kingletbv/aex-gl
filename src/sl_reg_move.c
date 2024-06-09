@@ -32,6 +32,7 @@ static void sl_reg_move_f_reg_to_reg(struct sl_execution *exec,
                                      uint8_t row,
                                      int dst_reg,
                                      int src_reg) {
+  if (dst_reg == src_reg) return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   float * restrict * restrict dst_reg_bank = exec->float_regs_;
   float * restrict dst = dst_reg_bank[dst_reg];
@@ -148,6 +149,7 @@ static void sl_reg_move_f_indir_to_indir(struct sl_execution *exec,
                                          int dst_fixed_offset,
                                          int src_indir_reg,
                                          int src_fixed_offset) {
+  if ((dst_indir_reg == src_indir_reg) && (dst_fixed_offset == src_fixed_offset)) return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   float * restrict * restrict dst_reg_bank = exec->float_regs_;
   const int64_t * restrict dst_indir = exec->int_regs_[dst_indir_reg];
@@ -275,6 +277,9 @@ static void sl_reg_move_f_offset_reg_to_offset_reg(struct sl_execution *exec,
                                                    int src_offset_reg,
                                                    int src_fixed_offset,
                                                    int src_offset_stepsize) {
+  if ((dst_base_reg == src_base_reg) && (dst_offset_reg == src_offset_reg) && 
+      (dst_fixed_offset == src_fixed_offset) && (dst_offset_stepsize == src_offset_stepsize))
+    return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   float * restrict * restrict dst_reg_bank = exec->float_regs_;
   const int64_t * restrict dst_offset = exec->int_regs_[dst_offset_reg];
@@ -409,6 +414,9 @@ static void sl_reg_move_f_indir_offset_to_indir_offset(struct sl_execution *exec
                                                        int src_offset_reg,
                                                        int src_fixed_offset,
                                                        int src_offset_stepsize) {
+  if ((dst_indir_reg == src_indir_reg) && (dst_offset_reg == src_offset_reg) && 
+      (dst_fixed_offset == src_fixed_offset) && (dst_offset_stepsize == src_offset_stepsize))
+    return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   float * restrict * restrict dst_reg_bank = exec->float_regs_;
   const int64_t * restrict dst_indir = exec->int_regs_[dst_indir_reg];
@@ -1632,6 +1640,7 @@ static void sl_reg_move_i_reg_to_reg(struct sl_execution *exec,
                                      uint8_t row,
                                      int dst_reg,
                                      int src_reg) {
+  if (dst_reg == src_reg) return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   int64_t * restrict * restrict dst_reg_bank = exec->int_regs_;
   int64_t * restrict dst = dst_reg_bank[dst_reg];
@@ -1748,6 +1757,7 @@ static void sl_reg_move_i_indir_to_indir(struct sl_execution *exec,
                                          int dst_fixed_offset,
                                          int src_indir_reg,
                                          int src_fixed_offset) {
+  if ((dst_indir_reg == src_indir_reg) && (dst_fixed_offset == src_fixed_offset)) return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   int64_t * restrict * restrict dst_reg_bank = exec->int_regs_;
   const int64_t * restrict dst_indir = exec->int_regs_[dst_indir_reg];
@@ -1875,6 +1885,9 @@ static void sl_reg_move_i_offset_reg_to_offset_reg(struct sl_execution *exec,
                                                    int src_offset_reg,
                                                    int src_fixed_offset,
                                                    int src_offset_stepsize) {
+  if ((dst_base_reg == src_base_reg) && (dst_offset_reg == src_offset_reg) && 
+      (dst_fixed_offset == src_fixed_offset) && (dst_offset_stepsize == src_offset_stepsize))
+    return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   int64_t * restrict * restrict dst_reg_bank = exec->int_regs_;
   const int64_t * restrict dst_offset = exec->int_regs_[dst_offset_reg];
@@ -2009,6 +2022,9 @@ static void sl_reg_move_i_indir_offset_to_indir_offset(struct sl_execution *exec
                                                        int src_offset_reg,
                                                        int src_fixed_offset,
                                                        int src_offset_stepsize) {
+  if ((dst_indir_reg == src_indir_reg) && (dst_offset_reg == src_offset_reg) && 
+      (dst_fixed_offset == src_fixed_offset) && (dst_offset_stepsize == src_offset_stepsize))
+    return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   int64_t * restrict * restrict dst_reg_bank = exec->int_regs_;
   const int64_t * restrict dst_indir = exec->int_regs_[dst_indir_reg];
@@ -3232,6 +3248,7 @@ static void sl_reg_move_b_reg_to_reg(struct sl_execution *exec,
                                      uint8_t row,
                                      int dst_reg,
                                      int src_reg) {
+  if (dst_reg == src_reg) return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   uint8_t * restrict * restrict dst_reg_bank = exec->bool_regs_;
   uint8_t * restrict dst = dst_reg_bank[dst_reg];
@@ -3348,6 +3365,7 @@ static void sl_reg_move_b_indir_to_indir(struct sl_execution *exec,
                                          int dst_fixed_offset,
                                          int src_indir_reg,
                                          int src_fixed_offset) {
+  if ((dst_indir_reg == src_indir_reg) && (dst_fixed_offset == src_fixed_offset)) return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   uint8_t * restrict * restrict dst_reg_bank = exec->bool_regs_;
   const int64_t * restrict dst_indir = exec->int_regs_[dst_indir_reg];
@@ -3475,6 +3493,9 @@ static void sl_reg_move_b_offset_reg_to_offset_reg(struct sl_execution *exec,
                                                    int src_offset_reg,
                                                    int src_fixed_offset,
                                                    int src_offset_stepsize) {
+  if ((dst_base_reg == src_base_reg) && (dst_offset_reg == src_offset_reg) && 
+      (dst_fixed_offset == src_fixed_offset) && (dst_offset_stepsize == src_offset_stepsize))
+    return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   uint8_t * restrict * restrict dst_reg_bank = exec->bool_regs_;
   const int64_t * restrict dst_offset = exec->int_regs_[dst_offset_reg];
@@ -3609,6 +3630,9 @@ static void sl_reg_move_b_indir_offset_to_indir_offset(struct sl_execution *exec
                                                        int src_offset_reg,
                                                        int src_fixed_offset,
                                                        int src_offset_stepsize) {
+  if ((dst_indir_reg == src_indir_reg) && (dst_offset_reg == src_offset_reg) && 
+      (dst_fixed_offset == src_fixed_offset) && (dst_offset_stepsize == src_offset_stepsize))
+    return;
   uint8_t * restrict chain_column = exec->exec_chain_reg_;
   uint8_t * restrict * restrict dst_reg_bank = exec->bool_regs_;
   const int64_t * restrict dst_indir = exec->int_regs_[dst_indir_reg];
