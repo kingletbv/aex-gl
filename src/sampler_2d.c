@@ -121,7 +121,7 @@ void sampler_2d_update_level_repetition_masks(struct sampler_2d *s2d) {
   }
 }
 
-static void sampler_2d_update_completeness(struct sampler_2d *s2d) {
+void sampler_2d_update_completeness(struct sampler_2d *s2d) {
   if (s2d->num_maps_ == 0) {
     s2d->is_complete_ = 0;
     return;

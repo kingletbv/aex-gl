@@ -125,6 +125,10 @@ void builtin_textureCube_v3_runtime(struct sl_execution *exec, int exec_chain, s
 void builtin_textureCube_v3_bias_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_textureCubeLod_v3_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 
+/* Call when the is_completeness_ flag might have changed (e.g. you changed something to a 
+ * min/mag filter or a mipmap level or whatnot.) */
+void sampler_2d_update_completeness(struct sampler_2d *s2d);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

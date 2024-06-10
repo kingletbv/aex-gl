@@ -6122,6 +6122,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterf)
       gl_es2_ctx_release(c);
       return;
   }
+  for (n = 0; n < num_s2ds; ++n) {
+    sampler_2d_update_completeness(s2ds + n);
+  }
   gl_es2_ctx_release(c);
 }
 
@@ -6250,6 +6253,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameterfv
       gl_es2_ctx_release(c);
       return;
   }
+  for (n = 0; n < num_s2ds; ++n) {
+    sampler_2d_update_completeness(s2ds + n);
+  }
   gl_es2_ctx_release(c);
 }
 
@@ -6371,6 +6377,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteri)
       set_gl_err(GL_ES2_INVALID_ENUM);
       gl_es2_ctx_release(c);
       return;
+  }
+  for (n = 0; n < num_s2ds; ++n) {
+    sampler_2d_update_completeness(s2ds + n);
   }
   gl_es2_ctx_release(c);
 }
@@ -6498,6 +6507,9 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(TexParameteriv
       set_gl_err(GL_ES2_INVALID_ENUM);
       gl_es2_ctx_release(c);
       return;
+  }
+  for (n = 0; n < num_s2ds; ++n) {
+    sampler_2d_update_completeness(s2ds + n);
   }
   gl_es2_ctx_release(c);
 }
