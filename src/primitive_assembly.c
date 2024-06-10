@@ -103,6 +103,11 @@
 #include "sl_reg_alloc.h"
 #endif
 
+#ifndef GL_ES2_CONTEXT_H_INCLUDED
+#define GL_ES2_CONTEXT_H_INCLUDED
+#include "gl_es2_context.h"
+#endif
+
 /* EMIT_TRIANGLE_BY_TRIANGLE - Set to non-zero to emit all fragments for a single triangle, 
  * and then execute the framebuffer. Set to zero to bundle up all fragments for multiple triangles
  * together for best efficiency. The former is useful for debugging. The latter is better for
@@ -1937,6 +1942,7 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
 
                 while (0 != (orientation = rasterizer_triangle(ras, fragbuf, 
                                                                rgba, rgba_stride,     // bitmap
+                                                               REZF_ALWAYS,
                                                                zbuf, zbuf_stride, zbuf_step,  // z-buffer
                                                                stencil_buf, stencil_stride, stencil_step,  // stencil buffer
                                                                norm_scissor_left, norm_scissor_top, 
@@ -2114,8 +2120,8 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                 sz2 = *(int32_t *)(v2+CLIPPING_STAGE_IDX_SZ);
 
                 int64_t D012 = rasterizer_compute_D012(sx0, sy0, sz0,
-                                                        sx1, sy1, sz1,
-                                                        sx2, sy2, sz2);
+                                                       sx1, sy1, sz1,
+                                                       sx2, sy2, sz2);
                 float ooD012 = (float)(1. / D012);
 
                 size_t attrib_index;
@@ -2129,6 +2135,7 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
 
                 while (0 != (orientation = rasterizer_triangle(ras, fragbuf, 
                                                                rgba, rgba_stride,     // bitmap
+                                                               PAZF_ALWAYS,
                                                                zbuf, zbuf_stride, zbuf_step,  // z-buffer
                                                                stencil_buf, stencil_stride, stencil_step,  // stencil buffer
                                                                norm_scissor_left, norm_scissor_top, 
@@ -3530,7 +3537,6 @@ void primitive_assembly_draw_elements(struct primitive_assembly *pa,
     }
   }
   if (vmarked) return;
-  //if (fmarked) return;
 
   while (primitive_assembly_process_primitives(pa, as, vertex_shader, ar, cs, ras, fragbuf, fragment_shader, 
                                                vp_x, vp_y, vp_width, vp_height, depth_range_near, depth_range_far,

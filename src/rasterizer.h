@@ -31,6 +31,17 @@ extern "C" {
 #define RASTERIZER_COUNTERCLOCKWISE 2
 #define RASTERIZER_BOTH (RASTERIZER_CLOCKWISE | RASTERIZER_COUNTERCLOCKWISE)
 
+typedef enum rasterizer_early_zbuf_func {
+  REZF_NEVER,
+  REZF_LESS,
+  REZF_EQUAL,
+  REZF_LEQUAL,
+  REZF_GREATER,
+  REZF_NOTEQUAL,
+  REZF_GEQUAL,
+  REZF_ALWAYS
+} rasterizer_early_zbuf_func_t;
+
 struct fragment_buffer;
 
 struct rasterizer {
@@ -116,6 +127,7 @@ int64_t rasterizer_compute_D012(int32_t px0, int32_t py0, uint32_t pz0,
 int rasterizer_triangle(struct rasterizer *rasterizer,
                         struct fragment_buffer *fragbf,
                         uint8_t *rgba, size_t stride,
+                        rasterizer_early_zbuf_func_t early_z_zbuf_func,
                         uint8_t *zbuf, size_t zstride, size_t zstep,
                         uint8_t *stencilbuf, size_t stencil_stride, size_t stencil_step,
                         uint32_t scissor_left, uint32_t scissor_top, uint32_t scissor_right, uint32_t scissor_bottom,
