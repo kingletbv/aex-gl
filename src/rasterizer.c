@@ -452,7 +452,8 @@ void rasterizer_cleanup(struct rasterizer *rasterizer) {
 int64_t rasterizer_compute_D012(int32_t px0, int32_t py0, uint32_t pz0,
                                 int32_t px1, int32_t py1, uint32_t pz1,
                                 int32_t px2, int32_t py2, uint32_t pz2) {
-  return ((int64_t)px1) * ((int64_t)py2) - ((int64_t)px2) * ((int64_t)py1) - ((int64_t)px0) * ((int64_t)py2) + ((int64_t)px2) * ((int64_t)py0) + ((int64_t)px0) * ((int64_t)py1) - ((int64_t)px1) * ((int64_t)py0);
+  int64_t D012 = ((int64_t)px1) * ((int64_t)py2) - ((int64_t)px2) * ((int64_t)py1) - ((int64_t)px0) * ((int64_t)py2) + ((int64_t)px2) * ((int64_t)py0) + ((int64_t)px0) * ((int64_t)py1) - ((int64_t)px1) * ((int64_t)py0);
+  return D012;
 }
 
 /* Returns non-zero if the fragment buffer fragbf is full and needs to be processed, zero otherwise. */
@@ -722,6 +723,12 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     int64_t Dzx_Px_hi, Dzx_Px_lo;
     adds128(Dzx_Px_a_hi, Dzx_Px_a_lo, Dzx_Px_b_hi, Dzx_Px_b_lo, &Dzx_Px_hi, &Dzx_Px_lo);
 
+    if (orientation == RASTERIZER_COUNTERCLOCKWISE) {
+      /* Flip signs so all are consistent after counter-clockwise correction earlier */
+      subs128(0, 0, Dzx_Px_hi, Dzx_Px_lo, &Dzx_Px_hi, &Dzx_Px_lo);
+      subs128(0, 0, Dzx_hi_sp, Dzx_lo_sp, &Dzx_hi_sp, &Dzx_lo_sp);
+    }
+
     // Dzy = determinant of x and z coordinates (change in numerator for each successive row (y))
     //       | x0 z0 1 |
     // Dzy = | x1 z1 1 |
@@ -745,6 +752,12 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     int64_t Dzy_Py_hi, Dzy_Py_lo;
     adds128(Dzy_Py_a_hi, Dzy_Py_a_lo, Dzy_Py_b_hi, Dzy_Py_b_lo, &Dzy_Py_hi, &Dzy_Py_lo);
 
+    if (orientation == RASTERIZER_COUNTERCLOCKWISE) {
+      /* ... continue to flip signs after counter-clockwise correction ... */
+      subs128(0, 0, Dzy_Py_hi, Dzy_Py_lo, &Dzy_Py_hi, &Dzy_Py_lo);
+      subs128(0, 0, Dzy_hi_sp, Dzy_lo_sp, &Dzy_hi_sp, &Dzy_lo_sp);
+    }
+
     // Dxyz = determinant of x, y and z-buffer coordinates
     //        | x0 y0 z0 |
     // Dxyz = | x1 y1 z1 |
@@ -761,6 +774,11 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     subs128(Dxyz_hi, Dxyz_lo, Dxyz_x1_hi, Dxyz_x1_lo, &Dxyz_hi, &Dxyz_lo);
     adds128(Dxyz_hi, Dxyz_lo, Dxyz_x2_hi, Dxyz_x2_lo, &Dxyz_hi, &Dxyz_lo);
     // Dxyz_hi/lo now holds 95 bit Dxyz value.
+
+    if (orientation == RASTERIZER_COUNTERCLOCKWISE) {
+      /* ... continue, still, to flip more signs after counter-clockwise correction ... */
+      subs128(0, 0, Dxyz_hi, Dxyz_lo, &Dxyz_hi, &Dxyz_lo);
+    }
 
     // z_num = Dzx * Px + Dzy * Py + Dxyz
     // we have the first two terms as Dzx_Px_hi/lo and Dzy_Py_hi/lo, and have Dzxy_hi/lo, but need to add them all together.
