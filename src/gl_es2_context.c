@@ -462,7 +462,12 @@ int gl_es2_renderbuffer_storage(struct gl_es2_renderbuffer *rb, enum gl_es2_rend
     return SL_ERR_OVERFLOW;
   }
 
-  void *bmp = malloc(num_bytes_per_row * height);
+  /* oversize the height to accommodate for 2x2 pixel fragment processing,
+   * if the height is odd, we'll need an extra row of scratch memory allocated such
+   * that an even line follows the last (odd) line. */
+  uint32_t alloc_height = (height + 1) & ~(uint32_t)1;
+
+  void *bmp = malloc(num_bytes_per_row * alloc_height);
   if (!bmp) {
     return SL_ERR_NO_MEM;
   }

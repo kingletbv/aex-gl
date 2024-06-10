@@ -2388,7 +2388,13 @@ int sampler_2d_set_storage(struct sampler_2d *s2d, int level, enum s2d_tex_compo
   }
   size_t num_bytes_per_row_nonaligned = num_bytes_per_pixel * width;
   size_t num_bytes_per_row_8B_aligned = (num_bytes_per_row_nonaligned + 7) & ~(size_t)7;
-  void *new_bitmap = malloc(num_bytes_per_row_8B_aligned * (size_t)height);
+  /* oversize the height to accommodate for 2x2 pixel fragment processing for the case
+   * where this texture is used as a framebuffer - if the height is odd, we'll need an 
+   * extra row of scratch memory allocated such that an even line follows the last (odd) 
+   * line. */
+  size_t alloc_height = (((size_t)height) + 1) & ~(size_t)1;
+
+  void *new_bitmap = malloc(num_bytes_per_row_8B_aligned * (size_t)alloc_height);
   if (!new_bitmap) return SL_ERR_NO_MEM;
   lvl->bitmap_ = new_bitmap;
   lvl->components_ = internal_format;
