@@ -44,7 +44,6 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -149,6 +148,10 @@
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -357,6 +360,7 @@
     <ClInclude Include="..\src\pp\situs.h" />
     <ClInclude Include="..\src\primitive_assembly.h" />
     <ClInclude Include="..\src\rasterizer.h" />
+    <ClInclude Include="..\src\rasterizer_core_inc.h" />
     <ClInclude Include="..\src\ref_range_allocator.h" />
     <ClInclude Include="..\src\sampler_2d.h" />
     <ClInclude Include="..\src\sha1.h" />

@@ -2133,9 +2133,22 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
 
                 prior_num_rows_in_fragbuf = fragbuf->num_rows_;
 
+
+                rasterizer_early_zbuf_func_t early_z_zbuf_func = REZF_ALWAYS;
+                if (enable_zbuf_test && !enable_stencil_test) {
+                  switch (zbuf_func) {
+                    case PAZF_LESS:
+                      early_z_zbuf_func = REZF_LESS;
+                      break;
+                    case PAZF_LEQUAL:
+                      early_z_zbuf_func = REZF_LEQUAL;
+                      break;
+                  }
+                }
+
                 while (0 != (orientation = rasterizer_triangle(ras, fragbuf, 
                                                                rgba, rgba_stride,     // bitmap
-                                                               PAZF_ALWAYS,
+                                                               early_z_zbuf_func,
                                                                zbuf, zbuf_stride, zbuf_step,  // z-buffer
                                                                stencil_buf, stencil_stride, stencil_step,  // stencil buffer
                                                                norm_scissor_left, norm_scissor_top, 

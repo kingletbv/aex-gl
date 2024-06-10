@@ -118,10 +118,10 @@ for (py = top; py < bottom; py += 2) {
     // the right of the scissor window, negative otherwise.
     scissor_right_column_mask = ((px + 1) - scissor_right) >> 63;
 
-    TL_Mask = TL_Mask & scissor_top_row_mask    & scissor_left_column_mask;
-    TR_Mask = TR_Mask & scissor_top_row_mask    & scissor_right_column_mask;
-    BL_Mask = BL_Mask & scissor_bottom_row_mask & scissor_left_column_mask;
-    BR_Mask = BR_Mask & scissor_bottom_row_mask & scissor_right_column_mask;
+    TL_Mask = TL_Mask & scissor_top_row_mask    & scissor_left_column_mask  & RASTERIZER_EARLY_Z_CHECK(zbuf_TL, z_TL);
+    TR_Mask = TR_Mask & scissor_top_row_mask    & scissor_right_column_mask & RASTERIZER_EARLY_Z_CHECK(zbuf_TR, z_TR);
+    BL_Mask = BL_Mask & scissor_bottom_row_mask & scissor_left_column_mask  & RASTERIZER_EARLY_Z_CHECK(zbuf_BL, z_BL);
+    BR_Mask = BR_Mask & scissor_bottom_row_mask & scissor_right_column_mask & RASTERIZER_EARLY_Z_CHECK(zbuf_BR, z_BR);
 
     scissor_left_column_mask = ~(uint64_t)0;  /* only relevant for first column */
 
@@ -225,9 +225,9 @@ for (py = top; py < bottom; py += 2) {
         rasterizer->z_yq_ = z_yq;
         rasterizer->z_yi_ = z_yi;
 
-        rasterizer->resume_at_ = __LINE__ + 2;
+        rasterizer->resume_at_ = RASTERIZER_RESUME_CONDITION;
         return orientation;
-            case __LINE__:;
+            RASTERIZER_RESUME_LABEL:;
       }
       // Emit 4 fragments.
       ((uint8_t *)fragbf->column_data_[FB_IDX_EXECUTION_CHAIN])[fragbf->num_rows_ + 0] = 1;

@@ -611,6 +611,14 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
   z_yi = rasterizer->z_yi_;
 
   switch (rasterizer->resume_at_) {
+    case 1: goto ez_less16;
+    case 2: goto ez_less24;
+    case 3: goto ez_less32;
+    case 4: goto ez_lequal16;
+    case 5: goto ez_lequal24;
+    case 6: goto ez_lequal32;
+    case 7: goto ez_always;
+
     case 0: ;
     // Go 4 pixels at a time, the four fragments form a square, the square is valid if a single fragment
     // is inside the triangle and scissor (we will therefore intentionally be generating fragments that
@@ -1110,17 +1118,96 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     stencil_mod = 2 * stencil_stride - (right - left) * stencil_step;
 
     switch (early_z_zbuf_func) {
-      case PAZF_NEVER:
-      case PAZF_LESS:
-      case PAZF_EQUAL:
-      case PAZF_LEQUAL:
-      case PAZF_GREATER:
-      case PAZF_NOTEQUAL:
-      case PAZF_GEQUAL:
-      case PAZF_ALWAYS:
-        ;
-    }
+      case REZF_NEVER: {
+        /* nothing to do here.. we'll pass through here so we follow one and
+         * the same code path in case there are already fragments */
+        break;
+      }
+      case REZF_LESS: {
+        switch (zstep) {
+          case 2: {
+#define RASTERIZER_RESUME_CONDITION 1
+#define RASTERIZER_RESUME_LABEL ez_less16
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (uint8_t)((((int32_t)(zbuf_val)) - (int32_t)(*(uint16_t *)(zbuf_ptr))) >> 31)
 #include "rasterizer_core_inc.h"
+#undef RASTERIZER_EARLY_Z_CHECK
+#undef RASTERIZER_RESUME_CONDITION
+#undef RASTERIZER_RESUME_LABEL
+            break;
+          }
+          case 3: {
+#define RASTERIZER_RESUME_CONDITION 2
+#define RASTERIZER_RESUME_LABEL ez_less24
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (uint8_t)((((int32_t)(zbuf_val)) - ((((int32_t)*(uint8_t *)(zbuf_ptr)) << 16) | (((int32_t)*(uint8_t *)(zbuf_ptr + 1)) << 8) | ((int32_t)*(uint8_t *)(zbuf_ptr + 2)))) >> 31)
+#include "rasterizer_core_inc.h"
+#undef RASTERIZER_EARLY_Z_CHECK
+#undef RASTERIZER_RESUME_CONDITION
+#undef RASTERIZER_RESUME_LABEL
+            break;
+          }
+          case 4: {
+#define RASTERIZER_RESUME_CONDITION 3
+#define RASTERIZER_RESUME_LABEL ez_less32
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (uint8_t)((((int64_t)(zbuf_val)) - (int64_t)(*(uint32_t *)(zbuf_ptr))) >> 63)
+#include "rasterizer_core_inc.h"
+#undef RASTERIZER_EARLY_Z_CHECK
+#undef RASTERIZER_RESUME_CONDITION
+#undef RASTERIZER_RESUME_LABEL
+            break;
+          }
+        }
+        break;
+      }
+      case REZF_LEQUAL: {
+        switch (zstep) {
+          case 2: {
+#define RASTERIZER_RESUME_CONDITION 4
+#define RASTERIZER_RESUME_LABEL ez_lequal16
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (uint8_t)((((int32_t)(zbuf_val)) - ((int32_t)(*(uint16_t *)(zbuf_ptr))) - 1) >> 31)
+#include "rasterizer_core_inc.h"
+#undef RASTERIZER_EARLY_Z_CHECK
+#undef RASTERIZER_RESUME_CONDITION
+#undef RASTERIZER_RESUME_LABEL
+            break;
+          }
+          case 3: {
+#define RASTERIZER_RESUME_CONDITION 5
+#define RASTERIZER_RESUME_LABEL ez_lequal24
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (uint8_t)((((int32_t)(zbuf_val)) - (((((int32_t)*(uint8_t *)(zbuf_ptr)) << 16) | (((int32_t)*(uint8_t *)(zbuf_ptr + 1)) << 8) | ((int32_t)*(uint8_t *)(zbuf_ptr + 2)))) - 1) >> 31)
+#include "rasterizer_core_inc.h"
+#undef RASTERIZER_EARLY_Z_CHECK
+#undef RASTERIZER_RESUME_CONDITION
+#undef RASTERIZER_RESUME_LABEL
+            break;
+          }
+          case 4: {
+#define RASTERIZER_RESUME_CONDITION 6
+#define RASTERIZER_RESUME_LABEL ez_lequal32
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (uint8_t)((((int64_t)(zbuf_val)) - ((int64_t)(*(uint32_t *)(zbuf_ptr))) - 1) >> 63)
+#include "rasterizer_core_inc.h"
+#undef RASTERIZER_EARLY_Z_CHECK
+#undef RASTERIZER_RESUME_CONDITION
+#undef RASTERIZER_RESUME_LABEL
+            break;
+          }
+        }
+        break;
+      }
+      case REZF_EQUAL:
+      case REZF_GREATER:
+      case REZF_NOTEQUAL:
+      case REZF_GEQUAL:
+      case REZF_ALWAYS: {
+#define RASTERIZER_RESUME_CONDITION 7
+#define RASTERIZER_RESUME_LABEL ez_always
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) 0xFF
+#include "rasterizer_core_inc.h"
+#undef RASTERIZER_EARLY_Z_CHECK
+#undef RASTERIZER_RESUME_CONDITION
+#undef RASTERIZER_RESUME_LABEL
+        ;
+      }
+    }
 
     if (fragbf->num_rows_) {
       rasterizer->resume_at_ = __LINE__ + 2;
