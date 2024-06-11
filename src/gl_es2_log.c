@@ -933,10 +933,127 @@ void gl_es2_log_GetAttribLocation(struct gl_es2_context *c, gl_es2_uint program,
   apilog(c, "%d;\n", location_of_attrib_found);
 }
 
+static const char *pnametxt(gl_es2_enum pname) {
+  switch (pname) {
+    case GL_ES2_MAX_COMBINED_TEXTURE_IMAGE_UNITS: return "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS";
+    case GL_ES2_ACTIVE_TEXTURE: return "GL_ACTIVE_TEXTURE";
+    case GL_ES2_MAX_VERTEX_ATTRIBS: return "GL_MAX_VERTEX_ATTRIBS";
+    case GL_ES2_NUM_COMPRESSED_TEXTURE_FORMATS: return "GL_NUM_COMPRESSED_TEXTURE_FORMATS";
+    case GL_ES2_COMPRESSED_TEXTURE_FORMATS: return "GL_COMPRESSED_TEXTURE_FORMATS";
+    case GL_ES2_DEPTH_RANGE: return "GL_DEPTH_RANGE";
+    case GL_ES2_FRONT_FACE: return "GL_FRONT_FACE";
+    case GL_ES2_CULL_FACE_MODE: return "GL_CULL_FACE_MODE";
+    case GL_ES2_MAX_VIEWPORT_DIMS: return "GL_MAX_VIEWPORT_DIMS";
+    case GL_ES2_MAX_TEXTURE_SIZE: return "GL_MAX_TEXTURE_SIZE";
+    case GL_ES2_MAX_CUBE_MAP_TEXTURE_SIZE: return "GL_MAX_CUBE_MAP_TEXTURE_SIZE";
+    case GL_ES2_VIEWPORT: return "GL_VIEWPORT";
+    case GL_ES2_STENCIL_FUNC: return "GL_STENCIL_FUNC";
+    case GL_ES2_STENCIL_VALUE_MASK: return "GL_STENCIL_VALUE_MASK";
+    case GL_ES2_STENCIL_REF: return "GL_STENCIL_REF";
+    case GL_ES2_STENCIL_BACK_FUNC: return "GL_STENCIL_BACK_FUNC";
+    case GL_ES2_STENCIL_BACK_VALUE_MASK: return "GL_STENCIL_BACK_VALUE_MASK";
+    case GL_ES2_STENCIL_BACK_REF: return "GL_STENCIL_BACK_REF";
+    case GL_ES2_STENCIL_BITS: return "GL_STENCIL_BITS";
+    case GL_ES2_STENCIL_FAIL: return "GL_STENCIL_FAIL";
+    case GL_ES2_STENCIL_PASS_DEPTH_PASS: return "GL_STENCIL_PASS_DEPTH_PASS";
+    case GL_ES2_STENCIL_PASS_DEPTH_FAIL: return "GL_STENCIL_PASS_DEPTH_FAIL";
+    case GL_ES2_STENCIL_BACK_FAIL: return "GL_STENCIL_BACK_FAIL";
+    case GL_ES2_STENCIL_BACK_PASS_DEPTH_PASS: return "GL_STENCIL_BACK_PASS_DEPTH_PASS";
+    case GL_ES2_STENCIL_BACK_PASS_DEPTH_FAIL: return "GL_STENCIL_BACK_PASS_DEPTH_FAIL";
+    case GL_ES2_POLYGON_OFFSET_FACTOR: return "GL_POLYGON_OFFSET_FACTOR";
+    case GL_ES2_POLYGON_OFFSET_UNITS: return "GL_POLYGON_OFFSET_UNITS";
+    case GL_ES2_ALIASED_LINE_WIDTH_RANGE: return "GL_ALIASED_LINE_WIDTH_RANGE";
+    case GL_ES2_ALIASED_POINT_SIZE_RANGE: return "GL_ALIASED_POINT_SIZE_RANGE";
+    case GL_ES2_LINE_WIDTH: return "GL_LINE_WIDTH";
+    case GL_ES2_PACK_ALIGNMENT: return "GL_PACK_ALIGNMENT";
+    case GL_ES2_UNPACK_ALIGNMENT: return "GL_UNPACK_ALIGNMENT";
+    case GL_ES2_CURRENT_PROGRAM: return "GL_CURRENT_PROGRAM";
+    case GL_ES2_IMPLEMENTATION_COLOR_READ_FORMAT: return "GL_IMPLEMENTATION_COLOR_READ_FORMAT";
+    case GL_ES2_IMPLEMENTATION_COLOR_READ_TYPE: return "GL_IMPLEMENTATION_COLOR_READ_TYPE";
+    case GL_ES2_SAMPLE_COVERAGE_VALUE: return "GL_SAMPLE_COVERAGE_VALUE";
+    case GL_ES2_SAMPLE_COVERAGE_INVERT: return "GL_SAMPLE_COVERAGE_INVERT";
+    case GL_ES2_SAMPLE_ALPHA_TO_COVERAGE: return "GL_SAMPLE_ALPHA_TO_COVERAGE";
+    case GL_ES2_SAMPLE_BUFFERS: return "GL_SAMPLE_BUFFERS";
+    case GL_ES2_SAMPLES: return "GL_SAMPLES";
+    case GL_ES2_NUM_SHADER_BINARY_FORMATS: return "GL_NUM_SHADER_BINARY_FORMATS";
+    case GL_ES2_SHADER_BINARY_FORMATS: return "GL_SHADER_BINARY_FORMATS";
+    case GL_ES2_SHADER_COMPILER: return "GL_SHADER_COMPILER";
+    default:
+      return NULL;
+  }
+}
+
 void gl_es2_log_GetBooleanv(struct gl_es2_context *c, gl_es2_enum pname, gl_es2_boolean *data) { 
+  const char *mpname = pnametxt(pname);
+  if (mpname) {
+    apilog(c, "glGetBooleanv(%s, ", mpname);
+  }
+  else {
+    apilog(c, "glGetBoolean(0x%04X, ", pname);
+  }
+
+  if (data) {
+    int param_count = 1;
+    switch (pname) {
+      case GL_ES2_DEPTH_RANGE:
+      case GL_ES2_MAX_VIEWPORT_DIMS:
+      case GL_ES2_ALIASED_LINE_WIDTH_RANGE:
+      case GL_ES2_ALIASED_POINT_SIZE_RANGE:
+        param_count = 2;
+        break;
+      case GL_ES2_VIEWPORT:
+        param_count = 4;
+        break;
+    }
+    int n;
+    apilog(c, "{ ");
+    for (n = 0; n < param_count; ++n) {
+      const char *boolt = NULL;
+      if (data[n] == GL_ES2_TRUE) boolt = "GL_TRUE";
+      else if (data[n] == GL_ES2_FALSE) boolt = "GL_FALSE";
+      if (boolt) {
+        apilog(c, "%s%s", n ? ", " : "", boolt);
+      }
+      else {
+        apilog(c, "%s0x%04X", n ? ", " : "", data[n]);
+      }
+    }
+    apilog(c, "} );\n");
+  }
+}
+
+static const char *buffer_param(gl_es2_enum pname) {
+  switch (pname) {
+    case GL_ES2_BUFFER_SIZE:
+      return "GL_BUFFER_SIZE";
+    case GL_ES2_BUFFER_USAGE:
+      return "GL_BUFFER_USAGE";
+    default:
+      return NULL;
+  }
 }
 
 void gl_es2_log_GetBufferParameteriv(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum pname, gl_es2_int *params) { 
+  const char *mtgt = buffer_target(target);
+  const char *mpname = buffer_param(pname);
+  if (mtgt) {
+    apilog(c, "glGetBufferParameteriv(%s, ", mtgt);
+  }
+  else {
+    apilog(c, "glGetBufferParameteriv(0x%04X, ", target);
+  }
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (params) {
+    apilog(c, "{ 0x%04X });\n", params[0]);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_GetError(struct gl_es2_context *c, gl_es2_enum error_returned) { 
