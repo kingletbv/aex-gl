@@ -1057,15 +1057,153 @@ void gl_es2_log_GetBufferParameteriv(struct gl_es2_context *c, gl_es2_enum targe
 }
 
 void gl_es2_log_GetError(struct gl_es2_context *c, gl_es2_enum error_returned) { 
+  const char *msg = NULL;
+  switch (error_returned) {
+    case GL_ES2_NO_ERROR: msg = "GL_NO_ERROR"; break;
+    case GL_ES2_INVALID_ENUM: msg = "GL_INVALID_ENUM"; break;
+    case GL_ES2_INVALID_VALUE: msg = "GL_INVALID_VALUE"; break;
+    case GL_ES2_INVALID_OPERATION: msg = "GL_INVALID_OPERATION"; break;
+    case GL_ES2_INVALID_FRAMEBUFFER_OPERATION: msg = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
+    case GL_ES2_OUT_OF_MEMORY: msg = "GL_OUT_OF_MEMORY"; break;
+  }
+  if (msg) {
+    apilog(c, "glGetError() = %s;\n", msg);
+  }
+  else {
+    apilog(c, "glGetError() = 0x%04X;\n", error_returned);
+  }
 }
 
 void gl_es2_log_GetFloatv(struct gl_es2_context *c, gl_es2_enum pname, gl_es2_float *data) { 
+  const char *mpname = pnametxt(pname);
+  if (mpname) {
+    apilog(c, "glGetFloatv(%s, ", mpname);
+  }
+  else {
+    apilog(c, "glGetFloatv(0x%04X, ", pname);
+  }
+
+  if (data) {
+    int param_count = 1;
+    switch (pname) {
+      case GL_ES2_DEPTH_RANGE:
+      case GL_ES2_MAX_VIEWPORT_DIMS:
+      case GL_ES2_ALIASED_LINE_WIDTH_RANGE:
+      case GL_ES2_ALIASED_POINT_SIZE_RANGE:
+        param_count = 2;
+        break;
+      case GL_ES2_VIEWPORT:
+        param_count = 4;
+        break;
+    }
+    int n;
+    apilog(c, "{ ");
+    for (n = 0; n < param_count; ++n) {
+      apilog(c, "%s%f", n ? ", " : "", data[n]);
+    }
+    apilog(c, "} );\n");
+  }
+}
+
+static const char *fbattachment(gl_es2_enum attachment) {
+  switch (attachment) {
+    case GL_ES2_COLOR_ATTACHMENT0: return "GL_COLOR_ATTACHMENT0";
+    case GL_ES2_DEPTH_ATTACHMENT: return "GL_DEPTH_ATTACHMENT";
+    case GL_ES2_STENCIL_ATTACHMENT: return "GL_STENCIL_ATTACHMENT";
+    default: return NULL;
+  }
+}
+
+static const char *fbattach_pname(gl_es2_enum pname) {
+  switch (pname) {
+    case GL_ES2_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
+      return "GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME";
+    case GL_ES2_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
+      return "GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL";
+    case GL_ES2_FRAMEBUFFER_ATTACHMENT_CUBE_MAP_FACE:
+      return "GL_FRAMEBUFFER_ATTACHMENT_CUBE_MAP_FACE";
+    default:
+      return NULL;
+  }
 }
 
 void gl_es2_log_GetFramebufferAttachmentParameteriv(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum attachment, gl_es2_enum pname, gl_es2_int *params) { 
+  const char *mattachment = fbattachment(attachment);
+  const char *mpname = fbattach_pname(pname);
+  if (target == GL_ES2_FRAMEBUFFER) {
+    apilog(c, "glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, ");
+  }
+  else {
+    apilog(c, "glGetFramebufferAttachmentParameteriv(0x%04X, ", target);
+  }
+  if (mattachment) {
+    apilog(c, "%s, ", mattachment);
+  }
+  else {
+    apilog(c, "0x%04X, ", attachment);
+  }
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (!params) {
+    apilog(c, "NULL);\n");
+  }
+  else if (pname == GL_ES2_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE) {
+    switch (*params) {
+      case GL_ES2_NONE: apilog(c, "{ GL_NONE });\n"); break;
+      case GL_ES2_RENDERBUFFER: apilog(c, "{ GL_RENDERBUFFER });\n"); break;
+      case GL_ES2_TEXTURE: apilog(c, " { GL_TEXTURE });\n"); break;
+      default: apilog(c, "{ 0x%04X });\n", *params); break;
+    }
+  }
+  else if (pname == GL_ES2_FRAMEBUFFER_ATTACHMENT_CUBE_MAP_FACE) {
+    switch (*params) {
+      case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_X: apilog(c, "{ GL_TEXTURE_CUBE_MAP_POSITIVE_X });\n"); break;
+      case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_X: apilog(c, "{ GL_TEXTURE_CUBE_MAP_NEGATIVE_X });\n"); break;
+      case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Y: apilog(c, "{ GL_TEXTURE_CUBE_MAP_POSITIVE_Y });\n"); break;
+      case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Y: apilog(c, "{ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y });\n"); break;
+      case GL_ES2_TEXTURE_CUBE_MAP_POSITIVE_Z: apilog(c, "{ GL_TEXTURE_CUBE_MAP_POSITIVE_Z });\n"); break;
+      case GL_ES2_TEXTURE_CUBE_MAP_NEGATIVE_Z: apilog(c, "{ GL_TEXTURE_CUBE_MAP_NEGATIVE_Z });\n"); break;
+      default: apilog(c, "{ 0x%04X });\n", *params); break;
+    }
+  }
+  else {
+    apilog(c, "{ %d });\n", *params);
+  }
 }
 
 void gl_es2_log_GetIntegerv(struct gl_es2_context *c, gl_es2_enum pname, gl_es2_int *data) { 
+  const char *mpname = pnametxt(pname);
+  if (mpname) {
+    apilog(c, "glGetIntegerv(%s, ", mpname);
+  }
+  else {
+    apilog(c, "glGetIntegerv(0x%04X, ", pname);
+  }
+
+  if (data) {
+    int param_count = 1;
+    switch (pname) {
+      case GL_ES2_DEPTH_RANGE:
+      case GL_ES2_MAX_VIEWPORT_DIMS:
+      case GL_ES2_ALIASED_LINE_WIDTH_RANGE:
+      case GL_ES2_ALIASED_POINT_SIZE_RANGE:
+        param_count = 2;
+        break;
+      case GL_ES2_VIEWPORT:
+        param_count = 4;
+        break;
+    }
+    int n;
+    apilog(c, "{ ");
+    for (n = 0; n < param_count; ++n) {
+      apilog(c, "%s%d", n ? ", " : "", data[n]);
+    }
+    apilog(c, "} );\n");
+  }
 }
 
 void gl_es2_log_GetProgramiv(struct gl_es2_context *c, gl_es2_uint program, gl_es2_enum pname, gl_es2_int *params) { 
