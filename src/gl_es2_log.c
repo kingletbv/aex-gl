@@ -1312,6 +1312,15 @@ static const char *shader_pname(gl_es2_enum pname) {
   }
 }
 
+static const char *shader_type(gl_es2_enum shadertype) {
+  switch (shadertype) {
+    case GL_ES2_VERTEX_SHADER: return "GL_VERTEX_SHADER";
+    case GL_ES2_FRAGMENT_SHADER: return "GL_FRAGMENT_SHADER";
+    case AEX_GL_DEBUG_SHADER: return "0x108B31 /* AEX_GL_DEBUG_SHADER */";
+    default: return NULL;
+  }
+}
+
 void gl_es2_log_GetShaderiv(struct gl_es2_context *c, gl_es2_uint shader, gl_es2_enum pname, gl_es2_int *params) { 
   const char *mpname = shader_pname(pname);
   if (mpname) {
@@ -1324,14 +1333,9 @@ void gl_es2_log_GetShaderiv(struct gl_es2_context *c, gl_es2_uint shader, gl_es2
     apilog(c, "NULL);\n");
   }
   else if (pname == GL_ES2_SHADER_TYPE) {
-    if (*params == GL_ES2_VERTEX_SHADER) {
-      apilog(c, "{ GL_VERTEX_SHADER });\n");
-    }
-    else if (*params == GL_ES2_FRAGMENT_SHADER) {
-      apilog(c, "{ GL_FRAGMENT_SHADER });\n");
-    }
-    else if (*params == AEX_GL_DEBUG_SHADER) {
-      apilog(c, "{ 0x%04X /* AEX_GL_DEBUG_SHADER */ });\n", *params);
+    const char *mshadertype = shader_type(*params);
+    if (mshadertype) {
+      apilog(c, "{ %s });\n", mshadertype);
     }
     else {
       apilog(c, "{ 0x%04X });\n", *params);
@@ -1358,19 +1362,169 @@ void gl_es2_log_GetShaderInfoLog(struct gl_es2_context *c, gl_es2_uint shader, g
   }
 }
 
-void gl_es2_log_GetShaderPrecisionFormat(struct gl_es2_context *c, gl_es2_enum shadertype, gl_es2_enum precisiontype, gl_es2_int *range, gl_es2_int *precision) { 
+static const char *precision_type(gl_es2_enum precisiontype) {
+  switch (precisiontype) {
+    case GL_ES2_LOW_FLOAT: return "GL_LOW_FLOAT";
+    case GL_ES2_MEDIUM_FLOAT: return "GL_MEDIUM_FLOAT";
+    case GL_ES2_HIGH_FLOAT: return "GL_HIGH_FLOAT";
+    case GL_ES2_LOW_INT: return "GL_LOW_INT";
+    case GL_ES2_MEDIUM_INT: return "GL_MEDIUM_INT";
+    case GL_ES2_HIGH_INT: return "GL_HIGH_INT";
+    default: return NULL;
+  }
 }
 
-void gl_es2_log_GetShaderSource(struct gl_es2_context *c, gl_es2_uint shader, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_char *source) { 
+void gl_es2_log_GetShaderPrecisionFormat(struct gl_es2_context *c, gl_es2_enum shadertype, gl_es2_enum precisiontype, gl_es2_int *range, gl_es2_int *precision) { 
+  const char *mshadertype = shader_type(shadertype);
+  const char *mprecisiontype = precision_type(precisiontype);
+  if (mshadertype) {
+    apilog(c, "glGetShaderPrecisionFormat(%s, ", mshadertype);
+  }
+  else {
+    apilog(c, "glGetShaderPrecisionFormat(0x%04X, ", shadertype);
+  }
+  if (mprecisiontype) {
+    apilog(c, "%s, ", mprecisiontype);
+  }
+  else {
+    apilog(c, "0x%04X, ", precisiontype);
+  }
+  if (!range) {
+    apilog(c, "NULL, ");
+  }
+  else {
+    apilog(c, "{ %d, %d }, ", range[0], range[1]);
+  }
+  if (!precision) {
+    apilog(c, "NULL);\n");
+  }
+  else {
+    apilog(c, "{ %d });\n", *precision);
+  }
+}
+
+void gl_es2_log_GetShaderSource(struct gl_es2_context *c, gl_es2_uint shader, gl_es2_sizei bufsize, gl_es2_sizei *length, gl_es2_char *source) {
+  apilog(c, "glGetShaderSource(%u, %d, ", shader, bufsize);
+  if (length) {
+    apilog(c, "{ %d }, ", *length);
+  }
+  else {
+    apilog(c, "NULL, ");
+  }
+  if (source) {
+    apilog(c, "\"%s\");\n", source);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_GetString(struct gl_es2_context *c, gl_es2_enum name, const gl_es2_ubyte *string_returned) {
+  switch (name) {
+    case GL_ES2_VENDOR: apilog(c, "glGetString(GL_VENDOR) = "); break;
+    case GL_ES2_RENDERER: apilog(c, "glGetString(GL_RENDERER) = "); break;
+    case GL_ES2_VERSION: apilog(c, "glGetString(GL_VERSION) = "); break;
+    case GL_ES2_SHADING_LANGUAGE_VERSION: apilog(c, "glGetString(GL_SHADING_LANGUAGE_VERSION) = "); break;
+    case GL_ES2_EXTENSIONS: apilog(c, "glGetString(GL_EXTENSIONS) = "); break;
+    default: apilog(c, "glGetString(0x%04X) = ", name); break;
+  }
+  if (string_returned) {
+    apilog(c, "\"%s\");\n", string_returned);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
+}
+
+static const char *tex_parameter_pname(gl_es2_enum pname) {
+  switch (pname) {
+    case GL_ES2_TEXTURE_MAG_FILTER: return "GL_TEXTURE_MAG_FILTER";
+    case GL_ES2_TEXTURE_MIN_FILTER: return "GL_TEXTURE_MIN_FILTER";
+    case GL_ES2_TEXTURE_WRAP_S: return "GL_TEXTURE_WRAP_S";
+    case GL_ES2_TEXTURE_WRAP_T: return "GL_TEXTURE_WRAP_T";
+    case GL_ES2_TEXTURE_MAX_LEVEL: return "GL_TEXTURE_MAX_LEVEL";
+    default: return NULL;
+  }
 }
 
 void gl_es2_log_GetTexParameterfv(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum pname, gl_es2_float *params) { 
+  const char *mtextarget = tex_target(target);
+  const char *mpname = tex_parameter_pname(pname);
+  if (mtextarget) {
+    apilog(c, "glGetTexParameterfv(%s, ", mtextarget);
+  }
+  else {
+    apilog(c, "glGetTexParamterfv(0x%04X, ", target);
+  }
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (!params) {
+    apilog(c, "NULL);\n");
+  }
+  else if (pname == GL_ES2_TEXTURE_MAX_LEVEL) {
+    apilog(c, "{ %f });\n", *params);
+  }
+  else if ((pname == GL_ES2_TEXTURE_MIN_FILTER) || (pname == GL_ES2_TEXTURE_MAG_FILTER)) {
+    if ((*params) == (float)GL_ES2_NEAREST) apilog(c, "{ GL_NEAREST });\n");
+    else if ((*params) == (float)GL_ES2_LINEAR) apilog(c, "{ GL_NEAREST });\n");
+    else if ((*params) == (float)GL_ES2_NEAREST_MIPMAP_NEAREST) apilog(c, "{ GL_NEAREST_MIPMAP_NEAREST });\n");
+    else if ((*params) == (float)GL_ES2_LINEAR_MIPMAP_NEAREST) apilog(c, "{ GL_LINEAR_MIPMAP_NEAREST });\n");
+    else if ((*params) == (float)GL_ES2_LINEAR_MIPMAP_LINEAR) apilog(c, "{ GL_LINEAR_MIPMAP_LINEAR });\n");
+    else apilog(c, "{ %f });\n", *params);
+  }
+  else if ((pname == GL_ES2_TEXTURE_WRAP_S) || (pname == GL_ES2_TEXTURE_WRAP_T)) {
+    if ((*params) == (float)GL_ES2_CLAMP_TO_EDGE) apilog(c, "{ GL_CLAMP_TO_EDGE });\n");
+    else if ((*params) == (float)GL_ES2_REPEAT) apilog(c, "{ GL_REPEAT });\n");
+    else if ((*params) == (float)GL_ES2_MIRRORED_REPEAT) apilog(c, "{ GL_MIRRORED_REPEAT });\n");
+    else apilog(c, "{ %f });\n", *params);
+  }
+  else {
+    apilog(c, "{ %f });\n", *params);
+  }
 }
 
 void gl_es2_log_GetTexParameteriv(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum pname, gl_es2_int *params) { 
+  const char *mtextarget = tex_target(target);
+  const char *mpname = tex_parameter_pname(pname);
+  if (mtextarget) {
+    apilog(c, "glGetTexParameteriv(%s, ", mtextarget);
+  }
+  else {
+    apilog(c, "glGetTexParamteriv(0x%04X, ", target);
+  }
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (!params) {
+    apilog(c, "NULL);\n");
+  }
+  else if (pname == GL_ES2_TEXTURE_MAX_LEVEL) {
+    apilog(c, "{ %d });\n", *params);
+  }
+  else if ((pname == GL_ES2_TEXTURE_MIN_FILTER) || (pname == GL_ES2_TEXTURE_MAG_FILTER)) {
+    if ((*params) == GL_ES2_NEAREST) apilog(c, "{ GL_NEAREST });\n");
+    else if ((*params) == GL_ES2_LINEAR) apilog(c, "{ GL_NEAREST });\n");
+    else if ((*params) == GL_ES2_NEAREST_MIPMAP_NEAREST) apilog(c, "{ GL_NEAREST_MIPMAP_NEAREST });\n");
+    else if ((*params) == GL_ES2_LINEAR_MIPMAP_NEAREST) apilog(c, "{ GL_LINEAR_MIPMAP_NEAREST });\n");
+    else if ((*params) == GL_ES2_LINEAR_MIPMAP_LINEAR) apilog(c, "{ GL_LINEAR_MIPMAP_LINEAR });\n");
+    else apilog(c, "{ %d });\n", *params);
+  }
+  else if ((pname == GL_ES2_TEXTURE_WRAP_S) || (pname == GL_ES2_TEXTURE_WRAP_T)) {
+    if ((*params) == GL_ES2_CLAMP_TO_EDGE) apilog(c, "{ GL_CLAMP_TO_EDGE });\n");
+    else if ((*params) == GL_ES2_REPEAT) apilog(c, "{ GL_REPEAT });\n");
+    else if ((*params) == GL_ES2_MIRRORED_REPEAT) apilog(c, "{ GL_MIRRORED_REPEAT });\n");
+    else apilog(c, "{ %d });\n", *params);
+  }
+  else {
+    apilog(c, "{ %d });\n", *params);
+  }
 }
 
 void gl_es2_log_GetUniformfv(struct gl_es2_context *c, gl_es2_uint program, gl_es2_int location, gl_es2_float *params) { 
