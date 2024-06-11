@@ -75,6 +75,17 @@ yourself, build Aex-GL, copy over the AexGL.dll, EGL.dll and GLESv2.dll's from t
 triangle-opengles executable, and you should be good. But, beware! EGL support is currently very limited and under development; just 
 enough duct tape to get this going for now.
 
+### GTA3 His hands are all messed up
+
+GTA3 makes for such a great development target, running on OpenGL ES 2.0, so it only makes sense to share an early development image.
+
+![His hands are messed up](docs/more%20than%20his%20hands.jpg)
+
+Aside from his hands, a few triangles are also messed up, which will be addressed as development continues. To get the re3 GTA3 code base 
+to pick up the OpenGL ES 2.0 DLLs, you'll need to make a one line change in how it drives GLFW, feel free to reach out for instructions. 
+I'm not sure what Rockstar thinks of re3 itself (the project suddenly went quiet but the code is still out there) so I can't help there, 
+but it sure makes for such a great test case.
+
 
 # The parser
 
