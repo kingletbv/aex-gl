@@ -1206,19 +1206,156 @@ void gl_es2_log_GetIntegerv(struct gl_es2_context *c, gl_es2_enum pname, gl_es2_
   }
 }
 
-void gl_es2_log_GetProgramiv(struct gl_es2_context *c, gl_es2_uint program, gl_es2_enum pname, gl_es2_int *params) { 
+static const char *prog_pname(gl_es2_enum pname) {
+  switch (pname) {
+    case GL_ES2_DELETE_STATUS: return "GL_DELETE_STATUS";
+    case GL_ES2_LINK_STATUS: return "GL_LINK_STATUS";
+    case GL_ES2_VALIDATE_STATUS: return "GL_VALIDATE_STATUS";
+    case GL_ES2_INFO_LOG_LENGTH: return "GL_INFO_LOG_LENGTH";
+    case GL_ES2_ATTACHED_SHADERS: return "GL_ATTACHED_SHADERS";
+    case GL_ES2_ACTIVE_ATTRIBUTES: return "GL_ACTIVE_ATTRIBUTES";
+    case GL_ES2_ACTIVE_ATTRIBUTE_MAX_LENGTH: return "GL_ACTIVE_ATTRIBUTE_MAX_LENGTH";
+    case GL_ES2_ACTIVE_UNIFORMS: return "GL_ACTIVE_UNIFORMS";
+    case GL_ES2_ACTIVE_UNIFORM_MAX_LENGTH: return "GL_ACTIVE_UNIFORM_MAX_LENGTH";
+    default: return NULL;
+  }
 }
 
-void gl_es2_log_GetProgramInfoLog(struct gl_es2_context *c, gl_es2_uint program, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_char *infoLog) { 
+void gl_es2_log_GetProgramiv(struct gl_es2_context *c, gl_es2_uint program, gl_es2_enum pname, gl_es2_int *params) { 
+  const char *mpname = prog_pname(pname);
+  apilog(c, "glGetProgramiv(%u, ", program);
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (params) {
+    apilog(c, "{ %d });\n", *params);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
+}
+
+void gl_es2_log_GetProgramInfoLog(struct gl_es2_context *c, gl_es2_uint program, gl_es2_sizei bufsize, gl_es2_sizei *length, gl_es2_char *infoLog) { 
+  apilog(c, "glGetProgramInfoLog(%u, %d, ", program, bufsize);
+  if (length) {
+    apilog(c, "{ %d }, ", *length);
+  }
+  else {
+    apilog(c, "NULL, ");
+  }
+  if (infoLog) {
+    apilog(c, "\"%s\");\n", infoLog);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
+}
+
+static const char *renderbuf_pname(gl_es2_enum pname) {
+  switch (pname) {
+    case GL_ES2_RENDERBUFFER_WIDTH: return "GL_RENDERBUFFER_WIDTH";
+    case GL_ES2_RENDERBUFFER_HEIGHT: return "GL_RENDERBUFFER_HEIGHT";
+    case GL_ES2_RENDERBUFFER_INTERNAL_FORMAT: return "GL_RENDERBUFFER_INTERNAL_FORMAT";
+    case GL_ES2_RENDERBUFFER_RED_SIZE: return "GL_RENDERBUFFER_RED_SIZE";
+    case GL_ES2_RENDERBUFFER_GREEN_SIZE: return "GL_RENDERBUFFER_GREEN_SIZE";
+    case GL_ES2_RENDERBUFFER_BLUE_SIZE: return "GL_RENDERBUFFER_BLUE_SIZE";
+    case GL_ES2_RENDERBUFFER_ALPHA_SIZE: return "GL_RENDERBUFFER_ALPHA_SIZE";
+    case GL_ES2_RENDERBUFFER_DEPTH_SIZE: return "GL_RENDERBUFFER_DEPTH_SIZE";
+    case GL_ES2_RENDERBUFFER_STENCIL_SIZE: return "GL_RENDERBUFFER_STENCIL_SIZE";
+    default: return NULL;
+  }  
 }
 
 void gl_es2_log_GetRenderbufferParameteriv(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum pname, gl_es2_int *params) { 
+  const char *mpname = renderbuf_pname(pname);
+  if (target == GL_ES2_RENDERBUFFER) {
+    apilog(c, "glGetRenderbufferParameteriv(GL_RENDERBUFFER, ");
+  }
+  else {
+    apilog(c, "glGetRenderbufferParameteriv(0x%04X, ", target);
+  }
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (!params) {
+    apilog(c, "NULL);\n");
+  }
+  else if (pname == GL_ES2_RENDERBUFFER_INTERNAL_FORMAT) {
+    switch (*params) {
+      case GL_ES2_RGBA4: apilog(c, "{ GL_RGBA4 });\n"); break;
+      case GL_ES2_RGBA8: apilog(c, "{ GL_RGBA8 });\n"); break;
+      case GL_ES2_DEPTH_COMPONENT16: apilog(c, "{ GL_DEPTH_COMPONENT16 });\n"); break;
+      case GL_ES2_DEPTH_COMPONENT32: apilog(c, "{ GL_OES_depth32 });\n"); break;
+      case GL_ES2_STENCIL_INDEX16: apilog(c, "{ GL_STENCIL_INDEX16 });\n"); break;
+      default: apilog(c, "{ 0x%04X });\n", *params); break;
+    }
+  }
+  else {
+   apilog(c, "{ %d });\n", *params); 
+  }
+}
+
+static const char *shader_pname(gl_es2_enum pname) {
+  switch (pname) {
+    case GL_ES2_SHADER_TYPE: return "GL_SHADER_TYPE";
+    case GL_ES2_DELETE_STATUS: return "GL_DELETE_STATUS";
+    case GL_ES2_COMPILE_STATUS: return "GL_COMPILE_STATUS";
+    case GL_ES2_INFO_LOG_LENGTH: return "GL_INFO_LOG_LENGTH";
+    case GL_ES2_SHADER_SOURCE_LENGTH: return "GL_SHADER_SOURCE_LENGTH";
+    default: return NULL;
+  }
 }
 
 void gl_es2_log_GetShaderiv(struct gl_es2_context *c, gl_es2_uint shader, gl_es2_enum pname, gl_es2_int *params) { 
+  const char *mpname = shader_pname(pname);
+  if (mpname) {
+    apilog(c, "glGetShaderiv(%u, %s, ", shader, mpname);
+  }
+  else {
+    apilog(c, "glGetShaderiv(%u, 0x%04X, ", shader, pname);
+  }
+  if (!params) {
+    apilog(c, "NULL);\n");
+  }
+  else if (pname == GL_ES2_SHADER_TYPE) {
+    if (*params == GL_ES2_VERTEX_SHADER) {
+      apilog(c, "{ GL_VERTEX_SHADER });\n");
+    }
+    else if (*params == GL_ES2_FRAGMENT_SHADER) {
+      apilog(c, "{ GL_FRAGMENT_SHADER });\n");
+    }
+    else if (*params == AEX_GL_DEBUG_SHADER) {
+      apilog(c, "{ 0x%04X /* AEX_GL_DEBUG_SHADER */ });\n", *params);
+    }
+    else {
+      apilog(c, "{ 0x%04X });\n", *params);
+    }
+  }
+  else {
+    apilog(c, "{ %d });\n", *params);
+  }
 }
 
-void gl_es2_log_GetShaderInfoLog(struct gl_es2_context *c, gl_es2_uint shader, gl_es2_sizei bufSize, gl_es2_sizei *length, gl_es2_char *infoLog) { 
+void gl_es2_log_GetShaderInfoLog(struct gl_es2_context *c, gl_es2_uint shader, gl_es2_sizei bufsize, gl_es2_sizei *length, gl_es2_char *infoLog) { 
+  apilog(c, "glGetShaderInfoLog(%u, %d, ", shader, bufsize);
+  if (length) {
+    apilog(c, "{ %d }, ", *length);
+  }
+  else {
+    apilog(c, "NULL, ");
+  }
+  if (infoLog) {
+    apilog(c, "\"%s\");\n", infoLog);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_GetShaderPrecisionFormat(struct gl_es2_context *c, gl_es2_enum shadertype, gl_es2_enum precisiontype, gl_es2_int *range, gl_es2_int *precision) { 
