@@ -968,6 +968,8 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
      * to double our step.) */
     z_yp += z_yp;
     z_xp += z_xp;
+    z_yq += z_yq;
+    z_xq += z_xq;
     if (z_yp >= D012) {
       z_yp -= D012;
       if (z_yq < 0) z_yq--;
