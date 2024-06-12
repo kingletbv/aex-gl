@@ -81,8 +81,9 @@ GTA3 makes for such a great development target, running on OpenGL ES 2.0, so it 
 
 ![His hands are messed up](docs/more%20than%20his%20hands.jpg)
 
-Aside from his hands, a few triangles are also messed up, which will be addressed as development continues. To get the re3 GTA3 code base 
-to pick up the OpenGL ES 2.0 DLLs, you'll need to make a one line change in how it drives GLFW, feel free to reach out for instructions. 
+Aside from his hands, some of the lighting may also be messed up (bit dark, and main characters not lit well), which will be addressed 
+as development continues. To get the re3 GTA3 code base to pick up the OpenGL ES 2.0 DLLs, you'll need to make a one line change in 
+how it drives GLFW, feel free to reach out for instructions. 
 I'm not sure what Rockstar thinks of re3 itself (the project suddenly went quiet but the code is still out there) so I can't help there, 
 but it sure makes for such a great test case.
 
