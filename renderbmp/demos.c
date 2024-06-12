@@ -357,6 +357,7 @@ int run_demos(void) {
   exit_ret = run_demo(output_width, output_height, demo_sixteen_lines, "Sixteen lines", JIG_PATH "sixteen_lines.bmp");
   exit_ret = run_demo(output_width, output_height, demo_mipmap_triangle, "Mipmapped triangle", JIG_PATH "mipmap_triangle.bmp");
   exit_ret = run_demo(output_width, output_height, demo_the_world_is_yours, "The-World-Is-Yours line drawing", JIG_PATH "world_is_yours.bmp");
+  exit_ret = run_demo(output_width, output_height, demo_z_triangles, "Z triangles", JIG_PATH "z_triangles.bmp");
 
   if (exit_ret) return exit_ret;
 

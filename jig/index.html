@@ -12,6 +12,10 @@
 <body>
   <h1>Displaying BMP Image</h1>
   <div>
+    <img src="z_triangles.bmp" alt="Z Triangles" class="original" />
+    <img src="z_triangles.bmp" alt="Z Triangles" class="zoomed" />
+  </div>
+  <div>
     <img src="world_is_yours.bmp" alt="World is Yours BMP" class="original" />
     <img src="world_is_yours.bmp" alt="Zoomed World is Yours BMP" class="zoomed" />
   </div>
@@ -25,7 +29,8 @@
   </div>
   <!-- Add more images here following the same structure -->
 
-  <script>window.onload = function () {
+  <script>
+  window.onload = function () {
       const zoomFactor = 3;
       const zoomedImages = document.querySelectorAll('.zoomed');
 

@@ -8,6 +8,7 @@
     <ClCompile Include="demo_the_world_is_yours.c" />
     <ClCompile Include="..\3rdparty\world\world.c" />
     <ClCompile Include="demo_sixteen_lines.c" />
+    <ClCompile Include="demo_z_triangles.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="smiley.h" />
