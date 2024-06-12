@@ -51,6 +51,11 @@ void viewport_transformation(int32_t vp_x, int32_t vp_y,
     *osx = (int32_t)((half_w * *px + center_x) * (1 << RASTERIZER_SUBPIXEL_BITS));
     *osy = subpixel_screen_height - (int32_t)((half_h * *py + center_y) * (1 << RASTERIZER_SUBPIXEL_BITS));
     float z_rescaled_0to1 = half_depth_range * *pz + depth_range_middle;
+
+    /* in-place update the Z component to be in range depth_range_near..depth_range_far -
+     * this is typically 0..1 and is what the fragment shaders are expecting. */
+    *pz = z_rescaled_0to1;
+
     /* llroundf rounds to nearest int64, which we then cast down to uint32 for the z-buffer value.
      * This is necessary so we induce the desired round-to-nearest behavior, rather than whatever
      * arbitrary rounding mode the FPU/SSE/compiler might otherwise do (e.g. truncation.) */
