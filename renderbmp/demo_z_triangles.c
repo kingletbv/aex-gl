@@ -26,6 +26,11 @@
 
 #include "opengl_es2_headers.h"
 
+#ifndef USE_STANDARD_NON_AEX_GL_HEADERS
+/* Operation inside AEX-GL */
+#include "../debug_dump.h"
+#endif
+
 int demo_z_triangles(int output_width, int output_height) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -135,12 +140,12 @@ int demo_z_triangles(int output_width, int output_height) {
    * in a float. */
   uint32_t max_z = 0xFFFFFFFF;
   float verts[] = {
-    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), 0.f, 1.f,
+    -1.f + 2.f *   (8.f/256.f), 1.f - 2.f *   (8.f/256.f), -1.f, 1.f,
     -1.f + 2.f * (128.f/256.f), 1.f - 2.f *   (8.f/256.f), 1.f, 1.f,
     -1.f + 2.f *   (8.f/256.f), 1.f - 2.f * (128.f/256.f), 1.f, 1.f,
     -1.f + 2.f * (128.f/256.f), 1.f - 2.f * (128.f/256.f), 1.f, 1.f,
 
-    -1.f + 2.f * (136.f/256.f), 1.f - 2.f *   (8.f/256.f), 0.f, 1.f,
+    -1.f + 2.f * (136.f/256.f), 1.f - 2.f *   (8.f/256.f), -1.f, 1.f,
     -1.f + 2.f * (256.f/256.f), 1.f - 2.f *   (8.f/256.f), 1.f, 1.f,
     -1.f + 2.f * (136.f/256.f), 1.f - 2.f * (128.f/256.f), 1.f, 1.f,
     -1.f + 2.f * (256.f/256.f), 1.f - 2.f * (128.f/256.f), 1.f, 1.f
@@ -158,7 +163,46 @@ int demo_z_triangles(int output_width, int output_height) {
     6, 5, 4
   };
 
+  glEnable(GL_DEPTH_TEST);
+
   glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(*indices), GL_UNSIGNED_INT, indices);
-  
+
+#ifndef USE_STANDARD_NON_AEX_GL_HEADERS
+  /* Only for inside AEX-GL: write out a bitmap for the z-buffer of this operation */
+  uint8_t *zbuf = (uint8_t *)malloc(sizeof(uint32_t) * output_width * output_height);
+  if (!zbuf) {
+    fprintf(stderr, "No memory\n");
+    return -1;
+  }
+  glReadPixels(0, 0, output_width, output_height, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, zbuf);
+  size_t row, col;
+  for (row = 0; row < output_height; ++row) {
+    for (col = 0; col < output_width; ++col) {
+      uint8_t *pixel = zbuf + row * output_width * sizeof(uint32_t) + col * sizeof(uint32_t);
+      uint32_t val = *(uint32_t *)pixel;
+      pixel[0] = val >> 24;
+      pixel[1] = val >> 24;
+      pixel[2] = val >> 24;
+      pixel[3] = 0xFF;
+    }
+  }
+#define JIG_PATH "../jig/"
+  FILE *zbufp = fopen(JIG_PATH "z_triangles_zbuf.bmp", "wb");
+  if (!zbufp) {
+    fprintf(stderr, "Failed to open zbuf output file\n");
+    free(zbuf);
+    return -1;
+  }
+
+  size_t zbuf_stride = output_width * sizeof(uint32_t);
+  size_t zbuf_inverted_stride = (size_t)-(int64_t)zbuf_stride;
+  uint8_t *zbuf_top_row = zbuf + (output_height - 1) * zbuf_stride;
+
+  dd_write_rgba_bmp(zbufp, zbuf_top_row, output_width, output_height, zbuf_inverted_stride);
+
+  fclose(zbufp);
+  free(zbuf);
+#endif /* not defined USE_STANDARD_NON_AEX_GL_HEADERS */
+
   return 0;
 }

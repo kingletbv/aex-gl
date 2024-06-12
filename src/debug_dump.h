@@ -33,7 +33,7 @@ extern "C" {
 struct sampler_2d;
 
 void dd_write_rgba_bmp(FILE *fp, uint8_t *rgba32, int width, int height, size_t stride);
-void dd_write_rgb_bmp(FILE *fp, uint8_t *rgba32, int width, int height, size_t stride);
+void dd_write_rgb_bmp(FILE *fp, uint8_t *rgb32, int width, int height, size_t stride);
 
 int dd_write_bmp(const char *filename, struct sampler_2d *texture);
 
