@@ -458,6 +458,7 @@ int64_t rasterizer_compute_D012(int32_t px0, int32_t py0, uint32_t pz0,
                                 int32_t px1, int32_t py1, uint32_t pz1,
                                 int32_t px2, int32_t py2, uint32_t pz2) {
   int64_t D012 = ((int64_t)px1) * ((int64_t)py2) - ((int64_t)px2) * ((int64_t)py1) - ((int64_t)px0) * ((int64_t)py2) + ((int64_t)px2) * ((int64_t)py0) + ((int64_t)px0) * ((int64_t)py1) - ((int64_t)px1) * ((int64_t)py0);
+  if (D012 < 0) return -D012;
   return D012;
 }
 
@@ -1005,6 +1006,21 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     int64_t Dp20_dy_sp = (x0 - x2);
     Dp20_row = Px * Dp20_dx_sp + Py * Dp20_dy_sp + ((int64_t)x2) * ((int64_t)y0) - ((int64_t)y2) * ((int64_t)x0);
 
+    if (orientation == RASTERIZER_COUNTERCLOCKWISE) {
+      Dp01_dx_sp = -Dp01_dx_sp;
+      Dp01_dy_sp = -Dp01_dy_sp;
+
+      Dp12_dx_sp = -Dp12_dx_sp;
+      Dp12_dy_sp = -Dp12_dy_sp;
+
+      Dp20_dx_sp = -Dp20_dx_sp;
+      Dp20_dy_sp = -Dp20_dy_sp;
+
+      Dp01_row = -Dp01_row;
+      Dp12_row = -Dp12_row;
+      Dp20_row = -Dp20_row;
+    }
+
     // Compute the stepping variables for whole pixels (how much to step when
     // we're at one pixel, and would like to skip (1 << RASTERIZER_SUBPIXEL_BITS) sub-pixels
     // to get to the same subpixel one whole pixel on whatever stepping dim.)
@@ -1163,7 +1179,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
           case 2: {
 #define RASTERIZER_RESUME_CONDITION 4
 #define RASTERIZER_RESUME_LABEL ez_lequal16
-#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (uint8_t)((((int32_t)(zbuf_val)) - ((int32_t)(*(uint16_t *)(zbuf_ptr))) - 1) >> 31)
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (int64_t)((((int32_t)(zbuf_val)) - ((int32_t)(*(uint16_t *)(zbuf_ptr))) - 1) >> 31)
 #include "rasterizer_core_inc.h"
 #undef RASTERIZER_EARLY_Z_CHECK
 #undef RASTERIZER_RESUME_CONDITION
@@ -1173,7 +1189,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
           case 3: {
 #define RASTERIZER_RESUME_CONDITION 5
 #define RASTERIZER_RESUME_LABEL ez_lequal24
-#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (uint8_t)((((int32_t)(zbuf_val)) - (((((int32_t)*(uint8_t *)(zbuf_ptr)) << 16) | (((int32_t)*(uint8_t *)(zbuf_ptr + 1)) << 8) | ((int32_t)*(uint8_t *)(zbuf_ptr + 2)))) - 1) >> 31)
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (int64_t)((((int32_t)(zbuf_val)) - (((((int32_t)*(uint8_t *)(zbuf_ptr)) << 16) | (((int32_t)*(uint8_t *)(zbuf_ptr + 1)) << 8) | ((int32_t)*(uint8_t *)(zbuf_ptr + 2)))) - 1) >> 31)
 #include "rasterizer_core_inc.h"
 #undef RASTERIZER_EARLY_Z_CHECK
 #undef RASTERIZER_RESUME_CONDITION
@@ -1183,7 +1199,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
           case 4: {
 #define RASTERIZER_RESUME_CONDITION 6
 #define RASTERIZER_RESUME_LABEL ez_lequal32
-#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (uint8_t)((((int64_t)(zbuf_val)) - ((int64_t)(*(uint32_t *)(zbuf_ptr))) - 1) >> 63)
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (int64_t)((((int64_t)(zbuf_val)) - ((int64_t)(*(uint32_t *)(zbuf_ptr))) - 1) >> 63)
 #include "rasterizer_core_inc.h"
 #undef RASTERIZER_EARLY_Z_CHECK
 #undef RASTERIZER_RESUME_CONDITION
@@ -1200,7 +1216,7 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
       case REZF_ALWAYS: {
 #define RASTERIZER_RESUME_CONDITION 7
 #define RASTERIZER_RESUME_LABEL ez_always
-#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) 0xFF
+#define RASTERIZER_EARLY_Z_CHECK(zbuf_ptr, zbuf_val) (~(int64_t)0)
 #include "rasterizer_core_inc.h"
 #undef RASTERIZER_EARLY_Z_CHECK
 #undef RASTERIZER_RESUME_CONDITION
