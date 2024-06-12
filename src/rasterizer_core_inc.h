@@ -118,11 +118,11 @@ for (py = top; py < bottom; py += 2) {
     // the right of the scissor window, negative otherwise.
     scissor_right_column_mask = ((px + 1) - scissor_right) >> 63;
 
-    TL_Mask = TL_Mask & scissor_top_row_mask    & scissor_left_column_mask  & RASTERIZER_EARLY_Z_CHECK(zbuf_TL, z_TL);
-    TR_Mask = TR_Mask & scissor_top_row_mask    & scissor_right_column_mask & RASTERIZER_EARLY_Z_CHECK(zbuf_TR, z_TR);
-    BL_Mask = BL_Mask & scissor_bottom_row_mask & scissor_left_column_mask  & RASTERIZER_EARLY_Z_CHECK(zbuf_BL, z_BL);
-    BR_Mask = BR_Mask & scissor_bottom_row_mask & scissor_right_column_mask & RASTERIZER_EARLY_Z_CHECK(zbuf_BR, z_BR);
-
+    TL_Mask = TL_Mask & scissor_top_row_mask    & scissor_left_column_mask  & RASTERIZER_EARLY_Z_CHECK(zbuf_TL, z_x_TL);
+    TR_Mask = TR_Mask & scissor_top_row_mask    & scissor_right_column_mask & RASTERIZER_EARLY_Z_CHECK(zbuf_TR, z_x_TR);
+    BL_Mask = BL_Mask & scissor_bottom_row_mask & scissor_left_column_mask  & RASTERIZER_EARLY_Z_CHECK(zbuf_BL, z_x_BL);
+    BR_Mask = BR_Mask & scissor_bottom_row_mask & scissor_right_column_mask & RASTERIZER_EARLY_Z_CHECK(zbuf_BR, z_x_BR);
+     
     scissor_left_column_mask = ~(uint64_t)0;  /* only relevant for first column */
 
     int64_t Any_Fragment_Valid = TL_Mask | TR_Mask | BL_Mask | BR_Mask;
