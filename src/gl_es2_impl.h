@@ -226,6 +226,7 @@ extern "C" {
 #define GL_ES2_RGBA5_A1 0x8057
 #define GL_ES2_RGBA8    0x8058
 #define GL_ES2_RGB565   0x8D62
+#define GL_ES2_DEPTH_COMPONENT 0x1902 /* This is from GL_OES_depth_texture, which we don't support, but we use it for glReadPixels. */
 #define GL_ES2_DEPTH_COMPONENT16 0x81A5
 #define GL_ES2_DEPTH_COMPONENT24 0x81A6
 #define GL_ES2_DEPTH_COMPONENT32 0x81A7 /* GL_OES_depth32; not in OpenGL ES 2.0/3.0 but happens to be one we support */

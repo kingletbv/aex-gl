@@ -2224,10 +2224,10 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(DeleteRenderbu
     uintptr_t rb_name = renderbuffers[k];
     /* silently ignore 0's */
     if (rb_name) {
-      int is_allocated = ref_range_get_ref_at(&c->framebuffer_rra_, rb_name);
+      int is_allocated = ref_range_get_ref_at(&c->renderbuffer_rra_, rb_name);
       if (is_allocated) {
         struct gl_es2_renderbuffer *rb = NULL;
-        rb = (struct gl_es2_renderbuffer *)not_find(&c->framebuffer_not_, rb_name);
+        rb = (struct gl_es2_renderbuffer *)not_find(&c->renderbuffer_not_, rb_name);
         if (rb) {
           /* renderbuffer was bound & created before; release and free it */
           if (rb == c->renderbuffer_) {
@@ -5393,6 +5393,142 @@ GL_ES2_DECL_SPEC void GL_ES2_DECLARATOR_ATTRIB GL_ES2_FUNCTION_ID(ReadPixels)(gl
     return;
   }
 
+  if ((format == GL_ES2_DEPTH_COMPONENT) &&
+      !((type == GL_ES2_UNSIGNED_SHORT) || (type == GL_ES2_UNSIGNED_INT))) {
+    set_gl_err(GL_ES2_INVALID_OPERATION);
+    gl_es2_log_ReadPixels(c, x, y, width, height, format, type, pixels);
+    gl_es2_ctx_release(c);
+    return;
+  }
+  else if (format == GL_ES2_DEPTH_COMPONENT) {
+    /* Depth buffer access to either 16 bit or 32 bit destination, handle directly as special case
+     * Note that this is not an officially supported use case of glReadPixels() but something we really
+     * want to get at for debugging purposes instead. */
+    void *db_data = NULL;
+    size_t db_stride = 0;
+
+    gl_es2_framebuffer_attachment_raw_ptr(&c->framebuffer_->depth_attachment_, &db_data, &db_stride);
+
+    int bottom_row = gl_es2_framebuffer_get_bitmap_row_num(c->framebuffer_, y);
+
+    /* framebuffer pointer to last row, stride negative (so increasing Y goes back in memory) */
+    void *db_data_bottom_left = ((char *)db_data) + ((size_t)(height - 1)) * db_stride;
+    size_t db_stride_going_up = (size_t)-(intptr_t)db_stride; /* two's complement, this'll work, cast to prevent signed/unsigned warnings on - */
+
+    int num_src_bytes = 0;
+    int num_dst_bytes = 0;
+    switch (c->framebuffer_->depth_attachment_.kind_) {
+      case gl_es2_faot_renderbuffer:
+        switch (c->framebuffer_->depth_attachment_.v_.rb_->format_) {
+          case gl_es2_renderbuffer_format_depth16:
+            num_src_bytes = 2;
+            break;
+          case gl_es2_renderbuffer_format_depth32:
+            num_src_bytes = 4;
+            break;
+        }
+        break;
+      case gl_es2_faot_texture: {
+        struct sampler_2d *s2d = NULL;
+        switch (c->framebuffer_->depth_attachment_.v_.tex_->kind_) {
+          case gl_es2_texture_2d:
+            s2d = &c->framebuffer_->depth_attachment_.v_.tex_->texture_2d_;
+            break;
+          case gl_es2_texture_cube_map:
+            s2d = c->framebuffer_->depth_attachment_.v_.tex_->texture_cube_maps_ + c->framebuffer_->depth_attachment_.cube_map_face_;
+            break;
+        }
+        if (!s2d || (c->framebuffer_->depth_attachment_.level_ >= s2d->num_maps_)) {
+          set_gl_err(GL_ES2_INVALID_OPERATION);
+          gl_es2_log_ReadPixels(c, x, y, width, height, format, type, pixels);
+          gl_es2_ctx_release(c);
+          return;
+        }
+        /* XXX: Implementing GL_OES_depth_texture would define an additional component type here...
+         *      ... for now we just accept the component we find. */
+        switch (s2d->mipmaps_[c->framebuffer_->depth_attachment_.level_].components_) {
+          case s2d_alpha:
+          case s2d_luminance:
+            num_src_bytes = 1;
+            break;
+          case s2d_luminance_alpha:
+            num_src_bytes = 2;
+            break;
+          case s2d_rgb:
+            num_src_bytes = 3;
+            break;
+          case s2d_rgba:
+            num_src_bytes = 4;
+            break;
+        }
+        break;
+      }
+    }
+    switch (type) {
+      case GL_ES2_UNSIGNED_BYTE:
+        num_dst_bytes = 1;
+        break;
+      case GL_ES2_UNSIGNED_SHORT:
+        num_dst_bytes = 2;
+        break;
+      case GL_ES2_UNSIGNED_INT:
+        num_dst_bytes = 4;
+        break;
+    }
+    uint8_t *src_ptr = (uint8_t *)db_data_bottom_left;
+    uint8_t *dst_ptr = (uint8_t *)pixels;
+    size_t dst_stride = ((width * num_dst_bytes) + (size_t)c->pack_alignment_ - 1) & ~(((size_t)c->pack_alignment_) - 1);
+    size_t row, col;
+    for (row = 0; row < height; ++row) {
+      uint8_t *start_of_row_dst_ptr = dst_ptr;
+      uint8_t *start_of_row_src_ptr = src_ptr;
+      for (col = 0; col < width; ++col) {
+        uint32_t v;
+        switch (num_src_bytes) {
+          case 1:
+            v = *src_ptr++;
+            v |= v << 8;
+            v |= v << 16;
+            break;
+          case 2:
+            v = *(uint16_t *)src_ptr;
+            src_ptr += 2;
+            v |= v << 16;
+            break;
+          case 3:
+            /* go big endian for 24 bit depth buffer */
+            v = (((uint32_t)src_ptr[0]) << 16)
+              | (((uint32_t)src_ptr[1]) << 8)
+              |  ((uint32_t)src_ptr[2]);
+            src_ptr += 3;
+            v = (v << 8) | (v >> 16);
+            break;
+          case 4:
+            v = *(uint32_t *)src_ptr;
+            src_ptr += 4;
+            break;
+        }
+        switch (type) {
+          case GL_ES2_UNSIGNED_BYTE:
+            *(uint8_t *)dst_ptr = (uint8_t)(v >> 24);
+            break;
+          case GL_ES2_UNSIGNED_SHORT:
+            *(uint16_t *)dst_ptr = (uint16_t)(v >> 16);
+            dst_ptr += 2;
+            break;
+          case GL_ES2_UNSIGNED_INT:
+            *(uint32_t *)dst_ptr = v;
+            dst_ptr += 4;
+            break;
+        }
+      }
+      dst_ptr = start_of_row_dst_ptr + dst_stride;
+      src_ptr = start_of_row_src_ptr + db_stride_going_up;
+    }
+    gl_es2_log_ReadPixels(c, x, y, width, height, format, type, pixels);
+    gl_es2_ctx_release(c);
+    return;
+  }
   size_t bytes_per_pixel = 0;
   enum blitter_format blit_dst_format;
   switch (type) {
