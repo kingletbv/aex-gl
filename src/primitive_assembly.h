@@ -25,6 +25,11 @@
 #include "blend.h"
 #endif
 
+#ifndef RASTERIZER_H_INCLUDED
+#define RASTERIZER_H_INCLUDED
+#include "rasterizer.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -128,6 +133,7 @@ struct primitive_assembly {
   struct sl_variable *vgl_Position_;
   struct sl_function *vmain_;
   struct sl_variable *fgl_FragCoord_;
+  rasterizer_early_zbuf_func_t early_z_zbuf_func_;
   float *v0_, *v1_, *v2_;
   int32_t offset_factor_f8_, offset_units_f8_;
   int32_t sx0_, sy0_, sz0_, sx1_, sy1_, sz1_, sx2_, sy2_, sz2_;

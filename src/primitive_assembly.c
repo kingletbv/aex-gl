@@ -112,7 +112,7 @@
  * and then execute the framebuffer. Set to zero to bundle up all fragments for multiple triangles
  * together for best efficiency. The former is useful for debugging. The latter is better for
  * performance. */
-#define EMIT_TRIANGLE_BY_TRIANGLE 1
+#define EMIT_TRIANGLE_BY_TRIANGLE 0
 
 void primitive_assembly_init(struct primitive_assembly *pa) {
   pa->num_rows_ = 0;
@@ -1298,11 +1298,13 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
   size_t line_seg_tri_index = 0;
   int line_dimension = 0;
   int orientation = 0;
+  rasterizer_early_zbuf_func_t early_z_zbuf_func = REZF_ALWAYS;
 
   if (pa->continue_from_fragments_) {
     vgl_Position = pa->vgl_Position_;
     vmain = pa->vmain_;
     fgl_FragCoord = pa->fgl_FragCoord_;
+    early_z_zbuf_func = pa->early_z_zbuf_func_;
     v0 = pa->v0_;
     v1 = pa->v1_;
     v2 = pa->v2_;
@@ -2134,7 +2136,6 @@ int primitive_assembly_process_primitives(struct primitive_assembly *pa,
                 prior_num_rows_in_fragbuf = fragbuf->num_rows_;
 
 
-                rasterizer_early_zbuf_func_t early_z_zbuf_func = REZF_ALWAYS;
                 if (enable_zbuf_test && !enable_stencil_test) {
                   switch (zbuf_func) {
                     case PAZF_LESS:
@@ -2267,6 +2268,7 @@ return_for_continuation:
   pa->vgl_Position_ = vgl_Position;
   pa->vmain_ = vmain;
   pa->fgl_FragCoord_ = fgl_FragCoord;
+  pa->early_z_zbuf_func_ = early_z_zbuf_func;
   pa->v0_ = v0;
   pa->v1_ = v1;
   pa->v2_ = v2;
