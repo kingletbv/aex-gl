@@ -1807,25 +1807,66 @@ void gl_es2_log_Hint(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum m
   }
 }
 
+static void print_bool_semicolon_lf(struct gl_es2_context *c, gl_es2_boolean b) {
+  if (b == GL_ES2_TRUE) apilog(c, "GL_TRUE;\n");
+  else if (b == GL_ES2_FALSE) apilog(c, "GL_FALSE;\n");
+  else apilog(c, "0x%X;\n", b);
+}
+
 void gl_es2_log_IsBuffer(struct gl_es2_context *c, gl_es2_uint buffer, gl_es2_boolean is_it_a_buffer) {
+  apilog(c, "glIsBuffer(%u) = ", buffer);
+  print_bool_semicolon_lf(c, is_it_a_buffer);
+}
+
+static const char *enabled_cap(gl_es2_enum cap) {
+  switch (cap) {
+    case GL_ES2_BLEND: return "GL_BLEND";
+    case GL_ES2_CULL_FACE: return "GL_CULL_FACE";
+    case GL_ES2_DEPTH_TEST: return "GL_DEPTH_TEST";
+    case GL_ES2_DITHER: return "GL_DITHER";
+    case GL_ES2_POLYGON_OFFSET_FILL: return "GL_POLYGON_OFFSET_FILL";
+    case GL_ES2_SAMPLE_ALPHA_TO_COVERAGE: return "GL_SAMPLE_ALPHA_TO_COVERAGE";
+    case GL_ES2_SAMPLE_COVERAGE: return "GL_SAMPLE_COVERAGE";
+    case GL_ES2_SCISSOR_TEST: return "GL_SCISSOR_TEST";
+    case GL_ES2_STENCIL_TEST: return "GL_STENCIL_TEST";
+    default: return NULL;
+  }
 }
 
 void gl_es2_log_IsEnabled(struct gl_es2_context *c, gl_es2_enum cap, gl_es2_boolean is_it_enabled) {
+  const char *mcap = enabled_cap(cap);
+  if (mcap) {
+    apilog(c, "glIsEnabled(%s) = ", mcap);
+  }
+  else {
+    apilog(c, "glIsEnabled(0x%04X) = ", cap);
+  }
+  print_bool_semicolon_lf(c, is_it_enabled);
 }
 
 void gl_es2_log_IsFramebuffer(struct gl_es2_context *c, gl_es2_uint framebuffer, gl_es2_boolean is_it_a_framebuffer) {
+  apilog(c, "glIsFramebuffer(%u) = ", framebuffer);
+  print_bool_semicolon_lf(c, is_it_a_framebuffer);
 }
 
 void gl_es2_log_IsProgram(struct gl_es2_context *c, gl_es2_uint program, gl_es2_boolean is_it_a_program) {
+  apilog(c, "glIsProgram(%u) = ", program);
+  print_bool_semicolon_lf(c, is_it_a_program);
 }
 
 void gl_es2_log_IsRenderbuffer(struct gl_es2_context *c, gl_es2_uint renderbuffer, gl_es2_boolean is_it_a_renderbuffer) {
+  apilog(c, "glIsRenderbuffer(%u) = ", renderbuffer);
+  print_bool_semicolon_lf(c, is_it_a_renderbuffer);
 }
 
 void gl_es2_log_IsShader(struct gl_es2_context *c, gl_es2_uint shader, gl_es2_boolean is_it_a_shader) {
+  apilog(c, "glIsShader(%u) = ", shader);
+  print_bool_semicolon_lf(c, is_it_a_shader);
 }
 
 void gl_es2_log_IsTexture(struct gl_es2_context *c, gl_es2_uint texture, gl_es2_boolean is_it_a_texture) {
+  apilog(c, "glIsTexture(%u) = ", texture);
+  print_bool_semicolon_lf(c, is_it_a_texture);
 }
 
 void gl_es2_log_LineWidth(struct gl_es2_context *c, gl_es2_float width) { 
