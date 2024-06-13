@@ -1706,18 +1706,105 @@ void gl_es2_log_GetUniformiv(struct gl_es2_context *c, gl_es2_uint program, gl_e
 }
 
 void gl_es2_log_GetUniformLocation(struct gl_es2_context *c, gl_es2_uint program, const gl_es2_char *name, gl_es2_int uniform_location_returned) {
+  if (name) {
+    apilog(c, "glGetUniformLocation(%u, \"%s\") = %d;\n", program, name, uniform_location_returned);
+  }
+  else {
+    apilog(c, "glGetUniformLocation(%u, NULL) = %d;\n", program, uniform_location_returned);
+  }
+}
+
+static const char *vertex_attrib_pname(gl_es2_enum pname) {
+  switch (pname) {
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
+      return "GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING";
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_ENABLED:
+      return "GL_VERTEX_ATTRIB_ARRAY_ENABLED";
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_SIZE:
+      return "GL_VERTEX_ATTRIB_ARRAY_SIZE";
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_STRIDE:
+      return "GL_VERTEX_ATTRIB_ARRAY_STRIDE";
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_TYPE:
+      return "GL_VERTEX_ATTRIB_ARRAY_TYPE";
+    case GL_ES2_VERTEX_ATTRIB_ARRAY_NORMALIZED:
+      return "GL_VERTEX_ATTRIB_ARRAY_NORMALIZED";
+    case GL_ES2_CURRENT_VERTEX_ATTRIB:
+      return "GL_CURRENT_VERTEX_ATTRIB";
+    default:
+      return NULL;
+  }
 }
 
 void gl_es2_log_GetVertexAttribfv(struct gl_es2_context *c, gl_es2_uint index, gl_es2_enum pname, gl_es2_float *params) { 
+  const char *mpname = vertex_attrib_pname(pname);
+  if (mpname) {
+    apilog(c, "glGetVertexAttribfv(%u, %s, ", index, mpname);
+  }
+  else {
+    apilog(c, "glGetVertexAttribfv(%u, 0x%04X, ", index, pname);
+  }
+  if (params && (pname == GL_ES2_CURRENT_VERTEX_ATTRIB)) {
+    apilog(c, "{ %f, %f, %f, %f });\n", params[0], params[1], params[2], params[3]);
+  }
+  else if (params) {
+    apilog(c, "{ %f });\n", *params);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_GetVertexAttribiv(struct gl_es2_context *c, gl_es2_uint index, gl_es2_enum pname, gl_es2_int *params) { 
+  const char *mpname = vertex_attrib_pname(pname);
+  if (mpname) {
+    apilog(c, "glGetVertexAttribiv(%u, %s, ", index, mpname);
+  }
+  else {
+    apilog(c, "glGetVertexAttribiv(%u, 0x%04X, ", index, pname);
+  }
+  if (params && (pname == GL_ES2_CURRENT_VERTEX_ATTRIB)) {
+    apilog(c, "{ %d, %d, %d, %d });\n", params[0], params[1], params[2], params[3]);
+  }
+  else if (params) {
+    apilog(c, "{ %d });\n", *params);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_GetVertexAttribPointerv(struct gl_es2_context *c, gl_es2_uint index, gl_es2_enum pname, void **pointer) { 
+  if (pname == GL_ES2_VERTEX_ATTRIB_ARRAY_POINTER) {
+    apilog(c, "glGetVertexAttribPointerv(%u, GL_VERTEX_ATTRIB_ARRAY_POINTER, ", index);
+  }
+  else {
+    apilog(c, "glGetVertexAttribPointerv(%u, 0x%04X, ", index, pname);
+  }
+  if (pointer) {
+    if (*pointer) {
+      apilog(c, "{ 0x%p });\n", *pointer);
+    }
+    else {
+      apilog(c, "{ NULL });\n");
+    }
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
-void gl_es2_log_Hint(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum mode) { 
+void gl_es2_log_Hint(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum mode) {
+  if (target == GL_ES2_GENERATE_MIPMAP_HINT) {
+    switch (mode) {
+      case GL_ES2_FASTEST: apilog(c, "glHint(GL_GENERATE_MIPMAP_HINT, GL_FASTEST);\n"); return;
+      case GL_ES2_NICEST:  apilog(c, "glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);\n"); return;
+      case GL_ES2_DONT_CARE: apilog(c, "glHint(GL_GENERATE_MIPMAP_HINT, GL_DONT_CARE);\n"); return;
+      default: apilog(c, "glHint(GL_GENERATE_MIPMAP_HINT, 0x%04X);\n", mode); return;
+    }
+  }
+  else {
+    apilog(c, "glHint(0x%04X, 0x%04X);\n", target, mode);
+  }
 }
 
 void gl_es2_log_IsBuffer(struct gl_es2_context *c, gl_es2_uint buffer, gl_es2_boolean is_it_a_buffer) {
