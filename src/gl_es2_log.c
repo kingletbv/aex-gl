@@ -1528,9 +1528,181 @@ void gl_es2_log_GetTexParameteriv(struct gl_es2_context *c, gl_es2_enum target, 
 }
 
 void gl_es2_log_GetUniformfv(struct gl_es2_context *c, gl_es2_uint program, gl_es2_int location, gl_es2_float *params) { 
+  /* Replicate a bunch of what the API does for logging purposes as we have to get to the type of the uniform
+   * if we're to log it accurately. */
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    apilog(c, "glGetUniformfv(%u /* invalid */, %d, ", program, location);
+    if (params) {
+      apilog(c, "0x%p {..});\n", params);
+    }
+    else {
+      apilog(c, "NULL);\n");
+    }
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    apilog(c, "glGetUniformfv(%u /* program not linked */, %d, ", program, location);
+    if (params) {
+      apilog(c, "0x%p {..});\n", params);
+    }
+    else {
+      apilog(c, "NULL);\n");
+    }
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r) {
+    apilog(c, "glGetUniformfv(%u, %d /* failed to get location */, ", program, location);
+    if (params) {
+      apilog(c, "0x%p {..});\n", params);
+    }
+    else {
+      apilog(c, "NULL);\n");
+    }
+    return;
+  }
+  if (!params) {
+    apilog(c, "glGetUniformfv(%u, %d, NULL);\n", program, location);
+    return;
+  }
+  int cardinality;
+  switch (slrak) {
+    case slrak_float:
+    case slrak_int:
+    case slrak_bool:
+    case slrak_sampler2D:
+    case slrak_samplerCube:
+      cardinality = 1;
+      break;
+    case slrak_vec2:
+    case slrak_bvec2:
+    case slrak_ivec2:
+      cardinality = 2;
+      break;
+    case slrak_vec3:
+    case slrak_bvec3:
+    case slrak_ivec3:
+      cardinality = 3;
+      break;
+    case slrak_vec4:
+    case slrak_bvec4:
+    case slrak_ivec4:
+      cardinality = 4;
+      break;
+    case slrak_mat2:
+      cardinality = 4;
+      break;
+    case slrak_mat3:
+      cardinality = 9;
+      break;
+    case slrak_mat4:
+      cardinality = 16;
+      break;
+    default:
+      apilog(c, "glGetUniformfv(%u, %d /* failed to get location */, 0x%p {..});\n", program, location, params);
+      return;
+  }
+  apilog(c, "glGetUniformfv(%u, %d, 0x%p { ", program, location, params);
+  int k;
+  for (k = 0; k < cardinality; ++k) {
+    apilog(c, "%s%f", k ? ", " : "", params[k]);
+  }
+  apilog(c, " });\n");
 }
 
 void gl_es2_log_GetUniformiv(struct gl_es2_context *c, gl_es2_uint program, gl_es2_int location, gl_es2_int *params) { 
+  /* Replicate a bunch of what the API does for logging purposes as we have to get to the type of the uniform
+   * if we're to log it accurately. */
+  uintptr_t prog_name = (uintptr_t)program;
+  struct gl_es2_program *prog = (struct gl_es2_program *)not_find(&c->program_not_, prog_name);
+  if (!prog) {
+    apilog(c, "glGetUniformiv(%u /* invalid */, %d, ", program, location);
+    if (params) {
+      apilog(c, "0x%p {..});\n", params);
+    }
+    else {
+      apilog(c, "NULL);\n");
+    }
+    return;
+  }
+  if (!prog->program_.gl_last_link_status_) {
+    /* program has not been successfully linked */
+    apilog(c, "glGetUniformiv(%u /* program not linked */, %d, ", program, location);
+    if (params) {
+      apilog(c, "0x%p {..});\n", params);
+    }
+    else {
+      apilog(c, "NULL);\n");
+    }
+    return;
+  }
+  int r;
+  void *mem = NULL;
+  sl_reg_alloc_kind_t slrak = slrak_void;
+  r = sl_uniform_get_location_info(&prog->program_.uniforms_, location, &mem, &slrak, NULL, NULL, NULL, NULL);
+  if (r) {
+    apilog(c, "glGetUniformiv(%u, %d /* failed to get location */, ", program, location);
+    if (params) {
+      apilog(c, "0x%p {..});\n", params);
+    }
+    else {
+      apilog(c, "NULL);\n");
+    }
+    return;
+  }
+  if (!params) {
+    apilog(c, "glGetUniformiv(%u, %d, NULL);\n", program, location);
+    return;
+  }
+  int cardinality;
+  switch (slrak) {
+    case slrak_float:
+    case slrak_int:
+    case slrak_bool:
+    case slrak_sampler2D:
+    case slrak_samplerCube:
+      cardinality = 1;
+      break;
+    case slrak_vec2:
+    case slrak_bvec2:
+    case slrak_ivec2:
+      cardinality = 2;
+      break;
+    case slrak_vec3:
+    case slrak_bvec3:
+    case slrak_ivec3:
+      cardinality = 3;
+      break;
+    case slrak_vec4:
+    case slrak_bvec4:
+    case slrak_ivec4:
+      cardinality = 4;
+      break;
+    case slrak_mat2:
+      cardinality = 4;
+      break;
+    case slrak_mat3:
+      cardinality = 9;
+      break;
+    case slrak_mat4:
+      cardinality = 16;
+      break;
+    default:
+      apilog(c, "glGetUniformiv(%u, %d /* failed to get location */, 0x%p {..});\n", program, location, params);
+      return;
+  }
+  apilog(c, "glGetUniformiv(%u, %d, 0x%p { ", program, location, params);
+  int k;
+  for (k = 0; k < cardinality; ++k) {
+    apilog(c, "%s%d", k ? ", " : "", params[k]);
+  }
+  apilog(c, " });\n");
 }
 
 void gl_es2_log_GetUniformLocation(struct gl_es2_context *c, gl_es2_uint program, const gl_es2_char *name, gl_es2_int uniform_location_returned) {
