@@ -1870,30 +1870,98 @@ void gl_es2_log_IsTexture(struct gl_es2_context *c, gl_es2_uint texture, gl_es2_
 }
 
 void gl_es2_log_LineWidth(struct gl_es2_context *c, gl_es2_float width) { 
+  apilog(c, "glLineWidth(%f);\n", width);
 }
 
 void gl_es2_log_LinkProgram(struct gl_es2_context *c, gl_es2_uint program) { 
+  apilog(c, "glLinkProgram(%u);\n", program);
 }
 
 void gl_es2_log_PixelStorei(struct gl_es2_context *c, gl_es2_enum pname, gl_es2_int param) { 
+  switch (pname) {
+    case GL_ES2_PACK_ALIGNMENT:
+      apilog(c, "glPixelStorei(GL_PACK_ALIGNMENT, %d);\n", param);
+      break;
+    case GL_ES2_UNPACK_ALIGNMENT:
+      apilog(c, "glPixelStorei(GL_UNPACK_ALIGNMENT, %d);\n", param);
+      break;
+    default:
+      apilog(c, "glPixelStorei(0x%04X, %d);\n", pname, param);
+      break;
+  }
 }
 
-void gl_es2_log_PolygonOffset(struct gl_es2_context *c, gl_es2_float factor, gl_es2_float units) { 
+void gl_es2_log_PolygonOffset(struct gl_es2_context *c, gl_es2_float factor, gl_es2_float units) {
+  apilog(c, "glPolygonOffset(%f, %f);\n", factor, units);
 }
 
 void gl_es2_log_ReadPixels(struct gl_es2_context *c, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height, gl_es2_enum format, gl_es2_enum type, void *pixels) { 
+  apilog(c, "glReadPixels(%d, %d, %d, %d, ", x, y, width, height);
+  switch (format) {
+    case GL_ES2_ALPHA: apilog(c, "GL_ALPHA"); break;
+    case GL_ES2_RGB: apilog(c, "GL_RGB"); break;
+    case GL_ES2_RGBA: apilog(c, "GL_RGBA"); break;
+    case GL_ES2_DEPTH_COMPONENT: apilog(c, "GL_DEPTH_COMPONENT /* non-standard Aex-GL extension */"); break;
+    default:
+      apilog(c, "0x%04X", format);
+      break;
+  }
+  const char *mtype = tex_type(type);
+  if (mtype) {
+    apilog(c, ", %s, ", mtype);
+  }
+  else {
+    apilog(c, ", 0x%04X, ", type);
+  }
+  if (pixels) {
+    apilog(c, "0x%p);\n", pixels);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_ReleaseShaderCompiler(struct gl_es2_context *c) { 
+  apilog(c, "glReleaseShaderCompiler();\n");
 }
 
 void gl_es2_log_RenderbufferStorage(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum internalformat, gl_es2_sizei width, gl_es2_sizei height) { 
+  if (target == GL_ES2_RENDERBUFFER) {
+    apilog(c, "glRenderbufferStorage(GL_RENDERBUFFER, ");
+  }
+  else {
+    apilog(c, "glRenderbufferStorage(0x%04X, ", target);
+  }
+  switch (internalformat) {
+    case GL_ES2_RGBA4: apilog(c, "GL_RGBA4, "); break;
+    case GL_ES2_RGBA8: apilog(c, "GL_RGBA8, "); break;
+    case GL_ES2_RGB565: apilog(c, "GL_RGB565, "); break;
+    case GL_ES2_RGBA5_A1: apilog(c, "GL_RGB5_A1, "); break;
+    case GL_ES2_DEPTH_COMPONENT16: apilog(c, "GL_DEPTH_COMPONENT16, "); break;
+    case GL_ES2_DEPTH_COMPONENT32: apilog(c, "GL_OES_depth32, "); break;
+    case GL_ES2_STENCIL_INDEX8: apilog(c, "GL_STENCIL_INDEX8, "); break;
+    case GL_ES2_STENCIL_INDEX16: apilog(c, "GL_STENCIL_INDEX16, "); break;
+    default:
+      apilog(c, "0x%04X, ", internalformat);
+      break;
+  }
+  apilog(c, "%d, %d);\n", width, height);
 }
 
 void gl_es2_log_SampleCoverage(struct gl_es2_context *c, gl_es2_float value, gl_es2_boolean invert) { 
+  if (invert == GL_ES2_TRUE) {
+    apilog(c, "glSampleCoverage(%f, GL_TRUE);\n", value);
+  }
+  else if (invert == GL_ES2_FALSE) {
+    apilog(c, "glSampleCoverage(%f, GL_FALSE);\n", value);
+  }
+  else {
+    apilog(c, "glSampleCoverage(%f, 0x%X);\n", value, invert);
+  }
 }
 
 void gl_es2_log_Scissor(struct gl_es2_context *c, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) { 
+  apilog(c, "glScissor(%d, %d, %d, %d);\n", x, y, width, height);
 }
 
 void gl_es2_log_ShaderBinary(struct gl_es2_context *c, gl_es2_sizei count, const gl_es2_uint *shaders, gl_es2_enum binaryformat, const void *binary, gl_es2_sizei length) { 
