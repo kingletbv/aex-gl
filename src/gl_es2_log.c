@@ -1965,27 +1965,173 @@ void gl_es2_log_Scissor(struct gl_es2_context *c, gl_es2_int x, gl_es2_int y, gl
 }
 
 void gl_es2_log_ShaderBinary(struct gl_es2_context *c, gl_es2_sizei count, const gl_es2_uint *shaders, gl_es2_enum binaryformat, const void *binary, gl_es2_sizei length) { 
+  if (shaders) {
+    apilog(c, "glShaderBinary(%d, { ");
+    int n;
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%u", n ? ", " : "", shaders[n]);
+    }
+    apilog(c, " }, 0x%04X, ", binaryformat);
+  }
+  else {
+    apilog(c, "glShaderBinary(%d, NULL, 0x%04X, ", count, binaryformat);
+  }
+
+  if (binary) {
+    apilog(c, "0x%p, %d);\n", binary, length);
+  }
+  else {
+    apilog(c, "NULL, %d);\n", length);
+  }
 }
 
 void gl_es2_log_ShaderSource(struct gl_es2_context *c, gl_es2_uint shader, gl_es2_sizei count, const gl_es2_char *const *string, const gl_es2_int *length) { 
+  apilog(c, "glShaderSource(%u, %d, ", shader, count);
+  if (string) {
+    int n;
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      if (string[n]) {
+        /* shader source is too large to appear in a log file so skip doing that and just log the pointer */
+        apilog(c, "%s0x%p", n ? ", " : "", string[n]);
+      }
+      else {
+        apilog(c, "%sNULL", n ? ", " : "");
+      }
+    }
+    apilog(c, " }, ");
+  }
+  if (length) {
+    apilog(c, "{ %d });\n", *length);
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
+}
+
+static const char *stencil_func(gl_es2_enum func) {
+  switch (func) {
+    case GL_ES2_NEVER: return "GL_NEVER";
+    case GL_ES2_LESS: return "GL_LESS";
+    case GL_ES2_LEQUAL: return "GL_LEQUAL";
+    case GL_ES2_GREATER: return "GL_GREATER";
+    case GL_ES2_GEQUAL: return "GL_GEQUAL";
+    case GL_ES2_EQUAL: return "GL_EQUAL";
+    case GL_ES2_NOTEQUAL: return "GL_NOTEQUAL";
+    case GL_ES2_ALWAYS: return "GL_ALWAYS";
+    default: return NULL;
+  }
 }
 
 void gl_es2_log_StencilFunc(struct gl_es2_context *c, gl_es2_enum func, gl_es2_int ref, gl_es2_uint mask) { 
+  const char *mfunc = stencil_func(func);
+  if (mfunc) {
+    apilog(c, "glStencilFunc(%s, 0x%04X, 0x%04X);\n", mfunc, ref, mask);
+  }
+  else {
+    apilog(c, "glStencilFunc(0x%04X, 0x%04X, 0x%04X);\n", func, ref, mask);
+  }
 }
 
 void gl_es2_log_StencilFuncSeparate(struct gl_es2_context *c, gl_es2_enum face, gl_es2_enum func, gl_es2_int ref, gl_es2_uint mask) { 
+  const char *mface = cull_face_mode(face);
+  if (mface) {
+    apilog(c, "glStencilFuncSeparate(%s, ", mface);
+  }
+  else {
+    apilog(c, "glStencilFuncSeparate(0x%04X, ", face);
+  }
+  const char *mfunc = stencil_func(func);
+  if (mfunc) {
+    apilog(c, "%s, 0x%04X, 0x%04X);\n", mfunc, ref, mask);
+  }
+  else {
+    apilog(c, "0x%04X, 0x%04X, 0x%04X);\n", func, ref, mask);
+  }
 }
 
 void gl_es2_log_StencilMask(struct gl_es2_context *c, gl_es2_uint mask) { 
+  apilog(c, "glStencilMask(0x%04X);\n", mask);
 }
 
 void gl_es2_log_StencilMaskSeparate(struct gl_es2_context *c, gl_es2_enum face, gl_es2_uint mask) { 
+  const char *mface = cull_face_mode(face);
+  if (mface) {
+    apilog(c, "glStencilMaskSeparate(%s, 0x%04X);\n", mface, mask);
+  }
+  else {
+    apilog(c, "glStencilMaskSeparate(0x%04X, 0x%04X);\n", face, mask);
+  }
 }
 
-void gl_es2_log_StencilOp(struct gl_es2_context *c, gl_es2_enum fail, gl_es2_enum zfail, gl_es2_enum zpass) { 
+static const char *stencil_op(gl_es2_enum op) {
+  switch (op) {
+    case GL_ES2_KEEP: return "GL_KEEP";
+    case GL_ES2_ZERO: return "GL_ZERO";
+    case GL_ES2_REPLACE: return "GL_REPLACE";
+    case GL_ES2_INCR: return "GL_INCR";
+    case GL_ES2_INCR_WRAP: return "GL_INCR_WRAP";
+    case GL_ES2_DECR: return "GL_DECR";
+    case GL_ES2_DECR_WRAP: return "GL_DECR_WRAP";
+    case GL_ES2_INVERT: return "GL_INVERT";
+    default:
+      return NULL;
+  }
 }
 
-void gl_es2_log_StencilOpSeparate(struct gl_es2_context *c, gl_es2_enum face, gl_es2_enum sfail, gl_es2_enum dpfail, gl_es2_enum dppass) { 
+void gl_es2_log_StencilOp(struct gl_es2_context *c, gl_es2_enum sfail, gl_es2_enum zfail, gl_es2_enum zpass) { 
+  const char *msfail = stencil_op(sfail);
+  const char *mzfail = stencil_op(zfail);
+  const char *mzpass = stencil_op(zpass);
+  if (msfail) {
+    apilog(c, "glStencilOp(%s, ", msfail);
+  }
+  else {
+    apilog(c, "glStencilOp(0x%04X, ", sfail);
+  }
+  if (mzfail) {
+    apilog(c, "%s, ", mzfail);
+  }
+  else {
+    apilog(c, "0x%04X, ", zfail);
+  }
+  if (mzpass) {
+    apilog(c, "%s);\n", mzpass);
+  }
+  else {
+    apilog(c, "0x%04X);\n", zpass);
+  }
+}
+
+void gl_es2_log_StencilOpSeparate(struct gl_es2_context *c, gl_es2_enum face, gl_es2_enum sfail, gl_es2_enum zfail, gl_es2_enum zpass) { 
+  const char *msfail = stencil_op(sfail);
+  const char *mzfail = stencil_op(zfail);
+  const char *mzpass = stencil_op(zpass);
+  const char *mface = cull_face_mode(face);
+  if (mface) {
+    apilog(c, "glStencilOpSeparate(%s, ", mface);
+  }
+  else {
+    apilog(c, "glStencilOpSeparate(0x%04X, ", face);
+  }
+  if (msfail) {
+    apilog(c, "%s, ", msfail);
+  }
+  else {
+    apilog(c, "0x%04X, ", sfail);
+  }
+  if (mzfail) {
+    apilog(c, "%s, ", mzfail);
+  }
+  else {
+    apilog(c, "0x%04X, ", zfail);
+  }
+  if (mzpass) {
+    apilog(c, "%s);\n", mzpass);
+  }
+  else {
+    apilog(c, "0x%04X);\n", zpass);
+  }
 }
 
 void gl_es2_log_TexImage2D(struct gl_es2_context *c, gl_es2_enum target, gl_es2_int level, gl_es2_int internalformat, gl_es2_sizei width, gl_es2_sizei height, gl_es2_int border, gl_es2_enum format, gl_es2_enum type, const void *pixels) { 
