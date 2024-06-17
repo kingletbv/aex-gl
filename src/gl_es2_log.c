@@ -1470,7 +1470,7 @@ void gl_es2_log_GetTexParameterfv(struct gl_es2_context *c, gl_es2_enum target, 
   }
   else if ((pname == GL_ES2_TEXTURE_MIN_FILTER) || (pname == GL_ES2_TEXTURE_MAG_FILTER)) {
     if ((*params) == (float)GL_ES2_NEAREST) apilog(c, "{ GL_NEAREST });\n");
-    else if ((*params) == (float)GL_ES2_LINEAR) apilog(c, "{ GL_NEAREST });\n");
+    else if ((*params) == (float)GL_ES2_LINEAR) apilog(c, "{ GL_LINEAR });\n");
     else if ((*params) == (float)GL_ES2_NEAREST_MIPMAP_NEAREST) apilog(c, "{ GL_NEAREST_MIPMAP_NEAREST });\n");
     else if ((*params) == (float)GL_ES2_LINEAR_MIPMAP_NEAREST) apilog(c, "{ GL_LINEAR_MIPMAP_NEAREST });\n");
     else if ((*params) == (float)GL_ES2_LINEAR_MIPMAP_LINEAR) apilog(c, "{ GL_LINEAR_MIPMAP_LINEAR });\n");
@@ -1510,7 +1510,7 @@ void gl_es2_log_GetTexParameteriv(struct gl_es2_context *c, gl_es2_enum target, 
   }
   else if ((pname == GL_ES2_TEXTURE_MIN_FILTER) || (pname == GL_ES2_TEXTURE_MAG_FILTER)) {
     if ((*params) == GL_ES2_NEAREST) apilog(c, "{ GL_NEAREST });\n");
-    else if ((*params) == GL_ES2_LINEAR) apilog(c, "{ GL_NEAREST });\n");
+    else if ((*params) == GL_ES2_LINEAR) apilog(c, "{ GL_LINEAR });\n");
     else if ((*params) == GL_ES2_NEAREST_MIPMAP_NEAREST) apilog(c, "{ GL_NEAREST_MIPMAP_NEAREST });\n");
     else if ((*params) == GL_ES2_LINEAR_MIPMAP_NEAREST) apilog(c, "{ GL_LINEAR_MIPMAP_NEAREST });\n");
     else if ((*params) == GL_ES2_LINEAR_MIPMAP_LINEAR) apilog(c, "{ GL_LINEAR_MIPMAP_LINEAR });\n");
@@ -2173,16 +2173,182 @@ void gl_es2_log_TexImage2D(struct gl_es2_context *c, gl_es2_enum target, gl_es2_
   }
 }
 
+static const char *tp_tex_target(gl_es2_enum tgt) {
+  switch (tgt) {
+    case GL_ES2_TEXTURE_2D: return "GL_TEXTURE_2D";
+    case GL_ES2_TEXTURE_CUBE_MAP: return "GL_TEXTURE_CUBE_MAP";
+    default: return NULL;
+  }
+}
+
+static const char *tp_pname(gl_es2_enum pname) {
+  switch (pname) {
+    case GL_ES2_TEXTURE_MIN_FILTER: return "GL_TEXTURE_MIN_FILTER";
+    case GL_ES2_TEXTURE_MAG_FILTER: return "GL_TEXTURE_MAG_FILTER";
+    case GL_ES2_TEXTURE_WRAP_S: return "GL_TEXTURE_WRAP_S";
+    case GL_ES2_TEXTURE_WRAP_T: return "GL_TEXTURE_WRAP_T";
+    default: return NULL;
+  }
+}
+
 void gl_es2_log_TexParameterf(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum pname, gl_es2_float param) { 
+  const char *mtgt = tp_tex_target(target);
+  const char *mpname = tp_pname(pname);
+  if (mtgt) {
+    apilog(c, "glTexParameterf(%s, ");
+  }
+  else {
+    apilog(c, "0x%04X, ", target);
+  }
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (pname == GL_ES2_TEXTURE_MIN_FILTER) {
+    if (param == (float)GL_ES2_NEAREST) apilog(c, "GL_NEAREST");
+    else if (param == (float)GL_ES2_LINEAR) apilog(c, "GL_LINEAR");
+    else if (param == (float)GL_ES2_NEAREST_MIPMAP_NEAREST) apilog(c, "GL_NEAREST_MIPMAP_NEAREST");
+    else if (param == (float)GL_ES2_LINEAR_MIPMAP_NEAREST) apilog(c, "GL_LINEAR_MIPMAP_NEAREST");
+    else if (param == (float)GL_ES2_LINEAR_MIPMAP_LINEAR) apilog(c, "GL_LINEAR_MIPMAP_LINEAR");
+    else apilog(c, "%f", param);
+  }
+  else if (pname == GL_ES2_TEXTURE_MAG_FILTER) {
+    if (param == (float)GL_ES2_NEAREST) apilog(c, "GL_NEAREST");
+    else if (param == (float)GL_ES2_LINEAR) apilog(c, "GL_LINEAR");
+    else apilog(c, "%f", param);
+  }
+  else if ((pname == GL_ES2_TEXTURE_WRAP_S) || (pname == GL_ES2_TEXTURE_WRAP_T)) {
+    if (param == (float)GL_ES2_CLAMP_TO_EDGE) apilog(c, "GL_CLAMP_TO_EDGE");
+    else if (param == (float)GL_ES2_MIRRORED_REPEAT) apilog(c, "GL_MIRRORED_REPEAT");
+    else if (param == (float)GL_ES2_REPEAT) apilog(c, "GL_REPEAT");
+    else apilog(c, "%f", param);
+  }
+  else {
+    apilog(c, "%f", param);
+  }
+  apilog(c, ");\n");
 }
 
 void gl_es2_log_TexParameterfv(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum pname, const gl_es2_float *params) { 
+  const char *mtgt = tp_tex_target(target);
+  const char *mpname = tp_pname(pname);
+  if (mtgt) {
+    apilog(c, "glTexParameterfv(%s, ");
+  }
+  else {
+    apilog(c, "0x%04X, ", target);
+  }
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (pname == GL_ES2_TEXTURE_MIN_FILTER) {
+    if ((*params) == (float)GL_ES2_NEAREST) apilog(c, "{ GL_NEAREST }");
+    else if ((*params) == (float)GL_ES2_LINEAR) apilog(c, "{ GL_LINEAR }");
+    else if ((*params) == (float)GL_ES2_NEAREST_MIPMAP_NEAREST) apilog(c, "{ GL_NEAREST_MIPMAP_NEAREST }");
+    else if ((*params) == (float)GL_ES2_LINEAR_MIPMAP_NEAREST) apilog(c, "{ GL_LINEAR_MIPMAP_NEAREST }");
+    else if ((*params) == (float)GL_ES2_LINEAR_MIPMAP_LINEAR) apilog(c, "{ GL_LINEAR_MIPMAP_LINEAR }");
+    else apilog(c, "{ %f }", *params);
+  }
+  else if (pname == GL_ES2_TEXTURE_MAG_FILTER) {
+    if ((*params) == (float)GL_ES2_NEAREST) apilog(c, "{ GL_NEAREST }");
+    else if ((*params) == (float)GL_ES2_LINEAR) apilog(c, "{ GL_LINEAR }");
+    else apilog(c, "{ %f }", *params);
+  }
+  else if ((pname == GL_ES2_TEXTURE_WRAP_S) || (pname == GL_ES2_TEXTURE_WRAP_T)) {
+    if ((*params) == (float)GL_ES2_CLAMP_TO_EDGE) apilog(c, "{ GL_CLAMP_TO_EDGE }");
+    else if ((*params) == (float)GL_ES2_MIRRORED_REPEAT) apilog(c, "{ GL_MIRRORED_REPEAT }");
+    else if ((*params) == (float)GL_ES2_REPEAT) apilog(c, "{ GL_REPEAT }");
+    else apilog(c, "{ %f }", *params);
+  }
+  else {
+    apilog(c, "{ %f }", *params);
+  }
+  apilog(c, ");\n");
 }
 
 void gl_es2_log_TexParameteri(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum pname, gl_es2_int param) { 
+  const char *mtgt = tp_tex_target(target);
+  const char *mpname = tp_pname(pname);
+  if (mtgt) {
+    apilog(c, "glTexParameteri(%s, ");
+  }
+  else {
+    apilog(c, "0x%04X, ", target);
+  }
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (pname == GL_ES2_TEXTURE_MIN_FILTER) {
+    if (param == GL_ES2_NEAREST) apilog(c, "GL_NEAREST");
+    else if (param == GL_ES2_LINEAR) apilog(c, "GL_LINEAR");
+    else if (param == GL_ES2_NEAREST_MIPMAP_NEAREST) apilog(c, "GL_NEAREST_MIPMAP_NEAREST");
+    else if (param == GL_ES2_LINEAR_MIPMAP_NEAREST) apilog(c, "GL_LINEAR_MIPMAP_NEAREST");
+    else if (param == GL_ES2_LINEAR_MIPMAP_LINEAR) apilog(c, "GL_LINEAR_MIPMAP_LINEAR");
+    else apilog(c, "0x%04X", param);
+  }
+  else if (pname == GL_ES2_TEXTURE_MAG_FILTER) {
+    if (param == GL_ES2_NEAREST) apilog(c, "GL_NEAREST");
+    else if (param == GL_ES2_LINEAR) apilog(c, "GL_LINEAR");
+    else apilog(c, "0x%04X", param);
+  }
+  else if ((pname == GL_ES2_TEXTURE_WRAP_S) || (pname == GL_ES2_TEXTURE_WRAP_T)) {
+    if (param == GL_ES2_CLAMP_TO_EDGE) apilog(c, "GL_CLAMP_TO_EDGE");
+    else if (param == GL_ES2_MIRRORED_REPEAT) apilog(c, "GL_MIRRORED_REPEAT");
+    else if (param == GL_ES2_REPEAT) apilog(c, "GL_REPEAT");
+    else apilog(c, "0x%04X", param);
+  }
+  else {
+    apilog(c, "%d", param);
+  }
+  apilog(c, ");\n");
 }
 
 void gl_es2_log_TexParameteriv(struct gl_es2_context *c, gl_es2_enum target, gl_es2_enum pname, const gl_es2_int *params) { 
+  const char *mtgt = tp_tex_target(target);
+  const char *mpname = tp_pname(pname);
+  if (mtgt) {
+    apilog(c, "glTexParameteriv(%s, ");
+  }
+  else {
+    apilog(c, "0x%04X, ", target);
+  }
+  if (mpname) {
+    apilog(c, "%s, ", mpname);
+  }
+  else {
+    apilog(c, "0x%04X, ", pname);
+  }
+  if (pname == GL_ES2_TEXTURE_MIN_FILTER) {
+    if ((*params) == GL_ES2_NEAREST) apilog(c, "{ GL_NEAREST }");
+    else if ((*params) == GL_ES2_LINEAR) apilog(c, "{ GL_LINEAR }");
+    else if ((*params) == GL_ES2_NEAREST_MIPMAP_NEAREST) apilog(c, "{ GL_NEAREST_MIPMAP_NEAREST }");
+    else if ((*params) == GL_ES2_LINEAR_MIPMAP_NEAREST) apilog(c, "{ GL_LINEAR_MIPMAP_NEAREST }");
+    else if ((*params) == GL_ES2_LINEAR_MIPMAP_LINEAR) apilog(c, "{ GL_LINEAR_MIPMAP_LINEAR }");
+    else apilog(c, "{ 0x%04X }", *params);
+  }
+  else if (pname == GL_ES2_TEXTURE_MAG_FILTER) {
+    if ((*params) == GL_ES2_NEAREST) apilog(c, "{ GL_NEAREST }");
+    else if ((*params) == GL_ES2_LINEAR) apilog(c, "{ GL_LINEAR }");
+    else apilog(c, "{ 0x%04X }", *params);
+  }
+  else if ((pname == GL_ES2_TEXTURE_WRAP_S) || (pname == GL_ES2_TEXTURE_WRAP_T)) {
+    if ((*params) == GL_ES2_CLAMP_TO_EDGE) apilog(c, "{ GL_CLAMP_TO_EDGE }");
+    else if ((*params) == GL_ES2_MIRRORED_REPEAT) apilog(c, "{ GL_MIRRORED_REPEAT }");
+    else if ((*params) == GL_ES2_REPEAT) apilog(c, "{ GL_REPEAT }");
+    else apilog(c, "{ 0x%04X }", *params);
+  }
+  else {
+    apilog(c, "{ 0x%04X }", *params);
+  }
+  apilog(c, ");\n");
 }
 
 void gl_es2_log_TexSubImage2D(struct gl_es2_context *c, gl_es2_enum target, gl_es2_int level, gl_es2_int xoffset, gl_es2_int yoffset, gl_es2_sizei width, gl_es2_sizei height, gl_es2_enum format, gl_es2_enum type, const void *pixels) { 
@@ -2218,60 +2384,206 @@ void gl_es2_log_TexSubImage2D(struct gl_es2_context *c, gl_es2_enum target, gl_e
 }
 
 void gl_es2_log_Uniform1f(struct gl_es2_context *c, gl_es2_int location, gl_es2_float v0) { 
+  apilog(c, "glUniform1f(%d, %f);\n", location, v0);
 }
 
 void gl_es2_log_Uniform1fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) { 
+  int n;
+  apilog(c, "glUniform1fv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%f", n ? ", " : "", value[n]);
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_Uniform1i(struct gl_es2_context *c, gl_es2_int location, gl_es2_int v0) { 
+  apilog(c, "glUniform1i(%d, %d);\n", location, v0);
 }
 
 void gl_es2_log_Uniform1iv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) { 
+  int n;
+  apilog(c, "glUniform1iv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%d", n ? ", " : "", value[n]);
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_Uniform2f(struct gl_es2_context *c, gl_es2_int location, gl_es2_float v0, gl_es2_float v1) { 
+  apilog(c, "glUniform2f(%d, %f, %f);\n", location, v0, v1);
 }
 
 void gl_es2_log_Uniform2fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) { 
+  int n;
+  apilog(c, "glUniform2fv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%f, %f", n ? ",  " : "", value[n * 2 + 0], value[n * 2 + 1]);
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_Uniform2i(struct gl_es2_context *c, gl_es2_int location, gl_es2_int v0, gl_es2_int v1) { 
+  apilog(c, "glUniform2i(%d, %d, %d);\n", location, v0, v1);
 }
 
 void gl_es2_log_Uniform2iv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) { 
+  int n;
+  apilog(c, "glUniform2iv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%d, %d", n ? ",  " : "", value[n * 2 + 0], value[n * 2 + 1]);
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_Uniform3f(struct gl_es2_context *c, gl_es2_int location, gl_es2_float v0, gl_es2_float v1, gl_es2_float v2) { 
+  apilog(c, "glUniform2f(%d, %f, %f, %f);\n", location, v0, v1, v2);
 }
 
 void gl_es2_log_Uniform3fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) { 
+  int n;
+  apilog(c, "glUniform3fv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%f, %f, %f", n ? ",  " : "", value[n * 3 + 0], value[n * 3 + 1], value[n * 3 + 2]);
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_Uniform3i(struct gl_es2_context *c, gl_es2_int location, gl_es2_int v0, gl_es2_int v1, gl_es2_int v2) { 
+  apilog(c, "glUniform3i(%d, %d, %d, %d);\n", location, v0, v1, v2);
 }
 
 void gl_es2_log_Uniform3iv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) { 
+  int n;
+  apilog(c, "glUniform3iv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%d, %d, %d", n ? ",  " : "", value[n * 3 + 0], value[n * 3 + 1], value[n * 3 + 2]);
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_Uniform4f(struct gl_es2_context *c, gl_es2_int location, gl_es2_float v0, gl_es2_float v1, gl_es2_float v2, gl_es2_float v3) { 
+  apilog(c, "glUniform4f(%d, %f, %f, %f, %f);\n", location, v0, v1, v2, v3);
 }
 
 void gl_es2_log_Uniform4fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, const gl_es2_float *value) { 
+  int n;
+  apilog(c, "glUniform4fv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%f, %f, %f, %f", n ? ",  " : "", value[n * 4 + 0], value[n * 4 + 1], value[n * 4 + 2], value[n * 4 + 3]);
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_Uniform4i(struct gl_es2_context *c, gl_es2_int location, gl_es2_int v0, gl_es2_int v1, gl_es2_int v2, gl_es2_int v3) { 
+  apilog(c, "glUniform4i(%d, %d, %d, %d, %d);\n", location, v0, v1, v2, v3);
 }
 
 void gl_es2_log_Uniform4iv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, const gl_es2_int *value) { 
+  int n;
+  apilog(c, "glUniform4iv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%d, %d, %d, %d", n ? ",  " : "", value[n * 4 + 0], value[n * 4 + 1], value[n * 4 + 2], value[n * 4 + 3]);
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_UniformMatrix2fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) { 
+  int n;
+  apilog(c, "glUniform4fv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      apilog(c, "%s%f, %f, %f, %f", n ? ",  " : "", value[n * 4 + 0], value[n * 4 + 1], value[n * 4 + 2], value[n * 4 + 3]);
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_UniformMatrix3fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) { 
+  int n;
+  apilog(c, "glUniform4fv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      int k;
+      for (k = 0; k < 9; ++k) {
+        apilog(c, "%s%f", (n+k) ? (k ? ", " : ",  ") : "", value[9 * n + k]);
+      }
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_UniformMatrix4fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) { 
+  int n;
+  apilog(c, "glUniform4fv(%d, %d, ", location, count);
+  if (value) {
+    apilog(c, "{ ");
+    for (n = 0; n < count; ++n) {
+      int k;
+      for (k = 0; k < 16; ++k) {
+        apilog(c, "%s%f", (n+k) ? (k ? ", " : ",  ") : "", value[16 * n + k]);
+      }
+    }
+    apilog(c, " });\n");
+  }
+  else {
+    apilog(c, "NULL);\n");
+  }
 }
 
 void gl_es2_log_UseProgram(struct gl_es2_context *c, gl_es2_uint program) { 
