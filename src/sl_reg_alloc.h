@@ -136,6 +136,15 @@ int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra
 int sl_reg_allocator_unlock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 int sl_reg_allocator_lock_or_alloc(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra);
 
+/* Suppose we take all individual registers from rvalue, and assign them to the registers in lvalue,
+ * in chronological order, would there be a register in lvalue that appears at a later point in rvalue?
+ * If so, the value in rvalue would be overwritten by the time we need to assign it in lvalue.
+ * For instance: "v.xyzw = v.wzyx;" - here the value of .x is overwritten before it can be assigned
+ * to the .w component.
+ * If such an overwrite conflict would occur, 1 is returned, if the chronological assignment is safe, 0 is
+ * returned. */
+int sl_reg_check_overlapping_assignment(const struct sl_reg_alloc *lvalue, const struct sl_reg_alloc *rvalue);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

@@ -2891,7 +2891,15 @@ static int sl_expr_alloc_register_main_pass(struct sl_type_base *tb, struct sl_r
      * from the base_reg_ directly. Thus it would instead assign "v.wzyx = v.xyyx"; which is not
      * the desired semantic here.
      */
-    r = r ? r : sl_expr_force_rvalue(tb, ract, x->children_[1]);
+    if ((x->children_[1]->offset_reg_.kind_ == slrak_void) && !x->base_regs_.is_indirect_) {
+      /* Does not need an rvalue, *unless* this swizzles registers. */
+      if (sl_reg_check_overlapping_assignment(&x->children_[0]->base_regs_, &x->children_[1]->base_regs_)) {
+        r = r ? r : sl_expr_force_rvalue(tb, ract, x->children_[1]);
+      }
+    }
+    else {
+      r = r ? r : sl_expr_need_rvalue(tb, ract, x->children_[1]);
+    }
 
     /* Assume the assignment is performed here during evaluation.
      * Unlock lvalue, clone the registers for the rvalue into our own expression 

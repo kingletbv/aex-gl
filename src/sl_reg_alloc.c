@@ -733,6 +733,155 @@ int sl_reg_allocator_lock_or_alloc_descend(struct sl_reg_allocator *ract, int ar
   return 0;
 }
 
+static int sl_reg_check_appears_before_point(const struct sl_reg_alloc *ra, int before_point, size_t array_quantity, 
+                                             enum sl_reg_alloc_kind reg_kind, int reg,
+                                             int *piter_current_point) {
+  if (ra->kind_ == slrak_struct) {
+    size_t field_idx;
+    for (field_idx = 0; field_idx < ra->v_.comp_.num_fields_; ++field_idx) {
+      struct sl_reg_alloc *field = ra->v_.comp_.fields_;
+      int r;
+      r = sl_reg_check_appears_before_point(field, before_point, array_quantity, reg_kind, reg, piter_current_point);
+      if (r) return r;
+      if (*piter_current_point >= before_point) return r;
+    }
+    return 0;
+  }
+  else if (ra->kind_ == slrak_array) {
+    return sl_reg_check_appears_before_point(ra->v_.array_.head_, before_point, array_quantity * ra->v_.array_.num_elements_, 
+                                             reg_kind, reg, piter_current_point);
+  }
+  else {
+    int cardinality = sl_reg_alloc_get_cardinality(ra->kind_);
+    int n;
+    enum sl_reg_alloc_kind ra_scalar_kind = slrak_void;
+    switch (ra->kind_) {
+      case slrak_float:
+      case slrak_vec2:
+      case slrak_vec3:
+      case slrak_vec4:
+      case slrak_mat2:
+      case slrak_mat3:
+      case slrak_mat4: {
+        ra_scalar_kind = slrak_float;
+        break;
+      }
+      case slrak_int:
+      case slrak_ivec2:
+      case slrak_ivec3:
+      case slrak_ivec4: {
+        ra_scalar_kind = slrak_int;
+        break;
+      }
+      case slrak_bool:
+      case slrak_bvec2:
+      case slrak_bvec3:
+      case slrak_bvec4: {
+        ra_scalar_kind = slrak_bool;
+        break;
+      }
+      case slrak_sampler2D: {
+        ra_scalar_kind = slrak_sampler2D;
+        break;
+      }
+      case slrak_samplerCube: {
+        ra_scalar_kind = slrak_samplerCube;
+        break;
+      }
+    }
+    if (reg_kind == ra_scalar_kind) {
+      for (n = 0; n < cardinality; ++n) {
+        if ((reg >= ra->v_.regs_[n]) && (reg < (ra->v_.regs_[n] + array_quantity))) {
+          if ((*piter_current_point) < before_point) {
+            /* It appears before the point */
+            return 1;
+          }
+        }
+        (*piter_current_point)++;
+      }
+    }
+    else {
+      (*piter_current_point) += cardinality;
+    }
+    /* It does not appear before the point, not yet at least. */
+    return 0;
+  }
+}
+
+static int sl_reg_check_overlapping_assignment_impl(const struct sl_reg_alloc *lvalue, const struct sl_reg_alloc *ra, size_t array_quantity,
+                                                    int *piter_current_point) {
+  if (ra->kind_ == slrak_struct) {
+    size_t field_idx;
+    for (field_idx = 0; field_idx < ra->v_.comp_.num_fields_; ++field_idx) {
+      struct sl_reg_alloc *field = ra->v_.comp_.fields_;
+      int r;
+      r = sl_reg_check_overlapping_assignment_impl(lvalue, field, array_quantity, piter_current_point);
+      if (r) return r;
+    }
+  }
+  else if (ra->kind_ == slrak_array) {
+    return sl_reg_check_overlapping_assignment_impl(lvalue, ra->v_.array_.head_, array_quantity * ra->v_.array_.num_elements_, piter_current_point);
+  }
+  else {
+    int cardinality = sl_reg_alloc_get_cardinality(ra->kind_);
+    int n;
+    enum sl_reg_alloc_kind ra_scalar_kind = slrak_void;
+    switch (ra->kind_) {
+      case slrak_float:
+      case slrak_vec2:
+      case slrak_vec3:
+      case slrak_vec4:
+      case slrak_mat2:
+      case slrak_mat3:
+      case slrak_mat4: {
+        ra_scalar_kind = slrak_float;
+        break;
+      }
+      case slrak_int:
+      case slrak_ivec2:
+      case slrak_ivec3:
+      case slrak_ivec4: {
+        ra_scalar_kind = slrak_int;
+        break;
+      }
+      case slrak_bool:
+      case slrak_bvec2:
+      case slrak_bvec3:
+      case slrak_bvec4: {
+        ra_scalar_kind = slrak_bool;
+        break;
+      }
+      case slrak_sampler2D: {
+        ra_scalar_kind = slrak_sampler2D;
+        break;
+      }
+      case slrak_samplerCube: {
+        ra_scalar_kind = slrak_samplerCube;
+        break;
+      }
+      for (n = 0; n < cardinality; ++n) {
+        size_t k;
+        for (k = 0; k < array_quantity; ++k) {
+          int r;
+          int lvalue_iter = 0;
+          r = sl_reg_check_appears_before_point(lvalue, *piter_current_point, array_quantity, ra_scalar_kind, ra->v_.regs_[n] + (int)k, &lvalue_iter);
+          if (r) return r;
+          (*piter_current_point)++;
+        }
+      }
+
+      /* It does not appear before the point, not yet at least. */
+      return 0;
+    }
+  }
+  return 0;
+}
+
+int sl_reg_check_overlapping_assignment(const struct sl_reg_alloc *lvalue, const struct sl_reg_alloc *rvalue) {
+  int rvalue_iter = 0;
+  return sl_reg_check_overlapping_assignment_impl(lvalue, rvalue, 1, &rvalue_iter);
+}
+
 int sl_reg_allocator_lock(struct sl_reg_allocator *ract, struct sl_reg_alloc *ra) {
   int r;
   r = sl_reg_allocator_lock_descend(ract, 1, ra);
