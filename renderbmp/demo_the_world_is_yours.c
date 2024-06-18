@@ -295,7 +295,7 @@ int demo_the_world_is_yours(int output_width, int output_height) {
         rgba[3] / 255.f);
       glScissor(0, output_height - row - 1, output_width, 1);
       glEnable(GL_SCISSOR_TEST);
-      glClear(GL_COLOR_BUFFER_BIT);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
   }
 
