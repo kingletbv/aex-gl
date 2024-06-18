@@ -2587,33 +2587,43 @@ void gl_es2_log_UniformMatrix4fv(struct gl_es2_context *c, gl_es2_int location, 
 }
 
 void gl_es2_log_UseProgram(struct gl_es2_context *c, gl_es2_uint program) { 
+  apilog(c, "glUseProgram(%u);\n", program);
 }
 
 void gl_es2_log_ValidateProgram(struct gl_es2_context *c, gl_es2_uint program) { 
+  apilog(c, "glValidateProgram(%u);\n", program);
 }
 
 void gl_es2_log_VertexAttrib1f(struct gl_es2_context *c, gl_es2_uint index, gl_es2_float x) { 
+  apilog(c, "glVertexAttrib1f(%u, %f);\n", index, x);
 }
 
 void gl_es2_log_VertexAttrib1fv(struct gl_es2_context *c, gl_es2_uint index, const gl_es2_float *v) { 
+  apilog(c, "glVertexAttrib1fv(%u, { %f });\n", index, *v);
 }
 
 void gl_es2_log_VertexAttrib2f(struct gl_es2_context *c, gl_es2_uint index, gl_es2_float x, gl_es2_float y) { 
+  apilog(c, "glVertexAttrib2f(%u, %f, %f);\n", index, x, y);
 }
 
 void gl_es2_log_VertexAttrib2fv(struct gl_es2_context *c, gl_es2_uint index, const gl_es2_float *v) { 
+  apilog(c, "glVertexAttrib2fv(%u, { %f, %f });\n", index, v[0], v[1]);
 }
 
 void gl_es2_log_VertexAttrib3f(struct gl_es2_context *c, gl_es2_uint index, gl_es2_float x, gl_es2_float y, gl_es2_float z) { 
+  apilog(c, "glVertexAttrib3f(%u, %f, %f, %f);\n", index, x, y, z);
 }
 
 void gl_es2_log_VertexAttrib3fv(struct gl_es2_context *c, gl_es2_uint index, const gl_es2_float *v) { 
+  apilog(c, "glVertexAttrib3fv(%u, { %f, %f, %f });\n", index, v[0], v[1], v[2]);
 }
 
 void gl_es2_log_VertexAttrib4f(struct gl_es2_context *c, gl_es2_uint index, gl_es2_float x, gl_es2_float y, gl_es2_float z, gl_es2_float w) { 
+  apilog(c, "glVertexAttrib4f(%u, %f, %f, %f, %f);\n", index, x, y, z, w);
 }
 
 void gl_es2_log_VertexAttrib4fv(struct gl_es2_context *c, gl_es2_uint index, const gl_es2_float *v) { 
+  apilog(c, "glVertexAttrib4fv(%u, { %f, %f, %f, %f });\n", index, v[0], v[1], v[2], v[3]);
 }
 
 static const char *vtx_attrib_type(gl_es2_enum type) {
@@ -2656,6 +2666,7 @@ void gl_es2_log_VertexAttribPointer(struct gl_es2_context *c, gl_es2_uint index,
 }
 
 void gl_es2_log_Viewport(struct gl_es2_context *c, gl_es2_int x, gl_es2_int y, gl_es2_sizei width, gl_es2_sizei height) {
+  apilog(c, "glViewport(%d, %d, %d, %d);\n", x, y, width, height);
 }
 
 
