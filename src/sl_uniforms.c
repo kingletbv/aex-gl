@@ -765,7 +765,7 @@ static void sl_uniform_load_voidp(size_t num, void **dst, void *val) {
   }
 }
 
-int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, size_t offset, size_t *pnum_slab_bytes_consumed, struct sl_reg_alloc *ra,
+int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, size_t offset, size_t reg_offset, size_t *pnum_slab_bytes_consumed, struct sl_reg_alloc *ra,
                                      size_t loading_table_size,
                                      void **sampler_2D_uniform_loading_table,
                                      void **sampler_Cube_uniform_loading_table) {
@@ -776,7 +776,7 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
     size_t original_offset = offset;
     for (n = 0; n < ra->v_.array_.num_elements_; ++n) {
       size_t num_bytes_consumed;
-      r = sl_uniform_load_ra_for_execution(exec, base_mem, offset, &num_bytes_consumed, ra->v_.array_.head_, loading_table_size, sampler_2D_uniform_loading_table, sampler_Cube_uniform_loading_table);
+      r = sl_uniform_load_ra_for_execution(exec, base_mem, offset, reg_offset * ra->v_.array_.num_elements_ + n, &num_bytes_consumed, ra->v_.array_.head_, loading_table_size, sampler_2D_uniform_loading_table, sampler_Cube_uniform_loading_table);
       if (r) return r;
       offset += num_bytes_consumed;
     }
@@ -803,7 +803,7 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
         return SL_ERR_OVERFLOW;
       }
       size_t num_bytes_consumed_for_field;
-      r = sl_uniform_load_ra_for_execution(exec, base_mem, field_offset_from_base, &num_bytes_consumed_for_field, ra->v_.comp_.fields_ + n, loading_table_size, sampler_2D_uniform_loading_table, sampler_Cube_uniform_loading_table);
+      r = sl_uniform_load_ra_for_execution(exec, base_mem, field_offset_from_base, reg_offset, &num_bytes_consumed_for_field, ra->v_.comp_.fields_ + n, loading_table_size, sampler_2D_uniform_loading_table, sampler_Cube_uniform_loading_table);
       if (r) return r;
 
       if (max_field_alignment < field_alignment) max_field_alignment = field_alignment;
@@ -847,7 +847,7 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
           case slrak_mat4:  num_components = 16; break;
         }
         for (n = 0; n < num_components; ++n) {
-          sl_uniform_load_f(exec->max_num_rows_, exec->float_regs_[ ra->v_.regs_[n] ], ((float *)(((char *)base_mem) + offset))[n]);
+          sl_uniform_load_f(exec->max_num_rows_, exec->float_regs_[ ra->v_.regs_[n] + reg_offset ], ((float *)(((char *)base_mem) + offset))[n]);
         }
         *pnum_slab_bytes_consumed = offset - original_offset + num_components * sizeof(float);
         break;
@@ -862,7 +862,7 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
           case slrak_bvec4: num_components = 4; break;
         }
         for (n = 0; n < num_components; ++n) {
-          sl_uniform_load_b(exec->max_num_rows_, exec->bool_regs_[ra->v_.regs_[n]], ((uint8_t *)(((char *)base_mem) + offset))[n]);
+          sl_uniform_load_b(exec->max_num_rows_, exec->bool_regs_[ra->v_.regs_[n] + reg_offset ], ((uint8_t *)(((char *)base_mem) + offset))[n]);
         }
         *pnum_slab_bytes_consumed = offset - original_offset + num_components * sizeof(uint8_t);
         break;
@@ -879,7 +879,7 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
           case slrak_ivec4: num_components = 4; break;
         }
         for (n = 0; n < num_components; ++n) {
-          sl_uniform_load_i(exec->max_num_rows_, exec->int_regs_[ra->v_.regs_[n]], ((int64_t *)(((char *)base_mem) + offset))[n]);
+          sl_uniform_load_i(exec->max_num_rows_, exec->int_regs_[ra->v_.regs_[n] + reg_offset ], ((int64_t *)(((char *)base_mem) + offset))[n]);
         }
         *pnum_slab_bytes_consumed = offset - original_offset + num_components * sizeof(int64_t);
         break;
@@ -891,7 +891,7 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
         if (loading_offset < loading_table_size) {
           sampler_2d_ptr = sampler_2D_uniform_loading_table[loading_offset];
         }
-        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_2D_regs_[ra->v_.regs_[0]], sampler_2d_ptr);
+        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_2D_regs_[ra->v_.regs_[0] + reg_offset ], sampler_2d_ptr);
         *pnum_slab_bytes_consumed = offset - original_offset + sizeof(void *);
         break;
       }
@@ -903,7 +903,7 @@ int sl_uniform_load_ra_for_execution(struct sl_execution *exec, void *base_mem, 
         if (loading_offset < loading_table_size) {
           sampler_cube_ptr = sampler_Cube_uniform_loading_table[loading_offset];
         }
-        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_cube_regs_[ra->v_.regs_[0]], sampler_cube_ptr);
+        sl_uniform_load_voidp(exec->max_num_rows_, exec->sampler_cube_regs_[ra->v_.regs_[0] + reg_offset ], sampler_cube_ptr);
         *pnum_slab_bytes_consumed = offset - original_offset + sizeof(void *);
         break;
       }
