@@ -79,8 +79,22 @@ void gl_es2_log_BindRenderbuffer(struct gl_es2_context *c, gl_es2_enum target, g
   apilog(c, "glBindRenderbuffer(%d, %d);\n", target, renderbuffer);
 }
 
+static const char *tp_tex_target(gl_es2_enum tgt) {
+  switch (tgt) {
+    case GL_ES2_TEXTURE_2D: return "GL_TEXTURE_2D";
+    case GL_ES2_TEXTURE_CUBE_MAP: return "GL_TEXTURE_CUBE_MAP";
+    default: return NULL;
+  }
+}
+
 void gl_es2_log_BindTexture(struct gl_es2_context *c, gl_es2_enum target, gl_es2_uint texture) { 
-  apilog(c, "glBindTexture(%d, %d);\n", target, texture);
+  const char *mtgt = tp_tex_target(target);
+  if (mtgt) {
+    apilog(c, "glBindTexture(%s, %d);\n", mtgt, texture);
+  }
+  else {
+    apilog(c, "glBindTexture(0x%04X, %d);\n", target, texture);
+  }
 }
 
 void gl_es2_log_BlendColor(struct gl_es2_context *c, gl_es2_float red, gl_es2_float green, gl_es2_float blue, gl_es2_float alpha) { 
@@ -2173,14 +2187,6 @@ void gl_es2_log_TexImage2D(struct gl_es2_context *c, gl_es2_enum target, gl_es2_
   }
 }
 
-static const char *tp_tex_target(gl_es2_enum tgt) {
-  switch (tgt) {
-    case GL_ES2_TEXTURE_2D: return "GL_TEXTURE_2D";
-    case GL_ES2_TEXTURE_CUBE_MAP: return "GL_TEXTURE_CUBE_MAP";
-    default: return NULL;
-  }
-}
-
 static const char *tp_pname(gl_es2_enum pname) {
   switch (pname) {
     case GL_ES2_TEXTURE_MIN_FILTER: return "GL_TEXTURE_MIN_FILTER";
@@ -2195,7 +2201,7 @@ void gl_es2_log_TexParameterf(struct gl_es2_context *c, gl_es2_enum target, gl_e
   const char *mtgt = tp_tex_target(target);
   const char *mpname = tp_pname(pname);
   if (mtgt) {
-    apilog(c, "glTexParameterf(%s, ");
+    apilog(c, "glTexParameterf(%s, ", mtgt);
   }
   else {
     apilog(c, "0x%04X, ", target);
@@ -2235,7 +2241,7 @@ void gl_es2_log_TexParameterfv(struct gl_es2_context *c, gl_es2_enum target, gl_
   const char *mtgt = tp_tex_target(target);
   const char *mpname = tp_pname(pname);
   if (mtgt) {
-    apilog(c, "glTexParameterfv(%s, ");
+    apilog(c, "glTexParameterfv(%s, ", mtgt);
   }
   else {
     apilog(c, "0x%04X, ", target);
@@ -2275,7 +2281,7 @@ void gl_es2_log_TexParameteri(struct gl_es2_context *c, gl_es2_enum target, gl_e
   const char *mtgt = tp_tex_target(target);
   const char *mpname = tp_pname(pname);
   if (mtgt) {
-    apilog(c, "glTexParameteri(%s, ");
+    apilog(c, "glTexParameteri(%s, ", mtgt);
   }
   else {
     apilog(c, "0x%04X, ", target);
@@ -2315,7 +2321,7 @@ void gl_es2_log_TexParameteriv(struct gl_es2_context *c, gl_es2_enum target, gl_
   const char *mtgt = tp_tex_target(target);
   const char *mpname = tp_pname(pname);
   if (mtgt) {
-    apilog(c, "glTexParameteriv(%s, ");
+    apilog(c, "glTexParameteriv(%s, ", mtgt);
   }
   else {
     apilog(c, "0x%04X, ", target);
@@ -2537,7 +2543,7 @@ void gl_es2_log_Uniform4iv(struct gl_es2_context *c, gl_es2_int location, gl_es2
 
 void gl_es2_log_UniformMatrix2fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) { 
   int n;
-  apilog(c, "glUniform4fv(%d, %d, ", location, count);
+  apilog(c, "glUniformMatrix2fv(%d, %d, ", location, count);
   if (value) {
     apilog(c, "{ ");
     for (n = 0; n < count; ++n) {
@@ -2552,7 +2558,7 @@ void gl_es2_log_UniformMatrix2fv(struct gl_es2_context *c, gl_es2_int location, 
 
 void gl_es2_log_UniformMatrix3fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) { 
   int n;
-  apilog(c, "glUniform4fv(%d, %d, ", location, count);
+  apilog(c, "glUniformMatrix3fv(%d, %d, ", location, count);
   if (value) {
     apilog(c, "{ ");
     for (n = 0; n < count; ++n) {
@@ -2570,7 +2576,7 @@ void gl_es2_log_UniformMatrix3fv(struct gl_es2_context *c, gl_es2_int location, 
 
 void gl_es2_log_UniformMatrix4fv(struct gl_es2_context *c, gl_es2_int location, gl_es2_sizei count, gl_es2_boolean transpose, const gl_es2_float *value) { 
   int n;
-  apilog(c, "glUniform4fv(%d, %d, ", location, count);
+  apilog(c, "glUniformMatrix4fv(%d, %d, ", location, count);
   if (value) {
     apilog(c, "{ ");
     for (n = 0; n < count; ++n) {
