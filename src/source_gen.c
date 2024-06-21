@@ -49,151 +49,153 @@
 #endif
 
 static void sg_check_line_completion(struct source_gen *sg, int is_final) {
-  int start_of_line = 0;
-  if (!sg->line_buffer_size_) return;
-  while ((start_of_line < sg->line_buffer_size_) && (sg->line_buffer_[start_of_line] == ' ')) {
-    /* Space at start consumed for auto-indentation */
-    start_of_line++;
-  }
-  int pos = start_of_line;
-
-  while ((pos < sg->line_buffer_size_) && (sg->line_buffer_[pos] != '\n')) {
-    pos++;
-  }
-
-  if ((pos == sg->line_buffer_size_) && !is_final) {
-    /* Do not have a completed line to emit.. */
-    return;
-  }
-  
-  /* Otherwise line ends with newline at pos, or is the last line. */
-  int line_end_pos = pos;
-
-  
-  int curly_brace_delta = 0;
-  int curly_brace_underrun = 0;
-
-  int inside_multiline_comment = sg->inside_comment_;
-  int inside_doubleslash_comment = 0;
-
-  int last_char_was_slash = 0;
-  int last_char_was_asterisk = 0;
-
-  int inside_string = 0;
-  int inside_char = 0;
-
-  int last_char_was_backslash = 0;
-
-  for (pos = start_of_line; pos < line_end_pos; ++pos) {
-    int inside_comment = inside_multiline_comment || inside_doubleslash_comment;
-    if (inside_string) {
-      switch (sg->line_buffer_[pos]) {
-        case '\\': 
-          if (last_char_was_backslash) last_char_was_backslash = 0;
-          else last_char_was_backslash = 1;
-          break;
-        case '"':
-          if (last_char_was_backslash) /* do \", nothing */;
-          else {
-            /* string ends here */
-            inside_string = 0;
-          }
-          break;
-      }
-      if (sg->line_buffer_[pos] != '\\') last_char_was_backslash = 0;
+  for (;;) {
+    int start_of_line = 0;
+    if (!sg->line_buffer_size_) return;
+    while ((start_of_line < sg->line_buffer_size_) && (sg->line_buffer_[start_of_line] == ' ')) {
+      /* Space at start consumed for auto-indentation */
+      start_of_line++;
     }
-    if (inside_char) {
-      switch (sg->line_buffer_[pos]) {
-        case '\\':
-          if (last_char_was_backslash) last_char_was_backslash = 0;
-          else last_char_was_backslash = 1;
-          break;
-        case '\'':
-          if (last_char_was_backslash) /* do \", nothing */;
-          else {
-            /* char ends here */
-            inside_char = 0;
-          }
-          break;
-      }
-      if (sg->line_buffer_[pos] != '\\') last_char_was_backslash = 0;
+    int pos = start_of_line;
+
+    while ((pos < sg->line_buffer_size_) && (sg->line_buffer_[pos] != '\n')) {
+      pos++;
+    }
+
+    if ((pos == sg->line_buffer_size_) && !is_final) {
+      /* Do not have a completed line to emit.. */
+      return;
     }
   
-    switch (sg->line_buffer_[pos]) {
-      case '/':
-        if (!inside_multiline_comment && !inside_doubleslash_comment) {
-          if (last_char_was_slash) {
-            /* Inside double-slash comment to the end of the line */
-            inside_doubleslash_comment = 1;
-          }
-          else {
-            last_char_was_slash = 1;
-          }
+    /* Otherwise line ends with newline at pos, or is the last line. */
+    int line_end_pos = pos;
+
+  
+    int curly_brace_delta = 0;
+    int curly_brace_underrun = 0;
+
+    int inside_multiline_comment = sg->inside_comment_;
+    int inside_doubleslash_comment = 0;
+
+    int last_char_was_slash = 0;
+    int last_char_was_asterisk = 0;
+
+    int inside_string = 0;
+    int inside_char = 0;
+
+    int last_char_was_backslash = 0;
+
+    for (pos = start_of_line; pos < line_end_pos; ++pos) {
+      int inside_comment = inside_multiline_comment || inside_doubleslash_comment;
+      if (inside_string) {
+        switch (sg->line_buffer_[pos]) {
+          case '\\': 
+            if (last_char_was_backslash) last_char_was_backslash = 0;
+            else last_char_was_backslash = 1;
+            break;
+          case '"':
+            if (last_char_was_backslash) /* do \", nothing */;
+            else {
+              /* string ends here */
+              inside_string = 0;
+            }
+            break;
         }
-        else if (inside_multiline_comment && last_char_was_asterisk) {
-          /* Close multi-line comment */
-          inside_multiline_comment = 0;
-          sg->inside_comment_ = 0;
+        if (sg->line_buffer_[pos] != '\\') last_char_was_backslash = 0;
+      }
+      if (inside_char) {
+        switch (sg->line_buffer_[pos]) {
+          case '\\':
+            if (last_char_was_backslash) last_char_was_backslash = 0;
+            else last_char_was_backslash = 1;
+            break;
+          case '\'':
+            if (last_char_was_backslash) /* do \", nothing */;
+            else {
+              /* char ends here */
+              inside_char = 0;
+            }
+            break;
         }
-        break;
-      case '{':
-        if (!inside_comment) curly_brace_delta++;
-        break;
-      case '}':
-        if (!inside_comment) curly_brace_delta--;
-        break;
-      case '*':
-        if (!inside_comment) {
-          if (last_char_was_slash) {
-            /* Open multi-line comment */
-            inside_multiline_comment = 1;
-            sg->inside_comment_ = 1;
-            /* NOTE: important, last character is *not* deemed a '*' as that would immediately close the comment with the sequence / * / which would be incorrect. */
+        if (sg->line_buffer_[pos] != '\\') last_char_was_backslash = 0;
+      }
+  
+      switch (sg->line_buffer_[pos]) {
+        case '/':
+          if (!inside_multiline_comment && !inside_doubleslash_comment) {
+            if (last_char_was_slash) {
+              /* Inside double-slash comment to the end of the line */
+              inside_doubleslash_comment = 1;
+            }
+            else {
+              last_char_was_slash = 1;
+            }
+          }
+          else if (inside_multiline_comment && last_char_was_asterisk) {
+            /* Close multi-line comment */
+            inside_multiline_comment = 0;
+            sg->inside_comment_ = 0;
+          }
+          break;
+        case '{':
+          if (!inside_comment) curly_brace_delta++;
+          break;
+        case '}':
+          if (!inside_comment) curly_brace_delta--;
+          break;
+        case '*':
+          if (!inside_comment) {
+            if (last_char_was_slash) {
+              /* Open multi-line comment */
+              inside_multiline_comment = 1;
+              sg->inside_comment_ = 1;
+              /* NOTE: important, last character is *not* deemed a '*' as that would immediately close the comment with the sequence / * / which would be incorrect. */
+            }
+            else {
+              last_char_was_asterisk = 1;
+            }
           }
           else {
             last_char_was_asterisk = 1;
           }
-        }
-        else {
-          last_char_was_asterisk = 1;
-        }
-        break;
-      case '"':
-        inside_string = 1;
-        break;
-      case '\'':
-        inside_char = 1;
-        break;
-      case '(':
-        /* XXX: Want to record position of opening parenthesis and retain how many we have open.. */
-      case ')':
-        break;
+          break;
+        case '"':
+          inside_string = 1;
+          break;
+        case '\'':
+          inside_char = 1;
+          break;
+        case '(':
+          /* XXX: Want to record position of opening parenthesis and retain how many we have open.. */
+        case ')':
+          break;
+      }
+      if (sg->line_buffer_[pos] != '/') last_char_was_slash = 0;
+      if (sg->line_buffer_[pos] != '*') last_char_was_asterisk = 0;
+
+      if (curly_brace_delta < curly_brace_underrun) curly_brace_underrun = curly_brace_delta;
     }
-    if (sg->line_buffer_[pos] != '/') last_char_was_slash = 0;
-    if (sg->line_buffer_[pos] != '*') last_char_was_asterisk = 0;
 
-    if (curly_brace_delta < curly_brace_underrun) curly_brace_underrun = curly_brace_delta;
+    int current_line_indent = sg->indent_ + 2 * curly_brace_underrun;
+    if (current_line_indent < 0) current_line_indent = 0;
+
+    fprintf(sg->fp_, "%*s", current_line_indent, "");
+    fwrite(sg->line_buffer_ + start_of_line, 1, line_end_pos - start_of_line, sg->fp_);
+    if (!is_final) fprintf(sg->fp_, "\n");
+    if (line_end_pos < sg->line_buffer_size_) {
+      memcpy(sg->line_buffer_, sg->line_buffer_ + line_end_pos + 1 /* newline */, sg->line_buffer_size_ - line_end_pos - 1);
+      sg->line_buffer_size_ -= line_end_pos + 1;
+    }
+    else {
+      memcpy(sg->line_buffer_, sg->line_buffer_ + line_end_pos + 0 /* no newline */, sg->line_buffer_size_ - line_end_pos);
+      sg->line_buffer_size_ -= line_end_pos;
+    }
+
+    int next_line_indent = sg->indent_ + 2 * curly_brace_delta;
+    if (next_line_indent < 0) next_line_indent = 0;
+    sg->indent_ = next_line_indent;
+    sg->inside_comment_ = inside_multiline_comment;
   }
-
-  int current_line_indent = sg->indent_ + 2 * curly_brace_underrun;
-  if (current_line_indent < 0) current_line_indent = 0;
-
-  fprintf(sg->fp_, "%*s", current_line_indent, "");
-  fwrite(sg->line_buffer_ + start_of_line, 1, line_end_pos - start_of_line, sg->fp_);
-  if (!is_final) fprintf(sg->fp_, "\n");
-  if (line_end_pos < sg->line_buffer_size_) {
-    memcpy(sg->line_buffer_, sg->line_buffer_ + line_end_pos + 1 /* newline */, sg->line_buffer_size_ - line_end_pos - 1);
-    sg->line_buffer_size_ -= line_end_pos + 1;
-  }
-  else {
-    memcpy(sg->line_buffer_, sg->line_buffer_ + line_end_pos + 0 /* no newline */, sg->line_buffer_size_ - line_end_pos);
-    sg->line_buffer_size_ -= line_end_pos;
-  }
-
-  int next_line_indent = sg->indent_ + 2 * curly_brace_delta;
-  if (next_line_indent < 0) next_line_indent = 0;
-  sg->indent_ = next_line_indent;
-
 }
 
 void sg_init(struct source_gen *sg) {
