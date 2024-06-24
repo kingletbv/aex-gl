@@ -65,6 +65,7 @@
     <ClCompile Include="..\src\sha1.c" />
     <ClCompile Include="..\src\gl_es2_log.c" />
     <ClCompile Include="..\src\source_gen.c" />
+    <ClCompile Include="..\src\ir.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">
@@ -144,6 +145,7 @@
     <ClInclude Include="..\src\gl_es2_log.h" />
     <ClInclude Include="..\src\rasterizer_core_inc.h" />
     <ClInclude Include="..\src\source_gen.h" />
+    <ClInclude Include="..\src\ir.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
