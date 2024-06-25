@@ -26,6 +26,7 @@ struct ir_instr;
 struct ir_control_flow;
 
 struct lob_sym;
+struct source_gen;
 
 enum ir_temp_type {
   /* Can be any register from a machine dependant register set */
@@ -203,6 +204,15 @@ void ir_block_init(struct ir_block *blk);
 void ir_block_cleanup(struct ir_block *blk);
 void ir_block_free(struct ir_block *blk);
 
+struct ir_instr *ir_block_append_instr(struct ir_block *blk, int instruction_code);
+struct ir_arg *ir_instr_append_use(struct ir_instr *ins, struct ir_temp *temp);
+struct ir_arg *ir_instr_append_def(struct ir_instr *ins, struct ir_temp *temp);
+struct ir_arg *ir_instr_append_usedef(struct ir_instr *ins, struct ir_temp *temp);
+
+void ir_print_temp(struct source_gen *sg, struct ireg_registry *ireg, struct ir_temp *temp);
+void ir_print_instr(struct source_gen *sg, struct ireg_registry *ireg, int mnemonic_space, struct ir_instr *instr);
+void ir_print_block(struct source_gen *sg, struct ireg_registry *ireg, struct ir_block *blk);
+void ir_print_body(struct source_gen *sg, struct ireg_registry *ireg, struct ir_body *body);
 
 #ifdef __cplusplus
 } /* extern "C" */

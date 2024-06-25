@@ -687,3 +687,34 @@ void ir_print_body(struct source_gen *sg, struct ireg_registry *ireg, struct ir_
     } while (blk != body->blocks_);
   }
 }
+
+struct ir_instr *ir_block_append_instr(struct ir_block *blk, int instruction_code) {
+  struct ir_instr *ins = ir_instr_alloc();
+  if (!ins) return NULL;
+  ins->instruction_code_ = instruction_code;
+  ir_instr_append_to_block(ins, blk);
+  return ins;
+}
+
+struct ir_arg *ir_instr_append_use(struct ir_instr *ins, struct ir_temp *temp) {
+  struct ir_arg *a = ir_arg_alloc();
+  if (!a) return NULL;
+  ir_arg_attach_to_temp(a, temp, 1, 0);
+  return a;
+}
+
+struct ir_arg *ir_instr_append_def(struct ir_instr *ins, struct ir_temp *temp) {
+  struct ir_arg *a = ir_arg_alloc();
+  if (!a) return NULL;
+  ir_arg_attach_to_temp(a, temp, 0, 1);
+  return a;
+}
+
+struct ir_arg *ir_instr_append_usedef(struct ir_instr *ins, struct ir_temp *temp) {
+  struct ir_arg *a = ir_arg_alloc();
+  if (!a) return NULL;
+  ir_arg_attach_to_temp(a, temp, 1, 1);
+  return a;
+}
+
+
