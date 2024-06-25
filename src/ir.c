@@ -22,9 +22,29 @@
 #include <stdint.h>
 #endif
 
+#ifndef STRING_H_INCLUDED
+#define STRING_H_INCLUDED
+#include <string.h>
+#endif
+
+#ifndef INTTYPES_H_INCLUDED
+#define INTTYPES_H_INCLUDED
+#include <inttypes.h>
+#endif
+
 #ifndef IR_H_INCLUDED
 #define IR_H_INCLUDED
 #include "ir.h"
+#endif
+
+#ifndef SOURCE_GEN_H_INCLUDED
+#define SOURCE_GEN_H_INCLUDED
+#include "source_gen.h"
+#endif
+
+#ifndef IR_REGISTRY_H_INCLUDED
+#define IR_REGISTRY_H_INCLUDED
+#include "ir_registry.h"
 #endif
 
 static void ir_temp_init(struct ir_temp *temp);
@@ -539,3 +559,131 @@ struct ir_block *ir_body_alloc_block(struct ir_body *body) {
   return blk;
 }
 
+void ir_print_temp(struct source_gen *sg, struct ireg_registry *ireg, struct ir_temp *temp) {
+  switch (temp->kind_) {
+    case IR_REGISTER_SET:
+      sg_printf(sg, "rr%d", temp->external_id_);
+      break;
+    case IR_REGISTER: {
+      struct ireg_register *reg = NULL;
+      if (temp->temp_value_ < ireg->num_registers_) {
+        reg = ireg->registers_[temp->temp_value_];
+      }
+      if (!reg) {
+        sg_printf(sg, "<illegal register>");
+      }
+      else {
+        sg_printf(sg, "%s", reg->name_);
+      }
+      break;
+    }
+    case IR_VIRTUAL:
+      sg_printf(sg, "t%d", temp->external_id_);
+      break;
+    case IR_LITERAL:
+      sg_printf(sg, "0x%"PRIX64"", temp->literal_value_);
+      break;
+    case IR_BLOCK_ENTRY:
+      sg_printf(sg, "L%d", temp->entry_point_block_ ? temp->entry_point_block_->serial_num_ : -1);
+      break;
+    case IR_SYMBOL_REF:
+      sg_printf(sg, "%s", temp->sym_name_);
+      break;
+    default:
+      sg_printf(sg, "<illegal temp>");
+      break;
+  }
+}
+
+void ir_print_instr(struct source_gen *sg, struct ireg_registry *ireg, int mnemonic_space, struct ir_instr *instr) {
+  struct ireg_instr *ireg_instr = NULL;
+  if (instr->instruction_code_ < ireg->num_instructions_) {
+    ireg_instr = ireg->instructions_[instr->instruction_code_];
+  }
+  const char *mnemonic = ireg_instr ? ireg_instr->mnemonic_ : "???";
+
+  if (mnemonic_space) {
+    sg_printf(sg, "%-*s", (int)mnemonic_space + 1, mnemonic);
+  }
+  else {
+    sg_printf(sg, "%s ", mnemonic);
+  }
+
+  /* Scan the format string for arguments and print as we go along */
+  const char *p;
+  p = ireg_instr ? ireg_instr->format_ : "";
+  while (*p) {
+    if ((p[0] == '%') && (p[1] >= '0') && (p[1] <= '9')){
+      int arg_num = p[1] - '0';
+      if ((p[2] >= '0') && (p[2] <= '9')) {
+        /* Double-digit argument placeholder */
+        arg_num = arg_num * 10 + (p[2] - '0');
+        p += 3;
+      }
+      else {
+        p += 2;
+      }
+      struct ireg_operand *opd = NULL;
+      struct ir_arg *arg = NULL;
+      if (arg_num < ireg_instr->num_operands_) {
+        opd = ireg_instr->operands_ + arg_num;
+      }
+      if (arg_num < instr->num_args_) {
+        arg = instr->args_[arg_num];
+      }
+
+      if (!arg) {
+        sg_printf(sg, "<null arg>");
+      }
+      else if (!arg->temp_) {
+        sg_printf(sg, "<null temp>");
+      }
+      else {
+        ir_print_temp(sg, ireg, arg->temp_);
+      }
+    }
+  }
+}
+
+void ir_print_block(struct source_gen *sg, struct ireg_registry *ireg, struct ir_block *blk) {
+  struct ir_instr *instr = blk->instructions_;
+  size_t max_mnemonic_len = 0;
+  if (instr) {
+    do {
+      struct ireg_instr *ireg_instr = NULL;
+      if (instr->instruction_code_ < ireg->num_instructions_) {
+        ireg_instr = ireg->instructions_[instr->instruction_code_];
+      }
+
+      size_t len = strlen(ireg_instr ? ireg_instr->mnemonic_ : "???");
+      if (len > max_mnemonic_len) {
+        max_mnemonic_len = len;
+      }
+
+      instr = instr->next_in_block_;
+    } while (instr != blk->instructions_);
+  }
+
+  sg_printf(sg, "L%s:\n", blk->serial_num_);
+  sg->indent_ += 2;
+
+  if (instr) {
+    do {
+      ir_print_instr(sg, ireg, (int)max_mnemonic_len, instr);
+
+      instr = instr->next_in_block_;
+    } while (instr != blk->instructions_);
+  }
+  sg->indent_ -= 2;
+}
+
+void ir_print_body(struct source_gen *sg, struct ireg_registry *ireg, struct ir_body *body) {
+  struct ir_block *blk = body->blocks_;
+  if (blk) {
+    do {
+      ir_print_block(sg, ireg, blk);
+
+      blk = blk->next_in_body_;
+    } while (blk != body->blocks_);
+  }
+}

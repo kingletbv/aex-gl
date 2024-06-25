@@ -51,7 +51,17 @@ struct ireg_instr {
   /* The mnemonic representing the instruction in textual form */
   const char *mnemonic_;
 
-  /* The format string for the instruction */
+  /* The format string for the instruction
+   * The format here uses %0, %1, %2, and so on, for specifying the location of the 
+   * argument string in the overal instruction, so, for instance:
+   * "[%0 * 4 + %1], %2"
+   * could be the format string for a hypothetical "MOV [EAX * 4 + EBX], ECX" instruction.
+   * Note that, because there may be an inordinate number of arguments, a multi-digit
+   * number may be used, e.g. %10, %11, %12, etc., to a maximum of two digits. So, if you
+   * wish to have argument 0 be followed by the digit 0, you would use "%000" where "%00"
+   * is the number 0 using the maximum number of digits ("%00"), followed by the literal
+   * digit 0. It is currently not possible to go beyond 100 arguments.
+   */
   const char *format_;
 
   /* The operands */
