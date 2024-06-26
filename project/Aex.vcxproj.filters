@@ -148,6 +148,7 @@
     <ClInclude Include="..\src\source_gen.h" />
     <ClInclude Include="..\src\ir.h" />
     <ClInclude Include="..\src\ir_registry.h" />
+    <ClInclude Include="..\src\sl_ir.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src\pp\pp_tokenizer.cbrt">
