@@ -94,24 +94,14 @@ for (py = top; py < bottom; py += 2) {
     // Because the test is >= 0, we can OR together the sign bits and create
     // a unified mask (if any sign bit is set, then the mask is all zeroes,
     // otherwise it is all ones.)
-    // Now also consider the counter-clockwise case, then, for the point to
-    // be inside the triangle, all the barycentric sub-triangles have to be
-    // counterclockwise (negative).
-    // So there are two cases: either all positive, or all negative. In the
-    // case of a clockwise triangle, it is impossible for all barycentric
-    // sub-triangles to be negative (because there is no area outside all
-    // three edges.) Similarly, for the counterclockwise triangle, the only
-    // way we can be on the same side of all three edges (in this case the
-    // negative side) is if we're on the triangle.
-    // So, in summary, we only need to check if we are on the same side of
-    // all three edges. Irrespective of the actual side that the edges agree
-    // on, we'll be inside the triangle.
-    TL_Mask = ((Dp01_TL & Dp12_TL & Dp20_TL) | ~(Dp01_TL | Dp12_TL | Dp20_TL)) >> 63;
-    TR_Mask = ((Dp01_TR & Dp12_TR & Dp20_TR) | ~(Dp01_TR | Dp12_TR | Dp20_TR)) >> 63;
-    BL_Mask = ((Dp01_BL & Dp12_BL & Dp20_BL) | ~(Dp01_BL | Dp12_BL | Dp20_BL)) >> 63;
-    BR_Mask = ((Dp01_BR & Dp12_BR & Dp20_BR) | ~(Dp01_BR | Dp12_BR | Dp20_BR)) >> 63;
-
-  //  counterclockwise_edge_area_mask_inverter
+    // For the counter-clockwise, we made various corrections to D012 and the
+    // Dp01/Dp12/Dp20 values and stepping values to ensure that these too are
+    // positive values when they are inside the triangle, so we can follow the
+    // same logic.
+    TL_Mask = ~(Dp01_TL | Dp12_TL | Dp20_TL) >> 63;
+    TR_Mask = ~(Dp01_TR | Dp12_TR | Dp20_TR) >> 63;
+    BL_Mask = ~(Dp01_BL | Dp12_BL | Dp20_BL) >> 63;
+    BR_Mask = ~(Dp01_BR | Dp12_BR | Dp20_BR) >> 63;
 
     // ((px + 1) - scissor_right)
     // positive when the right side column of fragment quadruples are to 

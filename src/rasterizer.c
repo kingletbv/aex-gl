@@ -1065,58 +1065,117 @@ int rasterizer_triangle(struct rasterizer *rasterizer,
     // triangle. We check whether or not the edge is "at the top" or "on the left" on
     // the basis of the triangle vertices being clockwise.
     // 
-    // Classify 01
-    if (y0 == y1) {
-      if (x0 >= x1) {
-        /* Horizontal edge at the bottom of the triangle, exclude it */
+    if (orientation == RASTERIZER_CLOCKWISE) {
+      // Classify 01
+      if (y0 == y1) {
+        if (x0 >= x1) {
+          /* Horizontal edge at the bottom of the triangle, exclude it */
+          Dp01_row_TL--;
+          Dp01_row_TR--;
+          Dp01_row_BL--;
+          Dp01_row_BR--;
+        }
+      }
+      else if (y0 < y1) {
+        /* Non-horizontal edge on the right side of the triangle, exclude it */
         Dp01_row_TL--;
         Dp01_row_TR--;
         Dp01_row_BL--;
         Dp01_row_BR--;
       }
-    }
-    else if (y0 < y1) {
-      /* Non-horizontal edge on the right side of the triangle, exclude it */
-      Dp01_row_TL--;
-      Dp01_row_TR--;
-      Dp01_row_BL--;
-      Dp01_row_BR--;
-    }
 
-    // Classify 12
-    if (y1 == y2) {
-      if (x1 >= x2) {
-        /* Horizontal edge at the bottom of the triangle, exclude it */
+      // Classify 12
+      if (y1 == y2) {
+        if (x1 >= x2) {
+          /* Horizontal edge at the bottom of the triangle, exclude it */
+          Dp12_row_TL--;
+          Dp12_row_TR--;
+          Dp12_row_BL--;
+          Dp12_row_BR--;
+        }
+      }
+      else if (y1 < y2) {
+        /* Non-horizontal edge on the right side of the triangle, exclude it */
         Dp12_row_TL--;
         Dp12_row_TR--;
         Dp12_row_BL--;
         Dp12_row_BR--;
       }
-    }
-    else if (y1 < y2) {
-      /* Non-horizontal edge on the right side of the triangle, exclude it */
-      Dp12_row_TL--;
-      Dp12_row_TR--;
-      Dp12_row_BL--;
-      Dp12_row_BR--;
-    }
 
-    // Classify 20
-    if (y2 == y0) {
-      if (x2 >= x0) {
-        /* Horizontal edge at the bottom of the triangle, exclude it */
+      // Classify 20
+      if (y2 == y0) {
+        if (x2 >= x0) {
+          /* Horizontal edge at the bottom of the triangle, exclude it */
+          Dp20_row_TL--;
+          Dp20_row_TR--;
+          Dp20_row_BL--;
+          Dp20_row_BR--;
+        }
+      }
+      else if (y2 < y0) {
+        /* Non-horizontal edge on the right side of the triangle, exclude it */
         Dp20_row_TL--;
         Dp20_row_TR--;
         Dp20_row_BL--;
         Dp20_row_BR--;
       }
     }
-    else if (y2 < y0) {
-      /* Non-horizontal edge on the right side of the triangle, exclude it */
-      Dp20_row_TL--;
-      Dp20_row_TR--;
-      Dp20_row_BL--;
-      Dp20_row_BR--;
+    else /* orientation == RASTERIZER_COUNTERCLOCKWISE */ {
+      /* Counter-clockwise, thus we flip all the cases 
+       * (x0 > x1 now implies top edge, whereas with clockwise it is a bottom edge, and so on) */
+      /* Classify 01 */
+      if (y0 == y1) {
+        if (x0 <= x1) {
+          /* Horizontal edge at the bottom of the triangle, exclude it */
+          Dp01_row_TL--;
+          Dp01_row_TR--;
+          Dp01_row_BL--;
+          Dp01_row_BR--;
+        }
+      }
+      else if (y0 > y1) {
+        /* Non-horizontal edge on the right side of the triangle, exclude it */
+        Dp01_row_TL--;
+        Dp01_row_TR--;
+        Dp01_row_BL--;
+        Dp01_row_BR--;
+      }
+
+      // Classify 12
+      if (y1 == y2) {
+        if (x1 <= x2) {
+          /* Horizontal edge at the bottom of the triangle, exclude it */
+          Dp12_row_TL--;
+          Dp12_row_TR--;
+          Dp12_row_BL--;
+          Dp12_row_BR--;
+        }
+      }
+      else if (y1 > y2) {
+        /* Non-horizontal edge on the right side of the triangle, exclude it */
+        Dp12_row_TL--;
+        Dp12_row_TR--;
+        Dp12_row_BL--;
+        Dp12_row_BR--;
+      }
+
+      // Classify 20
+      if (y2 == y0) {
+        if (x2 <= x0) {
+          /* Horizontal edge at the bottom of the triangle, exclude it */
+          Dp20_row_TL--;
+          Dp20_row_TR--;
+          Dp20_row_BL--;
+          Dp20_row_BR--;
+        }
+      }
+      else if (y2 > y0) {
+        /* Non-horizontal edge on the right side of the triangle, exclude it */
+        Dp20_row_TL--;
+        Dp20_row_TR--;
+        Dp20_row_BL--;
+        Dp20_row_BR--;
+      }
     }
 
     pixel_TL = rgba + top * stride + left * 4;
