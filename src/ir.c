@@ -260,6 +260,7 @@ static void ir_arg_free(struct ir_arg *arg) {
 static void ir_arg_attach_to_temp(struct ir_arg *arg, struct ir_temp *temp, int as_use, int as_def) {
   ir_arg_detach_from_temp(arg);
   arg->temp_ = temp;
+  if (!temp) return;
   if (temp->args_) {
     arg->next_in_temp_ = temp->args_;
     arg->prev_in_temp_ = temp->args_->prev_in_temp_;
@@ -497,6 +498,7 @@ static void ir_control_flow_edge_detach_from_block(struct ir_control_flow_edge *
 void ir_body_init(struct ir_body *body) {
   body->temporaries_ = NULL;
   body->blocks_ = NULL;
+  body->alloc_error_ = 0;
 }
 
 void ir_body_cleanup(struct ir_body *body) {
@@ -556,7 +558,79 @@ struct ir_block *ir_body_alloc_block(struct ir_body *body) {
   if (blk) {
     ir_block_attach_to_body(blk, body);
   }
+  else {
+    body->alloc_error_ = 1;
+  }
   return blk;
+}
+
+struct ir_temp *ir_body_alloc_temp(struct ir_body *body) {
+  struct ir_temp *t = ir_temp_alloc();
+  if (t) {
+    ir_temp_attach_to_body(t, body);
+  }
+  else {
+    body->alloc_error_ = 1;
+  }
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_register(struct ir_body *body, int reg) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_REGISTER;
+  t->temp_value_ = reg;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_virtual(struct ir_body *body, int temp_index) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_VIRTUAL;
+  t->external_id_ = temp_index;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_lit(struct ir_body *body, uint64_t val) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_LITERAL;
+  t->literal_value_ = val;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_block(struct ir_body *body, struct ir_block *blk) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_BLOCK_ENTRY;
+  ir_temp_attach_entry_point_block(t, blk);
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_symref(struct ir_body *body, char *sym_name) {
+  char *s = strdup(sym_name);
+  if (!s) {
+    body->alloc_error_ = 1;
+    return NULL;
+  }
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) {
+    free(s);
+    return NULL;
+  }
+
+  t->kind_ = IR_SYMBOL_REF;
+  t->sym_name_ = s;
+
+  return t;
 }
 
 void ir_print_temp(struct source_gen *sg, struct ireg_registry *ireg, struct ir_temp *temp) {
@@ -698,21 +772,37 @@ struct ir_instr *ir_block_append_instr(struct ir_block *blk, int instruction_cod
 
 struct ir_arg *ir_instr_append_use(struct ir_instr *ins, struct ir_temp *temp) {
   struct ir_arg *a = ir_arg_alloc();
-  if (!a) return NULL;
+  if (!a) {
+    if (ins->block_ && ins->block_->body_) {
+      ins->block_->body_->alloc_error_ = 1;
+    }
+    return NULL;
+  }
   ir_arg_attach_to_temp(a, temp, 1, 0);
   return a;
 }
 
 struct ir_arg *ir_instr_append_def(struct ir_instr *ins, struct ir_temp *temp) {
   struct ir_arg *a = ir_arg_alloc();
-  if (!a) return NULL;
+  if (!a) {
+    if (ins->block_ && ins->block_->body_) {
+      ins->block_->body_->alloc_error_ = 1;
+    }
+    return NULL;
+  }
   ir_arg_attach_to_temp(a, temp, 0, 1);
   return a;
 }
 
 struct ir_arg *ir_instr_append_usedef(struct ir_instr *ins, struct ir_temp *temp) {
+  if (!ins) return NULL;
   struct ir_arg *a = ir_arg_alloc();
-  if (!a) return NULL;
+  if (!a) {
+    if (ins->block_ && ins->block_->body_) {
+      ins->block_->body_->alloc_error_ = 1;
+    }
+    return NULL;
+  }
   ir_arg_attach_to_temp(a, temp, 1, 1);
   return a;
 }

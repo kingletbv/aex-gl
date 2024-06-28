@@ -193,12 +193,23 @@ struct ir_body {
   /* Chain of all blocks that together make the flow graph. The body entry is the
    * first block in this chain. */
   struct ir_block *blocks_;
+
+  /* If non-zero, construction failed at one point or another due to a failure
+   * to allocate. This flag allows you to continue to construct and check for
+   * failure once at the end. */
+  int alloc_error_ : 1;
 };
 
 void ir_body_init(struct ir_body *body);
 void ir_body_cleanup(struct ir_body *body);
 
 struct ir_block *ir_body_alloc_block(struct ir_body *body);
+struct ir_temp *ir_body_alloc_temp(struct ir_body *body);
+struct ir_temp *ir_body_alloc_temp_register(struct ir_body *body, int reg);
+struct ir_temp *ir_body_alloc_temp_virtual(struct ir_body *body, int temp_index);
+struct ir_temp *ir_body_alloc_temp_lit(struct ir_body *body, uint64_t val);
+struct ir_temp *ir_body_alloc_temp_block(struct ir_body *body, struct ir_block *blk);
+struct ir_temp *ir_body_alloc_temp_symref(struct ir_body *body, char *sym_name);
 
 void ir_block_init(struct ir_block *blk);
 void ir_block_cleanup(struct ir_block *blk);

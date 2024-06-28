@@ -67,6 +67,7 @@
     <ClCompile Include="..\src\source_gen.c" />
     <ClCompile Include="..\src\ir.c" />
     <ClCompile Include="..\src\ir_registry.c" />
+    <ClCompile Include="..\src\sl_ir.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="pp">

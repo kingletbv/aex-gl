@@ -228,6 +228,7 @@
     <ClCompile Include="..\src\sl_expr_temp.c" />
     <ClCompile Include="..\src\sl_frame.c" />
     <ClCompile Include="..\src\sl_info_log.c" />
+    <ClCompile Include="..\src\sl_ir.c" />
     <ClCompile Include="..\src\sl_program.c" />
     <ClCompile Include="..\src\sl_reg_alloc.c" />
     <ClCompile Include="..\src\sl_reg_move.c" />
