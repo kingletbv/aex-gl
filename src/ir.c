@@ -595,6 +595,56 @@ struct ir_temp *ir_body_alloc_temp_virtual(struct ir_body *body, int temp_index)
   return t;
 }
 
+struct ir_temp *ir_body_alloc_temp_banked_float(struct ir_body *body, int reg_index) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_FLOAT_BANK;
+  t->temp_value_ = reg_index;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_banked_int(struct ir_body *body, int reg_index) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_INT_BANK;
+  t->temp_value_ = reg_index;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_banked_bool(struct ir_body *body, int reg_index) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_BOOL_BANK;
+  t->temp_value_ = reg_index;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_banked_sampler2D(struct ir_body *body, int reg_index) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_SAMPLER2D_BANK;
+  t->temp_value_ = reg_index;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_banked_samplerCube(struct ir_body *body, int reg_index) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_SAMPLERCUBE_BANK;
+  t->temp_value_ = reg_index;
+
+  return t;
+}
+
 struct ir_temp *ir_body_alloc_temp_lit(struct ir_body *body, uint64_t val) {
   struct ir_temp *t = ir_body_alloc_temp(body);
   if (!t) return NULL;
@@ -651,6 +701,23 @@ void ir_print_temp(struct source_gen *sg, struct ireg_registry *ireg, struct ir_
       }
       break;
     }
+
+    case IR_FLOAT_BANK:
+      sg_printf(sg, "F%d", temp->temp_value_);
+      break;
+    case IR_INT_BANK:
+      sg_printf(sg, "I%d", temp->temp_value_);
+      break;
+    case IR_BOOL_BANK:
+      sg_printf(sg, "B%d", temp->temp_value_);
+      break;
+    case IR_SAMPLER2D_BANK:
+      sg_printf(sg, "S2D%d", temp->temp_value_);
+      break;
+    case IR_SAMPLERCUBE_BANK:
+      sg_printf(sg, "SC%d", temp->temp_value_);
+      break;
+
     case IR_VIRTUAL:
       sg_printf(sg, "t%d", temp->external_id_);
       break;

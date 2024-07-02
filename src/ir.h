@@ -40,6 +40,16 @@ enum ir_temp_type {
    * to instruction. */
   IR_VIRTUAL,
 
+  /* Register banks; these correspond to a single column of float,
+   * int, bool, sampler2D or samplerCube  registers across multiple 
+   * rows in a shader execution
+   * The ordinal of the column assigned is stored in temp_value_.  */
+  IR_FLOAT_BANK,
+  IR_INT_BANK,
+  IR_BOOL_BANK,
+  IR_SAMPLER2D_BANK,
+  IR_SAMPLERCUBE_BANK,
+
   /* Literal data values */
   IR_LITERAL,
 
@@ -73,7 +83,7 @@ struct ir_temp {
   /* Kind of temporary register */
   enum ir_temp_type kind_;
 
-  /* The ordinal of the temporary register assigned (if kind_ == IR_REGISTER) */
+  /* The ordinal of the temporary register assigned (if kind_ == IR_REGISTER, or IR_XXX_BANK) */
   int temp_value_;
 
   /* Pointer to list of arguments where this temporary is used */
@@ -207,6 +217,11 @@ struct ir_block *ir_body_alloc_block(struct ir_body *body);
 struct ir_temp *ir_body_alloc_temp(struct ir_body *body);
 struct ir_temp *ir_body_alloc_temp_register(struct ir_body *body, int reg);
 struct ir_temp *ir_body_alloc_temp_virtual(struct ir_body *body, int temp_index);
+struct ir_temp *ir_body_alloc_temp_banked_float(struct ir_body *body, int reg_index);
+struct ir_temp *ir_body_alloc_temp_banked_int(struct ir_body *body, int reg_index);
+struct ir_temp *ir_body_alloc_temp_banked_bool(struct ir_body *body, int reg_index);
+struct ir_temp *ir_body_alloc_temp_banked_sampler2D(struct ir_body *body, int reg_index);
+struct ir_temp *ir_body_alloc_temp_banked_samplerCube(struct ir_body *body, int reg_index);
 struct ir_temp *ir_body_alloc_temp_lit(struct ir_body *body, uint64_t val);
 struct ir_temp *ir_body_alloc_temp_block(struct ir_body *body, struct ir_block *blk);
 struct ir_temp *ir_body_alloc_temp_symref(struct ir_body *body, char *sym_name);
