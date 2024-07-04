@@ -17,6 +17,11 @@
 #include <stdint.h>
 #endif
 
+#ifndef SL_EXECUTION_H_INCLUDED
+#define SL_EXECUTION_H_INCLUDED
+#include "sl_execution.h"
+#endif
+
 #ifndef IR_H_INCLUDED
 #define IR_H_INCLUDED
 #include "ir.h"
@@ -67,13 +72,69 @@ void sl_ir_x(struct ir_body *body) {
 
 }
 
-void sl_ir_need_rvalue(struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct ir_block *blk, struct sl_expr *x) {
+void sl_ir_negate(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *opd) {
+  sl_reg_alloc_kind_t kind = EXPR_RVALUE(opd)->kind_;
+  switch (kind) {
+    case slrak_float:
+    case slrak_vec2:
+    case slrak_vec3:
+    case slrak_vec4:
+    case slrak_mat2:
+    case slrak_mat3:
+    case slrak_mat4: {
+      size_t num_components = 0;
+      switch (kind) {
+        case slrak_float: num_components = 1; break;
+        case slrak_vec2: num_components = 2; break;
+        case slrak_vec3: num_components = 3; break;
+        case slrak_vec4: num_components = 4; break;
+        case slrak_mat2: num_components = 4; break;
+        case slrak_mat3: num_components = 9; break;
+        case slrak_mat4: num_components = 16; break;
+      }
+      size_t n;
+      for (n = 0; n < num_components; ++n) {
+        struct ir_instr *instr = ir_block_append_instr(blk, SLIR_NEG_F);
+        int opd_reg = EXPR_RVALUE(opd)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(opd)->v_.regs_[n] : EXPR_RVALUE(opd)->v_.regs_[n];
+        int dst_reg = dst->base_regs_.v_.regs_[n];
+        ir_instr_append_use(instr, chain_reg);
+        ir_instr_append_def(instr, ir_body_alloc_temp_banked_float(blk->body_, dst_reg));
+        ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, opd_reg));
+      }
+      break;
+    }
+    case slrak_int:
+    case slrak_ivec2:
+    case slrak_ivec3:
+    case slrak_ivec4: {
+      size_t num_components = 0;
+      switch (kind) {
+        case slrak_int:  num_components = 1; break;
+        case slrak_ivec2:num_components = 2; break;
+        case slrak_ivec3:num_components = 3; break;
+        case slrak_ivec4:num_components = 4; break;
+      }
+      size_t n;
+      for (n = 0; n < num_components; ++n) {
+        struct ir_instr *instr = ir_block_append_instr(blk, SLIR_NEG_I);
+        int opd_reg = EXPR_RVALUE(opd)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(opd)->v_.regs_[n] : EXPR_RVALUE(opd)->v_.regs_[n];
+        int dst_reg = dst->base_regs_.v_.regs_[n];
+        ir_instr_append_use(instr, chain_reg);
+        ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
+        ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, opd_reg));
+      }
+      break;
+    }
+  }
+}
+
+void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
   sl_reg_emit_move(blk, chain_reg, frame, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL);
 }
 
 /* Writes code starting at the end of blk, that evaluates expression x and stores the
  * results in the reg_alloc of x. */
-struct ir_block *sl_ir_expr(struct ir_body *body, struct ir_block *blk, struct sl_expr *x) {
+struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
   if (!x) return blk;
   switch (x->op_) {
     case exop_variable:
@@ -87,7 +148,9 @@ struct ir_block *sl_ir_expr(struct ir_body *body, struct ir_block *blk, struct s
     case exop_pre_dec:
 
     case exop_negate:
-
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_negate(blk, chain_reg, frame, x, x->children_[0]);
+      break;
 
     case exop_logical_not:
 
@@ -123,4 +186,6 @@ struct ir_block *sl_ir_expr(struct ir_body *body, struct ir_block *blk, struct s
     case exop_conditional:  // ternary ?: operator
       ;
   }
+
+  return blk;
 }
