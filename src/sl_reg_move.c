@@ -13955,3 +13955,25 @@ void sl_reg_move_c2c(struct sl_execution *exec,
                      struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset, int to_component) {
   sl_reg_move_crossframe_c2c(exec, row, (int)(exec->num_execution_frames_ - 1), from_ra, from_ra_offset, from_component, (int)(exec->num_execution_frames_ - 1), to_ra, to_ra_offset, to_component, 1, 1, 1);
 }
+
+void sl_reg_emit_move(struct ir_block *blk,
+                      struct ir_temp *chain_reg,
+                      struct sl_execution_frame *local_frame,
+                      struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset,
+                      struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset) {
+  sl_reg_emit_move_crossframe(blk, chain_reg,
+                              local_frame, from_ra, from_ra_offset,
+                              local_frame, to_ra, to_ra_offset,
+                              1, 1, 1);
+}
+
+void sl_reg_emit_move_c2c(struct ir_block *blk,
+                          struct ir_temp *chain_reg,
+                          struct sl_execution_frame *local_frame,
+                          struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset, int from_component,
+                          struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset, int to_component) {
+  sl_reg_emit_move_crossframe_c2c(blk, chain_reg,
+                                  local_frame, from_ra, from_ra_offset, from_component,
+                                  local_frame, to_ra, to_ra_offset, to_component,
+                                  1, 1, 1);
+}

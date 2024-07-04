@@ -52,6 +52,33 @@ void sl_reg_move_c2c(struct sl_execution *exec,
                      struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset, int from_component,
                      struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset, int to_component);
 
+void sl_reg_emit_move_crossframe(struct ir_block *blk,
+                                 struct ir_temp *chain_reg,
+                                 struct sl_execution_frame *from_frame, struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset,
+                                 struct sl_execution_frame *to_frame, struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset,
+                                 int from_offset_step_size, int to_offset_step_size,
+                                 int array_quantity);
+
+void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
+                                     struct ir_temp *chain_reg,
+                                     struct sl_execution_frame *from_frame, struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset, int from_component,
+                                     struct sl_execution_frame *to_frame, struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset, int to_component,
+                                     int from_offset_step_size, int to_offset_step_size,
+                                     int array_quantity);
+
+void sl_reg_emit_move(struct ir_block *blk,
+                      struct ir_temp *chain_reg,
+                      struct sl_execution_frame *local_frame,
+                      struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset,
+                      struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset);
+
+void sl_reg_emit_move_c2c(struct ir_block *blk,
+                          struct ir_temp *chain_reg,
+                          struct sl_execution_frame *local_frame,
+                          struct sl_reg_alloc *from_ra, struct sl_reg_alloc *from_ra_offset, int from_component,
+                          struct sl_reg_alloc *to_ra, struct sl_reg_alloc *to_ra_offset, int to_component);
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
