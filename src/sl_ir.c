@@ -27,6 +27,16 @@
 #include "sl_ir.h"
 #endif
 
+#ifndef SL_EXPR_H_INCLUDED
+#define SL_EXPR_H_INCLUDED
+#include "sl_expr.h"
+#endif
+
+#ifndef SL_REG_MOVE_H_INCLUDED
+#define SL_REG_MOVE_H_INCLUDED
+#include "sl_reg_move.h"
+#endif
+
 void sl_ir_x(struct ir_body *body) {
   struct ir_block *eval_condition = ir_body_alloc_block(body);
   // .. eval condition here in eval_condition ..
@@ -36,6 +46,8 @@ void sl_ir_x(struct ir_body *body) {
   struct ir_temp *exec_chain = NULL; /* Exec chain coming in */
   struct ir_temp *true_chain = NULL; /* Exec chain where condition_var is true (regular int) */
   struct ir_temp *false_chain = NULL; /* Exec chain where condition_var is false (regular int) */
+  ir_instr_append_def(split_instr, true_chain);
+  ir_instr_append_def(split_instr, false_chain);
   ir_instr_append_use(split_instr, condition_var);
   ir_instr_append_use(split_instr, exec_chain);
   
@@ -55,3 +67,60 @@ void sl_ir_x(struct ir_body *body) {
 
 }
 
+void sl_ir_need_rvalue(struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct ir_block *blk, struct sl_expr *x) {
+  sl_reg_emit_move(blk, chain_reg, frame, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL);
+}
+
+/* Writes code starting at the end of blk, that evaluates expression x and stores the
+ * results in the reg_alloc of x. */
+struct ir_block *sl_ir_expr(struct ir_body *body, struct ir_block *blk, struct sl_expr *x) {
+  if (!x) return blk;
+  switch (x->op_) {
+    case exop_variable:
+    case exop_literal:
+    case exop_array_subscript:
+    case exop_component_selection: /* e.g. myvec3.xxz */
+    case exop_field_selection:     /* e.g. mystruct.myfield */
+    case exop_post_inc:
+    case exop_post_dec:
+    case exop_pre_inc:
+    case exop_pre_dec:
+
+    case exop_negate:
+
+
+    case exop_logical_not:
+
+    case exop_multiply:
+    case exop_divide:
+
+    case exop_add:
+    case exop_subtract:
+
+    case exop_lt:
+    case exop_le:
+    case exop_ge:
+    case exop_gt:
+
+    case exop_eq:
+    case exop_ne:
+
+    case exop_function_call:
+    case exop_constructor:
+
+    case exop_logical_and:
+    case exop_logical_or:
+    case exop_logical_xor:
+
+    case exop_assign:
+    case exop_mul_assign:
+    case exop_div_assign:
+    case exop_add_assign:
+    case exop_sub_assign:
+
+    case exop_sequence:    // comma operator
+
+    case exop_conditional:  // ternary ?: operator
+      ;
+  }
+}
