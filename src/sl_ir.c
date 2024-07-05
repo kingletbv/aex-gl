@@ -96,7 +96,7 @@ static void sl_ir_negate(struct ir_block *blk, struct ir_temp *chain_reg, struct
       for (n = 0; n < num_components; ++n) {
         struct ir_instr *instr = ir_block_append_instr(blk, SLIR_NEG_F);
         int opd_reg = EXPR_RVALUE(opd)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(opd)->v_.regs_[n] : EXPR_RVALUE(opd)->v_.regs_[n];
-        int dst_reg = dst->base_regs_.v_.regs_[n];
+        int dst_reg = dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[n] : dst->base_regs_.v_.regs_[n];
         ir_instr_append_use(instr, chain_reg);
         ir_instr_append_def(instr, ir_body_alloc_temp_banked_float(blk->body_, dst_reg));
         ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, opd_reg));
@@ -139,14 +139,347 @@ static void sl_ir_not(struct ir_block *blk, struct ir_temp *chain_reg, struct sl
   size_t n;
   for (n = 0; n < num_components; ++n) {
     struct ir_instr *instr = ir_block_append_instr(blk, SLIR_NOT);
-    int opd_reg = EXPR_RVALUE(opd)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(opd)->v_.regs_[n] : EXPR_RVALUE(opd)->v_.regs_[n];
-    int dst_reg = dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[n] : dst->base_regs_.v_.regs_[n];
+    int opd_reg = EXPR_RVALUE(opd)->local_frame_ ? frame->local_bool_offset_ + EXPR_RVALUE(opd)->v_.regs_[n] : EXPR_RVALUE(opd)->v_.regs_[n];
+    int dst_reg = dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[n] : dst->base_regs_.v_.regs_[n];
     ir_instr_append_use(instr, chain_reg);
-    ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
-    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, opd_reg));
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst_reg));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_bool(blk->body_, opd_reg));
   }
 }
 
+static void sl_ir_f_mul(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int left_reg, int right_reg) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_MUL_F);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_float(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, left_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, right_reg));
+}
+
+static void sl_ir_i_mul(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int left_reg, int right_reg) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_MUL_I);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right_reg));
+}
+
+static void sl_ir_dot_product2(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int left0_reg, int left1_reg, int right0_reg, int right1_reg) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_DOT2);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left0_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left1_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right0_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right1_reg));
+}
+
+static void sl_ir_dot_product3(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int left0_reg, int left1_reg, int left2_reg, int right0_reg, int right1_reg, int right2_reg) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_DOT3);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left0_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left1_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left2_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right0_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right1_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right2_reg));
+}
+
+static void sl_ir_dot_product4(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int left0_reg, int left1_reg, int left2_reg, int left3_reg, int right0_reg, int right1_reg, int right2_reg, int right3_reg) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_DOT4);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left0_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left1_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left2_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left3_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right0_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right1_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right2_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right3_reg));
+}
+
+static void sl_ir_mul(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  int r, c;
+  sl_reg_alloc_kind_t left_kind = EXPR_RVALUE(left)->kind_;
+  sl_reg_alloc_kind_t right_kind = EXPR_RVALUE(right)->kind_;
+  if (left_kind == right_kind) {
+    switch (left_kind) {
+      case slrak_float:
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+        break;
+      case slrak_int:
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+        break;
+      case slrak_vec2:
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[1] : dst->base_regs_.v_.regs_[1],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[1] : EXPR_RVALUE(left)->v_.regs_[1],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[1] : EXPR_RVALUE(right)->v_.regs_[1]);
+        break;
+      case slrak_vec3:
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[1] : dst->base_regs_.v_.regs_[1],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[1] : EXPR_RVALUE(left)->v_.regs_[1],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[1] : EXPR_RVALUE(right)->v_.regs_[1]);
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[2] : dst->base_regs_.v_.regs_[2],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[2] : EXPR_RVALUE(left)->v_.regs_[2],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[2] : EXPR_RVALUE(right)->v_.regs_[2]);
+        break;
+      case slrak_vec4:
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[1] : dst->base_regs_.v_.regs_[1],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[1] : EXPR_RVALUE(left)->v_.regs_[1],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[1] : EXPR_RVALUE(right)->v_.regs_[1]);
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[2] : dst->base_regs_.v_.regs_[2],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[2] : EXPR_RVALUE(left)->v_.regs_[2],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[2] : EXPR_RVALUE(right)->v_.regs_[2]);
+        sl_ir_f_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[3] : dst->base_regs_.v_.regs_[3],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[3] : EXPR_RVALUE(left)->v_.regs_[3],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[3] : EXPR_RVALUE(right)->v_.regs_[3]);
+        break;
+      case slrak_ivec2:
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[1] : dst->base_regs_.v_.regs_[1],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[1] : EXPR_RVALUE(left)->v_.regs_[1],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[1] : EXPR_RVALUE(right)->v_.regs_[1]);
+        break;
+      case slrak_ivec3:
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[1] : dst->base_regs_.v_.regs_[1],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[1] : EXPR_RVALUE(left)->v_.regs_[1],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[1] : EXPR_RVALUE(right)->v_.regs_[1]);
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[2] : dst->base_regs_.v_.regs_[2],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[2] : EXPR_RVALUE(left)->v_.regs_[2],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[2] : EXPR_RVALUE(right)->v_.regs_[2]);
+        break;
+      case slrak_ivec4:
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[1] : dst->base_regs_.v_.regs_[1],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[1] : EXPR_RVALUE(left)->v_.regs_[1],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[1] : EXPR_RVALUE(right)->v_.regs_[1]);
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[2] : dst->base_regs_.v_.regs_[2],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[2] : EXPR_RVALUE(left)->v_.regs_[2],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[2] : EXPR_RVALUE(right)->v_.regs_[2]);
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[3] : dst->base_regs_.v_.regs_[3],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[3] : EXPR_RVALUE(left)->v_.regs_[3],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[3] : EXPR_RVALUE(right)->v_.regs_[3]);
+        break;
+      case slrak_mat2:
+        for (c = 0; c < 2; ++c) {
+          for (r = 0; r < 2; ++r) {
+            sl_ir_dot_product2(blk, chain_reg,
+                               dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[c*2+r] : dst->base_regs_.v_.regs_[c*2+r],
+                               EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r+0] : EXPR_RVALUE(left)->v_.regs_[r+0],
+                               EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r+2] : EXPR_RVALUE(left)->v_.regs_[r+2],
+                               EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[c*2 + 0] : EXPR_RVALUE(right)->v_.regs_[c*2 + 0],
+                               EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[c*2 + 1] : EXPR_RVALUE(right)->v_.regs_[c*2 + 1]);
+          }
+        }
+        break;
+      case slrak_mat3:
+        for (c = 0; c < 3; ++c) {
+          for (r = 0; r < 3; ++r) {
+            sl_ir_dot_product3(blk, chain_reg,
+                               dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[c*3+r] : dst->base_regs_.v_.regs_[c*3+r],
+                               EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r+0] : EXPR_RVALUE(left)->v_.regs_[r+0],
+                               EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r+3] : EXPR_RVALUE(left)->v_.regs_[r+3],
+                               EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r+6] : EXPR_RVALUE(left)->v_.regs_[r+6],
+                               EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[c*3 + 0] : EXPR_RVALUE(right)->v_.regs_[c*3 + 0],
+                               EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[c*3 + 1] : EXPR_RVALUE(right)->v_.regs_[c*3 + 1],
+                               EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[c*3 + 2] : EXPR_RVALUE(right)->v_.regs_[c*3 + 2]);
+          }
+        }
+        break;
+      case slrak_mat4:
+        for (c = 0; c < 4; ++c) {
+          for (r = 0; r < 4; ++r) {
+            sl_ir_dot_product4(blk, chain_reg,
+                               dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[c*4+r] : dst->base_regs_.v_.regs_[c*4+r],
+                               EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r+0] : EXPR_RVALUE(left)->v_.regs_[r+0],
+                               EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r+4] : EXPR_RVALUE(left)->v_.regs_[r+4],
+                               EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r+8] : EXPR_RVALUE(left)->v_.regs_[r+8],
+                               EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r+12] : EXPR_RVALUE(left)->v_.regs_[r+12],
+                               EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[c*4 + 0] : EXPR_RVALUE(right)->v_.regs_[c*4 + 0],
+                               EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[c*4 + 1] : EXPR_RVALUE(right)->v_.regs_[c*4 + 1],
+                               EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[c*4 + 2] : EXPR_RVALUE(right)->v_.regs_[c*4 + 2],
+                               EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[c*4 + 3] : EXPR_RVALUE(right)->v_.regs_[c*4 + 3]);
+          }
+        }
+        break;
+    }
+  }
+  else if (left_kind == slrak_float) {
+    int num_coords = 0;
+    switch (right_kind) {
+      case slrak_vec2: num_coords = 2; break;
+      case slrak_vec3: num_coords = 3; break;
+      case slrak_vec4: num_coords = 4; break;
+      case slrak_mat2: num_coords = 4; break;
+      case slrak_mat3: num_coords = 9; break;
+      case slrak_mat4: num_coords = 16; break;
+    }
+    for (r = 0; r < num_coords; ++r) {
+      sl_ir_f_mul(blk, chain_reg,  
+                  dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+    }
+  }
+  else if (right_kind == slrak_float) {
+    int num_coords = 0;
+    switch (left_kind) {
+      case slrak_vec2: num_coords = 2; break;
+      case slrak_vec3: num_coords = 3; break;
+      case slrak_vec4: num_coords = 4; break;
+      case slrak_mat2: num_coords = 4; break;
+      case slrak_mat3: num_coords = 9; break;
+      case slrak_mat4: num_coords = 16; break;
+    }
+    for (r = 0; r < num_coords; ++r) {
+      sl_ir_f_mul(blk, chain_reg,  
+                  dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+    }
+  }
+  else if (left_kind == slrak_int) {
+    int num_coords = 0;
+    switch (right_kind) {
+      case slrak_ivec2: num_coords = 2; break;
+      case slrak_ivec3: num_coords = 3; break;
+      case slrak_ivec4: num_coords = 4; break;
+    }
+    for (r = 0; r < num_coords; ++r) {
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+    }
+  }
+  else if (right_kind == slrak_int) {
+    int num_coords = 0;
+    switch (left_kind) {
+      case slrak_ivec2: num_coords = 2; break;
+      case slrak_ivec3: num_coords = 3; break;
+      case slrak_ivec4: num_coords = 4; break;
+    }
+    for (r = 0; r < num_coords; ++r) {
+        sl_ir_i_mul(blk, chain_reg,  
+                    dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                    EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                    EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+    }
+  }
+  else if ((left_kind == slrak_vec2) && (right_kind == slrak_mat2)) {
+    for (r = 0; r < 2; ++r) {
+      sl_ir_dot_product2(blk, chain_reg,
+                         dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[1] : EXPR_RVALUE(left)->v_.regs_[1],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r*2 + 0] : EXPR_RVALUE(right)->v_.regs_[r*2 + 0],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r*2 + 1] : EXPR_RVALUE(right)->v_.regs_[r*2 + 1]);
+    }
+  }
+  else if ((left_kind == slrak_mat2) && (right_kind == slrak_vec2)) {
+    for (r = 0; r < 2; ++r) {
+      sl_ir_dot_product2(blk, chain_reg,
+                         dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0 + r] : EXPR_RVALUE(left)->v_.regs_[0 + r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[2 + r] : EXPR_RVALUE(left)->v_.regs_[2 + r],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[1] : EXPR_RVALUE(right)->v_.regs_[1]);
+    }
+  }
+  else if ((left_kind == slrak_vec3) && (right_kind == slrak_mat3)) {
+    for (r = 0; r < 3; ++r) {
+      sl_ir_dot_product3(blk, chain_reg,
+                         dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[1] : EXPR_RVALUE(left)->v_.regs_[1],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[2] : EXPR_RVALUE(left)->v_.regs_[2],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r*3 + 0] : EXPR_RVALUE(right)->v_.regs_[r*3 + 0],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r*3 + 1] : EXPR_RVALUE(right)->v_.regs_[r*3 + 1],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r*3 + 2] : EXPR_RVALUE(right)->v_.regs_[r*3 + 2]);
+    }
+  }
+  else if ((left_kind == slrak_mat3) && (right_kind == slrak_vec3)) {
+    for (r = 0; r < 3; ++r) {
+      sl_ir_dot_product3(blk, chain_reg,
+                         dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0 + r] : EXPR_RVALUE(left)->v_.regs_[0 + r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[3 + r] : EXPR_RVALUE(left)->v_.regs_[3 + r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[6 + r] : EXPR_RVALUE(left)->v_.regs_[6 + r],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[1] : EXPR_RVALUE(right)->v_.regs_[1],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[2] : EXPR_RVALUE(right)->v_.regs_[2]);
+    }
+  }
+  else if ((left_kind == slrak_vec4) && (right_kind == slrak_mat4)) {
+    for (r = 0; r < 4; ++r) {
+      sl_ir_dot_product4(blk, chain_reg,
+                         dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[1] : EXPR_RVALUE(left)->v_.regs_[1],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[2] : EXPR_RVALUE(left)->v_.regs_[2],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[3] : EXPR_RVALUE(left)->v_.regs_[3],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r*4 + 0] : EXPR_RVALUE(right)->v_.regs_[r*4 + 0],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r*4 + 1] : EXPR_RVALUE(right)->v_.regs_[r*4 + 1],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r*4 + 2] : EXPR_RVALUE(right)->v_.regs_[r*4 + 2],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r*4 + 3] : EXPR_RVALUE(right)->v_.regs_[r*4 + 3]);
+    }
+  }
+  else if ((left_kind == slrak_mat4) && (right_kind == slrak_vec4)) {
+    for (r = 0; r < 4; ++r) {
+      sl_ir_dot_product4(blk, chain_reg,
+                         dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0 + r] : EXPR_RVALUE(left)->v_.regs_[0 + r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[4 + r] : EXPR_RVALUE(left)->v_.regs_[3 + r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[8 + r] : EXPR_RVALUE(left)->v_.regs_[6 + r],
+                         EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[12+ r] : EXPR_RVALUE(left)->v_.regs_[12+ r],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[1] : EXPR_RVALUE(right)->v_.regs_[1],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[2] : EXPR_RVALUE(right)->v_.regs_[2],
+                         EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[3] : EXPR_RVALUE(right)->v_.regs_[3]);
+    }
+  }
+}
 
 void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
   sl_reg_emit_move(blk, chain_reg, frame, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL);
@@ -181,6 +514,13 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       break;
 
     case exop_multiply:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_mul(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
+
     case exop_divide:
 
     case exop_add:
