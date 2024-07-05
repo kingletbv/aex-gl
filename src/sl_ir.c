@@ -72,7 +72,7 @@ void sl_ir_x(struct ir_body *body) {
 
 }
 
-void sl_ir_negate(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *opd) {
+static void sl_ir_negate(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *opd) {
   sl_reg_alloc_kind_t kind = EXPR_RVALUE(opd)->kind_;
   switch (kind) {
     case slrak_float:
@@ -118,7 +118,7 @@ void sl_ir_negate(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_exe
       for (n = 0; n < num_components; ++n) {
         struct ir_instr *instr = ir_block_append_instr(blk, SLIR_NEG_I);
         int opd_reg = EXPR_RVALUE(opd)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(opd)->v_.regs_[n] : EXPR_RVALUE(opd)->v_.regs_[n];
-        int dst_reg = dst->base_regs_.v_.regs_[n];
+        int dst_reg = dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[n] : dst->base_regs_.v_.regs_[n];
         ir_instr_append_use(instr, chain_reg);
         ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
         ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, opd_reg));
@@ -127,6 +127,26 @@ void sl_ir_negate(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_exe
     }
   }
 }
+
+static void sl_ir_not(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *opd) {
+  size_t num_components = 0;
+  switch (EXPR_RVALUE(opd)->kind_) {
+    case slrak_bool:  num_components = 1; break;
+    case slrak_bvec2: num_components = 2; break;
+    case slrak_bvec3: num_components = 3; break;
+    case slrak_bvec4: num_components = 4; break;
+  }
+  size_t n;
+  for (n = 0; n < num_components; ++n) {
+    struct ir_instr *instr = ir_block_append_instr(blk, SLIR_NOT);
+    int opd_reg = EXPR_RVALUE(opd)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(opd)->v_.regs_[n] : EXPR_RVALUE(opd)->v_.regs_[n];
+    int dst_reg = dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[n] : dst->base_regs_.v_.regs_[n];
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, opd_reg));
+  }
+}
+
 
 void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
   sl_reg_emit_move(blk, chain_reg, frame, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL);
@@ -138,6 +158,7 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
   if (!x) return blk;
   switch (x->op_) {
     case exop_variable:
+      break;
     case exop_literal:
     case exop_array_subscript:
     case exop_component_selection: /* e.g. myvec3.xxz */
@@ -148,11 +169,16 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
     case exop_pre_dec:
 
     case exop_negate:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
       sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
       sl_ir_negate(blk, chain_reg, frame, x, x->children_[0]);
       break;
 
     case exop_logical_not:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_not(blk, chain_reg, frame, x, x->children_[0]);
+      break;
 
     case exop_multiply:
     case exop_divide:
