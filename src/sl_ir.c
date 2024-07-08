@@ -881,6 +881,140 @@ static void sl_ir_sub(struct ir_block *blk, struct ir_temp *chain_reg, struct sl
   }
 }
 
+static void sl_ir_lt(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  struct ir_instr *instr = NULL;
+
+  if (left->base_regs_.kind_ == slrak_float) {
+    instr = ir_block_append_instr(blk, SLIR_LT_F);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else if (left->base_regs_.kind_ == slrak_int) {
+    instr = ir_block_append_instr(blk, SLIR_LT_I);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else {
+    return;
+  }
+}
+
+static void sl_ir_le(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  struct ir_instr *instr = NULL;
+
+  if (left->base_regs_.kind_ == slrak_float) {
+    instr = ir_block_append_instr(blk, SLIR_LE_F);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else if (left->base_regs_.kind_ == slrak_int) {
+    instr = ir_block_append_instr(blk, SLIR_LE_I);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else {
+    return;
+  }
+}
+
+static void sl_ir_ge(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  struct ir_instr *instr = NULL;
+
+  if (left->base_regs_.kind_ == slrak_float) {
+    instr = ir_block_append_instr(blk, SLIR_GE_F);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else if (left->base_regs_.kind_ == slrak_int) {
+    instr = ir_block_append_instr(blk, SLIR_GE_I);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else {
+    return;
+  }
+}
+
+static void sl_ir_gt(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  struct ir_instr *instr = NULL;
+
+  if (left->base_regs_.kind_ == slrak_float) {
+    instr = ir_block_append_instr(blk, SLIR_GT_F);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else if (left->base_regs_.kind_ == slrak_int) {
+    instr = ir_block_append_instr(blk, SLIR_GT_I);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else {
+    return;
+  }
+}
+
+static void sl_ir_eq(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  struct ir_instr *instr = NULL;
+
+  if (left->base_regs_.kind_ == slrak_float) {
+    instr = ir_block_append_instr(blk, SLIR_EQ_F);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else if (left->base_regs_.kind_ == slrak_int) {
+    instr = ir_block_append_instr(blk, SLIR_EQ_I);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else {
+    return;
+  }
+}
+
+static void sl_ir_ne(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  struct ir_instr *instr = NULL;
+
+  if (left->base_regs_.kind_ == slrak_float) {
+    instr = ir_block_append_instr(blk, SLIR_NE_F);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else if (left->base_regs_.kind_ == slrak_int) {
+    instr = ir_block_append_instr(blk, SLIR_NE_I);
+    ir_instr_append_use(instr, chain_reg);
+    ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+    ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+  }
+  else {
+    return;
+  }
+}
+
+
+
 void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
   sl_reg_emit_move(blk, chain_reg, frame, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL);
 }
@@ -946,12 +1080,52 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       break;
 
     case exop_lt:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_lt(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
+
     case exop_le:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_le(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
+
     case exop_ge:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_ge(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
+
     case exop_gt:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_gt(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
 
     case exop_eq:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_eq(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
+
     case exop_ne:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_ne(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
 
     case exop_function_call:
     case exop_constructor:
