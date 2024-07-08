@@ -615,6 +615,272 @@ static void sl_ir_div(struct ir_block *blk, struct ir_temp *chain_reg, struct sl
   }
 }
 
+static void sl_ir_f_add(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int left_reg, int right_reg) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_ADD_F);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_float(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, left_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, right_reg));
+}
+
+static void sl_ir_i_add(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int left_reg, int right_reg) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_ADD_I);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right_reg));
+}
+
+static void sl_ir_add(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  int r;
+
+  sl_reg_alloc_kind_t left_kind = EXPR_RVALUE(left)->kind_;
+  sl_reg_alloc_kind_t right_kind = EXPR_RVALUE(right)->kind_;
+  if (left_kind == right_kind) {
+    switch (left_kind) {
+      case slrak_float:
+      case slrak_vec2:
+      case slrak_vec3:
+      case slrak_vec4:
+      case slrak_mat2:
+      case slrak_mat3:
+      case slrak_mat4: {
+        int num_components = 0;
+        switch (left_kind) {
+          case slrak_float: num_components = 1; break;
+          case slrak_vec2: num_components = 2; break;
+          case slrak_vec3: num_components = 3; break;
+          case slrak_vec4: num_components = 4; break;
+          case slrak_mat2: num_components = 2; break;
+          case slrak_mat3: num_components = 3; break;
+          case slrak_mat4: num_components = 4; break;
+        }
+        for (r = 0; r < num_components; ++r) {
+          sl_ir_f_add(blk, chain_reg, 
+                      dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                      EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                      EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+        }
+        break;
+      }
+      case slrak_int:
+      case slrak_ivec2:
+      case slrak_ivec3:
+      case slrak_ivec4: {
+        int num_components = 0;
+        switch (left_kind) {
+          case slrak_int:   num_components = 1; break;
+          case slrak_ivec2: num_components = 2; break;
+          case slrak_ivec3: num_components = 3; break;
+          case slrak_ivec4: num_components = 4; break;
+        }
+        for (r = 0; r < num_components; ++r) {
+          sl_ir_i_add(blk, chain_reg, 
+                      dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                      EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                      EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+        }
+        break;
+      }
+    }
+  }
+  else if (left_kind == slrak_float) {
+    int num_components = 0;
+    switch (right_kind) {
+      case slrak_vec2: num_components = 2; break;
+      case slrak_vec3: num_components = 3; break;
+      case slrak_vec4: num_components = 4; break;
+      case slrak_mat2: num_components = 2; break;
+      case slrak_mat3: num_components = 3; break;
+      case slrak_mat4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_ir_f_add(blk, chain_reg, 
+                  dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+    }
+  }
+  else if (right_kind == slrak_float) {
+    int num_components = 0;
+    switch (left_kind) {
+      case slrak_vec2: num_components = 2; break;
+      case slrak_vec3: num_components = 3; break;
+      case slrak_vec4: num_components = 4; break;
+      case slrak_mat2: num_components = 2; break;
+      case slrak_mat3: num_components = 3; break;
+      case slrak_mat4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_ir_f_add(blk, chain_reg, 
+                  dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+    }
+  }
+  else if (left_kind == slrak_int) {
+    int num_components = 0;
+    switch (right_kind) {
+      case slrak_ivec2: num_components = 2; break;
+      case slrak_ivec3: num_components = 3; break;
+      case slrak_ivec4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_ir_i_add(blk, chain_reg, 
+                  dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+    }
+  }
+  else if (right_kind == slrak_int) {
+    int num_components = 0;
+    switch (left_kind) {
+      case slrak_ivec2: num_components = 2; break;
+      case slrak_ivec3: num_components = 3; break;
+      case slrak_ivec4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_ir_i_add(blk, chain_reg, 
+                  dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+    }
+  }
+}
+
+static void sl_ir_f_sub(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int left_reg, int right_reg) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_SUB_F);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_float(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, left_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_float(blk->body_, right_reg));
+}
+
+static void sl_ir_i_sub(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int left_reg, int right_reg) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_SUB_I);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, left_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, right_reg));
+}
+
+static void sl_ir_sub(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  int r;
+
+  sl_reg_alloc_kind_t left_kind = EXPR_RVALUE(left)->kind_;
+  sl_reg_alloc_kind_t right_kind = EXPR_RVALUE(right)->kind_;
+  if (left_kind == right_kind) {
+    switch (left_kind) {
+      case slrak_float:
+      case slrak_vec2:
+      case slrak_vec3:
+      case slrak_vec4:
+      case slrak_mat2:
+      case slrak_mat3:
+      case slrak_mat4: {
+        int num_components = 0;
+        switch (left_kind) {
+          case slrak_float: num_components = 1; break;
+          case slrak_vec2: num_components = 2; break;
+          case slrak_vec3: num_components = 3; break;
+          case slrak_vec4: num_components = 4; break;
+          case slrak_mat2: num_components = 2; break;
+          case slrak_mat3: num_components = 3; break;
+          case slrak_mat4: num_components = 4; break;
+        }
+        for (r = 0; r < num_components; ++r) {
+          sl_ir_f_sub(blk, chain_reg, 
+                      dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                      EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                      EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+        }
+        break;
+      }
+      case slrak_int:
+      case slrak_ivec2:
+      case slrak_ivec3:
+      case slrak_ivec4: {
+        int num_components = 0;
+        switch (left_kind) {
+          case slrak_int:   num_components = 1; break;
+          case slrak_ivec2: num_components = 2; break;
+          case slrak_ivec3: num_components = 3; break;
+          case slrak_ivec4: num_components = 4; break;
+        }
+        for (r = 0; r < num_components; ++r) {
+          sl_ir_i_sub(blk, chain_reg, 
+                      dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                      EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                      EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+        }
+        break;
+      }
+    }
+  }
+  else if (left_kind == slrak_float) {
+    int num_components = 0;
+    switch (right_kind) {
+      case slrak_vec2: num_components = 2; break;
+      case slrak_vec3: num_components = 3; break;
+      case slrak_vec4: num_components = 4; break;
+      case slrak_mat2: num_components = 2; break;
+      case slrak_mat3: num_components = 3; break;
+      case slrak_mat4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_ir_f_sub(blk, chain_reg, 
+                  dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+    }
+  }
+  else if (right_kind == slrak_float) {
+    int num_components = 0;
+    switch (left_kind) {
+      case slrak_vec2: num_components = 2; break;
+      case slrak_vec3: num_components = 3; break;
+      case slrak_vec4: num_components = 4; break;
+      case slrak_mat2: num_components = 2; break;
+      case slrak_mat3: num_components = 3; break;
+      case slrak_mat4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_ir_f_sub(blk, chain_reg, 
+                  dst->base_regs_.local_frame_ ? frame->local_float_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+    }
+  }
+  else if (left_kind == slrak_int) {
+    int num_components = 0;
+    switch (right_kind) {
+      case slrak_ivec2: num_components = 2; break;
+      case slrak_ivec3: num_components = 3; break;
+      case slrak_ivec4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_ir_i_sub(blk, chain_reg, 
+                  dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[r] : EXPR_RVALUE(right)->v_.regs_[r]);
+    }
+  }
+  else if (right_kind == slrak_int) {
+    int num_components = 0;
+    switch (left_kind) {
+      case slrak_ivec2: num_components = 2; break;
+      case slrak_ivec3: num_components = 3; break;
+      case slrak_ivec4: num_components = 4; break;
+    }
+    for (r = 0; r < num_components; ++r) {
+      sl_ir_i_sub(blk, chain_reg, 
+                  dst->base_regs_.local_frame_ ? frame->local_int_offset_ + dst->base_regs_.v_.regs_[r] : dst->base_regs_.v_.regs_[r],
+                  EXPR_RVALUE(left)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(left)->v_.regs_[r] : EXPR_RVALUE(left)->v_.regs_[r],
+                  EXPR_RVALUE(right)->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]);
+    }
+  }
+}
+
 void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
   sl_reg_emit_move(blk, chain_reg, frame, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL);
 }
@@ -656,9 +922,28 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       break;
 
     case exop_divide:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_div(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
 
     case exop_add:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_add(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
+
     case exop_subtract:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_sub(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
 
     case exop_lt:
     case exop_le:
