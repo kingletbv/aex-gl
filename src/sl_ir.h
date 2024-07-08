@@ -123,6 +123,7 @@ enum sl_ir_instr_code {
   SLIR_NE_F,
   SLIR_NE_I,
 
+  SLIR_LOG_XOR,
 
   SLIR_REG_MOVE_F_REG_TO_REG,
   SLIR_REG_MOVE_F_REG_TO_INDIR,

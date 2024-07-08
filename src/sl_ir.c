@@ -1013,6 +1013,13 @@ static void sl_ir_ne(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_
   }
 }
 
+static void sl_ir_log_xor(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *left, struct sl_expr *right) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_LOG_XOR);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_bool(blk->body_, dst->base_regs_.local_frame_ ? frame->local_bool_offset_ + dst->base_regs_.v_.regs_[0] : dst->base_regs_.v_.regs_[0]));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_bool(blk->body_, EXPR_RVALUE(left)->local_frame_ ? frame->local_bool_offset_ + EXPR_RVALUE(left)->v_.regs_[0] : EXPR_RVALUE(left)->v_.regs_[0]));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_bool(blk->body_, EXPR_RVALUE(right)->local_frame_ ? frame->local_bool_offset_ + EXPR_RVALUE(right)->v_.regs_[0] : EXPR_RVALUE(right)->v_.regs_[0]));
+}
 
 
 void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
@@ -1049,87 +1056,36 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       break;
 
     case exop_multiply:
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_mul(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
-      break;
-
     case exop_divide:
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_div(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
-      break;
-
     case exop_add:
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_add(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
-      break;
-
     case exop_subtract:
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_sub(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
-      break;
-
     case exop_lt:
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_lt(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
-      break;
-
     case exop_le:
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_le(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
-      break;
-
     case exop_ge:
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_ge(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
-      break;
-
     case exop_gt:
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_gt(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
-      break;
-
     case exop_eq:
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
-      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
-      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_eq(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
-      break;
-
     case exop_ne:
       blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
       blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
       sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
       sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
-      sl_ir_ne(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      switch (x->op_) {
+        case exop_multiply: sl_ir_mul(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_divide: sl_ir_div(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_add: sl_ir_add(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_subtract: sl_ir_sub(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_lt: sl_ir_lt(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_le: sl_ir_le(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_ge: sl_ir_ge(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_gt: sl_ir_gt(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_eq: sl_ir_eq(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_ne: sl_ir_ne(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+      }
       break;
 
     case exop_function_call:
     case exop_constructor:
+      break;
 
     case exop_logical_and: {
       blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
@@ -1218,6 +1174,12 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
     }
 
     case exop_logical_xor:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_log_xor(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      break;
 
     case exop_assign:
       sl_reg_emit_move(blk, chain_reg, frame, 
@@ -1229,6 +1191,20 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
     case exop_div_assign:
     case exop_add_assign:
     case exop_sub_assign:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+      switch (x->op_) {
+        case exop_mul_assign: sl_ir_mul(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_div_assign: sl_ir_div(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_add_assign: sl_ir_add(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+        case exop_sub_assign: sl_ir_sub(blk, chain_reg, frame, x, x->children_[0], x->children_[1]); break;
+      }
+      sl_reg_emit_move(blk, chain_reg, frame, 
+                       &x->base_regs_, &x->offset_reg_,
+                       &x->children_[0]->base_regs_, &x->children_[0]->offset_reg_);
+      break;
 
     case exop_sequence:    // comma operator
       blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
