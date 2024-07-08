@@ -15,6 +15,11 @@
 #ifndef IR_H
 #define IR_H
 
+#ifndef REF_RANGE_ALLOCATOR_H_INCLUDED
+#define REF_RANGE_ALLOCATOR_H_INCLUDED
+#include "ref_range_allocator.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -192,6 +197,7 @@ struct ir_block {
   /* Serial number to distinguish this block externally (e.g. generate label names etc.)
    * Valid numbers start from 1, 0 signifies "not initialized" */
   int serial_num_;
+   
 };
 
 /* A set of basic blocks making up a flow graph, and temporaries used inside those
@@ -208,6 +214,10 @@ struct ir_body {
    * to allocate. This flag allows you to continue to construct and check for
    * failure once at the end. */
   int alloc_error_ : 1;
+
+  /* Allocation map for IR_VIRTUAL, if the ref is non-zero then the virtual 
+   * is taken. */
+  struct ref_range_allocator rra_virtuals_;
 };
 
 void ir_body_init(struct ir_body *body);
@@ -217,6 +227,7 @@ struct ir_block *ir_body_alloc_block(struct ir_body *body);
 struct ir_temp *ir_body_alloc_temp(struct ir_body *body);
 struct ir_temp *ir_body_alloc_temp_register(struct ir_body *body, int reg);
 struct ir_temp *ir_body_alloc_temp_virtual(struct ir_body *body, int temp_index);
+struct ir_temp *ir_body_alloc_temp_unused_virtual(struct ir_body *body);
 struct ir_temp *ir_body_alloc_temp_banked_float(struct ir_body *body, int reg_index);
 struct ir_temp *ir_body_alloc_temp_banked_int(struct ir_body *body, int reg_index);
 struct ir_temp *ir_body_alloc_temp_banked_bool(struct ir_body *body, int reg_index);

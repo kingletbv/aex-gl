@@ -499,6 +499,7 @@ void ir_body_init(struct ir_body *body) {
   body->temporaries_ = NULL;
   body->blocks_ = NULL;
   body->alloc_error_ = 0;
+  ref_range_allocator_init(&body->rra_virtuals_);
 }
 
 void ir_body_cleanup(struct ir_body *body) {
@@ -508,6 +509,7 @@ void ir_body_cleanup(struct ir_body *body) {
   while (body->blocks_) {
     ir_block_free(body->blocks_);
   }
+  ref_range_allocator_cleanup(&body->rra_virtuals_);
 }
 
 void ir_block_init(struct ir_block *blk) {
@@ -591,6 +593,22 @@ struct ir_temp *ir_body_alloc_temp_virtual(struct ir_body *body, int temp_index)
 
   t->kind_ = IR_VIRTUAL;
   t->external_id_ = temp_index;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_unused_virtual(struct ir_body *body) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  uintptr_t free_id;
+  if (ref_range_alloc(&body->rra_virtuals_, 1, &free_id)) {
+    ir_temp_free(t);
+    return NULL;
+  }
+
+  t->kind_ = IR_VIRTUAL;
+  t->external_id_ = (int)free_id;
 
   return t;
 }

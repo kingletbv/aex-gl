@@ -1023,6 +1023,7 @@ void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct s
  * results in the reg_alloc of x. */
 struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
   if (!x) return blk;
+  if (!blk) return NULL;
   switch (x->op_) {
     case exop_variable:
       break;
@@ -1130,17 +1131,109 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
     case exop_function_call:
     case exop_constructor:
 
-    case exop_logical_and:
-    case exop_logical_or:
+    case exop_logical_and: {
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+      /* Exec chain where condition_var is true (regular int), and where it is false.. */
+      struct ir_temp *true_chain = ir_body_alloc_temp_unused_virtual(blk->body_);
+      struct ir_temp *false_chain = ir_body_alloc_temp_unused_virtual(blk->body_);
+      struct ir_instr *split_left = ir_block_append_instr(blk, SLIR_SPLIT_EXEC_CHAIN_BY_CONDITION);
+      ir_instr_append_def(split_left, true_chain);
+      ir_instr_append_def(split_left, false_chain);
+      ir_instr_append_use(split_left, ir_body_alloc_temp_banked_bool(blk->body_, EXPR_RVALUE(x->children_[0])->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(x->children_[0])->v_.regs_[0] : EXPR_RVALUE(x->children_[0])->v_.regs_[0]));
+      ir_instr_append_use(split_left, chain_reg);
+
+      /* Where the first child expr (left) is false, we can already assign the outcome. */
+      sl_reg_emit_move(blk, false_chain, frame, &x->children_[0]->base_regs_, &x->children_[0]->offset_reg_,
+                       &x->base_regs_, &x->offset_reg_);
+
+      struct ir_instr *cmp_instr = ir_block_append_instr(blk, GIR_COMPARE);
+      ir_instr_append_use(cmp_instr, true_chain);
+      ir_instr_append_use(cmp_instr, ir_body_alloc_temp_lit(blk->body_, SL_EXEC_NO_CHAIN));
+      
+      struct ir_block *true_branch = ir_body_alloc_block(blk->body_);
+      struct ir_block *after = ir_body_alloc_block(blk->body_);
+
+      struct ir_instr *beq = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
+      ir_instr_append_use(beq, ir_body_alloc_temp_block(blk->body_, true_branch));
+      ir_instr_append_use(beq, ir_body_alloc_temp_block(blk->body_, after));
+
+      struct ir_block *after_true_branch = sl_ir_expr(true_branch, true_chain, frame, x->children_[1]);
+      /* Move results of true branch (those results where left expr is true, and right expr therefore determines
+       * the result.) */
+      sl_reg_emit_move(after_true_branch, true_chain, frame,
+                       &x->children_[1]->base_regs_, &x->children_[1]->offset_reg_,
+                       &x->base_regs_, &x->offset_reg_);
+
+      struct ir_instr *bra = ir_block_append_instr(after_true_branch, GIR_JUMP);
+      ir_instr_append_use(bra, ir_body_alloc_temp_block(blk->body_, after));
+
+      /* All done */
+      return after;
+
+      break;
+    }
+
+    case exop_logical_or: {
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+
+      /* Exec chain where condition_var is true (regular int), and where it is false.. */
+      struct ir_temp *true_chain = ir_body_alloc_temp_unused_virtual(blk->body_);
+      struct ir_temp *false_chain = ir_body_alloc_temp_unused_virtual(blk->body_);
+      struct ir_instr *split_left = ir_block_append_instr(blk, SLIR_SPLIT_EXEC_CHAIN_BY_CONDITION);
+      ir_instr_append_def(split_left, true_chain);
+      ir_instr_append_def(split_left, false_chain);
+      ir_instr_append_use(split_left, ir_body_alloc_temp_banked_bool(blk->body_, EXPR_RVALUE(x->children_[0])->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(x->children_[0])->v_.regs_[0] : EXPR_RVALUE(x->children_[0])->v_.regs_[0]));
+      ir_instr_append_use(split_left, chain_reg);
+
+      /* Where the first child expr (left) is true, we can already assign the outcome */
+      sl_reg_emit_move(blk, true_chain, frame, &x->children_[0]->base_regs_, &x->children_[0]->offset_reg_,
+                       &x->base_regs_, &x->offset_reg_);
+
+      struct ir_instr *cmp_instr = ir_block_append_instr(blk, GIR_COMPARE);
+      ir_instr_append_use(cmp_instr, false_chain);
+      ir_instr_append_use(cmp_instr, ir_body_alloc_temp_lit(blk->body_, SL_EXEC_NO_CHAIN));
+
+      struct ir_block *false_branch = ir_body_alloc_block(blk->body_);
+      struct ir_block *after = ir_body_alloc_block(blk->body_);
+
+      struct ir_instr *beq = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
+      ir_instr_append_use(beq, ir_body_alloc_temp_block(blk->body_, false_branch));
+      ir_instr_append_use(beq, ir_body_alloc_temp_block(blk->body_, after));
+
+      struct ir_block *after_false_branch = sl_ir_expr(false_branch, false_chain, frame, x->children_[1]);
+      /* Move results of true branch (those results where left expr is true, and right expr therefore determines
+       * the result.) */
+      sl_reg_emit_move(after_false_branch, false_chain, frame,
+                       &x->children_[1]->base_regs_, &x->children_[1]->offset_reg_,
+                       &x->base_regs_, &x->offset_reg_);
+
+      struct ir_instr *bra = ir_block_append_instr(after_false_branch, GIR_JUMP);
+      ir_instr_append_use(bra, ir_body_alloc_temp_block(blk->body_, after));
+
+      /* All done */
+      return after;
+
+    }
+
     case exop_logical_xor:
 
     case exop_assign:
+      sl_reg_emit_move(blk, chain_reg, frame, 
+                       &x->children_[1]->base_regs_, &x->children_[1]->offset_reg_,
+                       &x->children_[0]->base_regs_, &x->children_[0]->offset_reg_);
+      break;
+
     case exop_mul_assign:
     case exop_div_assign:
     case exop_add_assign:
     case exop_sub_assign:
 
     case exop_sequence:    // comma operator
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      break;
 
     case exop_conditional:  // ternary ?: operator
       ;
