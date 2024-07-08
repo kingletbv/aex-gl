@@ -1110,9 +1110,9 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       struct ir_block *true_branch = ir_body_alloc_block(blk->body_);
       struct ir_block *after = ir_body_alloc_block(blk->body_);
 
-      struct ir_instr *beq = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
-      ir_instr_append_use(beq, ir_body_alloc_temp_block(blk->body_, true_branch));
-      ir_instr_append_use(beq, ir_body_alloc_temp_block(blk->body_, after));
+      struct ir_instr *bne = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
+      ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, true_branch));
+      ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, after));
 
       struct ir_block *after_true_branch = sl_ir_expr(true_branch, true_chain, frame, x->children_[1]);
       /* Move results of true branch (those results where left expr is true, and right expr therefore determines
@@ -1154,18 +1154,18 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       struct ir_block *false_branch = ir_body_alloc_block(blk->body_);
       struct ir_block *after = ir_body_alloc_block(blk->body_);
 
-      struct ir_instr *beq = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
-      ir_instr_append_use(beq, ir_body_alloc_temp_block(blk->body_, false_branch));
-      ir_instr_append_use(beq, ir_body_alloc_temp_block(blk->body_, after));
+      struct ir_instr *bne = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
+      ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, false_branch));
+      ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, after));
 
-      struct ir_block *after_false_branch = sl_ir_expr(false_branch, false_chain, frame, x->children_[1]);
+      false_branch = sl_ir_expr(false_branch, false_chain, frame, x->children_[1]);
       /* Move results of true branch (those results where left expr is true, and right expr therefore determines
        * the result.) */
-      sl_reg_emit_move(after_false_branch, false_chain, frame,
+      sl_reg_emit_move(false_branch, false_chain, frame,
                        &x->children_[1]->base_regs_, &x->children_[1]->offset_reg_,
                        &x->base_regs_, &x->offset_reg_);
 
-      struct ir_instr *bra = ir_block_append_instr(after_false_branch, GIR_JUMP);
+      struct ir_instr *bra = ir_block_append_instr(false_branch, GIR_JUMP);
       ir_instr_append_use(bra, ir_body_alloc_temp_block(blk->body_, after));
 
       /* All done */
@@ -1211,8 +1211,61 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
       break;
 
-    case exop_conditional:  // ternary ?: operator
-      ;
+    case exop_conditional: { // ternary ?: operator
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[0]);
+
+      struct ir_temp *true_chain = ir_body_alloc_temp_unused_virtual(blk->body_);
+      struct ir_temp *false_chain = ir_body_alloc_temp_unused_virtual(blk->body_);
+      struct ir_instr *split_left = ir_block_append_instr(blk, SLIR_SPLIT_EXEC_CHAIN_BY_CONDITION);
+      ir_instr_append_def(split_left, true_chain);
+      ir_instr_append_def(split_left, false_chain);
+      ir_instr_append_use(split_left, ir_body_alloc_temp_banked_bool(blk->body_, EXPR_RVALUE(x->children_[0])->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(x->children_[0])->v_.regs_[0] : EXPR_RVALUE(x->children_[0])->v_.regs_[0]));
+      ir_instr_append_use(split_left, chain_reg);
+
+      struct ir_instr *cmp_instr = ir_block_append_instr(blk, GIR_COMPARE);
+      struct ir_temp *no_chain_lit = ir_body_alloc_temp_lit(blk->body_, SL_EXEC_NO_CHAIN);
+      ir_instr_append_use(cmp_instr, true_chain);
+      ir_instr_append_use(cmp_instr, no_chain_lit);
+
+      struct ir_block *true_branch = ir_body_alloc_block(blk->body_);
+      struct ir_block *after_true_branch = ir_body_alloc_block(blk->body_);
+
+      struct ir_instr *bne = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
+      ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, true_branch));
+      ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, after_true_branch));
+
+      // .. true_branch
+      true_branch = sl_ir_expr(true_branch, true_chain, frame, x->children_[1]);
+
+      sl_reg_emit_move(true_branch, true_chain, frame, &x->children_[1]->base_regs_, &x->children_[1]->offset_reg_,
+                       &x->base_regs_, &x->offset_reg_);
+
+      struct ir_instr *bra = ir_block_append_instr(true_branch, GIR_JUMP);
+      ir_instr_append_use(bra, ir_body_alloc_temp_block(blk->body_, after_true_branch));
+
+      cmp_instr = ir_block_append_instr(after_true_branch, GIR_COMPARE);
+      ir_instr_append_use(cmp_instr, false_chain);
+      ir_instr_append_use(cmp_instr, no_chain_lit);
+
+      struct ir_block *false_branch = ir_body_alloc_block(blk->body_);
+      struct ir_block *after_false_branch = ir_body_alloc_block(blk->body_);
+
+      bne = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
+      ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, false_branch));
+      ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, after_false_branch));
+
+      // .. false_branch
+      false_branch = sl_ir_expr(false_branch, false_chain, frame, x->children_[2]);
+
+      sl_reg_emit_move(false_branch, false_chain, frame, &x->children_[2]->base_regs_, &x->children_[2]->offset_reg_,
+                       &x->base_regs_, &x->offset_reg_);
+
+      bra = ir_block_append_instr(false_branch, GIR_JUMP);
+      ir_instr_append_use(bra, ir_body_alloc_temp_block(blk->body_, after_false_branch));
+
+      return after_false_branch;
+    }
   }
 
   return blk;
