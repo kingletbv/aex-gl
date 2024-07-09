@@ -56,7 +56,11 @@ enum ir_temp_type {
   IR_SAMPLERCUBE_BANK,
 
   /* Literal data values */
-  IR_LITERAL,
+  IR_LITERAL_UINT,
+  IR_LITERAL_INT,
+  IR_LITERAL_FLOAT,
+  IR_LITERAL_DOUBLE,
+  IR_LITERAL_BOOL,
 
   /* Entry point address of a block */
   IR_BLOCK_ENTRY,
@@ -98,8 +102,14 @@ struct ir_temp {
   struct ir_body *body_;
   struct ir_temp *next_in_body_, *prev_in_body_;
 
-  /* If kind_ == IR_LITERAL, this is that literal value */
-  uint64_t literal_value_;
+  /* If kind_ == IR_LITERAL_XXX, this is that literal value */
+  union {
+    uint64_t u64_;
+    int64_t i64_;
+    double d_;
+    float f_;
+    int b_;
+  } lit_;
 
   /* Name of the symbol (if kind_ == IR_SYMBOL_REF). */
   char *sym_name_;
@@ -233,7 +243,11 @@ struct ir_temp *ir_body_alloc_temp_banked_int(struct ir_body *body, int reg_inde
 struct ir_temp *ir_body_alloc_temp_banked_bool(struct ir_body *body, int reg_index);
 struct ir_temp *ir_body_alloc_temp_banked_sampler2D(struct ir_body *body, int reg_index);
 struct ir_temp *ir_body_alloc_temp_banked_samplerCube(struct ir_body *body, int reg_index);
-struct ir_temp *ir_body_alloc_temp_lit(struct ir_body *body, uint64_t val);
+struct ir_temp *ir_body_alloc_temp_litu(struct ir_body *body, uint64_t val);
+struct ir_temp *ir_body_alloc_temp_liti(struct ir_body *body, int64_t val);
+struct ir_temp *ir_body_alloc_temp_litf(struct ir_body *body, float val);
+struct ir_temp *ir_body_alloc_temp_litd(struct ir_body *body, double val);
+struct ir_temp *ir_body_alloc_temp_litb(struct ir_body *body, int val);
 struct ir_temp *ir_body_alloc_temp_block(struct ir_body *body, struct ir_block *blk);
 struct ir_temp *ir_body_alloc_temp_symref(struct ir_body *body, char *sym_name);
 

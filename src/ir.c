@@ -126,7 +126,7 @@ static void ir_temp_init(struct ir_temp *temp) {
   temp->args_ = NULL;
   temp->body_ = NULL;
   temp->next_in_body_ = temp->prev_in_body_ = NULL;
-  temp->literal_value_ = 0;
+  temp->lit_.u64_ = 0;
   temp->sym_name_ = NULL;
   temp->sym_ = NULL;
   temp->entry_point_block_ = NULL;
@@ -663,15 +663,56 @@ struct ir_temp *ir_body_alloc_temp_banked_samplerCube(struct ir_body *body, int 
   return t;
 }
 
-struct ir_temp *ir_body_alloc_temp_lit(struct ir_body *body, uint64_t val) {
+struct ir_temp *ir_body_alloc_temp_liti(struct ir_body *body, int64_t val) {
   struct ir_temp *t = ir_body_alloc_temp(body);
   if (!t) return NULL;
 
-  t->kind_ = IR_LITERAL;
-  t->literal_value_ = val;
+  t->kind_ = IR_LITERAL_INT;
+  t->lit_.i64_ = val;
 
   return t;
 }
+
+struct ir_temp *ir_body_alloc_temp_litu(struct ir_body *body, uint64_t val) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_LITERAL_UINT;
+  t->lit_.u64_ = val;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_litf(struct ir_body *body, float val) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_LITERAL_FLOAT;
+  t->lit_.f_ = val;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_litd(struct ir_body *body, double val) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_LITERAL_DOUBLE;
+  t->lit_.d_ = val;
+
+  return t;
+}
+
+struct ir_temp *ir_body_alloc_temp_litb(struct ir_body *body, int val) {
+  struct ir_temp *t = ir_body_alloc_temp(body);
+  if (!t) return NULL;
+
+  t->kind_ = IR_LITERAL_BOOL;
+  t->lit_.b_ = !!val;
+
+  return t;
+}
+
 
 struct ir_temp *ir_body_alloc_temp_block(struct ir_body *body, struct ir_block *blk) {
   struct ir_temp *t = ir_body_alloc_temp(body);
@@ -739,9 +780,19 @@ void ir_print_temp(struct source_gen *sg, struct ireg_registry *ireg, struct ir_
     case IR_VIRTUAL:
       sg_printf(sg, "t%d", temp->external_id_);
       break;
-    case IR_LITERAL:
-      sg_printf(sg, "0x%"PRIX64"", temp->literal_value_);
+    case IR_LITERAL_UINT:
+      sg_printf(sg, "0x%"PRIX64"", temp->lit_.u64_);
       break;
+    case IR_LITERAL_INT:
+      sg_printf(sg, "%"PRId64"", temp->lit_.i64_);
+      break;
+    case IR_LITERAL_FLOAT:
+      sg_printf(sg, "%f", temp->lit_.f_);
+      break;
+    case IR_LITERAL_DOUBLE:
+      sg_printf(sg, "%f", temp->lit_.d_);
+      break;
+
     case IR_BLOCK_ENTRY:
       sg_printf(sg, "L%d", temp->entry_point_block_ ? temp->entry_point_block_->serial_num_ : -1);
       break;

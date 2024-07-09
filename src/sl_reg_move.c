@@ -9279,12 +9279,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9296,12 +9296,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9313,12 +9313,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9330,12 +9330,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9347,12 +9347,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9364,12 +9364,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9381,12 +9381,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9398,12 +9398,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9415,12 +9415,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9437,10 +9437,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9452,10 +9452,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9467,10 +9467,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9482,10 +9482,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9497,10 +9497,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9512,10 +9512,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9527,10 +9527,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9542,10 +9542,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9557,10 +9557,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9579,11 +9579,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F_INDIR_OFFSET_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9594,11 +9594,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2I_INDIR_OFFSET_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9609,11 +9609,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2B_INDIR_OFFSET_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9624,11 +9624,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2F_INDIR_OFFSET_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9639,11 +9639,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I_INDIR_OFFSET_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9654,11 +9654,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2B_INDIR_OFFSET_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9669,11 +9669,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2F_INDIR_OFFSET_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9684,11 +9684,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2I_INDIR_OFFSET_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9699,11 +9699,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B_INDIR_OFFSET_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9719,9 +9719,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F_INDIR_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9732,9 +9732,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2I_INDIR_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9745,9 +9745,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2B_INDIR_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9758,9 +9758,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2F_INDIR_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9771,9 +9771,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I_INDIR_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9784,9 +9784,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2B_INDIR_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9797,9 +9797,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2F_INDIR_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9810,9 +9810,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2I_INDIR_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9823,9 +9823,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B_INDIR_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9848,12 +9848,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9865,12 +9865,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9882,12 +9882,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9899,12 +9899,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9916,12 +9916,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9933,12 +9933,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9950,12 +9950,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9967,12 +9967,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -9984,12 +9984,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10006,8 +10006,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10020,8 +10020,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10034,8 +10034,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10048,8 +10048,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10062,8 +10062,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10076,8 +10076,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10090,8 +10090,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10104,8 +10104,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10118,8 +10118,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10139,11 +10139,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F_OFFSET_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10154,11 +10154,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2I_OFFSET_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10169,11 +10169,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2B_OFFSET_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10184,11 +10184,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2F_OFFSET_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10199,11 +10199,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I_OFFSET_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10214,11 +10214,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2B_OFFSET_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10229,11 +10229,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2F_OFFSET_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10244,11 +10244,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2I_OFFSET_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10259,11 +10259,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B_OFFSET_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10279,7 +10279,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10291,7 +10291,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2I_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10303,7 +10303,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2B_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10315,7 +10315,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2F_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10327,7 +10327,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10339,7 +10339,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2B_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10351,7 +10351,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2F_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10363,7 +10363,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2I_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10375,7 +10375,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B_REG_TO_INDIR);
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] : to_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -10402,12 +10402,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10419,12 +10419,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10436,12 +10436,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10453,12 +10453,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10470,12 +10470,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10487,12 +10487,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10504,12 +10504,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10521,12 +10521,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10538,12 +10538,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10560,10 +10560,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10575,10 +10575,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10590,10 +10590,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10605,10 +10605,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10620,10 +10620,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10635,10 +10635,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10650,10 +10650,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10665,10 +10665,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10680,10 +10680,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10704,8 +10704,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10718,8 +10718,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10732,8 +10732,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10746,8 +10746,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10760,8 +10760,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10774,8 +10774,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10788,8 +10788,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10802,8 +10802,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10816,8 +10816,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10834,7 +10834,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10846,7 +10846,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10858,7 +10858,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10870,7 +10870,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10882,7 +10882,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10894,7 +10894,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10906,7 +10906,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10918,7 +10918,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10930,7 +10930,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] : from_ra->v_.regs_[n]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10953,12 +10953,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10970,12 +10970,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -10987,12 +10987,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11004,12 +11004,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11021,12 +11021,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11038,12 +11038,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11055,12 +11055,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11072,12 +11072,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11089,12 +11089,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11111,8 +11111,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -11125,8 +11125,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -11139,8 +11139,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -11153,8 +11153,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -11167,8 +11167,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -11181,8 +11181,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -11195,8 +11195,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -11209,8 +11209,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -11223,8 +11223,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_use(mov_instr, chain_reg);
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                     } /* end for n components */
                   } /* end for k array_quantity */
@@ -11246,8 +11246,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11260,8 +11260,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11274,8 +11274,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11288,8 +11288,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11302,8 +11302,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11316,8 +11316,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11330,8 +11330,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11344,8 +11344,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11358,8 +11358,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                       ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[n] + k : to_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[n] + k : from_ra->v_.regs_[n] + k));
                       ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                      ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                     } /* end for n components */
                   } /* end for k array_quantity */
                   break;
@@ -11490,12 +11490,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11505,10 +11505,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               }
             }
           }
@@ -11520,11 +11520,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_S2D_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11533,9 +11533,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_S2D_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               }
             }
           }
@@ -11551,12 +11551,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, from_ra->local_frame_ ? from_frame->local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11566,8 +11566,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, from_ra->local_frame_ ? from_frame->local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
               }
             }
@@ -11580,11 +11580,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_S2D_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, from_ra->local_frame_ ? from_frame->local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11593,7 +11593,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_S2D_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, from_ra->local_frame_ ? from_frame->local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
               }
             }
@@ -11613,12 +11613,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, to_ra->local_frame_ ? to_frame->local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11628,10 +11628,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, to_ra->local_frame_ ? to_frame->local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               }
             }
           }
@@ -11645,8 +11645,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, to_ra->local_frame_ ? to_frame->local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11656,7 +11656,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, to_ra->local_frame_ ? to_frame->local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               }
             }
           }
@@ -11672,12 +11672,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, to_ra->local_frame_ ? to_frame->local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, from_ra->local_frame_ ? from_frame->local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11687,8 +11687,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, to_ra->local_frame_ ? to_frame->local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, from_ra->local_frame_ ? from_frame->local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
               }
             }
@@ -11703,8 +11703,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, to_ra->local_frame_ ? to_frame->local_sampler2D_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_sampler2D(blk->body_, from_ra->local_frame_ ? from_frame->local_sampler2D_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11736,12 +11736,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11751,10 +11751,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               }
             }
           }
@@ -11766,11 +11766,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_SC_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11779,9 +11779,9 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_SC_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               }
             }
           }
@@ -11797,12 +11797,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, from_ra->local_frame_ ? from_frame->local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11812,8 +11812,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, from_ra->local_frame_ ? from_frame->local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
               }
             }
@@ -11826,11 +11826,11 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_SC_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, from_ra->local_frame_ ? from_frame->local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11839,7 +11839,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_SC_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[0] : to_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, from_ra->local_frame_ ? from_frame->local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
               }
             }
@@ -11859,12 +11859,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, to_ra->local_frame_ ? to_frame->local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11874,10 +11874,10 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, to_ra->local_frame_ ? to_frame->local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               }
             }
           }
@@ -11891,8 +11891,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, to_ra->local_frame_ ? to_frame->local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11902,7 +11902,7 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, to_ra->local_frame_ ? to_frame->local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[0] : from_ra->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               }
             }
           }
@@ -11918,12 +11918,12 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, to_ra->local_frame_ ? to_frame->local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, from_ra->local_frame_ ? from_frame->local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -11933,8 +11933,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, to_ra->local_frame_ ? to_frame->local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, from_ra->local_frame_ ? from_frame->local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
               }
             }
@@ -11949,8 +11949,8 @@ void sl_reg_emit_move_crossframe(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, to_ra->local_frame_ ? to_frame->local_samplerCube_offset_ + to_ra->v_.regs_[0] + k : to_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_samplerCube(blk->body_, from_ra->local_frame_ ? from_frame->local_samplerCube_offset_ + from_ra->v_.regs_[0] + k : from_ra->v_.regs_[0] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
               }
             }
             else {
@@ -12033,12 +12033,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -12048,12 +12048,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -12063,12 +12063,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -12078,12 +12078,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -12093,12 +12093,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -12108,12 +12108,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -12123,12 +12123,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -12138,12 +12138,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -12153,12 +12153,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -12173,10 +12173,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -12186,10 +12186,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -12199,10 +12199,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -12212,10 +12212,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -12225,10 +12225,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -12238,10 +12238,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -12251,10 +12251,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -12264,10 +12264,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -12277,10 +12277,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -12297,11 +12297,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -12310,11 +12310,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2I_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -12323,11 +12323,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2B_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -12336,11 +12336,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2F_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -12349,11 +12349,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -12362,11 +12362,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2B_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -12375,11 +12375,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2F_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -12388,11 +12388,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2I_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -12401,11 +12401,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B_INDIR_OFFSET_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -12419,9 +12419,9 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -12430,9 +12430,9 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2I_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -12441,9 +12441,9 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2B_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -12452,9 +12452,9 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2F_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -12463,9 +12463,9 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -12474,9 +12474,9 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2B_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -12485,9 +12485,9 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2F_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -12496,9 +12496,9 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2I_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -12507,9 +12507,9 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B_INDIR_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -12530,12 +12530,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -12545,12 +12545,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -12560,12 +12560,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -12575,12 +12575,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -12590,12 +12590,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -12605,12 +12605,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -12620,12 +12620,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -12635,12 +12635,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -12650,12 +12650,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -12670,8 +12670,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12682,8 +12682,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12694,8 +12694,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12706,8 +12706,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12718,8 +12718,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12730,8 +12730,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12742,8 +12742,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12754,8 +12754,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12766,8 +12766,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12785,11 +12785,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -12798,11 +12798,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2I_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -12811,11 +12811,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2B_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -12824,11 +12824,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2F_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -12837,11 +12837,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -12850,11 +12850,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2B_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -12863,11 +12863,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2F_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -12876,11 +12876,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2I_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -12889,11 +12889,11 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B_OFFSET_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -12907,7 +12907,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12917,7 +12917,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2I_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12927,7 +12927,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_F2B_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12937,7 +12937,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2F_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12947,7 +12947,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12957,7 +12957,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_I2B_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12967,7 +12967,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2F_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12977,7 +12977,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B2I_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -12987,7 +12987,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 struct ir_instr *mov_instr = ir_block_append_instr(blk, SLIR_REG_MOVE_B_REG_TO_INDIR);
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] : to_ra->v_.regs_[to_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13012,12 +13012,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -13027,12 +13027,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -13042,12 +13042,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -13057,12 +13057,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -13072,12 +13072,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -13087,12 +13087,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -13102,12 +13102,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -13117,12 +13117,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -13132,12 +13132,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -13152,10 +13152,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -13165,10 +13165,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -13178,10 +13178,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -13191,10 +13191,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -13204,10 +13204,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -13217,10 +13217,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -13230,10 +13230,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -13243,10 +13243,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -13256,10 +13256,10 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -13278,8 +13278,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -13290,8 +13290,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -13302,8 +13302,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -13314,8 +13314,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -13326,8 +13326,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -13338,8 +13338,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -13350,8 +13350,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -13362,8 +13362,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -13374,8 +13374,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -13390,7 +13390,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -13400,7 +13400,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -13410,7 +13410,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -13420,7 +13420,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -13430,7 +13430,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -13440,7 +13440,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -13450,7 +13450,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -13460,7 +13460,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -13470,7 +13470,7 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] : from_ra->v_.regs_[from_component]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, k));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, k));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -13491,12 +13491,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -13506,12 +13506,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -13521,12 +13521,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -13536,12 +13536,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -13551,12 +13551,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -13566,12 +13566,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -13581,12 +13581,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -13596,12 +13596,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -13611,12 +13611,12 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
@@ -13631,8 +13631,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13643,8 +13643,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13655,8 +13655,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13667,8 +13667,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13679,8 +13679,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13691,8 +13691,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13703,8 +13703,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13715,8 +13715,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13727,8 +13727,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_use(mov_instr, chain_reg);
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra_offset->local_frame_ ? to_frame->local_int_offset_ + to_ra_offset->v_.regs_[0] : to_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, to_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, to_offset_step_size));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
               } /* end for k array_quantity */
               break;
@@ -13748,8 +13748,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x11: float to float */
@@ -13760,8 +13760,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x12: float to int */
@@ -13772,8 +13772,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, from_ra->local_frame_ ? from_frame->local_float_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x13: float to bool */
@@ -13784,8 +13784,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x21: int to float */
@@ -13796,8 +13796,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x22: int to int */
@@ -13808,8 +13808,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra->local_frame_ ? from_frame->local_int_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x23: int to bool */
@@ -13820,8 +13820,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_float(blk->body_, to_ra->local_frame_ ? to_frame->local_float_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x31: bool to float */
@@ -13832,8 +13832,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, to_ra->local_frame_ ? to_frame->local_int_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x32: bool to int */
@@ -13844,8 +13844,8 @@ void sl_reg_emit_move_crossframe_c2c(struct ir_block *blk,
                 ir_instr_append_def(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, to_ra->local_frame_ ? to_frame->local_bool_offset_ + to_ra->v_.regs_[to_component] + k : to_ra->v_.regs_[to_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_bool(blk->body_, from_ra->local_frame_ ? from_frame->local_bool_offset_ + from_ra->v_.regs_[from_component] + k : from_ra->v_.regs_[from_component] + k));
                 ir_instr_append_use(mov_instr, ir_body_alloc_temp_banked_int(blk->body_, from_ra_offset->local_frame_ ? from_frame->local_int_offset_ + from_ra_offset->v_.regs_[0] : from_ra_offset->v_.regs_[0]));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, 0));
-                ir_instr_append_use(mov_instr, ir_body_alloc_temp_lit(blk->body_, from_offset_step_size));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, 0));
+                ir_instr_append_use(mov_instr, ir_body_alloc_temp_litu(blk->body_, from_offset_step_size));
               } /* end for k array_quantity */
               break;
             } /* end case 0x33: bool to bool */
