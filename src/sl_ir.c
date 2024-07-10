@@ -1266,6 +1266,142 @@ static void sl_ir_init_lit(struct ir_block *blk, struct ir_temp *chain_reg, stru
   }
 }
 
+static void sl_ir_i_mul_constant_and_add(struct ir_block *blk, struct ir_temp *chain_reg, 
+                                         int dst_reg, int src_base, uint64_t src_base_multiplier, int offset) {
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_MUL_C_AND_ADD);
+  ir_instr_append_use(instr, chain_reg);
+  ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, src_base));
+  ir_instr_append_use(instr, ir_body_alloc_temp_liti(blk->body_, src_base_multiplier));
+  ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, offset));
+}
+
+static void sl_ir_component_subscript(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *arr, struct sl_expr *subscript) {
+  struct sl_reg_alloc *dst_ra = &dst->base_regs_;
+  struct sl_reg_alloc *array_ra = EXPR_RVALUE(arr);
+  struct sl_reg_alloc *subscript_ra = EXPR_RVALUE(subscript);
+  switch (array_ra->kind_) {
+    case slrak_vec2:
+    case slrak_ivec2:
+    case slrak_bvec2: {
+      struct ir_instr *instr;
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_2_INDIRECT : SLIR_PICK_FROM_2);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[1]));
+      break;
+    }
+    case slrak_vec3:
+    case slrak_ivec3:
+    case slrak_bvec3: {
+      struct ir_instr *instr;
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_3_INDIRECT : SLIR_PICK_FROM_3);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[1]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[2]));
+      break;
+    }
+    case slrak_vec4:
+    case slrak_ivec4:
+    case slrak_bvec4: {
+      struct ir_instr *instr;
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_4_INDIRECT : SLIR_PICK_FROM_4);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[1]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[2]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[3]));
+      break;
+    }
+    case slrak_mat2: {
+      struct ir_instr *instr;
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_2_INDIRECT : SLIR_PICK_FROM_2);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[2]));
+
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_2_INDIRECT : SLIR_PICK_FROM_2);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[1]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[1]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[3]));
+    }
+    case slrak_mat3: {
+      struct ir_instr *instr;
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_3_INDIRECT : SLIR_PICK_FROM_3);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[3]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[9]));
+
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_3_INDIRECT : SLIR_PICK_FROM_3);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[1]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[1]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[4]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[10]));
+
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_3_INDIRECT : SLIR_PICK_FROM_3);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[2]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[2]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[5]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[11]));
+    }
+    case slrak_mat4: {
+      struct ir_instr *instr;
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_4_INDIRECT : SLIR_PICK_FROM_4);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[4]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[8]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[12]));
+
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_4_INDIRECT : SLIR_PICK_FROM_4);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[1]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[1]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[5]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[9]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[13]));
+
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_4_INDIRECT : SLIR_PICK_FROM_4);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[2]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[2]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[6]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[10]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[14]));
+
+      instr = ir_block_append_instr(blk, array_ra->is_indirect_ ? SLIR_PICK_FROM_4_INDIRECT : SLIR_PICK_FROM_4);
+      ir_instr_append_use(instr, chain_reg);
+      ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_ra->v_.regs_[3]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, subscript_ra->v_.regs_[0]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[3]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[7]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[9]));
+      ir_instr_append_use(instr, ir_body_alloc_temp_banked_int(blk->body_, array_ra->v_.regs_[15]));
+    }
+  }
+}
 
 void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
   sl_reg_emit_move(blk, chain_reg, frame, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL);
@@ -1284,6 +1420,29 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       break;
 
     case exop_array_subscript:
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
+      if (x->children_[0]->base_regs_.kind_ == slrak_array) {
+        if (x->children_[0]->offset_reg_.kind_ != slrak_void) {
+          /* the array being subscripted has already been subscripted */
+          sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[1]);
+          sl_ir_i_mul_constant_and_add(blk, chain_reg, 
+                                       x->offset_reg_.local_frame_ ? frame->local_int_offset_ + x->offset_reg_.v_.regs_[0] : x->offset_reg_.v_.regs_[0],
+                                       x->children_[0]->offset_reg_.local_frame_ ? frame->local_int_offset_ + x->children_[0]->offset_reg_.v_.regs_[0] : x->children_[0]->offset_reg_.v_.regs_[0],
+                                       (uint64_t)x->children_[0]->base_regs_.v_.array_.num_elements_,
+                                       EXPR_RVALUE(x->children_[1])->local_frame_ ? frame->local_int_offset_ + EXPR_RVALUE(x->children_[1])->v_.regs_[0] : EXPR_RVALUE(x->children_[1])->v_.regs_[0]);
+        }
+        else {
+          /* First subscript of the array */
+          sl_reg_emit_move(blk, chain_reg, frame, &x->children_[1]->base_regs_, &x->children_[1]->offset_reg_, &x->offset_reg_, NULL);
+        }
+      }
+      else {
+        /* Not an array, base must be indirect and this array subscript is an access to components,
+         * e.g. "vec4 v; v[3] // access w" */
+        sl_ir_component_subscript(blk, chain_reg, frame, x, x->children_[0], x->children_[1]);
+      }
+      break;
     case exop_component_selection: /* e.g. myvec3.xxz */
     case exop_field_selection:     /* e.g. mystruct.myfield */
       break;
