@@ -1541,6 +1541,51 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       break;
 
     case exop_function_call:
+      if (x->function_->builtin_emit_fn_) {
+        blk = x->function_->builtin_emit_fn_(blk, chain_reg, frame, x);
+      }
+      else {
+        struct sl_execution_frame child_frame = *frame;
+        child_frame.f_ = x->function_;
+        /* Establish new frame */
+        child_frame.local_float_offset_ += (int)x->function_->frame_.ract_.rra_floats_.watermark_;
+        child_frame.local_int_offset_ += (int)x->function_->frame_.ract_.rra_ints_.watermark_;
+        child_frame.local_bool_offset_ += (int)x->function_->frame_.ract_.rra_bools_.watermark_;
+        child_frame.local_sampler2D_offset_ += (int)x->function_->frame_.ract_.rra_sampler2D_.watermark_;
+        child_frame.local_samplerCube_offset_ += (int)x->function_->frame_.ract_.rra_samplerCube_.watermark_;
+        size_t n;
+        for (n = 0; n < x->function_->num_parameters_; ++n) {
+          struct sl_variable *param = x->function_->parameters_[n].variable_;
+          int param_qualifiers = sl_type_qualifiers(param->type_);
+          struct sl_reg_alloc *param_ra = &param->reg_alloc_;
+          sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[n]);
+          struct sl_reg_alloc *call_arg_ra = EXPR_RVALUE(x->children_[n]);
+
+          if ((param_qualifiers & SL_PARAMETER_QUALIFIER_IN) ||
+              (param_qualifiers & SL_PARAMETER_QUALIFIER_INOUT) ||
+              !(param_qualifiers & SL_PARAMETER_QUALIFIER_MASK)) {
+            /* Either in, inout, or no parameter qualifier specified: copy the argument in */
+            sl_reg_emit_move_crossframe(blk, chain_reg, frame, &x->children_[n]->base_regs_, &x->children_[n]->offset_reg_, &child_frame, param_ra, NULL, 1, 1, 1);
+          }
+        }
+
+        /* XXX: Invoke function body and emit the function inline here */
+
+        for (n = 0; n < x->function_->num_parameters_; ++n) {
+          struct sl_variable *param = x->function_->parameters_[n].variable_;
+          int param_qualifiers = sl_type_qualifiers(param->type_);
+          struct sl_reg_alloc *param_ra = &param->reg_alloc_;
+          sl_ir_need_rvalue(blk, chain_reg, frame, x->children_[n]);
+          struct sl_reg_alloc *call_arg_ra = EXPR_RVALUE(x->children_[n]);
+
+          if ((param_qualifiers & SL_PARAMETER_QUALIFIER_OUT) ||
+              (param_qualifiers & SL_PARAMETER_QUALIFIER_INOUT)) {
+            /* Either out, or inout parameter qualifier specified: copy the argument back out into the parameter passed in.. */
+            sl_reg_emit_move_crossframe(blk, chain_reg, &child_frame, param_ra, NULL, frame, &x->children_[n]->base_regs_, &x->children_[n]->offset_reg_, 1, 1, 1);
+          }
+        }
+      }
+
       break;
 
     case exop_logical_and: {
