@@ -1414,11 +1414,12 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
   if (!blk) return NULL;
   switch (x->op_) {
     case exop_variable:
+      /* Should be a no-op in almost all cases, save for situations where the parent imposes an allocation, e.g. exop_conditional */
+      sl_reg_emit_move(blk, chain_reg, frame, &x->variable_->reg_alloc_, NULL, &x->base_regs_, &x->offset_reg_);
       break;
     case exop_literal:
       sl_ir_init_lit(blk, chain_reg, frame, &x->base_regs_, &x->literal_value_, 0);
       break;
-
     case exop_array_subscript:
       blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
       blk = sl_ir_expr(blk, chain_reg, frame, x->children_[1]);
@@ -1444,7 +1445,23 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       }
       break;
     case exop_component_selection: /* e.g. myvec3.xxz */
+    case exop_constructor: {
+      size_t ci;
+      for (ci = 0; ci < x->num_components_; ++ci) {
+        struct sl_component_selection *cs = x->swizzle_ + ci;
+        sl_reg_emit_move_c2c(blk, chain_reg, frame,
+                              &x->children_[cs->parameter_index_]->base_regs_, &x->children_[cs->parameter_index_]->offset_reg_,
+                              cs->component_index_,
+                              &x->base_regs_, &x->offset_reg_,
+                              (int)ci);
+      }
+      break;
+    }
     case exop_field_selection:     /* e.g. mystruct.myfield */
+      blk = sl_ir_expr(blk, chain_reg, frame, x->children_[0]);
+      sl_reg_emit_move(blk, chain_reg, frame, 
+                       &x->children_[0]->base_regs_.v_.comp_.fields_[x->field_index_], &x->children_[0]->offset_reg_,
+                       &x->base_regs_, &x->offset_reg_);
       break;
 
     case exop_post_inc:
@@ -1524,7 +1541,6 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
       break;
 
     case exop_function_call:
-    case exop_constructor:
       break;
 
     case exop_logical_and: {
