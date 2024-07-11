@@ -4629,7 +4629,7 @@ int sl_exec_run(struct sl_execution *exec, struct sl_function *f, int exec_chain
 
               for (n = 0; n < ef->f_->num_parameters_; ++n) {
                 struct sl_reg_alloc *param_ra = &ef->f_->parameters_[n].variable_->reg_alloc_;
-                sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_);
+                sl_exec_need_rvalue(exec, eps[epi].revisit_chain_, eps[epi].v_.expr_->children_[n]);
                 struct sl_reg_alloc *call_arg_ra = EXPR_RVALUE(eps[epi].v_.expr_->children_[n]);
               
                 sl_exec_move_param(exec, eps[epi].revisit_chain_, ef, param_ra, parent, call_arg_ra);
