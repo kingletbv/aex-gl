@@ -22,9 +22,13 @@ extern "C" {
 
 struct sl_execution;
 struct sl_expr;
+struct ir_block;
+struct ir_temp;
+struct sl_execution_frame;
 
 typedef void (*builtin_runtime_fn)(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 typedef void (*builtin_eval_fn)(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);
+typedef struct ir_block *(*builtin_emit_fn)(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x);
 
 void builtin_not_implemented_runtime(struct sl_execution *exec, int exec_chain, struct sl_expr *x);
 void builtin_not_implemented_eval(struct sl_type_base *tb, const struct sl_expr *x, struct sl_expr_temp *r);

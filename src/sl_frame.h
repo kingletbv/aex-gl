@@ -175,6 +175,7 @@ struct sl_function {
    * of the statement body */
   builtin_runtime_fn builtin_runtime_fn_;
   builtin_eval_fn builtin_eval_fn_;
+  builtin_emit_fn builtin_emit_fn_;
 
   /* All exop_function_call expressions invoking this function. */
   struct sl_expr *callers_;

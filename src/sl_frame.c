@@ -181,6 +181,7 @@ struct sl_function *sl_frame_alloc_function(const char *name, const struct situs
   f->body_ = NULL;
   f->builtin_runtime_fn_ = NULL;
   f->builtin_eval_fn_ = NULL;
+  f->builtin_emit_fn_ = NULL;
   f->callers_ = NULL;
   f->is_dump_fn_ = 0;
   f->visited_ = 0;
