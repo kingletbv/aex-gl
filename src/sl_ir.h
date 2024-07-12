@@ -322,6 +322,9 @@ enum sl_ir_instr_code {
   SLIR_REG_MOVE_SC_INDIR_OFFSET_TO_INDIR_OFFSET
 };
 
+void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x);
+struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_stmt *stmt);
+struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x);
 
 #ifdef __cplusplus
 } /* extern "C" */

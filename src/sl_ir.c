@@ -22,6 +22,11 @@
 #include "sl_execution.h"
 #endif
 
+#ifndef SL_STMT_H_INCLUDED
+#define SL_STMT_H_INCLUDED
+#include "sl_stmt.h"
+#endif
+
 #ifndef IR_H_INCLUDED
 #define IR_H_INCLUDED
 #include "ir.h"
@@ -1405,6 +1410,80 @@ static void sl_ir_component_subscript(struct ir_block *blk, struct ir_temp *chai
 
 void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x) {
   sl_reg_emit_move(blk, chain_reg, frame, &x->base_regs_, &x->offset_reg_, &x->rvalue_, NULL);
+}
+
+/* Writes code starting at the end of blk, emits all statements in the list, and returns the blk at the end of which
+ * all statements have executed. */
+struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_stmt *stmt) {
+  if (!blk) return NULL;
+  while (stmt) {
+    switch (stmt->kind_) {
+      case slsk_expression:
+        blk = sl_ir_expr(blk, chain_reg, frame, stmt->expr_);
+        break;
+      case slsk_if: {
+        blk = sl_ir_expr(blk, chain_reg, frame, stmt->condition_);
+        sl_ir_need_rvalue(blk, chain_reg, frame, stmt->condition_);
+        struct ir_temp *true_chain, *false_chain;
+        true_chain = ir_body_alloc_temp_unused_virtual(blk->body_);
+        false_chain = ir_body_alloc_temp_unused_virtual(blk->body_);
+        struct ir_instr *split = ir_block_append_instr(blk, SLIR_SPLIT_EXEC_CHAIN_BY_CONDITION);
+        ir_instr_append_def(split, true_chain);
+        ir_instr_append_def(split, false_chain);
+        ir_instr_append_use(split, ir_body_alloc_temp_banked_bool(blk->body_, EXPR_RVALUE(stmt->condition_)->local_frame_ ? frame->local_float_offset_ + EXPR_RVALUE(stmt->condition_)->v_.regs_[0] : EXPR_RVALUE(stmt->condition_)->v_.regs_[0]));
+        ir_instr_append_use(split, chain_reg);
+
+        struct ir_instr *cmp_instr = ir_block_append_instr(blk, GIR_COMPARE);
+        struct ir_temp *no_chain_lit = ir_body_alloc_temp_liti(blk->body_, SL_EXEC_NO_CHAIN);
+        ir_instr_append_use(cmp_instr, true_chain);
+        ir_instr_append_use(cmp_instr, no_chain_lit);
+
+        struct ir_block *true_branch = ir_body_alloc_block(blk->body_);
+        struct ir_block *after_true_branch = ir_body_alloc_block(blk->body_);
+
+        struct ir_instr *bne = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
+        ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, true_branch));
+        ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, after_true_branch));
+
+        true_branch = sl_ir_stmt(true_branch, true_chain, frame, stmt->true_branch_);
+        struct ir_instr *bra = ir_block_append_instr(true_branch, GIR_JUMP);
+        ir_instr_append_use(bra, ir_body_alloc_temp_block(blk->body_, after_true_branch));
+
+        cmp_instr = ir_block_append_instr(after_true_branch, GIR_COMPARE);
+        ir_instr_append_use(cmp_instr, false_chain);
+        ir_instr_append_use(cmp_instr, no_chain_lit);
+
+        struct ir_block *false_branch = ir_body_alloc_block(blk->body_);
+        struct ir_block *after_false_branch = ir_body_alloc_block(blk->body_);
+
+        bne = ir_block_append_instr(blk, GIR_BRANCH_NOT_EQUAL);
+        ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, false_branch));
+        ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, after_false_branch));
+
+        false_branch = sl_ir_stmt(false_branch, false_chain, frame, stmt->false_branch_);
+
+        bra = ir_block_append_instr(false_branch, GIR_JUMP);
+        ir_instr_append_use(bra, ir_body_alloc_temp_block(blk->body_, after_false_branch));
+
+        blk = after_false_branch;
+
+        break;
+      }
+      case slsk_while:
+      case slsk_do:
+      case slsk_for:
+      case slsk_continue:
+      case slsk_break:
+      case slsk_return:
+      case slsk_discard:
+      case slsk_compound:
+        break;
+    }
+
+    stmt = sl_stmt_next_execution_sibling(stmt);
+  }
+
+  return blk;
 }
 
 /* Writes code starting at the end of blk, that evaluates expression x and stores the
