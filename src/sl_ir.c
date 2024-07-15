@@ -47,36 +47,6 @@
 #include "sl_reg_move.h"
 #endif
 
-void sl_ir_x(struct ir_body *body) {
-  struct ir_block *eval_condition = ir_body_alloc_block(body);
-  // .. eval condition here in eval_condition ..
-  struct ir_instr *split_instr = ir_block_append_instr(eval_condition, SLIR_SPLIT_EXEC_CHAIN_BY_CONDITION);
-  
-  struct ir_temp *condition_var = NULL; /* SL bool reg */
-  struct ir_temp *exec_chain = NULL; /* Exec chain coming in */
-  struct ir_temp *true_chain = NULL; /* Exec chain where condition_var is true (regular int) */
-  struct ir_temp *false_chain = NULL; /* Exec chain where condition_var is false (regular int) */
-  ir_instr_append_def(split_instr, true_chain);
-  ir_instr_append_def(split_instr, false_chain);
-  ir_instr_append_use(split_instr, condition_var);
-  ir_instr_append_use(split_instr, exec_chain);
-  
-  struct ir_instr *cmp_instr = ir_block_append_instr(eval_condition, GIR_COMPARE);
-  ir_instr_append_use(cmp_instr, true_chain);
-  struct ir_temp *NO_CHAIN = ir_body_alloc_temp(body);
-  ir_instr_append_use(cmp_instr, NO_CHAIN);
-
-  struct ir_block *true_branch = ir_body_alloc_block(body);
-  struct ir_block *false_branch = ir_body_alloc_block(body);
-  struct ir_block *after = ir_body_alloc_block(body);
-
-  struct ir_instr *beq_instr = ir_block_append_instr(eval_condition, GIR_BRANCH_NOT_EQUAL);
-  ir_instr_append_use(beq_instr, ir_body_alloc_temp_block(body, true_branch));
-  ir_instr_append_use(beq_instr, ir_body_alloc_temp_block(body, false_branch));
-
-
-}
-
 static void sl_ir_negate(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *opd) {
   sl_reg_alloc_kind_t kind = EXPR_RVALUE(opd)->kind_;
   switch (kind) {
@@ -1484,6 +1454,10 @@ struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, str
         break;
       }
       case slsk_while: {
+        struct sl_execution_frame loop_frame = *frame;
+        loop_frame.continue_chain_ = ir_body_alloc_temp_unused_virtual(blk->body_);
+        loop_frame.break_chain_ = chain_reg;
+
         /* 1. evaluate condition
          * 2. split chain_reg into a true_chain (where the condition is true) and a false chain back in chain_reg (where it is false)
          * 3. if the true_chain is empty, go to #9
@@ -1521,7 +1495,16 @@ struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, str
         ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, true_branch));
         ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, after_true_branch));
 
-        true_branch = sl_ir_stmt(true_branch, true_chain, frame, stmt->true_branch_);
+        struct ir_instr *clear_chain = ir_block_append_instr(true_branch, GIR_MOVE);
+        ir_instr_append_def(clear_chain, frame->continue_chain_);
+        ir_instr_append_use(clear_chain, no_chain_lit);
+
+        true_branch = sl_ir_stmt(true_branch, true_chain, &loop_frame, stmt->true_branch_);
+
+        struct ir_instr *rejoin = ir_block_append_instr(blk, SLIR_JOIN_EXEC_CHAINS);
+        ir_instr_append_def(rejoin, true_chain);
+        ir_instr_append_use(rejoin, true_chain);
+        ir_instr_append_use(rejoin, frame->continue_chain_);
 
         true_branch = sl_ir_stmt(true_branch, true_chain, frame, stmt->prep_cond_);
         true_branch = sl_ir_expr(true_branch, true_chain, frame, stmt->condition_);
@@ -1550,6 +1533,10 @@ struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, str
         break;
       }
       case slsk_do: {
+        struct sl_execution_frame loop_frame = *frame;
+        loop_frame.continue_chain_ = ir_body_alloc_temp_unused_virtual(blk->body_);
+        loop_frame.break_chain_ = chain_reg;
+
         /* 1. move chain_reg to true_chain
          * 2. set chain_reg to SL_EXEC_NO_CHAIN (clearing it empty)
          * 3. execute the true branch using the true_chain
@@ -1567,11 +1554,11 @@ struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, str
 
         struct ir_temp *no_chain_lit = ir_body_alloc_temp_liti(blk->body_, SL_EXEC_NO_CHAIN);
 
-        struct ir_instr *move = ir_block_append_instr(blk, SLIR_SPLIT_EXEC_CHAIN_BY_CONDITION);
+        struct ir_instr *move = ir_block_append_instr(blk, GIR_MOVE);
         ir_instr_append_def(move, true_chain);
         ir_instr_append_use(move, chain_reg);
 
-        move = ir_block_append_instr(blk, SLIR_SPLIT_EXEC_CHAIN_BY_CONDITION);
+        move = ir_block_append_instr(blk, GIR_MOVE);
         ir_instr_append_def(move, chain_reg);
         ir_instr_append_use(move, no_chain_lit);
 
@@ -1579,7 +1566,16 @@ struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, str
         struct ir_block *true_branch = loop_entry;
         struct ir_block *after_true_branch = ir_body_alloc_block(blk->body_);
 
-        true_branch = sl_ir_stmt(true_branch, true_chain, frame, stmt->true_branch_);
+        struct ir_instr *clear_chain = ir_block_append_instr(true_branch, GIR_MOVE);
+        ir_instr_append_def(clear_chain, frame->continue_chain_);
+        ir_instr_append_use(clear_chain, no_chain_lit);
+
+        true_branch = sl_ir_stmt(true_branch, true_chain, &loop_frame, stmt->true_branch_);
+
+        struct ir_instr *rejoin = ir_block_append_instr(blk, SLIR_JOIN_EXEC_CHAINS);
+        ir_instr_append_def(rejoin, true_chain);
+        ir_instr_append_use(rejoin, true_chain);
+        ir_instr_append_use(rejoin, frame->continue_chain_);
 
         true_branch = sl_ir_expr(true_branch, true_chain, frame, stmt->condition_);
         sl_ir_need_rvalue(true_branch, true_chain, frame, stmt->condition_);
@@ -1607,6 +1603,12 @@ struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, str
         break;
       }
       case slsk_for: {
+        struct sl_execution_frame loop_frame = *frame;
+        loop_frame.continue_chain_ = ir_body_alloc_temp_unused_virtual(blk->body_);
+        /* we loop on true_chain, and accrue into chain_reg all those rows that no longer meet the loop condition,
+         * therefore chain_reg is the appropriate chain to join when we "break" from the loop body */
+        loop_frame.break_chain_ = chain_reg;
+
         sl_ir_stmt(blk, chain_reg, frame, stmt->prep_);
         sl_ir_stmt(blk, chain_reg, frame, stmt->prep_cond_);
 
@@ -1635,7 +1637,16 @@ struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, str
         ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, true_branch));
         ir_instr_append_use(bne, ir_body_alloc_temp_block(blk->body_, after_true_branch));
 
-        true_branch = sl_ir_stmt(true_branch, true_chain, frame, stmt->true_branch_);
+        struct ir_instr *clear_chain = ir_block_append_instr(true_branch, GIR_MOVE);
+        ir_instr_append_def(clear_chain, frame->continue_chain_);
+        ir_instr_append_use(clear_chain, no_chain_lit);
+
+        true_branch = sl_ir_stmt(true_branch, true_chain, &loop_frame, stmt->true_branch_);
+
+        struct ir_instr *rejoin = ir_block_append_instr(blk, SLIR_JOIN_EXEC_CHAINS);
+        ir_instr_append_def(rejoin, true_chain);
+        ir_instr_append_use(rejoin, true_chain);
+        ir_instr_append_use(rejoin, frame->continue_chain_);
 
         true_branch = sl_ir_expr(true_branch, true_chain, frame, stmt->post_);
 
@@ -1668,9 +1679,20 @@ struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, str
       }
       case slsk_continue:
       case slsk_break:
-      case slsk_return:
+      case slsk_return: {
+        struct ir_instr *rejoin = ir_block_append_instr(blk, SLIR_JOIN_EXEC_CHAINS);
+        ir_instr_append_def(rejoin, frame->return_chain_);
+        ir_instr_append_use(rejoin, chain_reg);
+        ir_instr_append_use(rejoin, frame->return_chain_);
+        struct ir_temp *no_chain_lit = ir_body_alloc_temp_liti(blk->body_, SL_EXEC_NO_CHAIN);
+        struct ir_instr *clear_return_chain = ir_block_append_instr(blk, GIR_MOVE);
+        ir_instr_append_def(clear_return_chain, chain_reg);
+        ir_instr_append_use(clear_return_chain, no_chain_lit);
+        break;
+      }
       case slsk_discard:
       case slsk_compound:
+        blk = sl_ir_stmt(blk, chain_reg, frame, stmt->true_branch_);
         break;
     }
 
@@ -1842,7 +1864,21 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
           }
         }
 
-        /* XXX: Invoke function body and emit the function inline here */
+        /* Invoke function body and emit the function inline here */
+
+        struct ir_temp *return_chain = ir_body_alloc_temp_unused_virtual(blk->body_);
+        struct ir_temp *no_chain_lit = ir_body_alloc_temp_liti(blk->body_, SL_EXEC_NO_CHAIN);
+        struct ir_instr *clear_return_chain = ir_block_append_instr(blk, GIR_MOVE);
+        ir_instr_append_def(clear_return_chain, return_chain);
+        ir_instr_append_use(clear_return_chain, no_chain_lit);
+        child_frame.return_chain_ = return_chain;
+
+        blk = sl_ir_stmt(blk, chain_reg, &child_frame, x->function_->body_);
+
+        struct ir_instr *rejoin = ir_block_append_instr(blk, SLIR_JOIN_EXEC_CHAINS);
+        ir_instr_append_def(rejoin, chain_reg);
+        ir_instr_append_use(rejoin, chain_reg);
+        ir_instr_append_use(rejoin, return_chain);
 
         for (n = 0; n < x->function_->num_parameters_; ++n) {
           struct sl_variable *param = x->function_->parameters_[n].variable_;

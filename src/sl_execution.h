@@ -61,6 +61,7 @@ extern "C" {
 struct sl_stmt;
 struct sl_expr;
 struct sl_reg_allocator;
+struct ir_temp;
 
 typedef enum sl_execution_point_kind {
   SLEPK_NONE,
@@ -79,6 +80,11 @@ struct sl_execution_frame {
   int local_bool_offset_;
   int local_sampler2D_offset_;
   int local_samplerCube_offset_;
+
+  /* Chains to join to for various contexts during conversion to SL IR */
+  struct ir_temp *return_chain_;
+  struct ir_temp *continue_chain_;
+  struct ir_temp *break_chain_;
 };
 
 struct sl_execution_point {
