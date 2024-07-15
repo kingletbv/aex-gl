@@ -1679,18 +1679,25 @@ struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, str
       }
       case slsk_continue:
       case slsk_break:
-      case slsk_return: {
+      case slsk_return:
+      case slsk_discard: {
+        struct ir_temp *join_chain = NULL;
+        switch (stmt->kind_) {
+          case slsk_continue: join_chain = frame->continue_chain_; break;
+          case slsk_break:    join_chain = frame->break_chain_; break;
+          case slsk_return:   join_chain = frame->return_chain_; break;
+          case slsk_discard:  join_chain = frame->discard_chain_; break;
+        }
         struct ir_instr *rejoin = ir_block_append_instr(blk, SLIR_JOIN_EXEC_CHAINS);
-        ir_instr_append_def(rejoin, frame->return_chain_);
+        ir_instr_append_def(rejoin, join_chain);
         ir_instr_append_use(rejoin, chain_reg);
-        ir_instr_append_use(rejoin, frame->return_chain_);
+        ir_instr_append_use(rejoin, join_chain);
         struct ir_temp *no_chain_lit = ir_body_alloc_temp_liti(blk->body_, SL_EXEC_NO_CHAIN);
         struct ir_instr *clear_return_chain = ir_block_append_instr(blk, GIR_MOVE);
         ir_instr_append_def(clear_return_chain, chain_reg);
         ir_instr_append_use(clear_return_chain, no_chain_lit);
         break;
       }
-      case slsk_discard:
       case slsk_compound:
         blk = sl_ir_stmt(blk, chain_reg, frame, stmt->true_branch_);
         break;

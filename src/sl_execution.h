@@ -85,6 +85,7 @@ struct sl_execution_frame {
   struct ir_temp *return_chain_;
   struct ir_temp *continue_chain_;
   struct ir_temp *break_chain_;
+  struct ir_temp *discard_chain_;
 };
 
 struct sl_execution_point {
