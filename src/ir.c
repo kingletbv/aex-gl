@@ -794,7 +794,7 @@ void ir_print_temp(struct source_gen *sg, struct ireg_registry *ireg, struct ir_
       break;
 
     case IR_BLOCK_ENTRY:
-      sg_printf(sg, "L%d", temp->entry_point_block_ ? temp->entry_point_block_->serial_num_ : -1);
+      sg_printf(sg, "L%u", temp->entry_point_block_ ? temp->entry_point_block_->serial_num_ : -1);
       break;
     case IR_SYMBOL_REF:
       sg_printf(sg, "%s", temp->sym_name_);
@@ -852,7 +852,11 @@ void ir_print_instr(struct source_gen *sg, struct ireg_registry *ireg, int mnemo
         ir_print_temp(sg, ireg, arg->temp_);
       }
     }
+    else {
+      sg_printf(sg, "%c", *p++);
+    }
   }
+  sg_printf(sg, "\n");
 }
 
 void ir_print_block(struct source_gen *sg, struct ireg_registry *ireg, struct ir_block *blk) {
@@ -874,7 +878,7 @@ void ir_print_block(struct source_gen *sg, struct ireg_registry *ireg, struct ir
     } while (instr != blk->instructions_);
   }
 
-  sg_printf(sg, "L%s:\n", blk->serial_num_);
+  sg_printf(sg, "L%u:\n", blk->serial_num_);
   sg->indent_ += 2;
 
   if (instr) {
@@ -914,6 +918,10 @@ struct ir_arg *ir_instr_append_use(struct ir_instr *ins, struct ir_temp *temp) {
     }
     return NULL;
   }
+  if (ir_arg_append_to_instruction(a, ins)) {
+    ir_arg_free(a);
+    return NULL;
+  }
   ir_arg_attach_to_temp(a, temp, 1, 0);
   return a;
 }
@@ -924,6 +932,10 @@ struct ir_arg *ir_instr_append_def(struct ir_instr *ins, struct ir_temp *temp) {
     if (ins->block_ && ins->block_->body_) {
       ins->block_->body_->alloc_error_ = 1;
     }
+    return NULL;
+  }
+  if (ir_arg_append_to_instruction(a, ins)) {
+    ir_arg_free(a);
     return NULL;
   }
   ir_arg_attach_to_temp(a, temp, 0, 1);
@@ -937,6 +949,10 @@ struct ir_arg *ir_instr_append_usedef(struct ir_instr *ins, struct ir_temp *temp
     if (ins->block_ && ins->block_->body_) {
       ins->block_->body_->alloc_error_ = 1;
     }
+    return NULL;
+  }
+  if (ir_arg_append_to_instruction(a, ins)) {
+    ir_arg_free(a);
     return NULL;
   }
   ir_arg_attach_to_temp(a, temp, 1, 1);
