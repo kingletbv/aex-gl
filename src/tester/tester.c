@@ -46,7 +46,8 @@
 
 /* xx(name, description) */
 #define CODE_TESTS \
-  xx(codetest1, "Clipping test")
+  xx(codetest1, "Clipping test") \
+  xx(slirtest1, "SL IR test")
 
 struct shader_test_code {
   const char *code_;

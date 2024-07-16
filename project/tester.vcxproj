@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\tester\codetest1.c" />
+    <ClCompile Include="..\src\tester\slirtest1.c" />
     <ClCompile Include="..\src\tester\tester.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -75,22 +76,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\src;$(SolutionDir)3rdparty\Khronos;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\src;$(SolutionDir)\src\pp;$(IntDir);$(SolutionDir)3rdparty\Khronos;</IncludePath>
     <OutDir>$(SolutionDir)\build\Win_x86\$(Configuration)\tester\</OutDir>
     <IntDir>$(SolutionDir)\build\Win_x86\$(Configuration)\tester\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\src;$(SolutionDir)3rdparty\Khronos;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\src;$(SolutionDir)\src\pp;$(IntDir);$(SolutionDir)3rdparty\Khronos;</IncludePath>
     <OutDir>$(SolutionDir)\build\Win_x86\$(Configuration)\tester\</OutDir>
     <IntDir>$(SolutionDir)\build\Win_x86\$(Configuration)\tester\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\src;$(SolutionDir)3rdparty\Khronos;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\src;$(SolutionDir)\src\pp;$(IntDir);$(SolutionDir)3rdparty\Khronos;</IncludePath>
     <OutDir>$(SolutionDir)\build\Win_amd64\$(Configuration)\tester\</OutDir>
     <IntDir>$(SolutionDir)\build\Win_amd64\$(Configuration)\tester\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\src;$(SolutionDir)3rdparty\Khronos;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\src;$(SolutionDir)\src\pp;$(IntDir);$(SolutionDir)3rdparty\Khronos;</IncludePath>
     <OutDir>$(SolutionDir)\build\Win_amd64\$(Configuration)\tester\</OutDir>
     <IntDir>$(SolutionDir)\build\Win_amd64\$(Configuration)\tester\obj\</IntDir>
   </PropertyGroup>
