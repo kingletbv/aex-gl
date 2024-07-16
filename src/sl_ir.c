@@ -167,6 +167,1678 @@ static struct ireg_operand slir_10_opd[] = {
   { IREG_USE }
 };
 
+static struct ireg_operand slir_reg_move_f_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_indir_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_indir_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_indir_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_indir_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_offset_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_offset_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_offset_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_offset_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_indir_offset_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_indir_offset_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_indir_offset_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f_indir_offset_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_indir_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_indir_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_indir_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_indir_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_offset_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_offset_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_offset_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_offset_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_indir_offset_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_indir_offset_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_indir_offset_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2i_indir_offset_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_indir_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_indir_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_indir_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_indir_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_offset_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_offset_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_offset_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_offset_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_indir_offset_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_indir_offset_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_indir_offset_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_f2b_indir_offset_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_indir_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_indir_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_indir_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_indir_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_offset_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_offset_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_offset_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_offset_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_indir_offset_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_indir_offset_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_indir_offset_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2f_indir_offset_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_indir_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_indir_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_indir_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_indir_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_offset_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_offset_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_offset_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_offset_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_indir_offset_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_indir_offset_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_indir_offset_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i_indir_offset_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_indir_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_indir_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_indir_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_indir_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_offset_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_offset_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_offset_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_offset_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_indir_offset_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_indir_offset_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_indir_offset_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_i2b_indir_offset_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_indir_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_indir_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_indir_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_indir_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_offset_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_offset_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_offset_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_offset_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_indir_offset_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_indir_offset_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_indir_offset_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2f_indir_offset_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_indir_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_indir_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_indir_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_indir_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_offset_reg_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_offset_reg_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_offset_reg_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_offset_reg_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_indir_offset_to_reg[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_indir_offset_to_indir[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_indir_offset_to_offset_reg[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b2i_indir_offset_to_indir_offset[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_indir_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_indir_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_indir_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_indir_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_offset_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_offset_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_offset_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_offset_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_indir_offset_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_indir_offset_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_indir_offset_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_b_indir_offset_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_indir_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_indir_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_indir_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_indir_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_offset_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_offset_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_offset_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_offset_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_indir_offset_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_indir_offset_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_indir_offset_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_s2d_indir_offset_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_indir_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_indir_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_indir_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_indir_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_offset_reg_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_offset_reg_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_offset_reg_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_offset_reg_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_indir_offset_to_reg_args[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_indir_offset_to_indir_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_indir_offset_to_offset_reg_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_reg_move_sc_indir_offset_to_indir_offset_args[] = {
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
 
 static struct ireg_instr gir_instructions_[] = {
   { IRARC_IR, GIR_LOAD8, 1, load_operands, "GIR_LOAD8", "%0, %1" },
@@ -300,7 +1972,184 @@ static struct ireg_instr slir_instructions_[] = {
 
   { IRARC_SLIR, SLIR_PICK_FROM_2_INDIRECT, 5, slir_5_opd, "SLIR_PICK", "%0, %1, [%2:{ %3, %4 }]" },
   { IRARC_SLIR, SLIR_PICK_FROM_3_INDIRECT, 6, slir_6_opd, "SLIR_PICK", "%0, %1, [%2:{ %3, %4, %5 }]" },
-  { IRARC_SLIR, SLIR_PICK_FROM_4_INDIRECT, 7, slir_7_opd, "SLIR_PICK", "%0, %1, [%2:{ %3, %4, %5, %6 }]" }
+  { IRARC_SLIR, SLIR_PICK_FROM_4_INDIRECT, 7, slir_7_opd, "SLIR_PICK", "%0, %1, [%2:{ %3, %4, %5, %6 }]" },
+
+  { IRARC_SLIR, SLIR_REG_MOVE_F_REG_TO_REG, 2, slir_reg_move_f_reg_to_reg_args, "MOV_f", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_REG_TO_INDIR, 3, slir_reg_move_f_reg_to_indir_args, "MOV_f", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_REG_TO_OFFSET_REG, 5, slir_reg_move_f_reg_to_offset_reg_args, "MOV_f", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_REG_TO_INDIR_OFFSET, 5, slir_reg_move_f_reg_to_indir_offset_args, "MOV_f", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_INDIR_TO_REG, 3, slir_reg_move_f_indir_to_reg_args, "MOV_f", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_INDIR_TO_INDIR, 4, slir_reg_move_f_indir_to_indir_args, "MOV_f", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_INDIR_TO_OFFSET_REG, 6, slir_reg_move_f_indir_to_offset_reg_args, "MOV_f", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_f_indir_to_indir_offset_args, "MOV_f", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_OFFSET_REG_TO_REG, 5, slir_reg_move_f_offset_reg_to_reg_args, "MOV_f", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_OFFSET_REG_TO_INDIR, 6, slir_reg_move_f_offset_reg_to_indir_args, "MOV_f", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_f_offset_reg_to_offset_reg_args, "MOV_f", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_f_offset_reg_to_indir_offset_args, "MOV_f", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_INDIR_OFFSET_TO_REG, 5, slir_reg_move_f_indir_offset_to_reg_args, "MOV_f", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_f_indir_offset_to_indir_args, "MOV_f", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_f_indir_offset_to_offset_reg_args, "MOV_f", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_f_indir_offset_to_indir_offset_args, "MOV_f", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_REG_TO_REG, 2, slir_reg_move_f2i_reg_to_reg, "MOV_f2i", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_REG_TO_INDIR, 3, slir_reg_move_f2i_reg_to_indir, "MOV_f2i", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_REG_TO_OFFSET_REG, 5, slir_reg_move_f2i_reg_to_offset_reg, "MOV_f2i", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_REG_TO_INDIR_OFFSET, 5, slir_reg_move_f2i_reg_to_indir_offset, "MOV_f2i", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_INDIR_TO_REG, 3, slir_reg_move_f2i_indir_to_reg, "MOV_f2i", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_INDIR_TO_INDIR, 4, slir_reg_move_f2i_indir_to_indir, "MOV_f2i", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_INDIR_TO_OFFSET_REG, 6, slir_reg_move_f2i_indir_to_offset_reg, "MOV_f2i", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_f2i_indir_to_indir_offset, "MOV_f2i", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_OFFSET_REG_TO_REG, 5, slir_reg_move_f2i_offset_reg_to_reg, "MOV_f2i", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_OFFSET_REG_TO_INDIR, 6, slir_reg_move_f2i_offset_reg_to_indir, "MOV_f2i", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_f2i_offset_reg_to_offset_reg, "MOV_f2i", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_f2i_offset_reg_to_indir_offset, "MOV_f2i", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_INDIR_OFFSET_TO_REG, 5, slir_reg_move_f2i_indir_offset_to_reg, "MOV_f2i", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_f2i_indir_offset_to_indir, "MOV_f2i", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_f2i_indir_offset_to_offset_reg, "MOV_f2i", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2I_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_f2i_indir_offset_to_indir_offset, "MOV_f2i", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_REG_TO_REG, 2, slir_reg_move_f2b_reg_to_reg, "MOV_f2b", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_REG_TO_INDIR, 3, slir_reg_move_f2b_reg_to_indir, "MOV_f2b", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_REG_TO_OFFSET_REG, 5, slir_reg_move_f2b_reg_to_offset_reg, "MOV_f2b", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_REG_TO_INDIR_OFFSET, 5, slir_reg_move_f2b_reg_to_indir_offset, "MOV_f2b", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_INDIR_TO_REG, 3, slir_reg_move_f2b_indir_to_reg, "MOV_f2b", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_INDIR_TO_INDIR, 4, slir_reg_move_f2b_indir_to_indir, "MOV_f2b", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_INDIR_TO_OFFSET_REG, 6, slir_reg_move_f2b_indir_to_offset_reg, "MOV_f2b", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_f2b_indir_to_indir_offset, "MOV_f2b", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_OFFSET_REG_TO_REG, 5, slir_reg_move_f2b_offset_reg_to_reg, "MOV_f2b", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_OFFSET_REG_TO_INDIR, 6, slir_reg_move_f2b_offset_reg_to_indir, "MOV_f2b", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_f2b_offset_reg_to_offset_reg, "MOV_f2b", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_f2b_offset_reg_to_indir_offset, "MOV_f2b", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_INDIR_OFFSET_TO_REG, 5, slir_reg_move_f2b_indir_offset_to_reg, "MOV_f2b", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_f2b_indir_offset_to_indir, "MOV_f2b", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_f2b_indir_offset_to_offset_reg, "MOV_f2b", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_F2B_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_f2b_indir_offset_to_indir_offset, "MOV_f2b", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_REG_TO_REG, 2, slir_reg_move_i2f_reg_to_reg, "MOV_i2f", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_REG_TO_INDIR, 3, slir_reg_move_i2f_reg_to_indir, "MOV_i2f", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_REG_TO_OFFSET_REG, 5, slir_reg_move_i2f_reg_to_offset_reg, "MOV_i2f", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_REG_TO_INDIR_OFFSET, 5, slir_reg_move_i2f_reg_to_indir_offset, "MOV_i2f", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_INDIR_TO_REG, 3, slir_reg_move_i2f_indir_to_reg, "MOV_i2f", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_INDIR_TO_INDIR, 4, slir_reg_move_i2f_indir_to_indir, "MOV_i2f", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_INDIR_TO_OFFSET_REG, 6, slir_reg_move_i2f_indir_to_offset_reg, "MOV_i2f", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_i2f_indir_to_indir_offset, "MOV_i2f", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_OFFSET_REG_TO_REG, 5, slir_reg_move_i2f_offset_reg_to_reg, "MOV_i2f", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_OFFSET_REG_TO_INDIR, 6, slir_reg_move_i2f_offset_reg_to_indir, "MOV_i2f", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_i2f_offset_reg_to_offset_reg, "MOV_i2f", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_i2f_offset_reg_to_indir_offset, "MOV_i2f", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_INDIR_OFFSET_TO_REG, 5, slir_reg_move_i2f_indir_offset_to_reg, "MOV_i2f", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_i2f_indir_offset_to_indir, "MOV_i2f", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_i2f_indir_offset_to_offset_reg, "MOV_i2f", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2F_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_i2f_indir_offset_to_indir_offset, "MOV_i2f", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_REG_TO_REG, 2, slir_reg_move_i_reg_to_reg_args, "MOV_i", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_REG_TO_INDIR, 3, slir_reg_move_i_reg_to_indir_args, "MOV_i", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_REG_TO_OFFSET_REG, 5, slir_reg_move_i_reg_to_offset_reg_args, "MOV_i", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_REG_TO_INDIR_OFFSET, 5, slir_reg_move_i_reg_to_indir_offset_args, "MOV_i", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_INDIR_TO_REG, 3, slir_reg_move_i_indir_to_reg_args, "MOV_i", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_INDIR_TO_INDIR, 4, slir_reg_move_i_indir_to_indir_args, "MOV_i", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_INDIR_TO_OFFSET_REG, 6, slir_reg_move_i_indir_to_offset_reg_args, "MOV_i", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_i_indir_to_indir_offset_args, "MOV_i", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_OFFSET_REG_TO_REG, 5, slir_reg_move_i_offset_reg_to_reg_args, "MOV_i", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_OFFSET_REG_TO_INDIR, 6, slir_reg_move_i_offset_reg_to_indir_args, "MOV_i", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_i_offset_reg_to_offset_reg_args, "MOV_i", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_i_offset_reg_to_indir_offset_args, "MOV_i", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_INDIR_OFFSET_TO_REG, 5, slir_reg_move_i_indir_offset_to_reg_args, "MOV_i", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_i_indir_offset_to_indir_args, "MOV_i", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_i_indir_offset_to_offset_reg_args, "MOV_i", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_i_indir_offset_to_indir_offset_args, "MOV_i", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_REG_TO_REG, 2, slir_reg_move_i2b_reg_to_reg, "MOV_i2b", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_REG_TO_INDIR, 3, slir_reg_move_i2b_reg_to_indir, "MOV_i2b", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_REG_TO_OFFSET_REG, 5, slir_reg_move_i2b_reg_to_offset_reg, "MOV_i2b", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_REG_TO_INDIR_OFFSET, 5, slir_reg_move_i2b_reg_to_indir_offset, "MOV_i2b", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_INDIR_TO_REG, 3, slir_reg_move_i2b_indir_to_reg, "MOV_i2b", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_INDIR_TO_INDIR, 4, slir_reg_move_i2b_indir_to_indir, "MOV_i2b", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_INDIR_TO_OFFSET_REG, 6, slir_reg_move_i2b_indir_to_offset_reg, "MOV_i2b", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_i2b_indir_to_indir_offset, "MOV_i2b", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_OFFSET_REG_TO_REG, 5, slir_reg_move_i2b_offset_reg_to_reg, "MOV_i2b", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_OFFSET_REG_TO_INDIR, 6, slir_reg_move_i2b_offset_reg_to_indir, "MOV_i2b", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_i2b_offset_reg_to_offset_reg, "MOV_i2b", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_i2b_offset_reg_to_indir_offset, "MOV_i2b", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_INDIR_OFFSET_TO_REG, 5, slir_reg_move_i2b_indir_offset_to_reg, "MOV_i2b", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_i2b_indir_offset_to_indir, "MOV_i2b", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_i2b_indir_offset_to_offset_reg, "MOV_i2b", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_I2B_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_i2b_indir_offset_to_indir_offset, "MOV_i2b", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_REG_TO_REG, 2, slir_reg_move_b2f_reg_to_reg, "MOV_b2f", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_REG_TO_INDIR, 3, slir_reg_move_b2f_reg_to_indir, "MOV_b2f", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_REG_TO_OFFSET_REG, 5, slir_reg_move_b2f_reg_to_offset_reg, "MOV_b2f", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_REG_TO_INDIR_OFFSET, 5, slir_reg_move_b2f_reg_to_indir_offset, "MOV_b2f", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_INDIR_TO_REG, 3, slir_reg_move_b2f_indir_to_reg, "MOV_b2f", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_INDIR_TO_INDIR, 4, slir_reg_move_b2f_indir_to_indir, "MOV_b2f", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_INDIR_TO_OFFSET_REG, 6, slir_reg_move_b2f_indir_to_offset_reg, "MOV_b2f", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_b2f_indir_to_indir_offset, "MOV_b2f", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_OFFSET_REG_TO_REG, 5, slir_reg_move_b2f_offset_reg_to_reg, "MOV_b2f", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_OFFSET_REG_TO_INDIR, 6, slir_reg_move_b2f_offset_reg_to_indir, "MOV_b2f", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_b2f_offset_reg_to_offset_reg, "MOV_b2f", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_b2f_offset_reg_to_indir_offset, "MOV_b2f", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_INDIR_OFFSET_TO_REG, 5, slir_reg_move_b2f_indir_offset_to_reg, "MOV_b2f", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_b2f_indir_offset_to_indir, "MOV_b2f", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_b2f_indir_offset_to_offset_reg, "MOV_b2f", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2F_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_b2f_indir_offset_to_indir_offset, "MOV_b2f", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_REG_TO_REG, 2, slir_reg_move_b2i_reg_to_reg, "MOV_b2i", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_REG_TO_INDIR, 3, slir_reg_move_b2i_reg_to_indir, "MOV_b2i", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_REG_TO_OFFSET_REG, 5, slir_reg_move_b2i_reg_to_offset_reg, "MOV_b2i", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_REG_TO_INDIR_OFFSET, 5, slir_reg_move_b2i_reg_to_indir_offset, "MOV_b2i", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_INDIR_TO_REG, 3, slir_reg_move_b2i_indir_to_reg, "MOV_b2i", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_INDIR_TO_INDIR, 4, slir_reg_move_b2i_indir_to_indir, "MOV_b2i", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_INDIR_TO_OFFSET_REG, 6, slir_reg_move_b2i_indir_to_offset_reg, "MOV_b2i", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_b2i_indir_to_indir_offset, "MOV_b2i", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_OFFSET_REG_TO_REG, 5, slir_reg_move_b2i_offset_reg_to_reg, "MOV_b2i", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_OFFSET_REG_TO_INDIR, 6, slir_reg_move_b2i_offset_reg_to_indir, "MOV_b2i", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_b2i_offset_reg_to_offset_reg, "MOV_b2i", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_b2i_offset_reg_to_indir_offset, "MOV_b2i", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_INDIR_OFFSET_TO_REG, 5, slir_reg_move_b2i_indir_offset_to_reg, "MOV_b2i", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_b2i_indir_offset_to_indir, "MOV_b2i", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_b2i_indir_offset_to_offset_reg, "MOV_b2i", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B2I_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_b2i_indir_offset_to_indir_offset, "MOV_b2i", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_REG_TO_REG, 2, slir_reg_move_b_reg_to_reg_args, "MOV_b", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_REG_TO_INDIR, 3, slir_reg_move_b_reg_to_indir_args, "MOV_b", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_REG_TO_OFFSET_REG, 5, slir_reg_move_b_reg_to_offset_reg_args, "MOV_b", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_REG_TO_INDIR_OFFSET, 5, slir_reg_move_b_reg_to_indir_offset_args, "MOV_b", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_INDIR_TO_REG, 3, slir_reg_move_b_indir_to_reg_args, "MOV_b", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_INDIR_TO_INDIR, 4, slir_reg_move_b_indir_to_indir_args, "MOV_b", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_INDIR_TO_OFFSET_REG, 6, slir_reg_move_b_indir_to_offset_reg_args, "MOV_b", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_b_indir_to_indir_offset_args, "MOV_b", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_OFFSET_REG_TO_REG, 5, slir_reg_move_b_offset_reg_to_reg_args, "MOV_b", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_OFFSET_REG_TO_INDIR, 6, slir_reg_move_b_offset_reg_to_indir_args, "MOV_b", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_b_offset_reg_to_offset_reg_args, "MOV_b", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_b_offset_reg_to_indir_offset_args, "MOV_b", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_INDIR_OFFSET_TO_REG, 5, slir_reg_move_b_indir_offset_to_reg_args, "MOV_b", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_b_indir_offset_to_indir_args, "MOV_b", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_b_indir_offset_to_offset_reg_args, "MOV_b", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_B_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_b_indir_offset_to_indir_offset_args, "MOV_b", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_REG_TO_REG, 2, slir_reg_move_s2d_reg_to_reg_args, "MOV_s2d", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_REG_TO_INDIR, 3, slir_reg_move_s2d_reg_to_indir_args, "MOV_s2d", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_REG_TO_OFFSET_REG, 5, slir_reg_move_s2d_reg_to_offset_reg_args, "MOV_s2d", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_REG_TO_INDIR_OFFSET, 5, slir_reg_move_s2d_reg_to_indir_offset_args, "MOV_s2d", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_INDIR_TO_REG, 3, slir_reg_move_s2d_indir_to_reg_args, "MOV_s2d", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_INDIR_TO_INDIR, 4, slir_reg_move_s2d_indir_to_indir_args, "MOV_s2d", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_INDIR_TO_OFFSET_REG, 6, slir_reg_move_s2d_indir_to_offset_reg_args, "MOV_s2d", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_s2d_indir_to_indir_offset_args, "MOV_s2d", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_OFFSET_REG_TO_REG, 5, slir_reg_move_s2d_offset_reg_to_reg_args, "MOV_s2d", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_OFFSET_REG_TO_INDIR, 6, slir_reg_move_s2d_offset_reg_to_indir_args, "MOV_s2d", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_s2d_offset_reg_to_offset_reg_args, "MOV_s2d", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_s2d_offset_reg_to_indir_offset_args, "MOV_s2d", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_INDIR_OFFSET_TO_REG, 5, slir_reg_move_s2d_indir_offset_to_reg_args, "MOV_s2d", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_s2d_indir_offset_to_indir_args, "MOV_s2d", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_s2d_indir_offset_to_offset_reg_args, "MOV_s2d", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_S2D_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_s2d_indir_offset_to_indir_offset_args, "MOV_s2d", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_REG_TO_REG, 2, slir_reg_move_sc_reg_to_reg_args, "MOV_sc", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_REG_TO_INDIR, 3, slir_reg_move_sc_reg_to_indir_args, "MOV_sc", "%0, [%1 + %2], %3" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_REG_TO_OFFSET_REG, 5, slir_reg_move_sc_reg_to_offset_reg_args, "MOV_sc", "%0, %1 + %2 * %3 + %4, %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_REG_TO_INDIR_OFFSET, 5, slir_reg_move_sc_reg_to_indir_offset_args, "MOV_sc", "%0, [%1 + %2 * %3 + %4], %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_INDIR_TO_REG, 3, slir_reg_move_sc_indir_to_reg_args, "MOV_sc", "%0, %1, [%2 + %3]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_INDIR_TO_INDIR, 4, slir_reg_move_sc_indir_to_indir_args, "MOV_sc", "%0, [%1 + %2], [%3 + %4]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_INDIR_TO_OFFSET_REG, 6, slir_reg_move_sc_indir_to_offset_reg_args, "MOV_sc", "%0, %1 + %2 * %3 + %4, [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_INDIR_TO_INDIR_OFFSET, 6, slir_reg_move_sc_indir_to_indir_offset_args, "MOV_sc", "%0, [%1 + %2 * %3 + %4], [%5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_OFFSET_REG_TO_REG, 5, slir_reg_move_sc_offset_reg_to_reg_args, "MOV_sc", "%0, %1, %2 + %3 * %4 + %5" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_OFFSET_REG_TO_INDIR, 6, slir_reg_move_sc_offset_reg_to_indir_args, "MOV_sc", "%0, [%1 + %2], %3 + %4 * %5 + %6" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_OFFSET_REG_TO_OFFSET_REG, 8, slir_reg_move_sc_offset_reg_to_offset_reg_args, "MOV_sc", "%0, %1 + %2 * %3 + %4, %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_OFFSET_REG_TO_INDIR_OFFSET, 8, slir_reg_move_sc_offset_reg_to_indir_offset_args, "MOV_sc", "%0, [%1 + %2 * %3 + %4], %5 + %6 * %7 + %8" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_INDIR_OFFSET_TO_REG, 5, slir_reg_move_sc_indir_offset_to_reg_args, "MOV_sc", "%0, %1, [%2 + %3 * %4 + %5]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_INDIR_OFFSET_TO_INDIR, 6, slir_reg_move_sc_indir_offset_to_indir_args, "MOV_sc", "%0, [%1 + %2], [%3 + %4 * %5 + %6]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_INDIR_OFFSET_TO_OFFSET_REG, 8, slir_reg_move_sc_indir_offset_to_offset_reg_args, "MOV_sc", "%0, %1 + %2 * %3 + %4, [%5 + %6 * %7 + %8]" },
+  { IRARC_SLIR, SLIR_REG_MOVE_SC_INDIR_OFFSET_TO_INDIR_OFFSET, 8, slir_reg_move_sc_indir_offset_to_indir_offset_args, "MOV_sc", "%0, [%1 + %2 * %3 + %4], [%5 + %6 * %7 + %8]" } 
 };
 
 
