@@ -48,6 +48,10 @@ struct ireg_instr {
    */
   int instr_index_;
 
+  /* The operands */
+  int num_operands_;
+  struct ireg_operand *operands_;
+
   /* The mnemonic representing the instruction in textual form */
   const char *mnemonic_;
 
@@ -63,10 +67,6 @@ struct ireg_instr {
    * digit 0. It is currently not possible to go beyond 100 arguments.
    */
   const char *format_;
-
-  /* The operands */
-  int num_operands_;
-  struct ireg_operand *operands_;
 };
 
 /* a register belonging to a particular category */

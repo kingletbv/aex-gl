@@ -47,6 +47,128 @@
 #include "sl_reg_move.h"
 #endif
 
+static struct ireg_operand load_operands[] = {
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand store_operands[] = {
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand move_operands[] = {
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand imm_operands[] = {
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand bin_operands[] = {
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand unary_operands[] = {
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand bin_root_operands[] = {
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand unary_root_operands[] = {
+  { IREG_USE }
+};
+
+static struct ireg_operand unary_def_from_sideffect[] = {
+  { IREG_DEF }
+};
+
+static struct ireg_instr gir_instructions_[] = {
+  { IRARC_IR, GIR_LOAD8, 1, load_operands, "GIR_LOAD8", "%0, %1" },
+  { IRARC_IR, GIR_LOAD16, 1, load_operands,  "GIR_LOAD16", "%0, %1" },
+  { IRARC_IR, GIR_LOAD32, 1, load_operands, "GIR_LOAD32", "%0, %1" },
+  { IRARC_IR, GIR_LOAD64, 1, load_operands, "GIR_LOAD64", "%0, %1" },
+
+  { IRARC_IR, GIR_STORE, 2, store_operands, "GIR_STORE", "%0, %1" },
+  { IRARC_IR, GIR_MOVE, 2, move_operands, "GIR_MOVE", "%0, %1" },
+
+  { IRARC_IR, GIR_IMM8, 2, imm_operands, "GIR_IMM8", "%0, %1" },
+  { IRARC_IR, GIR_IMM16, 2, imm_operands, "GIR_IMM16", "%0, %1" },
+  { IRARC_IR, GIR_IMM32, 2, imm_operands, "GIR_IMM32", "%0, %1" },
+  { IRARC_IR, GIR_IMM64, 2, imm_operands, "GIR_IMM64", "%0, %1" },
+
+  { IRARC_IR, GIR_ADD, 3, bin_operands, "GIR_ADD", "%0, %1, %2" },
+  { IRARC_IR, GIR_SUB, 3, bin_operands, "GIR_SUB", "%0, %1, %2" },
+  { IRARC_IR, GIR_MULS, 3, bin_operands, "GIR_MULS", "%0, %1, %2" },
+  { IRARC_IR, GIR_MULU, 3, bin_operands, "GIR_MULU", "%0, %1, %2" },
+  { IRARC_IR, GIR_MUL, 3, bin_operands, "GIR_MUL", "%0, %1, %2" },
+  { IRARC_IR, GIR_DIVS, 3, bin_operands, "GIR_DIVS", "%0, %1, %2" },
+  { IRARC_IR, GIR_DIVU, 3, bin_operands, "GIR_DIVU", "%0, %1, %2" },
+  { IRARC_IR, GIR_AND, 3, bin_operands, "GIR_AND", "%0, %1, %2" },
+  { IRARC_IR, GIR_OR, 3, bin_operands,  "GIR_OR", "%0, %1, %2" },
+  { IRARC_IR, GIR_XOR, 3, bin_operands, "GIR_XOR", "%0, %1, %2" },
+  { IRARC_IR, GIR_LSL, 3, bin_operands, "GIR_LSL", "%0, %1, %2" },
+  { IRARC_IR, GIR_LSR, 3, bin_operands, "GIR_LSR", "%0, %1, %2" },
+  { IRARC_IR, GIR_ASR, 3, bin_operands, "GIR_ASR", "%0, %1, %2" },
+
+  { IRARC_IR, GIR_NEG, 2, unary_operands, "GIR_NEG", "%0, %1" },
+  { IRARC_IR, GIR_NOT, 2, unary_operands, "GIR_NOT", "%0, %1" },
+
+  { IRARC_IR, GIR_ZX_8_TO_16, 2, unary_operands, "GIR_ZERO_EXT_8_TO_16", "%0, %1" },
+  { IRARC_IR, GIR_ZX_16_TO_32, 2, unary_operands, "GIR_ZERO_EXT_16_TO_32", "%0, %1" },
+  { IRARC_IR, GIR_ZX_32_TO_64, 2, unary_operands, "GIR_ZERO_EXT_32_TO_64", "%0, %1" },
+
+  { IRARC_IR, GIR_SX_8_TO_16, 2, unary_operands, "GIR_SIGN_EXT_8_TO_16", "%0, %1" },
+  { IRARC_IR, GIR_SX_16_TO_32, 2, unary_operands, "GIR_SIGN_EXT_16_TO_32", "%0, %1" },
+  { IRARC_IR, GIR_SX_32_TO_64, 2, unary_operands, "GIR_SIGN_EXT_32_TO_64", "%0, %1" },
+
+  { IRARC_IR, GIR_CULL_64_TO_32, 2, unary_operands, "GIR_CULL_64_TO_32", "%0, %1" },
+  { IRARC_IR, GIR_CULL_32_TO_16, 2, unary_operands, "GIR_CULL_32_TO_16", "%0, %1" },
+  { IRARC_IR, GIR_CULL_16_TO_8, 2, unary_operands, "GIR_CULL_16_TO_8", "%0, %1" },
+
+  { IRARC_IR, GIR_JUMP, 1, unary_root_operands, "GIR_JUMP", "%0"},
+
+  { IRARC_IR, GIR_BRANCH_SIGNED_GREATER, 2, bin_root_operands, "GIR_BRANCH_SIGNED_GREATER", "%0, %1" },
+  { IRARC_IR, GIR_BRANCH_SIGNED_GREATER_EQUAL, 2, bin_root_operands, "GIR_BRANCH_SIGNED_GREATER_EQUAL", "%0, %1" },
+  { IRARC_IR, GIR_BRANCH_SIGNED_LESSER, 2, bin_root_operands, "GIR_BRANCH_SIGNED_LESSER", "%0, %1" },
+  { IRARC_IR, GIR_BRANCH_SIGNED_LESSER_EQUAL, 2, bin_root_operands, "GIR_BRANCH_SIGNED_LESSER_EQUAL", "%0, %1" },
+
+  { IRARC_IR, GIR_BRANCH_UNSIGNED_GREATER, 2, bin_root_operands, "GIR_BRANCH_UNSIGNED_GREATER", "%0, %1" },
+  { IRARC_IR, GIR_BRANCH_UNSIGNED_GREATER_EQUAL, 2, bin_root_operands, "GIR_BRANCH_UNSIGNED_GREATER_EQUAL", "%0, %1" },
+  { IRARC_IR, GIR_BRANCH_UNSIGNED_LESSER, 2, bin_root_operands, "GIR_BRANCH_UNSIGNED_LESSER", "%0, %1" },
+  { IRARC_IR, GIR_BRANCH_UNSIGNED_LESSER_EQUAL, 2, bin_root_operands, "GIR_BRANCH_UNSIGNED_LESSER_EQUAL", "%0, %1" },
+
+  { IRARC_IR, GIR_BRANCH_EQUAL, 2, bin_root_operands, "GIR_BRANCH_EQUAL", "%0, %1" },
+  { IRARC_IR, GIR_BRANCH_NOT_EQUAL, 2, bin_root_operands, "GIR_BRANCH_NOT_EQUAL", "%0, %1" },
+
+  { IRARC_IR, GIR_COMPARE, 2, bin_root_operands, "GIR_COMPARE", "%0, %1" },
+
+  /* Bit of a split here, currently these are defined as the low-level primitive almost-machine language forms
+   * such that we can match their tiles to the actual X64 equivalents;
+   */
+  { IRARC_IR, GIR_CALL, 1, unary_root_operands, "GIR_CALL", "%0" },
+  { IRARC_IR, GIR_RETURN, 0, NULL, "GIR_RETURN", "" },
+  { IRARC_IR, GIR_PUSH, 1, unary_root_operands, "GIR_PUSH", "%0" },
+  { IRARC_IR, GIR_POP, 1, unary_def_from_sideffect, "GIR_POP", "%0" }
+};
+
+
+
+void sl_ir_register_instructions(struct ireg_registry *reg) {
+  size_t n;
+  for (n = 0; n < sizeof(gir_instructions_)/sizeof(*gir_instructions_); ++n) {
+    ireg_set_instruction(reg, gir_instructions_ + n);
+  }
+}
+
 static void sl_ir_negate(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *dst, struct sl_expr *opd) {
   sl_reg_alloc_kind_t kind = EXPR_RVALUE(opd)->kind_;
   switch (kind) {
@@ -2087,3 +2209,4 @@ struct ir_block *sl_ir_expr(struct ir_block *blk, struct ir_temp *chain_reg, str
 
   return blk;
 }
+

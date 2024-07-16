@@ -15,6 +15,11 @@
 #ifndef SL_IR_H
 #define SL_IR_H
 
+#ifndef IR_REGISTRY_H_INCLUDED
+#define IR_REGISTRY_H_INCLUDED
+#include "ir_registry.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -72,7 +77,7 @@ enum generic_ir_instr_code {
   GIR_BRANCH_UNSIGNED_GREATER,
   GIR_BRANCH_UNSIGNED_GREATER_EQUAL,
   GIR_BRANCH_UNSIGNED_LESSER,
-  GIR_BRANCH_UNSIGEND_LESSER_EQUAL,
+  GIR_BRANCH_UNSIGNED_LESSER_EQUAL,
 
   GIR_BRANCH_EQUAL,
   GIR_BRANCH_NOT_EQUAL,
@@ -321,6 +326,8 @@ enum sl_ir_instr_code {
   SLIR_REG_MOVE_SC_INDIR_OFFSET_TO_OFFSET_REG,
   SLIR_REG_MOVE_SC_INDIR_OFFSET_TO_INDIR_OFFSET
 };
+
+void sl_ir_register_instructions(struct ireg_registry *reg);
 
 void sl_ir_need_rvalue(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_expr *x);
 struct ir_block *sl_ir_stmt(struct ir_block *blk, struct ir_temp *chain_reg, struct sl_execution_frame *frame, struct sl_stmt *stmt);
