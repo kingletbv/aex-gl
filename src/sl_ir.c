@@ -91,6 +91,83 @@ static struct ireg_operand unary_def_from_sideffect[] = {
   { IREG_DEF }
 };
 
+static struct ireg_operand quad_def_def_operands[] = {
+  { IREG_DEF },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand tri_operands[] = {
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_tri[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_quad[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE }
+};
+static struct ireg_operand slir_5_opd[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_6_opd[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_7_opd[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_8_opd[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+static struct ireg_operand slir_10_opd[] = {
+  { IREG_USE },
+  { IREG_DEF },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE },
+  { IREG_USE }
+};
+
+
 static struct ireg_instr gir_instructions_[] = {
   { IRARC_IR, GIR_LOAD8, 1, load_operands, "GIR_LOAD8", "%0, %1" },
   { IRARC_IR, GIR_LOAD16, 1, load_operands,  "GIR_LOAD16", "%0, %1" },
@@ -160,12 +237,81 @@ static struct ireg_instr gir_instructions_[] = {
   { IRARC_IR, GIR_POP, 1, unary_def_from_sideffect, "GIR_POP", "%0" }
 };
 
+static struct ireg_instr slir_instructions_[] = {
+  { IRARC_SLIR, SLIR_SPLIT_EXEC_CHAIN_BY_CONDITION, 4, quad_def_def_operands, "SLIR_SPLIT", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_JOIN_EXEC_CHAINS, 3, tri_operands, "SLIR_JOIN", "%0, %1, %2" },
+
+  { IRARC_SLIR, SLIR_NEG_F, 3, slir_tri, "SLIR_NEG", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_NEG_I, 3, slir_tri, "SLIR_NEG", "%0, %1, %2" },
+
+  { IRARC_SLIR, SLIR_NOT, 3, slir_tri, "SLIR_NOT", "%0, %1, %2" },
+
+  { IRARC_SLIR, SLIR_MUL_F, 4, slir_quad, "SLIR_MUL", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_MUL_I, 4, slir_quad, "SLIR_MUL", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_DOT2, 6, slir_6_opd, "SLIR_DOT", "%0, %1, %2, %3, %4, %5" },
+  { IRARC_SLIR, SLIR_DOT3, 8, slir_8_opd, "SLIR_DOT", "%0, %1, %2, %3, %4, %5, %6, %7" },
+  { IRARC_SLIR, SLIR_DOT4, 10, slir_10_opd, "SLIR_DOT", "%0, %1, %2, %3, %4, %5, %6, %7, %8, %9" },
+
+  { IRARC_SLIR, SLIR_DIV_F, 4, slir_quad, "SLIR_DIV", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_DIV_I, 4, slir_quad, "SLIR_DIV", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_ADD_F, 4, slir_quad, "SLIR_ADD", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_ADD_I, 4, slir_quad, "SLIR_ADD", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_SUB_F, 4, slir_quad, "SLIR_SUB", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_SUB_I, 4, slir_quad, "SLIR_SUB", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_LT_F, 4, slir_quad, "SLIR_LT", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_LT_I, 4, slir_quad, "SLIR_LT", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_LE_F, 4, slir_quad, "SLIR_LE", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_LE_I, 4, slir_quad, "SLIR_LE", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_GE_F, 4, slir_quad, "SLIR_GE", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_GE_I, 4, slir_quad, "SLIR_GE", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_GT_F, 4, slir_quad, "SLIR_GT", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_GT_I, 4, slir_quad, "SLIR_GT", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_EQ_F, 4, slir_quad, "SLIR_EQ", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_EQ_I, 4, slir_quad, "SLIR_EQ", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_NE_F, 4, slir_quad, "SLIR_NE", "%0, %1, %2, %3" },
+  { IRARC_SLIR, SLIR_NE_I, 4, slir_quad, "SLIR_NE", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_LOG_XOR, 4, slir_quad, "SLIR_LOG_XOR", "%0, %1, %2, %3" },
+
+  { IRARC_SLIR, SLIR_DEC_F, 3, slir_tri, "SLIR_DEC", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_DEC_I, 3, slir_tri, "SLIR_DEC", "%0, %1, %2" },
+
+  { IRARC_SLIR, SLIR_INC_F, 3, slir_tri, "SLIR_INC", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_INC_I, 3, slir_tri, "SLIR_INC", "%0, %1, %2" },
+
+  { IRARC_SLIR, SLIR_INIT_LIT_F, 3, slir_tri, "SLIR_INIT_LIT", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_INIT_LIT_I, 3, slir_tri, "SLIR_INIT_LIT", "%0, %1, %2" },
+  { IRARC_SLIR, SLIR_INIT_LIT_B, 3, slir_tri, "SLIR_INIT_LIT", "%0, %1, %2" },
+
+  { IRARC_SLIR, SLIR_MUL_C_AND_ADD, 5, slir_5_opd, "SLIR_MUL_C_AND_ADD", "%0, %1, %2, %3, %4" },
+
+  { IRARC_SLIR, SLIR_PICK_FROM_2, 5, slir_5_opd, "SLIR_PICK", "%0, %1, %2:{ %3, %4 }" },
+  { IRARC_SLIR, SLIR_PICK_FROM_3, 6, slir_6_opd, "SLIR_PICK", "%0, %1, %2:{ %3, %4, %5 }" },
+  { IRARC_SLIR, SLIR_PICK_FROM_4, 7, slir_7_opd, "SLIR_PICK", "%0, %1, %2:{ %3, %4, %5, %6 }" },
+
+  { IRARC_SLIR, SLIR_PICK_FROM_2_INDIRECT, 5, slir_5_opd, "SLIR_PICK", "%0, %1, [%2:{ %3, %4 }]" },
+  { IRARC_SLIR, SLIR_PICK_FROM_3_INDIRECT, 6, slir_6_opd, "SLIR_PICK", "%0, %1, [%2:{ %3, %4, %5 }]" },
+  { IRARC_SLIR, SLIR_PICK_FROM_4_INDIRECT, 7, slir_7_opd, "SLIR_PICK", "%0, %1, [%2:{ %3, %4, %5, %6 }]" }
+};
 
 
 void sl_ir_register_instructions(struct ireg_registry *reg) {
   size_t n;
   for (n = 0; n < sizeof(gir_instructions_)/sizeof(*gir_instructions_); ++n) {
     ireg_set_instruction(reg, gir_instructions_ + n);
+  }
+
+  for (n = 0; n < sizeof(slir_instructions_)/sizeof(*slir_instructions_); ++n) {
+    ireg_set_instruction(reg, slir_instructions_ + n);
   }
 }
 
@@ -1261,7 +1407,7 @@ static void sl_ir_i_init_lit(struct ir_block *blk, struct ir_temp *chain_reg, in
 }
 
 static void sl_ir_b_init_lit(struct ir_block *blk, struct ir_temp *chain_reg, int dst_reg, int lit) {
-  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_INIT_LIT_F);
+  struct ir_instr *instr = ir_block_append_instr(blk, SLIR_INIT_LIT_B);
   ir_instr_append_use(instr, chain_reg);
   ir_instr_append_def(instr, ir_body_alloc_temp_banked_int(blk->body_, dst_reg));
   ir_instr_append_use(instr, ir_body_alloc_temp_litb(blk->body_, lit));
