@@ -17,10 +17,11 @@ Implemented are:
 * 16 and 32 bit depth buffering, 
 * all blending modes, 
 * lines, and triangles
-* dFdx(), dFdy(), fwidth(), while these are strictly not in GLSL 1.00, they are cool and I wanted them.
+* dFdx(), dFdy(), fwidth(), while these are strictly not in GLSL 1.00, they impact the rasterization in a very fundamental way. This makes
+  them difficult to add later, hence implementing them now.
 
 Missing are:
-* points (GL_POINT) - this is however planned sooner rather than later.
+* points (GL_POINT) - note however GL_LINES are implemented.
 * MSAA - this is currently not targeted. 
 
 
