@@ -46,7 +46,7 @@ GTA3 makes for such a great development target, running on OpenGL ES 2.0, so it 
 ![His hands are messed up](docs/more%20than%20his%20hands.jpg)
 
 GTA3 is beginning to look better and better. Recent fixes have in particular improved the lighting. To get the re3 GTA3 code base to 
-pick up the OpenGL ES 2.0 DLLs, you'll need to make a one line change in how it drives GLFW (otherwise it'll still pick up Windows'
+pick up the OpenGL ES 2.0 DLLs, you'll need to make a change [^1] in how it drives GLFW (otherwise it'll still pick up Windows'
 OpenGL, even if you specify OpenGL ES 2.0), feel free to reach out for instructions. 
 I'm not sure what Rockstar thinks of re3 itself (the project suddenly went quiet but the code is still out there) so I can't help there, 
 but it sure makes for such a great test case.
@@ -144,3 +144,10 @@ After the AST is built up, we have an sl_compilation_unit [sl_compilation_unit.h
 frame, and the global symbol scope.
 
 And that about completes the parsing.
+
+[^1]: in their `librw` renderware reimplementation, in file src/gl/gl3device.cpp, around line 1693 there is a `profiles[]` array,
+      in that array, move up the `{ GLFW_OPENGL_ES_API, 2, 0 }` to the top. A little below that, in function `startGLFW`, around
+      line 1724, add `glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);`, and finally on the line below it, change
+      `if (mode->flags & VIDEOMOVEEXCLUSIVE)` to always take that branch (so `if (1 && (..etc..))`). Goal here is to have librw
+      to pick up the OpenGL ES 2.0 DLLs over anything the windows platform has to offer, and to work around a few of the EGL
+      limitations we have.
