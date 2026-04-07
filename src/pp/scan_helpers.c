@@ -731,7 +731,7 @@ int sch_read_char_value(struct preprocessor *pp, const char *lit_pos, int *val, 
       }
       break;
     case 'x':
-      num_digits = sch_read_hex_esc_value(c + 1, &num);
+      num_digits = sch_read_hex_esc_value(c + 2, &num);
       if ((!num_digits) || (num > max_char)) {
         dx_error_loc(pp->dx_, loc, "Invalid hex escape sequence");
         *val = *c;
