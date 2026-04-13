@@ -289,7 +289,7 @@ struct pptk {
 };
 
 struct macro_arg_inst {
-  struct macro_arg_inst *next_, *prev_;
+  struct macro_arg_inst *next_;
   struct pptk *tokens_;
 };
 
