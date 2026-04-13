@@ -219,8 +219,27 @@ struct pptk *pptk_clone_single(struct preprocessor *pp, struct pptk *one) {
   if (!clone) {
     return NULL;
   }
-  clone->v_type_ = one->v_type_;
-  clone->v_ = one->v_;
+  if (one->tok_ == PPTK_STRING_LIT) {
+    clone->v_.string_.wide_ = one->v_.string_.wide_;
+    clone->v_.string_.length_ = one->v_.string_.length_;
+    if (one->v_.string_.data_) {
+      size_t elem_size = one->v_.string_.wide_ ? sizeof(uint16_t) : sizeof(char);
+      size_t alloc_size = (one->v_.string_.length_ + 1) * elem_size;
+      clone->v_.string_.data_ = malloc(alloc_size);
+      if (!clone->v_.string_.data_) {
+        pptk_free(clone);
+        return NULL;
+      }
+      memcpy(clone->v_.string_.data_, one->v_.string_.data_, alloc_size);
+    }
+    else {
+      clone->v_.string_.data_ = NULL;
+    }
+  }
+  else {
+    clone->v_type_ = one->v_type_;
+    clone->v_ = one->v_;
+  }
 
   return clone;
 }
