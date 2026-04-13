@@ -197,7 +197,7 @@ void pp_if_pop(struct preprocessor *pp) {
 
 int pp_concat_sub_output(struct preprocessor *pp, struct situs *output_situs, char **output_buf, size_t *output_pos, size_t *output_buf_size, struct situs *span_situs, const char *span_text) {
   size_t span_text_len = strlen(span_text);
-  return pp_concat_output_b(pp, output_situs, output_buf, output_pos, output_buf_size, span_situs, span_text, span_text_len);
+  return pp_concat_sub_output_b(pp, output_situs, output_buf, output_pos, output_buf_size, span_situs, span_text, span_text_len);
 }
 
 int pp_concat_sub_output_b(struct preprocessor *pp, struct situs *output_situs, char **output_buf, size_t *output_pos, size_t *output_buf_size, struct situs *span_situs, const char *span_text, size_t span_text_len) {
@@ -220,7 +220,7 @@ int pp_concat_sub_output_b(struct preprocessor *pp, struct situs *output_situs, 
     return -1;
   }
 
-  struct situs_span *sss = (span_situs->num_spans_ > 1) ? span_situs->u_.many_.spans_ : &span_situs->u_.one_;
+  struct situs_span *sss = (substitution.num_spans_ > 1) ? substitution.u_.many_.spans_ : &substitution.u_.one_;
   /* Mark all of the situs a substitution */
   size_t n;
   sss->is_substitution_ = 1;
